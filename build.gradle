@@ -8,41 +8,11 @@ plugins {
     id 'java'
 }
 
-/*sourceCompatibility = 16
-targetCompatibility = 16*/
-
 group = pluginGroup
 version = pluginVersion
 
 String _version = "1.18.2"
 boolean _mapped = true
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        name = 'papermc-repo'
-        url = 'https://papermc.io/repo/repository/maven-public/'
-    }
-    maven {
-        name = 'sonatype'
-        url = 'https://oss.sonatype.org/content/groups/public/'
-    }
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    // mavenLocal() // This is needed for CraftBukkit and Spigot.
-}
-
-static String yandexDiskMinecraftPath() {
-    return Paths.get(yandex_disk(), "PLUGINS", "Minecraft");
-}
-
-static String decompilePath(String file) {
-    return Paths.get(yandexDiskMinecraftPath(), ".decompile", file);
-}
-static String libPath(String file) {
-    return Paths.get(yandexDiskMinecraftPath(), ".libs", file);
-}
 
 artifacts {
     archives(
@@ -69,6 +39,18 @@ dependencies {
             files(libPath("MyLinker-5_1.jar")),
             files(libPath("mp3spi-1.9.13.jar"))
     )
+}
+
+//<editor-fold desc="LOADER">
+static String yandexDiskMinecraftPath() {
+    return Paths.get(yandex_disk(), "PLUGINS", "Minecraft");
+}
+
+static String decompilePath(String file) {
+    return Paths.get(yandexDiskMinecraftPath(), ".decompile", file);
+}
+static String libPath(String file) {
+    return Paths.get(yandexDiskMinecraftPath(), ".libs", file);
 }
 
 static List<String> getText(Process process) {
@@ -250,3 +232,4 @@ build {
 
 compileJava.options.encoding = 'UTF-8'
 compileJava.options.compilerArgs.add("--add-exports=java.base/jdk.internal.reflect=ALL-UNNAMED")
+//</editor-fold>
