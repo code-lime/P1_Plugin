@@ -1,0 +1,427 @@
+package p1.MapGame;
+
+import com.google.gson.JsonObject;
+import org.bukkit.*;
+import org.bukkit.entity.Player;
+import org.lime.Position;
+import org.lime.core;
+import org.lime.system;
+import AnyEvent;
+import p1.ItemManager;
+import DrawMap;
+import PopulateLootEvent;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Checkers {
+    public static core.element create() {
+        return core.element.create(Checkers.class)
+                .withInstance()
+                .withInit(Checkers::init);
+    }
+    public static class Memory {
+        private static long of(int x, int z) { return (long)(x & 0xFFFFFFFFL) | (long)((z & 0xFFFFFFFFL) << 32); }
+        private static int of_x(long _long) { return (int)(_long - (_long >> 32 << 32)); }
+        private static int of_y(long _long) { return (int)(_long >> 32); }
+
+        public static abstract class IChecker {
+            public final boolean isBlack;
+            protected IChecker(boolean isBlack) {
+                this.isBlack = isBlack;
+            }
+            public void draw(DrawMap map, Memory memory, long point) { draw(map, memory, of_x(point), of_y(point)); }
+            public void draw(DrawMap map, Memory memory, int x, int y) {
+                system.Toast2<byte[], Map<Byte, Color>> display = this.display(memory, x, y);
+                map.rectangle(x * 16, y * 16, 16, display.val0, display.val1);
+            }
+            public abstract Map<Long, Long> filter(Memory memory, int x, int y);
+            protected abstract IChecker upper();
+            protected abstract system.Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y);
+        }
+        public static class Checker extends IChecker {
+            public boolean isKing;
+
+            protected Checker(boolean black, boolean king) {
+                super(black);
+                this.isKing = king;
+            }
+            public static Checker of(boolean black, boolean king) { return new Checker(black, king); }
+            private void line(Memory memory, int x, int y, int dx, int dy, HashMap<Long, Long> points, HashMap<Long, Long> damage) {
+                x += dx;
+                y += dy;
+                while (memory.in(x,y)) {
+                    long _point = Memory.of(x,y);
+                    Checker checker = memory.checkers.getOrDefault(_point, null) instanceof Checker c ? c : null;
+                    if (checker == null) {
+                        points.put(_point, null);
+                        x += dx;
+                        y += dy;
+                        continue;
+                    }
+                    if (checker.isBlack == isBlack) return;
+                    x += dx;
+                    y += dy;
+                    //while (memory.in(x,y)) {
+                        if (!memory.isEmpty(x,y)) return;
+                        damage.put(Memory.of(x, y), _point);
+                    /*    x += dx;
+                        y += dy;
+                    }*/
+                    return;
+                }
+            }
+            @Override public Map<Long, Long> filter(Memory memory, int x, int y) {
+                HashMap<Long, Long> points = new HashMap<>();
+                HashMap<Long, Long> damage = new HashMap<>();
+                if (isKing) {
+                    line(memory, x, y, -1, 1, points, damage);
+                    line(memory, x, y, 1, 1, points, damage);
+                    line(memory, x, y, -1, -1, points, damage);
+                    line(memory, x, y, 1, -1, points, damage);
+                } else {
+                    Arrays.asList(
+                            system.toast(-1,1,memory.isBlack),
+                            system.toast(1,1,memory.isBlack),
+                            system.toast(-1,-1,!memory.isBlack),
+                            system.toast(1,-1,!memory.isBlack)
+                    ).forEach(_xy -> {
+                        int _x = _xy.val0;
+                        int _y = _xy.val1;
+                        if (!memory.in(x+_x,y+_y)) return;
+                        long _point = Memory.of(x+_x,y+_y);
+                        Checker checker = memory.checkers.getOrDefault(_point, null) instanceof Checker c ? c : null;
+                        if (checker == null) {
+                            if (_xy.val2) points.put(_point, null);
+                            return;
+                        }
+                        if (checker.isBlack == isBlack) return;
+                        if (!memory.isEmpty(x+_x*2,y+_y*2)) return;
+                        damage.put(Memory.of(x+_x*2, y+_y*2), _point);
+                    });
+                }
+                return damage.size() > 0 ? damage : points;
+            }
+
+            @Override protected IChecker upper() { isKing = true; return this; }
+            @Override protected system.Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y) {
+                return system.toast(checkerBytes, system.map.<Byte, Color>of()
+                        .add((byte)1, isBlack ? Color.BLACK : Color.WHITE)
+                        .add((byte)2, isKing ? Color.GRAY : (isBlack ? Color.BLACK : Color.WHITE))
+                        .add((byte)3, memory.isBlack == isBlack ? Color.fromRGB(0x677535) : (isBlack ? Color.BLACK : Color.WHITE))
+                        .build());
+            }
+
+            private static final byte[] checkerBytes = new byte[] {
+                    0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+                    0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+                    0,0,0,0, 0,0,3,3, 3,3,0,0, 0,0,0,0,
+                    0,0,0,0, 3,3,1,1, 1,1,3,3, 0,0,0,0,
+
+                    0,0,0,3, 1,1,1,1, 1,1,1,1, 3,0,0,0,
+                    0,0,0,3, 1,1,2,2, 2,2,1,1, 3,0,0,0,
+                    0,0,3,1, 1,2,2,2, 2,2,2,1, 1,3,0,0,
+                    0,0,3,1, 1,2,2,2, 2,2,2,1, 1,3,0,0,
+
+                    0,0,3,1, 1,2,2,2, 2,2,2,1, 1,3,0,0,
+                    0,0,3,1, 1,2,2,2, 2,2,2,1, 1,3,0,0,
+                    0,0,0,3, 1,1,2,2, 2,2,1,1, 3,0,0,0,
+                    0,0,0,3, 1,1,1,1, 1,1,1,1, 3,0,0,0,
+
+                    0,0,0,0, 3,3,1,1, 1,1,3,3, 0,0,0,0,
+                    0,0,0,0, 0,0,3,3, 3,3,0,0, 0,0,0,0,
+                    0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+                    0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+            };
+        }
+        /*public static abstract class Chess extends IChecker {
+            protected abstract byte[] getBytes();
+
+            protected Chess(boolean black) {
+                super(black);
+            }
+            private void line(Memory memory, int x, int y, int dx, int dy, HashMap<Long, Long> points, HashMap<Long, Long> damage) {
+                x += dx;
+                y += dy;
+                while (memory.in(x,y)) {
+                    long _point = Memory.of(x,y);
+                    Checker checker = memory.checkers.getOrDefault(_point, null) instanceof Checker c ? c : null;
+                    if (checker == null) {
+                        points.put(_point, null);
+                        x += dx;
+                        y += dy;
+                        continue;
+                    }
+                    if (checker.isBlack == isBlack) return;
+                    x += dx;
+                    y += dy;
+                    //while (memory.in(x,y)) {
+                    if (!memory.isEmpty(x,y)) return;
+                    damage.put(Memory.of(x, y), _point);
+                    return;
+                }
+            }
+            @Override public Map<Long, Long> filter(Memory memory, int x, int y) {
+                HashMap<Long, Long> points = new HashMap<>();
+                HashMap<Long, Long> damage = new HashMap<>();
+                if (isKing) {
+                    line(memory, x, y, -1, 1, points, damage);
+                    line(memory, x, y, 1, 1, points, damage);
+                    line(memory, x, y, -1, -1, points, damage);
+                    line(memory, x, y, 1, -1, points, damage);
+                } else {
+                    Arrays.asList(
+                            system.toast(-1,1,memory.isBlack),
+                            system.toast(1,1,memory.isBlack),
+                            system.toast(-1,-1,!memory.isBlack),
+                            system.toast(1,-1,!memory.isBlack)
+                    ).forEach(_xy -> {
+                        int _x = _xy.val0;
+                        int _y = _xy.val1;
+                        if (!memory.in(x+_x,y+_y)) return;
+                        long _point = Memory.of(x+_x,y+_y);
+                        Checker checker = memory.checkers.getOrDefault(_point, null) instanceof Checker c ? c : null;
+                        if (checker == null) {
+                            if (_xy.val2) points.put(_point, null);
+                            return;
+                        }
+                        if (checker.isBlack == isBlack) return;
+                        if (!memory.isEmpty(x+_x*2,y+_y*2)) return;
+                        damage.put(Memory.of(x+_x*2, y+_y*2), _point);
+                    });
+                }
+                return damage.size() > 0 ? damage : points;
+            }
+
+            @Override protected IChecker upper() { isKing = true; }
+            @Override protected system.Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y) {
+                return system.toast(checkerBytes, system.map.<Byte, Color>of()
+                        .add((byte)1, isBlack ? Color.BLACK : Color.WHITE)
+                        .add((byte)2, isKing ? Color.GRAY : (isBlack ? Color.BLACK : Color.WHITE))
+                        .add((byte)3, memory.isBlack == isBlack ? Color.fromRGB(0x677535) : (isBlack ? Color.BLACK : Color.WHITE))
+                        .build());
+            }
+        }*/
+        private final ConcurrentHashMap<Long, IChecker> checkers = new ConcurrentHashMap<>();
+        public Long target;
+        public final boolean multiKill;
+        public boolean isBlack = false;
+        public system.Toast2<Integer, Integer> getTarget() { return target == null ? null : system.toast(of_x(target), of_y(target)); }
+        public UUID targetUUID;
+        private boolean in(int x, int y) { return x >= 0 && x <= 7 && y >= 0 && y <= 7; }
+        private boolean isEmpty(int x, int y) {
+            return in(x, y) && !checkers.containsKey(of(x, y));
+        }
+        public void target(Player player, int x, int y) {
+            long point = of(x,y);
+            UUID uuid = player.getUniqueId();
+            if (uuid.equals(targetUUID)) {
+                if (target == point) {
+                    target = null;
+                    targetUUID = null;
+                    return;
+                }
+                IChecker checker = checkers.getOrDefault(target, null);
+                if (checker == null || checker.isBlack != isBlack) return;
+                Map<Long, Long> filter = checker.filter(this, of_x(target), of_y(target));
+                if (!filter.containsKey(point)) return;
+                Long remove = filter.getOrDefault(point, null);
+                checkers.remove(target);
+                if (remove != null) checkers.remove(remove);
+                checkers.put(point, checker);
+                if ((checker.isBlack ? 7 : 0) == of_y(point)) checkers.put(point, checker.upper());
+                if (remove != null) {
+                    Set<Long> damage = new HashSet<>();
+                    checkers.forEach((k,v) -> {
+                        Map<Long, Long> _size = v.filter(this, of_x(k), of_y(k));
+                        if (v.isBlack == isBlack) _size.forEach((_k, _v) -> {
+                            if (_v == null) return;
+                            damage.add(k);
+                        });
+                    });
+                    if (!multiKill || !damage.contains(point)) isBlack = !isBlack;
+                    system.Toast1<Integer> steps = system.toast(0);
+                    checkers.forEach((k,v) -> { if (v.isBlack == isBlack) steps.val0 += v.filter(this, of_x(k), of_y(k)).size(); });
+                    if (steps.val0 == 0) checkers.entrySet().removeIf(kv -> kv.getValue().isBlack == isBlack);
+                } else {
+                    isBlack = !isBlack;
+                }
+                target = null;
+                targetUUID = null;
+                return;
+            }
+            IChecker checker = checkers.getOrDefault(point, null);
+            if (checker == null || checker.isBlack != isBlack) return;
+            Set<Long> damage = new HashSet<>();
+            checkers.forEach((k,v) -> {
+                if (v.isBlack != isBlack) return;
+                v.filter(this, of_x(k), of_y(k)).forEach((_k, _v) -> {
+                    if (_v == null) return;
+                    damage.add(k);
+                });
+            });
+            if (damage.size() != 0 && !damage.contains(point)) return;
+            targetUUID = uuid;
+            target = point;
+        }
+        private Memory(boolean multiKill, HashMap<Long, IChecker> checkers) {
+            this.multiKill = multiKill;
+            this.checkers.putAll(checkers);
+        }
+
+        public static Memory ofCheckers() {
+            HashMap<Long, IChecker> checkers = new HashMap<>();
+            int points = 8;
+            for (int x = 0; x < points; x++) {
+                for (int y = 0; y < 2; y++)
+                    if ((x % 2 + y % 2) % 2 == 0)
+                        checkers.put(of(x,y), Checker.of(true, false));
+            }
+            for (int x = 0; x < points; x++) {
+                for (int y = points - 2; y < points; y++)
+                    if ((x % 2 + y % 2) % 2 == 0)
+                        checkers.put(of(x,y), Checker.of(false, false));
+            }
+            return new Memory(true, checkers);
+        }
+
+        public void draw(DrawMap map) {
+            system.Toast2<Integer, Integer> conut = system.toast(0,0);
+            checkers.forEach((point, checker) -> {
+                if (checker.isBlack) conut.val0++;
+                else conut.val1++;
+                checker.draw(map, this, point);
+            });
+            if (conut.val0 == 0) map.fill(MapMonitor.image("win_white"));
+            else if (conut.val1 == 0) map.fill(MapMonitor.image("win_black"));
+        }
+        public Map<Long, Long> filter() {
+            return checkers.get(target).filter(this, of_x(target), of_y(target));
+        }
+    }
+    public static class CheckersMonitor extends ItemManager.BlockSetting.IBlock<JsonObject> implements MapMonitor.Monitor<CheckersMonitor, Memory> {
+        @Override public Memory memory() { return Memory.ofCheckers(); }
+        @Override public Map<Player, byte[]> update(Map<Player, MapMonitor.ViewPosition> players, system.Toast1<Memory> memory) {
+            HashMap<Player, byte[]> result = new HashMap<>();
+
+            DrawMap map = DrawMap.create(Color.WHITE);
+            int size = 16;
+            int points = 8;
+            for (int x = 0; x < points; x++) {
+                for (int y = 0; y < points; y++) {
+                    map.rectangle(x * size, y * size, size, size, (x % 2 + y % 2) % 2 == 0 ? Color.fromRGB(109,151,136) : Color.fromRGB(228,229,172));
+                    //map.rectangle(x * size, y * size, size, size, (x % 2 + y % 2) % 2 == 0 ? Color.fromRGB(0x593015) : Color.fromRGB(0xA2835D));
+                    //map.rectangle(x * size, y * size, size, size, (x % 2 + y % 2) % 2 == 0 ? Color.fromRGB(0x7fcc19) : Color.fromRGB(0xf27fa5));
+                }
+            }
+            memory.val0.draw(map);
+
+            system.Toast2<Integer, Integer> target = memory.val0.getTarget();
+            UUID targetUUID = memory.val0.targetUUID;
+
+            players.forEach((player, point) -> {
+                if (targetUUID != null) {
+                    map.rectangle(
+                            target.val0 * size,
+                            target.val1 * size,
+                            size,
+                            size,
+                            player.getUniqueId().equals(targetUUID)
+                                    ? Color.GREEN
+                                    : Color.SILVER,
+                            false);
+                    if (player.getUniqueId().equals(targetUUID)) {
+                        memory.val0.filter().forEach((xy,_xy) -> {
+                            map.rectangle(
+                                    Memory.of_x(xy) * size,
+                                    Memory.of_y(xy) * size,
+                                    size,
+                                    size,
+                                    Color.PURPLE,
+                                    false);
+                        });
+                    }
+                }
+                if (point != null) {
+                    boolean click = point.getClick() != MapMonitor.ClickType.None;
+                    map.rectangle((point.getPixelX() / size) * size, (point.getPixelY() / size) * size, size, size, click ? Color.YELLOW : Color.AQUA, click);
+                    switch (point.getClick())
+                    {
+                        case Click: memory.val0.target(player, point.getPixelX() / size, point.getPixelY() / size); break;
+                        case Shift: menu(player); break;
+                    }
+                }
+                result.put(player, map.save());
+            });
+            return result;
+        }
+
+        public MapMonitor.MapRotation rotation = MapMonitor.MapRotation.NONE;
+
+        @Override public CheckersMonitor getMeta() { return this; }
+        @Override public MapMonitor.MapRotation rotation() { return rotation; }
+        @Override public void create() { }
+        @Override public void destroy() {
+            ItemManager.dropBlockItem(getCenterLocation(), getCreator().map(ItemManager.IItemCreator::createItem).orElse(null));
+            super.destroy();
+        }
+        public void menu(Player player) {
+
+        }
+
+        @Override public void populate(PopulateLootEvent e) { e.setCancelled(true); }
+
+        @Override public void readBlock(JsonObject json) { rotation = MapMonitor.MapRotation.values()[json.has("rotation") ? json.get("rotation").getAsInt() : 0]; }
+        @Override public JsonObject writeBlock() { return system.json.object().add("rotation", rotation.ordinal()).build(); }
+
+        @Override public void load() { }
+        @Override public ItemManager.BlockSetting.IBlock<?> owner() { return this; }
+    }
+    public static void init() {
+        CustomMeta.loadMeta(CustomMeta.MetaLoader.create(CheckersMonitor.class, CustomMeta.LoadedBlock.class).withFilter(CheckersMonitor::filter));
+        AnyEvent.AddEvent("checkers.rotate", AnyEvent.type.other, builder -> builder
+                .createParam(Integer::parseInt, "x")
+                .createParam(Integer::parseInt, "y")
+                .createParam(Integer::parseInt, "z")
+                .createParam(MapMonitor.MapRotation.values()), (p, x, y, z, rotation) -> CustomMeta.LoadedBlock.ofSync(Position.of(p.getWorld(),x,y,z), CheckersMonitor.class, s -> {
+                    s.rotation = rotation;
+                    return true;
+                }));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

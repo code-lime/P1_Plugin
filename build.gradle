@@ -1,0 +1,252 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.util.function.Predicate
+import java.util.jar.JarFile
+
+plugins {
+    id 'java'
+}
+
+/*sourceCompatibility = 16
+targetCompatibility = 16*/
+
+group = pluginGroup
+version = pluginVersion
+
+String _version = "1.18.2"
+boolean _mapped = true
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'papermc-repo'
+        url = 'https://papermc.io/repo/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    // mavenLocal() // This is needed for CraftBukkit and Spigot.
+}
+
+static String yandexDiskMinecraftPath() {
+    return Paths.get(yandex_disk(), "PLUGINS", "Minecraft");
+}
+
+static String decompilePath(String file) {
+    return Paths.get(yandexDiskMinecraftPath(), ".decompile", file);
+}
+static String libPath(String file) {
+    return Paths.get(yandexDiskMinecraftPath(), ".libs", file);
+}
+
+artifacts {
+    archives(
+            new File(decompilePath((_mapped ? "paper-unmapped-" : "spigot-") + _version+".zip"))
+    )
+}
+
+dependencies {
+    compileOnly(
+            files(libPath((_mapped ? "paper-unmapped-" : "spigot-") + _version+".jar")),
+            files(libPath("CrazyAdvancementsAPI.jar")),
+            files(libPath("Core-1.0.jar")),
+            files(libPath("LimeDisplay-1.0.jar")),
+            files(libPath("JSEngine-3.0.5.jar")),
+            files(libPath("GSit-1.1.0.jar")),
+            files(libPath("LimeCoreProtect-1.0.jar")),
+            files(libPath("ProtocolLib.jar")),
+            files(libPath("DiscordSRV-Build-1.26.0.jar")),
+            files(libPath("voicechat-bukkit-1.18.2-2.3.1.jar")),
+            files(libPath("byte-buddy-1.11.18.jar")),
+            files(libPath("byte-buddy-agent-1.11.18.jar")),
+            files(libPath("Physics-1.11.0.jar")),
+            files(libPath("ode4j-core-0.4.1.jar")),
+            files(libPath("MyLinker-5_1.jar")),
+            files(libPath("mp3spi-1.9.13.jar"))
+    )
+}
+
+static List<String> getText(Process process) {
+    BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    try {
+        List<String> lines = new ArrayList<>()
+        String line
+        while ((line = input.readLine()) != null) lines.add(line)
+        return lines
+    }
+    finally {
+        input.close()
+    }
+}
+interface Action1<T> { void invoke(T arg0); }
+static void invokeText(Process process, Action1<String> action) {
+    BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()))
+    try {
+        String line
+        while ((line = input.readLine()) != null)
+            action.invoke(line)
+    }
+    finally {
+        input.close()
+    }
+}
+String executeJs(int line_index, String js) {
+    String exe = Paths.get(yandexDiskMinecraftPath(), ".utils", "js.exe").toAbsolutePath().toFile().path + " " + Base64.getEncoder().encodeToString(js.getBytes());
+    return new String(Base64.getDecoder().decode(String.join("\n", getText(Runtime.runtime.exec(exe)))));
+}
+static Map<String, String> regedit(String... path) {
+    HashMap<String, String> map = new HashMap<>()
+    for (String line : getText(Runtime.runtime.exec('reg query ' + String.join("\\", path)))) {
+        if (!line.startsWith("    ")) continue
+        String[] args = line.substring(4).split(" {4}")
+        map.put(args[0], args.length >= 3 ? args[2] : "")
+    }
+    return map
+}
+static String yandex_disk() {
+    HashMap<String, String> list = new HashMap<>();
+    list.put("HKEY_CURRENT_USER\\SOFTWARE\\Yandex\\Yandex.Disk", "RootFodler")
+    list.put("HKEY_CURRENT_USER\\SOFTWARE\\Yandex\\Yandex.Disk.2", "RootFolder")
+    for (Map.Entry<String, String> reg : list) {
+        Map<String, String> map = regedit(reg.getKey());
+        String folder = map.getOrDefault(reg.value, null)
+        if (folder == null) continue
+        return folder
+    }
+    return null
+}
+static List<File> getFiles(File dir, Predicate<File> filter) {
+    List<File> files = new ArrayList<>();
+    for (File file : dir.listFiles()) {
+        if (file.isFile()) {
+            if (filter.test(file)) files.add(file);
+        }
+        else if (file.isDirectory()) files.addAll(getFiles(file, filter));
+    }
+    return files;
+}
+static List<File> getFiles(File dir) {
+    List<File> files = new ArrayList<>();
+    for (File file : dir.listFiles()) {
+        if (file.isFile()) files.add(file);
+        else if (file.isDirectory()) files.addAll(getFiles(file));
+    }
+    return files;
+}
+String generateFile(File dir, String text) {
+    List<String> lines = text.replace("\r", "").split("\n");
+    List<String> output = new ArrayList<>();
+    List<String> code = null;
+    boolean  edited = false;
+    int size = lines.size();
+    for (int i = 0; i < size; i++) {
+        String line = lines.get(i);
+        String trim_line = line.trim();
+        int start = trim_line.indexOf("//");
+        if (start != 0) {
+            if (code != null) continue;
+            output.add(line);
+            continue;
+        }
+        switch (trim_line) {
+            case "//<generator>": 
+                if (code != null) throw new IllegalArgumentException("<generator> in line '"+(i+1)+"'");
+                code = new ArrayList<>();
+                output.add(line);
+                break;
+            case "//</generator>":
+                if (code == null) throw new IllegalArgumentException("</generator> in line '"+(i+1)+"'");
+                output.add(executeJs(i+1, String.join("\n", code)));
+                output.add(line);
+
+                edited = true;
+                code = null;
+                break;
+            default: 
+                if (trim_line.startsWith("//<generator name=\"")) {
+                    if (code != null) throw new IllegalArgumentException("<generator> in line '"+(i+1)+"'");
+
+                    String file_name = trim_line.substring(19);
+                    file_name = file_name.substring(0, file_name.indexOf("\">"));
+                    code = new ArrayList<>();
+                    code.add(Paths.get(dir.absolutePath, file_name).toFile().text);
+                    output.add(line);
+                } else {
+                    output.add(line);
+                    if (code != null) code.add(trim_line.substring(2));
+                }
+                break;
+        }
+    }
+    return edited ? String.join("\n", output) : null;
+}
+
+task generator() {
+    for (File file : getFiles(Paths.get(projectDir.absolutePath, "src", "main").toAbsolutePath().toFile())) {
+        if (!file.path.endsWith(".java")) continue;
+        String text = file.text;
+        String _file = generateFile(file.parentFile, text);
+        if (_file == null) continue;
+        System.out.println("EDITED: " + file.toPath().toAbsolutePath().toString());
+        file.text = _file;
+    }
+}
+
+static java.nio.file.Path java_mapper() {
+    return Paths.get(yandex_disk(), "PLUGINS", "Minecraft", ".libs", "Java.Mapper.exe").toAbsolutePath()
+}
+task copyToLib() {}
+static String unicode_format(String text) {
+    StringBuilder builder = new StringBuilder()
+    for (char ch : text.toCharArray()) builder.append("%u").append(String.format("%04x", (int) ch))
+    return builder.toString()
+}
+copyToLib.doLast {
+    println "Copy..."
+    java.nio.file.Path originalPath = jar.archiveFile.get().asFile.toPath()
+    String file_name = originalPath.fileName.toString();
+    if (_mapped) {
+        try {
+            println "Unmapping..."
+            java.nio.file.Path exe_path = java_mapper()
+            java.nio.file.Path out_path = Paths.get(originalPath.toAbsolutePath().getParent().toString(), "out.jar")
+            String[] arr = new String[4];
+            arr[0] = exe_path.toString();
+            arr[1] = "mapp="+libPath("paper-unmapped-" + _version + ".mapp");
+            arr[2] = "i=" + originalPath.toAbsolutePath().toString();
+            arr[3] = "o=" + out_path.toString();
+            Process process = new ProcessBuilder(arr).redirectErrorStream(true).start()
+            invokeText(process, new Action1<String>() {
+                @Override public void invoke(String line) {
+                    println line;
+                }
+            });
+            originalPath = out_path
+            println "Unmapped!"
+        } catch (IOException ex) {
+            println unicode_format(ex.message)
+            throw ex
+        }
+    }
+    for (String path : [Paths.get(yandex_disk(), "Minecraft-Paper", "plugins")])
+    {
+        java.nio.file.Path copied = Paths.get(path, file_name)
+        File dir = new File(path)
+        if (!dir.exists()) dir.mkdir()
+        println "> CD " + copied
+        Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING)
+    }
+}
+
+
+build {
+    dependsOn copyToLib
+}
+
+compileJava.options.encoding = 'UTF-8'
+compileJava.options.compilerArgs.add("--add-exports=java.base/jdk.internal.reflect=ALL-UNNAMED")

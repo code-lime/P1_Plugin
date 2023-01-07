@@ -1,0 +1,376 @@
+package org.lime.gp.block.component.data;
+
+import net.minecraft.core.BlockPosition;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.EnumInteractionResult;
+import net.minecraft.world.IInventory;
+import net.minecraft.world.ITileInventory;
+import net.minecraft.world.TileInventory;
+import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.IRecipe;
+import net.minecraft.world.item.crafting.RecipeCrafting;
+import net.minecraft.world.item.crafting.RecipeRepair;
+import net.minecraft.world.item.crafting.Recipes;
+import net.minecraft.world.level.World;
+import net.minecraft.world.level.block.BlockSkullInteractInfo;
+import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_18_R2.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryCrafting;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryView;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.event.inventory.InventoryType;
+import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.list.Craft4x4Component;
+import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.craft.Crafts;
+import org.lime.gp.extension.inventory.EmptyInventory;
+import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.MainPlayerInventory;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.IntStream;
+
+public class Craft4x4Action {
+    public static EnumInteractionResult open(Craft4x4Component component, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        if (event.player() instanceof EntityPlayer player) {
+            player.openMenu(getMenuProvider(event.world(), event.pos(), metadata.key.uuid(), component.vanillaType, ChatHelper.toNMS(component.title)));
+            return EnumInteractionResult.CONSUME;
+        }
+        return EnumInteractionResult.PASS;
+    }
+    private static ITileInventory getMenuProvider(World world, BlockPosition pos, UUID block_uuid, String vanillaType, IChatBaseComponent CONTAINER_TITLE) {
+        return new TileInventory((syncId, inventory, player) -> new Container4x4(syncId, inventory, ContainerAccess.create(world, pos), block_uuid, vanillaType), CONTAINER_TITLE);
+    }
+
+    private static final int resultSlots = 16;
+    private static final List<Integer> craftSlots = IntStream.range(0, 4).flatMap(row -> IntStream.of(2, 3, 4, 5).map(column -> column + row * 9)).boxed().toList();
+
+    private static class CraftInventoryCrafting4x4 extends CraftInventoryCrafting implements Crafts.VanillaType {
+        private static int rows = 4;
+        private final String vanillaType;
+        public CraftInventoryCrafting4x4(IInventory inventory, IInventory resultInventory, String vanillaType) {
+            super(inventory, resultInventory);
+            this.vanillaType = vanillaType;
+        }
+
+        @Override public int getSize() {
+            return rows * 9;
+        }
+
+        @Override public void setContents(org.bukkit.inventory.ItemStack[] items) {
+            if (this.getSize() > items.length) throw new IllegalArgumentException("Invalid inventory size; expected " + this.getSize() + " or less");
+            org.bukkit.inventory.ItemStack result = null;
+            org.bukkit.inventory.ItemStack[] contents = new org.bukkit.inventory.ItemStack[4 * 4];
+            int item_length = items.length;
+            int craftSlot;
+            for (int i = 0; i < item_length; i++) {
+                if (i == resultSlots) result = items[i];
+                else if ((craftSlot = craftSlots.indexOf(i)) != -1) contents[craftSlot] = items[i];
+            }
+            this.setContents(result, contents);
+        }
+        @Override public org.bukkit.inventory.ItemStack[] getContents() {
+            org.bukkit.inventory.ItemStack[] items = new org.bukkit.inventory.ItemStack[this.getSize()];
+            List<net.minecraft.world.item.ItemStack> contents = this.getMatrixInventory().getContents();
+            int item_length = items.length;
+            int craftSlot;
+            for (int i = 0; i < item_length; i++) {
+                if (i == resultSlots) items[i] = this.getResultInventory().getItem(0).asBukkitMirror();
+                else if ((craftSlot = craftSlots.indexOf(i)) != -1) items[i] = CraftItemStack.asCraftMirror(contents.get(craftSlot));
+                else items[i] = new org.bukkit.inventory.ItemStack(Material.AIR);
+            }
+            return items;
+        }
+
+        @Override public void setContents(org.bukkit.inventory.ItemStack result, org.bukkit.inventory.ItemStack[] contents) {
+            this.setResult(result);
+            this.setMatrix(contents);
+        }
+
+        @Override public CraftItemStack getItem(int index) {
+            int craftSlot;
+            if (index == resultSlots) return CraftItemStack.asCraftMirror(this.getResultInventory().getItem(0));
+            else if ((craftSlot = craftSlots.indexOf(index)) != -1) return CraftItemStack.asCraftMirror(this.getMatrixInventory().getContents().get(craftSlot));
+            else return CraftItemStack.asCraftMirror(null);
+        }
+        @Override public void setItem(int index, org.bukkit.inventory.ItemStack item) {
+            int craftSlot;
+            if (index == resultSlots) this.setResult(item);
+            else if ((craftSlot = craftSlots.indexOf(index)) != -1) this.getMatrixInventory().getContents().set(craftSlot, CraftItemStack.asNMSCopy(item));
+        }
+        @Override public InventoryType getType() { return InventoryType.CHEST; }
+
+        @Override public Optional<String> vanillaType() { return Optional.ofNullable(vanillaType); }
+    }
+    private static class ContainerWorkbench4x4 extends ContainerWorkbench {
+        private boolean isPostSuper = false;
+        private final UUID block_uuid;
+        private final int resultSlotIndex;
+        private final EntityHuman player;
+        private static int rows = 4;
+        public ContainerWorkbench4x4(int syncId, PlayerInventory playerInventory, ContainerAccess context, UUID block_uuid) {
+            super(syncId, playerInventory, context);
+            this.block_uuid = block_uuid;
+            isPostSuper = true;
+            ReflectionAccess.width_InventoryCrafting.set(this.craftSlots, 4);
+            ReflectionAccess.height_InventoryCrafting.set(this.craftSlots, 4);
+            ReflectionAccess.items_InventoryCrafting.set(this.craftSlots, NonNullList.withSize(this.craftSlots.getWidth() * this.craftSlots.getHeight(), ItemStack.EMPTY));
+
+            int column;
+            int row;
+            int k2 = (rows - 4) * 18;
+
+            EmptyInventory empty = new EmptyInventory(this.craftSlots.getLocation(), 1);
+            player = playerInventory.player;
+            SlotResult resultSlot = null;
+            for (row = 0; row < rows; ++row) {
+                for (column = 0; column < 9; ++column) {
+                    int index = column + row * 9;
+                    int index_x = 8 + column * 18;
+                    int index_y = 18 + row * 18;
+                    int craftIndex = Craft4x4Action.craftSlots.indexOf(index);
+                    if (craftIndex != -1) this.addSlot(new Slot(this.craftSlots, craftIndex, index_x, index_y));
+                    else if (index == Craft4x4Action.resultSlots) this.addSlot(resultSlot = new SlotResult(player, this.craftSlots, this.resultSlots, 0, index_x, index_y));
+                    else this.addSlot(InterfaceManager.AbstractSlot.noneSlot(new Slot(empty, 0, index_x, index_y)));
+                }
+            }
+            for (row = 0; row < 3; ++row) {
+                for (column = 0; column < 9; ++column) {
+                    this.addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 103 + row * 18 + k2));
+                }
+            }
+            for (row = 0; row < 9; ++row) {
+                this.addSlot(new Slot(playerInventory, row, 8 + row * 18, 161 + k2));
+            }
+            CraftInventoryCrafting4x4 inventory = new CraftInventoryCrafting4x4(this.craftSlots, this.resultSlots, null);
+            ReflectionAccess.bukkitEntity_ContainerWorkbench.set(this, new CraftInventoryView(playerInventory.player.getBukkitEntity(), inventory, this));
+            resultSlotIndex = resultSlot == null ? 0 : resultSlot.index;
+        }
+        @Override protected Slot addSlot(Slot slot) {
+            return isPostSuper ? super.addSlot(slot) : null;
+        }
+
+        @Override public boolean stillValid(EntityHuman player) {
+            if (!this.checkReachable) return true;
+            return stillValid(this.access, player, block_uuid);
+        }
+        protected static boolean stillValid(ContainerAccess context, EntityHuman player, UUID block_uuid) {
+            return context.evaluate((world, blockposition) -> world.getBlockEntity(blockposition) instanceof TileEntityLimeSkull skull
+                    && skull.customUUID().filter(block_uuid::equals).isPresent()
+                    && player.distanceToSqr(blockposition.getX() + 0.5, blockposition.getY() + 0.5, blockposition.getZ() + 0.5) <= 64.0, true);
+        }
+
+        @Override public int getSize() { return 4*4+1; }
+        @Override public int getResultSlotIndex() { return resultSlotIndex; }
+        @Override public Containers<?> getType() { return Containers.GENERIC_9x4; }
+        @Override public void handlePlacement(boolean craftAll, IRecipe<?> recipe, EntityPlayer player) { }
+        protected void _slotChangedCraftingGrid(World world, EntityHuman player, InventoryCrafting craftingInventory, InventoryCraftResult resultInventory) {
+            if (!world.isClientSide) {
+                RecipeCrafting recipecrafting;
+                EntityPlayer entityplayer = (EntityPlayer)player;
+                ItemStack itemstack = ItemStack.EMPTY;
+                Optional<RecipeCrafting> optional = world.getServer().getRecipeManager().getRecipeFor(Recipes.CRAFTING, craftingInventory, world);
+                if (optional.isPresent() && resultInventory.setRecipeUsed(world, entityplayer, recipecrafting = optional.get())) itemstack = recipecrafting.assemble(craftingInventory);
+                itemstack = CraftEventFactory.callPreCraftEvent(craftingInventory, resultInventory, itemstack, this.getBukkitView(), optional.orElse(null) instanceof RecipeRepair);
+                resultInventory.setItem(0, itemstack);
+                this.setRemoteSlot(getResultSlotIndex(), itemstack);
+                entityplayer.connection.send(new PacketPlayOutSetSlot(this.containerId, this.incrementStateId(), getResultSlotIndex(), itemstack));
+            }
+        }
+        @Override public void slotsChanged(IInventory inventory) {
+            this.access.execute((world, blockposition) -> _slotChangedCraftingGrid(world, this.player, this.craftSlots, this.resultSlots));
+        }
+        @Override public ItemStack quickMoveStack(EntityHuman player, int index) {
+            ItemStack itemstack = ItemStack.EMPTY;
+            Slot slot = this.slots.get(index);
+            int size = getSize();
+            int endSize = size + 36;
+            if (slot != null && slot.hasItem()) {
+                ItemStack itemstack1 = slot.getItem();
+                itemstack = itemstack1.copy();
+                if (index == getResultSlotIndex()) {
+                    this.access.execute((world, blockposition) -> itemstack1.getItem().onCraftedBy(itemstack1, world, player));
+                    if (!this.moveItemStackTo(itemstack1, size, endSize, true)) {
+                        return ItemStack.EMPTY;
+                    }
+                    slot.onQuickCraft(itemstack1, itemstack);
+                } else if (index >= size && index < endSize ? !this.moveItemStackTo(itemstack1, 1, 10, false) && (index < 37 ? !this.moveItemStackTo(itemstack1, 37, 46, false) : !this.moveItemStackTo(itemstack1, 10, 37, false)) : !this.moveItemStackTo(itemstack1, 10, 46, false)) {
+                    return ItemStack.EMPTY;
+                }
+                if (itemstack1.isEmpty()) {
+                    slot.set(ItemStack.EMPTY);
+                } else {
+                    slot.setChanged();
+                }
+                if (itemstack1.getCount() == itemstack.getCount()) {
+                    return ItemStack.EMPTY;
+                }
+                slot.onTake(player, itemstack1);
+                if (index == 0) {
+                    player.drop(itemstack1, false);
+                }
+            }
+            return itemstack;
+        }
+    }
+    private static class Container4x4 extends ContainerChest {
+        private boolean isPostSuper = false;
+        private final UUID block_uuid;
+        public final ContainerAccess access;
+        private final EntityHuman player;
+        private final InventoryCrafting craftSlots;
+        private final int resultSlotIndex;
+        private final InventoryCraftResult resultSlots;
+        private final String vanillaType;
+
+        private final int RESULT_SLOT = Craft4x4Action.resultSlots;
+        private final int CRAFT_SLOT_START = 0;
+        private final int CRAFT_SLOT_END = 9*4;
+        private final int INV_SLOT_END = CRAFT_SLOT_END+9*3;
+        private final int USE_ROW_SLOT_END = INV_SLOT_END+9;
+
+        public Container4x4(int syncId, PlayerInventory playerInventory, ContainerAccess context, UUID block_uuid, String vanillaType) {
+            super(Containers.GENERIC_9x4, syncId, playerInventory, new EmptyInventory(null, 4 * 9), 4);
+
+            this.craftSlots = new InventoryCrafting(this,4,4);
+            this.resultSlots = new InventoryCraftResult();
+            this.craftSlots.resultInventory = this.resultSlots;
+            this.vanillaType = vanillaType;
+
+            this.access = context;
+            this.block_uuid = block_uuid;
+            isPostSuper = true;
+            int column;
+            int row;
+            int k2 = (getRowCount() - 4) * 18;
+            player = playerInventory.player;
+            SlotResult resultSlot = null;
+            for (row = 0; row < getRowCount(); ++row) {
+                for (column = 0; column < 9; ++column) {
+                    int index = column + row * 9;
+                    int index_x = 8 + column * 18;
+                    int index_y = 18 + row * 18;
+                    int craftIndex = Craft4x4Action.craftSlots.indexOf(index);
+                    if (craftIndex != -1) this.addSlot(new Slot(this.craftSlots, craftIndex, index_x, index_y));
+                    else if (index == Craft4x4Action.resultSlots) this.addSlot(resultSlot = new SlotResult(player, this.craftSlots, this.resultSlots, 0, index_x, index_y));
+                    else if (index == 0) this.addSlot(new InterfaceManager.AbstractSlot(new Slot(getContainer(), index, index_x, index_y)) {
+                        @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
+                        @Override public boolean mayPickup(EntityHuman playerEntity) { return false; }
+                        @Override public net.minecraft.world.item.ItemStack getItem() { return CraftItemStack.asNMSCopy(MainPlayerInventory.createBarrier(false)); }
+                    });
+                    else this.addSlot(InterfaceManager.AbstractSlot.noneSlot(new Slot(getContainer(), index, index_x, index_y)));
+                }
+            }
+            for (row = 0; row < 3; ++row) for (column = 0; column < 9; ++column) this.addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 103 + row * 18 + k2));
+            for (row = 0; row < 9; ++row) this.addSlot(new Slot(playerInventory, row, 8 + row * 18, 161 + k2));
+            resultSlotIndex = resultSlot == null ? 0 : resultSlot.index;
+
+            CraftInventoryCrafting4x4 inventory = new CraftInventoryCrafting4x4(this.craftSlots, this.resultSlots, vanillaType);
+            ReflectionAccess.bukkitEntity_ContainerChest.set(this, new CraftInventoryView(playerInventory.player.getBukkitEntity(), inventory, this));
+        }
+        @Override protected Slot addSlot(Slot slot) { return isPostSuper ? super.addSlot(slot) : null; }
+        @Override public boolean stillValid(EntityHuman player) {
+            if (!this.checkReachable) return true;
+            return stillValid(this.access, player, block_uuid);
+        }
+        protected static boolean stillValid(ContainerAccess context, EntityHuman player, UUID block_uuid) {
+            return context.evaluate((world, blockposition) -> world.getBlockEntity(blockposition) instanceof TileEntityLimeSkull skull
+                    && skull.customUUID().filter(block_uuid::equals).isPresent()
+                    && player.distanceToSqr(blockposition.getX() + 0.5, blockposition.getY() + 0.5, blockposition.getZ() + 0.5) <= 64.0, true);
+        }
+
+        public ItemStack quickMoveStack(EntityHuman player, int index) {
+            ItemStack itemstack = ItemStack.EMPTY;
+            Slot slot = this.slots.get(index);
+            if (slot != null && slot.hasItem()) {
+                ItemStack _item = slot.getItem();
+                itemstack = _item.copy();
+                if (index == RESULT_SLOT) {
+                    this.access.execute((world, blockposition) -> _item.getItem().onCraftedBy(_item, world, player));
+                    if (!this.moveItemStackTo(_item, CRAFT_SLOT_END, USE_ROW_SLOT_END, true)) return ItemStack.EMPTY;
+                    slot.onQuickCraft(_item, itemstack);
+                } else if (index >= CRAFT_SLOT_END && index < USE_ROW_SLOT_END
+                        ? !this.moveItemStackTo(_item, CRAFT_SLOT_START, CRAFT_SLOT_END, false) && (
+                                index < INV_SLOT_END
+                                        ? !this.moveItemStackTo(_item, INV_SLOT_END, USE_ROW_SLOT_END, false)
+                                        : !this.moveItemStackTo(_item, CRAFT_SLOT_END, INV_SLOT_END, false))
+                        : !this.moveItemStackTo(_item, CRAFT_SLOT_END, USE_ROW_SLOT_END, false)) {
+                    return ItemStack.EMPTY;
+                }
+                if (_item.isEmpty()) {
+                    slot.set(ItemStack.EMPTY);
+                } else {
+                    slot.setChanged();
+                }
+                if (_item.getCount() == itemstack.getCount()) {
+                    return ItemStack.EMPTY;
+                }
+                slot.onTake(player, _item);
+                if (index == RESULT_SLOT) {
+                    player.drop(_item, false);
+                }
+            }
+            return itemstack;
+        }
+
+        protected void _slotChangedCraftingGrid(World world, EntityHuman player, InventoryCrafting craftingInventory, InventoryCraftResult resultInventory) {
+            if (!world.isClientSide) {
+                RecipeCrafting recipecrafting;
+                EntityPlayer entityplayer = (EntityPlayer)player;
+                ItemStack itemstack = ItemStack.EMPTY;
+                Optional<RecipeCrafting> optional = world.getServer().getRecipeManager().getRecipeFor(Recipes.CRAFTING, craftingInventory, world);
+                if (optional.isPresent() && resultInventory.setRecipeUsed(world, entityplayer, recipecrafting = optional.get())) itemstack = recipecrafting.assemble(craftingInventory);
+                itemstack = CraftEventFactory.callPreCraftEvent(craftingInventory, resultInventory, itemstack, this.getBukkitView(), optional.orElse(null) instanceof RecipeRepair);
+                resultInventory.setItem(0, itemstack);
+                this.setRemoteSlot(RESULT_SLOT, itemstack);
+                entityplayer.connection.send(new PacketPlayOutSetSlot(this.containerId, this.incrementStateId(), RESULT_SLOT, itemstack));
+            }
+        }
+        @Override public void slotsChanged(IInventory inventory) {
+            this.access.execute((world, blockposition) -> _slotChangedCraftingGrid(world, this.player, this.craftSlots, this.resultSlots));
+        }
+
+        public void removed(EntityHuman player) {
+            super.removed(player);
+            this.access.execute((world, blockposition) -> this.clearContainer(player, this.craftSlots));
+        }
+
+        /*public void openRecipeBook() {
+            player.openMenu(new TileInventory((syncId, inventory, _player) -> {
+                List<RecipeCrafting> recipes = MinecraftServer.getServer()
+                        .getRecipeManager()
+                        .getAllRecipesFor(Recipes.CRAFTING)
+                        .stream()
+                        .filter(v -> Objects.equals(Crafts.VanillaType.ofRecipe(v).orElse(null), vanillaType))
+                        .flatMap(v -> v instanceof IDisplayRecipe displayRecipe ? displayRecipe.getDisplayRecipe().stream() : Stream.empty())
+                        .toList();
+                return new RecipesBook.RecipesBookContainerWorkbench(syncId, inventory, recipes, block_uuid, ContainerAccess.create(skull.getLevel(), skull.getBlockPos()));
+            }, book.title));
+        }*/
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

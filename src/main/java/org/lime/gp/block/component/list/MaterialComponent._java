@@ -1,0 +1,57 @@
+package org.lime.gp.block.component.list;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.minecraft.world.level.block.state.IBlockData;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.lime.gp.block.BlockInfo;
+import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.ComponentStatic;
+import org.lime.gp.block.component.InfoComponent;
+import org.lime.system;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+@InfoComponent.Component(name = "material")
+public final class MaterialComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Shapeable, BlockDisplay.Displayable {
+    public final Material material;
+    public final IBlockData blockData;
+
+    public MaterialComponent(BlockInfo info, JsonObject json) {
+        super(info, json);
+        this.material = Material.valueOf(json.get("material").getAsString());
+        IBlockData blockData = CraftMagicNumbers
+                .getBlock(material)
+                .defaultBlockState();
+        if (json.has("states")) {
+            HashMap<String, IBlockState<?>> states = system.map.<String, IBlockState<?>>of()
+                    .add(blockData.getProperties(), IBlockState::getName, v -> v)
+                    .build();
+            for (Map.Entry<String, JsonElement> kv : json.get("states").getAsJsonObject().entrySet()) {
+                IBlockState<?> state = states.getOrDefault(kv.getKey(), null);
+                if (state == null) continue;
+                blockData = BlockInfo.setValue(blockData, state, kv.getValue().getAsString());
+            }
+        }
+        this.blockData = blockData;
+    }
+
+    @Override
+    public void onShape(CustomTileMetadata metadata, BlockSkullEventShape event) {
+        event.setResult(blockData.getShape(event.getWorld(), event.getPos(), event.getContext()));
+    }
+
+    @Override
+    public Optional<BlockDisplay.IBlock> onDisplay(Player player, World world, BlockPosition position, IBlockData data) {
+        return Optional.of(BlockDisplay.IBlock.of(blockData));
+    }
+
+    @Override
+    public UUID unique() {
+        return null;
+    }
+}

@@ -1,0 +1,1152 @@
+package p1;
+
+import org.lime.util.Counter;
+import com.destroystokyo.paper.profile.CraftPlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import com.google.gson.*;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.core.EnumDirection;
+import net.minecraft.core.IRegistry;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.MinecraftKey;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.sounds.SoundCategory;
+import net.minecraft.sounds.SoundEffects;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.IInventory;
+import net.minecraft.world.effect.MobEffectList;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.decoration.EntityItemFrame;
+import net.minecraft.world.entity.item.EntityItem;
+import net.minecraft.world.entity.player.AutoRecipeStackManager;
+import net.minecraft.world.inventory.InventoryCrafting;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.FurnaceRecipe;
+import net.minecraft.world.level.block.state.properties.*;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_17_R1.util.CraftNamespacedKey;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentOffer;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.*;
+import org.lime.*;
+import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import CustomUI;
+import CustomDie;
+import MenuCreator;
+import WalletInventory;
+import p1.ext.CustomMeta;
+import DataReader;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class ItemManager implements Listener {
+    public static core.element create() {
+        return core.element.create(ItemManager.class)
+                .withInstance()
+                .withInit(ItemManager::init)
+                .withUninit(ItemManager::uninit)
+                .<JsonObject>addConfig("items", v -> v.withInvoke(ItemManager::configItems).withDefault(new JsonObject()))
+                .<JsonObject>addConfig("crafts", v -> v.withInvoke(ItemManager::configCrafts).withDefault(new JsonObject()));
+    }
+
+    public static List<String> getKeysRegex(String regex) {
+        return creatorIDs.keySet().stream().filter(key -> key.equals(regex) || system.CompareRegex(key, regex)).collect(Collectors.toList());
+    }
+
+    private static final HashMap<String, PotionEffectType> potionEffectTypes = new HashMap<>();
+    static {
+        for (Map.Entry<ResourceKey<MobEffectList>, MobEffectList> kv : IRegistry.V.d()) {
+            String key = kv.getKey().a().getKey();
+            PotionEffectType effect = PotionEffectType.getById(MobEffectList.getId(kv.getValue()));
+            potionEffectTypes.put(key, effect);
+        }
+        for (PotionEffectType effect : PotionEffectType.values()) {
+            potionEffectTypes.put(effect.getName(), effect);
+        }
+    }
+
+    public static PotionEffect parseEffect(JsonObject json) {
+        PotionEffect effect = new PotionEffect(
+                potionEffectTypes.get(json.get("type").getAsString()),
+                json.get("duration").getAsInt(),
+                json.get("amplifier").getAsInt());
+
+        if (json.has("ambient")) effect.withAmbient(json.get("ambient").getAsBoolean());
+        if (json.has("icon")) effect.withIcon(json.get("icon").getAsBoolean());
+        if (json.has("particles")) effect.withParticles(json.get("particles").getAsBoolean());
+        return effect;
+    }
+    public static abstract class IItemCreator {
+        public boolean isDestroy = false;
+        public abstract boolean updateReplace();
+        public abstract String getKey();
+        public abstract int getID();
+        public abstract ItemStack createItem(int count, ChatHelper.ApplyManager apply);
+
+        public final String stack;
+
+        public IItemCreator() {
+            stack = Stream.of(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+        }
+
+        public ItemStack createItem() { return createItem(1); }
+        public ItemStack createItem(int count) { return createItem(count, ChatHelper.ApplyManager.empty()); }
+        public ItemStack createItem(ChatHelper.ApplyManager apply) { return createItem(1, apply); }
+        public ItemStack createItem(system.Func1<Builder, Builder> builder) { return builder == null ? this.createItem(1) : builder.invoke(new Builder(this)).Create(); }
+
+        public static IItemCreator byMaterial(Material material) { return new MaterialCreator(material); }
+    }
+    public static class MaterialCreator extends IItemCreator {
+        public final Material material;
+        @Override public boolean updateReplace() { return false; }
+        @Override public String getKey() { return "Minecraft." + material; }
+        @Override public int getID() { return 0; }
+
+        public MaterialCreator(Material material) { this.material = material; }
+
+        @Override public ItemStack createItem(int count, ChatHelper.ApplyManager apply) { return new ItemStack(this.material, count); }
+    }
+    public static class ItemCreator extends IItemCreator {
+        private final String _key;
+        private final int _id;
+
+        public final String item;
+        public final String id;
+        public final String name;
+        public final List<String> lore = new ArrayList<>();
+        public final List<ItemFlag> flags = new ArrayList<>();
+        public final List<system.Toast2<String, String>> args = new ArrayList<>();
+        public final HashMap<String, JsonElement> data = new HashMap<>();
+
+        public final String head_uuid;
+        public final String head_data;
+        public final String color;
+        public final boolean is_stack;
+
+        public final system.IRange heal;
+        public final int heal_time;
+
+        @Override public boolean updateReplace() { return true; }
+
+        @Override public String getKey() { return _key; }
+        @Override public int getID() { return _id; }
+
+        public final List<PotionEffect> potionEffects = new ArrayList<>();
+        protected ItemCreator(String key, JsonObject json) {
+            this._key = key;
+
+            this.item = json.get("item").getAsString();
+            this.name = json.get("name").getAsString();
+            this.id = json.has("id") ? json.get("id").getAsString() : null;
+
+            int _id = 0;
+            try { _id = id == null ? 0 : Integer.parseInt(id); } catch (Exception ignored) { }
+            if (this.getClass().equals(BlockItemCreator.class)) {
+                lime.LogOP("ID: " + id + " -> " + _id);
+            }
+            this._id = _id;
+
+            if (json.has("lore")) json.get("lore").getAsJsonArray().forEach(lore -> this.lore.add(lore.getAsString()));
+
+            this.heal = json.has("heal") ? system.IRange.parse(json.get("heal").getAsString()) : null;
+            this.heal_time = json.has("heal_time") ? json.get("heal_time").getAsInt() : 0;
+            this.head_uuid = json.has("head_uuid") ? json.get("head_uuid").getAsString() : null;
+            this.is_stack = !json.has("is_stack") || json.get("is_stack").getAsBoolean();
+            this.head_data = json.has("head_data") ? json.get("head_data").getAsString() : null;
+            this.color = json.has("color") ? json.get("color").getAsString() : null;
+            if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> this.args.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
+            if (json.has("data")) json.get("data").getAsJsonObject().entrySet().forEach(arg -> this.data.put(arg.getKey(), arg.getValue()));
+            if (json.has("potion_effects")) json.get("potion_effects").getAsJsonArray().forEach(arg -> this.potionEffects.add(parseEffect(arg.getAsJsonObject())));
+            if (json.has("flags")) json.get("flags").getAsJsonArray().forEach(arg -> this.flags.add(ItemFlag.valueOf(arg.getAsString())));
+        }
+
+
+        public ItemStack createItem(int count, ChatHelper.ApplyManager apply) {
+            ItemStack item = new ItemStack(Material.valueOf(apply.apply(this.item)));
+            item.setAmount(count);
+            ItemMeta meta = item.getItemMeta();
+            apply = MenuCreator.Menu.ISlot.createArgs(this.args, apply);
+            ChatHelper.ApplyManager finalApply = apply;
+            meta.displayName(ChatHelper.FormatComponent(name, apply));
+            meta.lore(createLore(finalApply));
+            if (id != null) {
+                String _id = apply.apply(id);
+                if (_id != null) meta.setCustomModelData(Integer.parseInt(_id));
+            }
+            if (head_uuid != null && meta instanceof SkullMeta) {
+                String uuid = ChatHelper.FormatText(head_uuid, apply);
+                if (!uuid.isEmpty()) ((SkullMeta)meta).setOwningPlayer(Bukkit.getOfflinePlayer(UUID.fromString(uuid)));
+            }
+            if (head_data != null && meta instanceof SkullMeta) {
+                CraftPlayerProfile profile = new CraftPlayerProfile(UUID.randomUUID(), null);
+                profile.setProperty(new ProfileProperty("textures", head_data));
+                ((SkullMeta)meta).setPlayerProfile(profile);
+            }
+            if (color != null && meta instanceof LeatherArmorMeta) ((LeatherArmorMeta)meta).setColor(ChatColorHex.of(ChatHelper.FormatText(color, apply)).toBukkitColor());
+            if (color != null && meta instanceof PotionMeta) ((PotionMeta)meta).setColor(ChatColorHex.of(ChatHelper.FormatText(color, apply)).toBukkitColor());
+            if (potionEffects.size() != 0 && meta instanceof PotionMeta) {
+                PotionMeta potionMeta = (PotionMeta)meta;
+                potionEffects.forEach(effect -> potionMeta.addCustomEffect(effect, false));
+            }
+            PersistentDataContainer container = meta.getPersistentDataContainer();
+            data.forEach((k, v) -> JManager.ToContainer(container, k, setArgs(v, finalApply)));
+            if (!is_stack) JManager.ToContainer(container, "uuid", new JsonPrimitive(UUID.randomUUID().toString()));
+            flags.forEach(meta::addItemFlags);
+            item.setItemMeta(meta);
+            return item;
+        }
+        public List<Component> createLore(ChatHelper.ApplyManager apply) {
+            List<Component> lore = new ArrayList<>();
+            this.lore.forEach(line -> {
+                for (String part : ChatHelper.FormatText(line, apply).split("\n"))
+                    lore.add(ChatHelper.FormatComponent(part));
+            });
+            return lore;
+        }
+        private static JsonElement setArgs(JsonElement json, ChatHelper.ApplyManager apply) {
+            if (json.isJsonNull()) return json;
+            else if (json.isJsonPrimitive()) {
+                JsonPrimitive primitive = json.getAsJsonPrimitive();
+                return primitive.isString() ? new JsonPrimitive(ChatHelper.FormatText(primitive.getAsString(), apply)) : primitive;
+            } else if (json.isJsonArray()) {
+                JsonArray arr = new JsonArray();
+                json.getAsJsonArray().forEach(item -> arr.add(setArgs(item, apply)));
+                return arr;
+            } else if (json.isJsonObject()) {
+                JsonObject obj = new JsonObject();
+                json.getAsJsonObject().entrySet().forEach(kv -> obj.add(kv.getKey(), setArgs(kv.getValue(), apply)));
+                return obj;
+            } else throw new UnsupportedOperationException("Unsupported element: " + json);
+        }
+    }
+    public static class BlockItemCreator extends ItemCreator {
+        public final String block_model;
+        public final Material block_material;
+        public final Map<String, JsonPrimitive> block_values;
+        public final Class<? extends IBlock<? extends JsonElement>> block_class;
+        protected BlockItemCreator(String key, JsonObject json) {
+            super(key, json);
+            JsonObject block_data = json.get("block").getAsJsonObject();
+            this.block_model = block_data.get("model").getAsString();
+            this.block_material = Material.valueOf(block_data.get("material").getAsString());
+            this.block_values = block_data.has("values")
+                    ? system.map.<String, JsonPrimitive>of().add(block_data.get("values").getAsJsonObject().entrySet(), Map.Entry::getKey, kv->kv.getValue().getAsJsonPrimitive()).build()
+                    : Collections.emptyMap();
+            lime.LogOP(this.block_material + "[" + this.block_values.entrySet().stream().map(kv -> kv.getKey() + "=" + kv.getValue()).collect(Collectors.joining(",")) + "]");
+            try { this.block_class = (Class<? extends IBlock<? extends JsonElement>>)Class.forName(block_data.get("class").getAsString()); }
+            catch (ClassNotFoundException e) { throw new IllegalArgumentException(e); }
+        }
+
+        public static abstract class IBlock<T extends JsonElement> extends CustomMeta.IBlockMeta<JsonObject> {
+            public int block_item;
+            public Material getBlockMaterial() { return creators.getOrDefault(block_item, null) instanceof BlockItemCreator creator ? creator.block_material : null; }
+            public String getBlockModel() { return creators.getOrDefault(block_item, null) instanceof BlockItemCreator creator ? creator.block_model : null; }
+            public BlockItemCreator getCreator() { return creators.getOrDefault(block_item, null) instanceof BlockItemCreator creator ? creator : null; }
+            public ItemStack getBlockModelItem() { return creatorIDs.getOrDefault(getBlockModel(), null).createItem(); }
+
+            @Override public void read(JsonObject json) {
+                block_item = json.get("item").getAsInt();
+                readBlock((T)json.get("block"));
+            }
+            public abstract void readBlock(T json);
+
+            @Override public JsonObject write() {
+                return system.json.object()
+                        .add("item", block_item)
+                        .add("block", writeBlock())
+                        .build();
+            }
+            public abstract T writeBlock();
+            public abstract void load();
+
+            public void apply(BlockItemCreator creator) {
+                this.block_item = creator.getID();
+                load();
+            }
+        }
+    }
+    public static class Builder {
+        private final IItemCreator creator;
+        private ChatHelper.ApplyManager apply = ChatHelper.ApplyManager.empty();
+        private int count = 1;
+        protected Builder(IItemCreator creator) {
+            this.creator = creator;
+        }
+        /*public Builder AddArgs(system.Toast2<String, String>... args) {
+            return AddArgs(Arrays.asList(args));
+        }
+        public Builder AddArgs(List<system.Toast2<String, String>> args) {
+            this.args.addAll(args);
+            return this;
+        }
+        public Builder SetRow(DataReader.DataBaseRow row) {
+            this.row = row;
+            return this;
+        }*/
+        public Builder AddApply(ChatHelper.ApplyManager apply) {
+            this.apply = this.apply.add(apply);
+            return this;
+        }
+        public Builder SetCount(int count) {
+            this.count = count;
+            return this;
+        }
+        protected ItemStack Create() {
+            return creator.createItem(count, apply);
+        }
+    }
+
+    private static class BlockDisplay extends Displays.ObjectDisplay<BlockItemCreator.IBlock<?>, EntityItemFrame> {
+        private BlockItemCreator.IBlock<?> meta;
+        private ItemStack item;
+
+        private BlockDisplay(BlockItemCreator.IBlock<?> meta) {
+            super(meta.getCenterLocation());
+            this.meta = meta;
+            postInit();
+        }
+
+        @Override protected EntityItemFrame createEntity(Location location) {
+            EntityItemFrame frame = new EntityItemFrame(
+                    ((CraftWorld)location.getWorld()).getHandle(),
+                    new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
+                    EnumDirection.a(BlockFace.UP.name()));
+            frame.setInvisible(true);
+            return frame;
+        }
+        @Override public void Update(BlockItemCreator.IBlock<?> meta) {
+            this.meta = meta;
+            ItemStack item = this.meta.getBlockModelItem();
+            boolean similar = item.isSimilar(this.item);
+            if (!similar) entity.setItem(CraftItemStack.asNMSCopy(this.item = item), true, false);
+            super.Update(meta);
+            if (!similar) InvokeAll(this::SendDataWatcher);
+        }
+    }
+    private static class BlockDisplayManager extends Displays.DisplayManager<String, BlockItemCreator.IBlock<?>, BlockDisplay> {
+        @Override public boolean isFast() { return true; }
+        @Override public boolean isAsync() { return true; }
+
+        @Override public Map<String, BlockItemCreator.IBlock<?>> getData() {
+            return CustomMeta.LoadedBlock.allReadOnlyAll()
+                    .stream()
+                    .map(v -> v instanceof BlockItemCreator.IBlock<?> b ? b : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toMap(CustomMeta.IBlockMeta::getFullKey, v -> v));
+        }
+        @Override public BlockDisplay create(String uuid, BlockItemCreator.IBlock<?> meta) {
+            return new BlockDisplay(meta);
+        }
+    }
+
+    private static final HashMap<String, IItemCreator> creatorIDs = new HashMap<>();
+    private static final HashMap<Integer, IItemCreator> creators = new HashMap<>();
+    private static final HashMap<Integer, Material> creatorMaterials = new HashMap<>();
+    private static final HashMap<Integer, String> creatorNamesIDs = new HashMap<>();
+    private static final HashMap<String, Integer> creatorIDsNames = new HashMap<>();
+
+    private static final List<system.Toast2<Integer, IItemCreator>> cashList = new ArrayList<>();
+    private static final HashMap<Integer, Integer> cashValues = new HashMap<>();
+
+    public static List<String> getItems() {
+        return new ArrayList<>(creatorIDs.keySet());
+    }
+
+    private static final HashMap<Enchantment, system.Toast2<Enchantment, Integer>> replacedEnchantments = system.map.<Enchantment, system.Toast2<Enchantment, Integer>>of()
+            .add(Enchantment.RIPTIDE, system.toast(Enchantment.DURABILITY, 2))
+            .add(Enchantment.CHANNELING, system.toast(Enchantment.DURABILITY, 2))
+            .add(Enchantment.FROST_WALKER, system.toast(Enchantment.DURABILITY, 2))
+
+            .add(Enchantment.ARROW_INFINITE, system.toast(Enchantment.DURABILITY, 3))
+            .add(Enchantment.MENDING, system.toast(Enchantment.DURABILITY, 3))
+
+            .build();
+    public static void on(PrepareItemEnchantEvent e) {
+        EnchantmentOffer[] offers = e.getOffers();
+        int length = offers.length;
+        for (int i = 0; i < length; i++) {
+            EnchantmentOffer offer = offers[i];
+            if (offer == null || !replacedEnchantments.containsKey(offer.getEnchantment())) continue;
+            offers[i] = null;
+        }
+    }
+
+    private static void replace(ItemStack original, ItemStack item) {
+        original.setType(item.getType());
+        original.setItemMeta(item.getItemMeta());
+        original.setAmount(item.getAmount());
+    }
+    private static void executeItem(ItemStack item) {
+        if (item == null) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+        boolean save = false;
+
+        Integer id = GetIDByItem(item);
+        if (id != null) {
+            Material mat = creatorMaterials.getOrDefault(id, null);
+            if (mat != null && !item.getType().equals(mat) && creators.getOrDefault(id, null) instanceof ItemCreator creator && creator.updateReplace()) {
+                replace(item, creator.createItem(item.getAmount()));
+                meta = item.getItemMeta();
+            }
+        }
+
+        for (Enchantment enchantment : meta.getEnchants().keySet()) {
+            system.Toast2<Enchantment, Integer> replace = replacedEnchantments.getOrDefault(enchantment, null);
+            if (replace == null) continue;
+            meta.removeEnchant(enchantment);
+            if (!meta.hasEnchant(replace.val0) || meta.getEnchantLevel(replace.val0) < replace.val1)
+                meta.addEnchant(replace.val0, replace.val1, true);
+            save = true;
+        }
+        if (meta instanceof EnchantmentStorageMeta esm) {
+            for (Enchantment enchantment : esm.getStoredEnchants().keySet()) {
+                system.Toast2<Enchantment, Integer> replace = replacedEnchantments.getOrDefault(enchantment, null);
+                if (replace == null) continue;
+                esm.removeStoredEnchant(enchantment);
+                if (!esm.hasStoredEnchant(replace.val0) || esm.getStoredEnchantLevel(replace.val0) < replace.val1)
+                    esm.addStoredEnchant(replace.val0, replace.val1, true);
+                save = true;
+            }
+        }
+        if (save) item.setItemMeta(meta);
+    }
+    @EventHandler public static void on(InventoryClickEvent e) {
+        if (e.getWhoClicked().getInventory().equals(e.getClickedInventory())) {
+            executeItem(e.getCurrentItem());
+            executeItem(e.getCursor());
+        }
+    }
+    @EventHandler public static void on(PlayerItemHeldEvent e) {}
+    @EventHandler public static void on(EntityPickupItemEvent e) { executeItem(e.getItem().getItemStack()); }
+    @EventHandler public static void on(InventoryPickupItemEvent e) { executeItem(e.getItem().getItemStack()); }
+    @EventHandler public static void on(PlayerDropItemEvent e) { executeItem(e.getItemDrop().getItemStack()); }
+
+    //<editor-fold desc="blockStates">
+    private static final HashMap<String, IBlockState<?>> blockStates = system.map.<String, IBlockState<?>>of()
+            .add("attached", BlockProperties.a)
+            .add("bottom", BlockProperties.b)
+            .add("conditional", BlockProperties.c)
+            .add("disarmed", BlockProperties.d)
+            .add("drag", BlockProperties.e)
+            .add("enabled", BlockProperties.f)
+            .add("extended", BlockProperties.g)
+            .add("eye", BlockProperties.h)
+            .add("falling", BlockProperties.i)
+            .add("hanging", BlockProperties.j)
+            .add("has_bottle_0", BlockProperties.k)
+            .add("has_bottle_1", BlockProperties.l)
+            .add("has_bottle_2", BlockProperties.m)
+            .add("has_record", BlockProperties.n)
+            .add("has_book", BlockProperties.o)
+            .add("inverted", BlockProperties.p)
+            .add("in_wall", BlockProperties.q)
+            .add("lit", BlockProperties.r)
+            .add("locked", BlockProperties.s)
+            .add("occupied", BlockProperties.t)
+            .add("open", BlockProperties.u)
+            .add("persistent", BlockProperties.v)
+            .add("powered", BlockProperties.w)
+            .add("short", BlockProperties.x)
+            .add("signal_fire", BlockProperties.y)
+            .add("snowy", BlockProperties.z)
+            .add("triggered", BlockProperties.A)
+            .add("unstable", BlockProperties.B)
+            .add("waterlogged", BlockProperties.C)
+            .add("vine_end", BlockProperties.D)
+            .add("berries", BlockProperties.E)
+            .add("axis", BlockProperties.F)
+            .add("axis", BlockProperties.G)
+            .add("up", BlockProperties.H)
+            .add("down", BlockProperties.I)
+            .add("north", BlockProperties.J)
+            .add("east", BlockProperties.K)
+            .add("south", BlockProperties.L)
+            .add("west", BlockProperties.M)
+            .add("facing", BlockProperties.N)
+            .add("facing", BlockProperties.O)
+            .add("facing", BlockProperties.P)
+            .add("orientation", BlockProperties.Q)
+            .add("face", BlockProperties.R)
+            .add("attachment", BlockProperties.S)
+            .add("east", BlockProperties.T)
+            .add("north", BlockProperties.U)
+            .add("south", BlockProperties.V)
+            .add("west", BlockProperties.W)
+            .add("east", BlockProperties.X)
+            .add("north", BlockProperties.Y)
+            .add("south", BlockProperties.Z)
+            .add("west", BlockProperties.aa)
+            .add("half", BlockProperties.ab)
+            .add("half", BlockProperties.ac)
+            .add("shape", BlockProperties.ad)
+            .add("shape", BlockProperties.ae)
+            .add("age", BlockProperties.am)
+            .add("age", BlockProperties.an)
+            .add("age", BlockProperties.ao)
+            .add("age", BlockProperties.ap)
+            .add("age", BlockProperties.aq)
+            .add("age", BlockProperties.ar)
+            .add("age", BlockProperties.as)
+            .add("bites", BlockProperties.at)
+            .add("candles", BlockProperties.au)
+            .add("delay", BlockProperties.av)
+            .add("distance", BlockProperties.ax)
+            .add("eggs", BlockProperties.ay)
+            .add("hatch", BlockProperties.az)
+            .add("layers", BlockProperties.aA)
+            .add("level", BlockProperties.aF)
+            .add("level", BlockProperties.aG)
+            .add("level", BlockProperties.aH)
+            .add("honey_level", BlockProperties.aI)
+            .add("level", BlockProperties.aK)
+            .add("moisture", BlockProperties.aL)
+            .add("note", BlockProperties.aM)
+            .add("pickles", BlockProperties.aN)
+            .add("power", BlockProperties.aO)
+            .add("stage", BlockProperties.aP)
+            .add("distance", BlockProperties.aR)
+            .add("charges", BlockProperties.aU)
+            .add("rotation", BlockProperties.aW)
+            .add("part", BlockProperties.aX)
+            .add("type", BlockProperties.aY)
+            .add("mode", BlockProperties.aZ)
+            .add("hinge", BlockProperties.ba)
+            .add("instrument", BlockProperties.bb)
+            .add("type", BlockProperties.bc)
+            .add("type", BlockProperties.bd)
+            .add("shape", BlockProperties.be)
+            .add("mode", BlockProperties.bf)
+            .add("leaves", BlockProperties.bg)
+            .add("tilt", BlockProperties.bh)
+            .add("vertical_direction", BlockProperties.bi)
+            .add("thickness", BlockProperties.bj)
+            .add("sculk_sensor_phase", BlockProperties.bk)
+            .build();
+    //</editor-fold>
+
+    private static <T extends Comparable<T>>void setBlockStates(CraftBlockData block, IBlockState<T> state, String value) {
+        block.set(state, state.b(value).get());
+    }
+
+    private static void setValues(Block block, Map<String, JsonPrimitive> values) {
+        CraftBlockData craftBlock = (CraftBlockData)block.getBlockData();
+        values.forEach((k,primitive) -> setBlockStates(craftBlock, blockStates.get(k), primitive.getAsString()));
+        block.setBlockData(craftBlock);
+    }
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true) public static void on(BlockPlaceEvent e) {
+        if (!(GetItemCreator(e.getItemInHand()) instanceof BlockItemCreator blockItemCreator)) return;
+        Block block = e.getBlock();
+        block.setType(blockItemCreator.block_material);
+        setValues(block, blockItemCreator.block_values);
+        CustomMeta.setBlockMeta(Position.of(block), loaded -> {
+            BlockItemCreator.IBlock<? extends JsonElement> data = loaded.getOrAdd(blockItemCreator.block_class);
+            data.apply(blockItemCreator);
+            return data;
+        });
+    }
+
+    /*public static class TmpBlock extends BlockItemCreator.IBlock<JsonObject> {
+        @Override public void create() {
+            lime.LogOP("CREATE");
+        }
+        @Override public void destroy() {
+            lime.LogOP("DESTROY");
+            ItemStack item = ItemManager.CreateItem(block_item);
+            if (item == null) return;
+            DropItem(getCenterLocation(), item);
+        }
+        @Override public void readBlock(JsonObject json) {
+
+        }
+        @Override public JsonObject writeBlock() {
+            return new JsonObject();
+        }
+        @Override public void populate(PopulateLootEvent e) {
+            e.setCancelled(true);
+        }
+
+        public boolean filter() {
+            return getLoaded().getBlock().getType().equals(getBlockMaterial());
+        }
+    }
+
+            CustomMeta.loadMeta(TmpBlock.class, v -> v
+                .withFilter(TmpBlock::filter));
+    */
+
+    public static void init() {
+        Displays.InitDisplay(new BlockDisplayManager());
+        AnyEvent.AddEvent("give.item", AnyEvent.type.other, builder -> builder.CreateParam(creatorIDs::get, creatorIDs::keySet), (player, creator) -> {
+            DropGiveItem(player, creator.createItem(b -> b.AddApply(ChatHelper.ApplyManager.byRow(DataReader.USER_TABLE.GetByUUID(player.getUniqueId())))));
+        });
+    }
+
+    public static void uninit() {
+        removeCrafts();
+    }
+    public static void configItems(JsonObject json) {
+        creatorIDs.values().forEach(creator -> creator.isDestroy = true);
+        creatorIDs.clear();
+        creators.clear();
+        creatorIDsNames.clear();
+        creatorNamesIDs.clear();
+        /*json.add("tmp", system.json.object()
+                .addObject("tmp.block", _v -> _v
+                        .addObject("block", v -> v
+                                .add("model", "tmp.display")
+                                .add("material", Material.SEA_PICKLE)
+                                .addObject("values", d -> d
+                                        .add("waterlogged", false)
+                                )
+                                .add("class", RadioMessages.RadioBlock.class.getName()) //"p1.ItemManager$TmpBlock"
+                        )
+                        .add("item", Material.STRUCTURE_VOID.name())
+                        .add("id", 99000)
+                        .add("name", "<GOLD>CUSTOM BLOCK")
+                )
+                .addObject("tmp.display", _v -> _v
+                        .add("item", Material.GLASS.name())
+                        .add("id", 99001)
+                        .add("name", "<GOLD>CUSTOM BLOCK DISPLAY")
+                )
+                .build()
+        );*/
+        /*json.add("tmp", system.json.object()
+                .addObject("tmp.checkers", _v -> _v
+                        .addObject("block", v -> v
+                                .add("model", "tmp.display")
+                                .add("material", Material.SEA_PICKLE)
+                                .addObject("values", d -> d
+                                        .add("waterlogged", false)
+                                )
+                                .add("class", Checkers.CheckersMonitor.class.getName()) //"p1.ItemManager$TmpBlock"
+                        )
+                        .add("item", Material.STRUCTURE_VOID.name())
+                        .add("id", 99000)
+                        .add("name", "<GOLD>CUSTOM BLOCK")
+                )
+                .addObject("tmp.display", _v -> _v
+                        .add("item", Material.GLASS.name())
+                        .add("id", 99001)
+                        .add("name", "<GOLD>CUSTOM BLOCK DISPLAY")
+                )
+                .build()
+        );*/
+        lime.combineParent(json, true).entrySet().forEach(kv -> {
+            String key = kv.getKey();
+            JsonObject value = kv.getValue().getAsJsonObject();
+            ItemCreator creator;
+            if (value.has("block")) creator = new BlockItemCreator(key, value);
+            else creator = new ItemCreator(key, value);
+            creatorIDs.put(key, creator);
+            if (creator.id != null) {
+                int id;
+                try { id = Integer.parseInt(creator.id); } catch (Exception ignored) { return; }
+                creators.put(id, creator);
+                creatorIDsNames.put(key, id);
+                creatorNamesIDs.put(id, key);
+                try { creatorMaterials.put(id, Material.valueOf(creator.item)); } catch (Exception ignored) { }
+            }
+        });
+
+        for (Material material : Material.values())
+            creatorIDs.put("Minecraft."+material.name(), IItemCreator.byMaterial(material));
+
+        cashList.clear();
+        creatorIDsNames.forEach((k,v) -> {
+            String[] args = k.split("\\.");
+            if (args.length != 2 || !args[0].equals("Cash")) return;
+            try {
+                int cash = Integer.parseInt(args[1]);
+                IItemCreator creator = creators.get(v);
+                int id = Integer.parseInt(((ItemCreator)creator).id);
+                cashList.add(system.toast(cash, creator));
+                cashValues.put(id, cash);
+            }
+            catch (Exception ignore) { }
+        });
+        cashList.sort(Comparator.comparingInt(k -> k.val0));
+        Collections.reverse(cashList);
+    }
+
+    public static class Crafts {
+        public interface CustomIResult {
+
+        }
+
+        private static final net.minecraft.world.item.ItemStack emptySlot = CraftItemStack.asNMSCopy(new ItemStack(Material.STONE, 1));
+
+        private static class OutputItem {
+            private final int amount;
+            private final String key;
+
+            public OutputItem(String key, int amount) {
+                this.key = key;
+                this.amount = amount;
+            }
+
+            public static OutputItem of(JsonElement json) {
+                String str = json.getAsString();
+                String[] args = str.split("\\*");
+                return new OutputItem(args[0], args.length > 1 ? Integer.parseUnsignedInt(args[1]) : 1);
+            }
+            public ItemStack create() {
+                IItemCreator creator = ItemManager.GetItemCreator(key);
+                if (creator != null) return creator.createItem(amount);
+                lime.LogOP("CRAFT OUTPUT ITEM '" + key + "' NOT FOUNDED!");
+                return new ItemStack(Material.STONE, 0);
+            }
+            public net.minecraft.world.item.ItemStack nms() {
+                return CraftItemStack.asNMSCopy(create());
+            }
+        }
+        private static class RecipeItem {
+            public static final RecipeItem none = new RecipeItem(v -> v != null && v.isEmpty());
+
+            private final system.Func1<net.minecraft.world.item.ItemStack, Boolean> func;
+
+            private RecipeItem(JsonElement json) {
+                this(v -> ItemManager.createCheck(json.getAsString()).invoke(CraftItemStack.asCraftMirror(v)));
+            }
+            private RecipeItem(system.Func1<net.minecraft.world.item.ItemStack, Boolean> func) {
+                this.func = func;
+            }
+
+            public boolean test(net.minecraft.world.item.ItemStack item) {
+                return func.invoke(item);
+            }
+
+            public static RecipeItem of(JsonElement json) {
+                return new RecipeItem(json);
+            }
+        }
+
+        private static List<RecipeItem> create(JsonArray json) {
+            List<RecipeItem> list = new ArrayList<>();
+            json.forEach(item -> list.add(RecipeItem.of(item)));
+            return list;
+        }
+
+        private enum cookingType {
+            blasting((key, output, input, exp, time) -> new RecipeBlasting(key, "", RecipeItemStack.a, emptySlot, exp, time) {
+                @Override  public net.minecraft.world.item.ItemStack getResult() { return result(output); }
+                @Override  public net.minecraft.world.item.ItemStack a( IInventory inventory) { return getResult(); }
+                @Override public boolean a( IInventory inventory,  net.minecraft.world.level.World world) { return check(input, inventory); }
+            }),
+            furnace((key, output, input, exp, time) -> new FurnaceRecipe(key, "", RecipeItemStack.a, emptySlot, exp, time) {
+                @Override  public net.minecraft.world.item.ItemStack getResult() { return result(output); }
+                @Override  public net.minecraft.world.item.ItemStack a( IInventory inventory) { return getResult(); }
+                @Override public boolean a( IInventory inventory,  net.minecraft.world.level.World world) { return check(input, inventory); }
+            }),
+            campfire((key, output, input, exp, time) -> new RecipeCampfire(key, "", RecipeItemStack.a, emptySlot, exp, time) {
+                @Override  public net.minecraft.world.item.ItemStack getResult() { return result(output); }
+                @Override  public net.minecraft.world.item.ItemStack a( IInventory inventory) { return getResult(); }
+                @Override public boolean a( IInventory inventory,  net.minecraft.world.level.World world) { return check(input, inventory); }
+            }),
+            smoking((key, output, input, exp, time) -> new RecipeSmoking(key, "", RecipeItemStack.a, emptySlot, exp, time) {
+                @Override  public net.minecraft.world.item.ItemStack getResult() { return result(output); }
+                @Override  public net.minecraft.world.item.ItemStack a( IInventory inventory) { return getResult(); }
+                @Override public boolean a( IInventory inventory,  net.minecraft.world.level.World world) { return check(input, inventory); }
+            });
+
+            private static net.minecraft.world.item.ItemStack result(OutputItem output) {
+                return CraftItemStack.asNMSCopy(output.create());
+            }
+            private static boolean check(RecipeItem input, IInventory inventory) {
+                return input.test(inventory.getItem(0));
+            }
+
+            private final system.Func5<MinecraftKey, OutputItem, RecipeItem, Float, Integer, RecipeCooking> init;
+            cookingType(system.Func5<MinecraftKey, OutputItem, RecipeItem, Float, Integer, RecipeCooking> init) {
+                this.init = init;
+            }
+
+            public RecipeCooking create(MinecraftKey key, JsonObject json) {
+                OutputItem output = OutputItem.of(json.get("output"));
+                RecipeItem input = RecipeItem.of(json.get("input"));
+                float experience = json.get("experience").getAsFloat();
+                int cookTime = json.get("cookTime").getAsInt();
+
+                return init.invoke(key, output, input, experience, cookTime);
+            }
+        }
+
+        private static IRecipe<?> create(MinecraftKey key, JsonObject json) {
+            switch (json.get("type").getAsString()) {
+                case "shapeless": {
+                    OutputItem output = OutputItem.of(json.get("output"));
+                    JsonArray input = json.get("input").getAsJsonArray();
+                    List<RecipeItem> recipes = create(input);
+                    return new ShapelessRecipes(key, "", emptySlot, NonNullList.a()) {
+                        @Override public net.minecraft.world.item.ItemStack getResult() {
+                            return output.nms();
+                        }
+                        @Override public net.minecraft.world.item.ItemStack a( InventoryCrafting inventory) {
+                            return getResult();
+                        }
+                        @Override public boolean a(int width, int height) {
+                            return width * height >= recipes.size();
+                        }
+                        @Override public boolean a( InventoryCrafting inventory, net.minecraft.world.level. World world) {
+                            AutoRecipeStackManager autorecipestackmanager = new AutoRecipeStackManager();
+                            boolean i2 = false;
+                            ArrayList<net.minecraft.world.item.ItemStack> providedItems = new ArrayList<>();
+                            Counter<net.minecraft.world.item.ItemStack> matchedProvided = new Counter<>();
+                            Counter<RecipeItem> matchedIngredients = new Counter<>();
+                            for (int j2 = 0; j2 < inventory.getSize(); ++j2) {
+                                net.minecraft.world.item.ItemStack itemstack = inventory.getItem(j2);
+                                if (itemstack.isEmpty()) continue;
+                                itemstack = itemstack.cloneItemStack();
+                                providedItems.add(itemstack);
+                                for (RecipeItem ingredient : recipes) {
+                                    if (!ingredient.test(itemstack)) continue;
+                                    matchedProvided.increment(itemstack);
+                                    matchedIngredients.increment(ingredient);
+                                }
+                            }
+                            if (matchedProvided.isEmpty() || matchedIngredients.isEmpty()) {
+                                return false;
+                            }
+                            ArrayList<RecipeItem> ingredients = new ArrayList<>(recipes);
+                            providedItems.sort(Comparator.comparingInt(c2 -> (int)matchedProvided.getCount((net.minecraft.world.item.ItemStack)c2)).reversed());
+                            ingredients.sort(Comparator.comparingInt(c2 -> (int)matchedIngredients.getCount(c2)));
+                            block2: for (net.minecraft.world.item.ItemStack provided : providedItems) {
+                                Iterator<RecipeItem> itIngredient = ingredients.iterator();
+                                while (itIngredient.hasNext()) {
+                                    RecipeItem ingredient = itIngredient.next();
+                                    if (!ingredient.test(provided)) continue;
+                                    itIngredient.remove();
+                                    continue block2;
+                                }
+                                return false;
+                            }
+                            return ingredients.isEmpty();
+                        }
+                    };
+                }
+                case "shaped": {
+                    OutputItem output = OutputItem.of(json.get("output"));
+                    int width = json.get("width").getAsInt();
+                    int height = json.get("height").getAsInt();
+                    JsonArray input = json.get("input").getAsJsonArray();
+                    List<RecipeItem> recipes = create(input);
+                    return new ShapedRecipes(key, "", 0, 0, NonNullList.a(), emptySlot) {
+                        @Override  public net.minecraft.world.item.ItemStack getResult() {
+                            return output.nms();
+                        }
+                        @Override public net.minecraft.world.item.ItemStack a(InventoryCrafting inventory) {
+                            return getResult();
+                        }
+                        @Override public boolean a(InventoryCrafting inventory,  net.minecraft.world.level.World world) {
+                            for (int i2 = 0; i2 <= inventory.g() - width; ++i2) {
+                                for (int j2 = 0; j2 <= inventory.f() - height; ++j2) {
+                                    if (this.a(inventory, i2, j2, true)) return true;
+                                    if (!this.a(inventory, i2, j2, false)) continue;
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+                        private boolean a(InventoryCrafting inv, int offsetX, int offsetY, boolean flipped) {
+                            for (int k2 = 0; k2 < inv.g(); ++k2) {
+                                for (int l2 = 0; l2 < inv.f(); ++l2) {
+                                    int i1 = k2 - offsetX;
+                                    int j1 = l2 - offsetY;
+                                    RecipeItem recipeitemstack = RecipeItem.none;
+                                    if (i1 >= 0 && j1 >= 0 && i1 < width && j1 < height) recipeitemstack = flipped ? recipes.get(width - i1 - 1 + j1 * width) : recipes.get(i1 + j1 * width);
+                                    if (recipeitemstack.test(inv.getItem(k2 + l2 * inv.g()))) continue;
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                    };
+                }
+
+                case "blasting": return cookingType.blasting.create(key, json);
+                case "furnace": return cookingType.furnace.create(key, json);
+                case "campfire": return cookingType.campfire.create(key, json);
+                case "smoking": return cookingType.smoking.create(key, json);
+                default: throw new IllegalArgumentException("Craft type '"+json.get("type").getAsString()+"' not founded!");
+            }
+        }
+        public static void add(String id, JsonObject json) {
+            MinecraftServer
+                    .getServer()
+                    .getCraftingManager()
+                    .addRecipe(
+                            create(CraftNamespacedKey.toMinecraft(new NamespacedKey(lime._plugin, id)), json)
+                    );
+        }
+    }
+    public static void configCrafts(JsonObject json) {
+        removeCrafts();
+        json.entrySet().forEach(kv -> Crafts.add(kv.getKey(), kv.getValue().getAsJsonObject()));
+    }
+    public static void removeCrafts() {
+        Iterator<Recipe> recipes = Bukkit.recipeIterator();
+        while (recipes.hasNext()) {
+            Recipe recipe = recipes.next();
+            if (!(recipe instanceof Keyed)) continue;
+            Keyed keyed = (Keyed)recipe;
+            if (!keyed.getKey().getNamespace().equals("lime")) continue;
+            recipes.remove();
+        }
+    }
+
+    public static void DropGiveItem(Player player, List<ItemStack> items) {
+        items.forEach(item -> ItemManager.DropGiveItem(player, item));
+    }
+    public static void DropGiveItem(Player _player, ItemStack _item) {
+        if (_item == null || _item.getType().isAir()) return;
+        EntityPlayer serverPlayer = ((CraftPlayer)_player).getHandle();
+        net.minecraft.world.item.ItemStack itemStack = CraftItemStack.asNMSCopy(_item);
+        boolean bl = serverPlayer.getInventory().pickup(itemStack);
+        EntityItem itemEntity;
+        if (bl && itemStack.isEmpty()) {
+            itemStack.setCount(1);
+            itemEntity = serverPlayer.drop(itemStack, false, false, true);
+            if (itemEntity != null) itemEntity.t();
+            serverPlayer.t.playSound(null, serverPlayer.locX(), serverPlayer.locY(), serverPlayer.locZ(), SoundEffects.jr, SoundCategory.h, 0.2F, ((serverPlayer.getRandom().nextFloat() - serverPlayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+            serverPlayer.bV.d();
+        } else {
+            if (!WalletInventory.tryAddToWallet(_player, CraftItemStack.asBukkitCopy(itemStack))) {
+                itemEntity = serverPlayer.drop(itemStack, false);
+                if (itemEntity != null) {
+                    itemEntity.o();
+                    itemEntity.setOwner(serverPlayer.getUniqueID());
+                }
+            }
+        }
+    }
+
+    private static Location dropBlockPosition(Location location) {
+        World world = location.getWorld();
+        Random random = ((CraftWorld)world).getHandle().w;
+
+        float f = EntityTypes.Q.l() / 2.0F;
+        double d0 = (double)location.getBlockX() + 0.5D + MathHelper.a(random, -0.25D, 0.25D);
+        double d1 = (double)location.getBlockY() + 0.5D + MathHelper.a(random, -0.25D, 0.25D) - (double)f;
+        double d2 = (double)location.getBlockZ() + 0.5D + MathHelper.a(random, -0.25D, 0.25D);
+
+        return new Location(world, d0, d1, d2);
+    }
+
+    public static void DropItem(Location location, List<ItemStack> items) {
+        World world = location.getWorld();
+        items.forEach(item -> {
+            if (item == null || item.getType().isAir()) return;
+            world.dropItemNaturally(location, item);
+        });
+    }
+    public static void DropItem(Location location, ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        location.getWorld().dropItemNaturally(location, item);
+    }
+    public static void DropBlockItem(Location location, List<ItemStack> items) {
+        World world = location.getWorld();
+        Location dropLoc = dropBlockPosition(location);
+        items.forEach(item -> {
+            if (item == null || item.getType().isAir()) return;
+            world.dropItem(dropLoc, item);
+        });
+    }
+    public static void DropBlockItem(Location location, ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        location.getWorld().dropItem(dropBlockPosition(location), item);
+    }
+
+    public static system.Func1<ItemStack, Boolean> createCheck(String regex) {
+        Set<Material> materials = Arrays.
+                stream(Material.values()).
+                filter(v -> system.CompareRegex("Minecraft." + v.name(), regex)).
+                collect(Collectors.toSet());
+
+        return (item) -> {
+            if (item == null) return false;
+            if (materials.contains(item.getType())) return true;
+            String key = GetKeyByItem(item);
+            return key != null && system.CompareRegex(key, regex);
+        };
+    }
+
+    public static String GetGlobalKeyByItem(ItemStack item) {
+        if (item == null) return null;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasCustomModelData()) return "Minecraft." + item.getType();
+        return creatorNamesIDs.getOrDefault(meta.getCustomModelData(), null);
+    }
+    public static String GetKeyByItem(ItemStack item) {
+        if (item == null) return null;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasCustomModelData()) return null;
+        return creatorNamesIDs.getOrDefault(meta.getCustomModelData(), null);
+    }
+    public static Integer GetIDByItem(ItemStack item) {
+        if (item == null) return null;
+        return GetIDByMeta(item.getItemMeta());
+    }
+    public static Integer GetIDByMeta(ItemMeta meta) {
+        if (meta == null || !meta.hasCustomModelData()) return null;
+        return meta.getCustomModelData();
+    }
+    public static boolean HasItem(String key) {
+        return creatorIDs.containsKey(key);
+    }
+    public static ItemStack CreateItem(String key) {
+        return CreateItem(key, null);
+    }
+    public static ItemStack CreateItem(int id) {
+        return CreateItem(id, null);
+    }
+    public static ItemStack CreateItem(String key, system.Func1<Builder, Builder> builder) {
+        IItemCreator creator = creatorIDs.getOrDefault(key, null);
+        return creator == null ? null : creator.createItem(builder);
+    }
+    public static ItemStack CreateItem(int id, system.Func1<Builder, Builder> builder) {
+        IItemCreator creator = creators.getOrDefault(id, null);
+        return creator == null ? null : creator.createItem(builder);
+    }
+    public static Integer GetCash(ItemStack item) {
+        if (item == null) return null;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasCustomModelData()) return null;
+        return cashValues.getOrDefault(meta.getCustomModelData(), null);
+    }
+    public static String GetCard(ItemStack card) {
+        if (card == null) return null;
+        if (!"Card".equals(ItemManager.GetKeyByItem(card))) return null;
+        JsonObject data = JManager.FromContainer(JsonObject.class, card.getItemMeta().getPersistentDataContainer(), "card_data", null);
+        return data != null && data.has("card") ? data.get("card").getAsString() : null;
+    }
+
+    public static IItemCreator GetItemCreator(String key) {
+        IItemCreator creator = creatorIDs.getOrDefault(key, null);
+        if (creator != null) return creator;
+        try { return ItemCreator.byMaterial(Material.valueOf(key)); }
+        catch (Exception e) { return null; }
+    }
+    public static IItemCreator GetItemCreator(ItemStack item) {
+        if (item == null) return null;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasCustomModelData()) return null;
+        return creators.getOrDefault(meta.getCustomModelData(), null);
+    }
+
+    public static List<ItemStack> CreateCash(int cash) {
+        List<ItemStack> items = new ArrayList<>();
+        if (cash <= 0) return items;
+        HashMap<IItemCreator, Integer> list = new HashMap<>();
+        for (system.Toast2<Integer, IItemCreator> kv : cashList) {
+            if (cash < kv.val0) continue;
+            list.put(kv.val1, list.getOrDefault(kv.val1, 0) + cash / kv.val0);
+            cash %= kv.val0;
+        }
+        list.forEach((k,v) -> items.add(k.createItem(v)));
+        return items;
+    }
+
+    private static void onUse(Player player, Player target) {
+        if (!Cooldown.HasCooldown(player.getUniqueId(), "use_heal")) onUseHeal(player, target, null);
+    }
+    private static String timerMs(int ticks) {
+        int totalMs = ticks * 50;
+        int ms = totalMs % 1000;
+        int sec = totalMs / 1000;
+        return
+                StringUtils.leftPad(String.valueOf(sec), 2, '0')
+                        + "."
+                        + StringUtils.leftPad(String.valueOf(ms), 3, '0');
+    }
+    private static boolean isDistance(Location first, Location second, double distance) {
+        if (first.getWorld() != second.getWorld()) return false;
+        return first.distance(second) < distance;
+    }
+    private static void onUseHeal(Player player, Player target, Integer ticks) {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        IItemCreator icreator = GetItemCreator(item);
+        if (!(icreator instanceof ItemCreator creator)) return;
+        if (creator.heal == null) return;
+        int _ticks = ticks == null ? creator.heal_time : ticks;
+        if (_ticks <= 0) {
+            CustomDie.up(target);
+            double total = target.getMaxHealth();
+            double health = creator.heal.getValue(total);
+            target.setHealth(Math.max(0, Math.min(total, target.getHealth() + health)));
+            item.subtract(1);
+            CustomUI.TextUI.hide(player);
+            return;
+        }
+        Location l1 = player.getLocation().clone();
+        Location l2 = target.getLocation().clone();
+        CustomUI.TextUI.show(player, timerMs(_ticks));
+        Cooldown.SetCooldown(player.getUniqueId(), "use_heal", 1);
+        lime.OnceTicks(() -> {
+            if (!item.isSimilar(player.getInventory().getItemInMainHand())) return;
+            if (!isDistance(l1, player.getLocation(), 0.1) || !isDistance(l2, target.getLocation(), 0.1)) return;
+            onUseHeal(player, target, _ticks - 1);
+        }, 1);
+    }
+    @EventHandler public static void onClick(PlayerInteractEntityEvent e) {
+        if (e.getHand() != EquipmentSlot.HAND) return;
+        if (e.getRightClicked() instanceof Player target)
+            onUse(e.getPlayer(), target);
+    }
+    @EventHandler public static void onClick(PlayerInteractEvent e) {
+        if (e.getHand() != EquipmentSlot.HAND) return;
+        switch (e.getAction()) {
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                if (e.getPlayer().isSneaking()) {
+                    onUse(e.getPlayer(), e.getPlayer());
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
