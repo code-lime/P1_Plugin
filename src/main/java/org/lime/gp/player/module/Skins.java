@@ -78,6 +78,8 @@ public class Skins implements Listener {
             other.showPlayer(lime._plugin, player);
         });
 
+        player.leaveVehicle();
+
         EntityPlayer ep = ((CraftPlayer) player).getHandle();
         PacketPlayOutPlayerInfo removeInfo = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, ep);
         PacketPlayOutPlayerInfo addInfo = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, ep);
