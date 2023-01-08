@@ -285,7 +285,7 @@ public class Perms implements Listener {
     }
     @EventHandler public static void on(PlayerBucketFillEvent e) {
         ICanData data = getCanData(e.getPlayer().getUniqueId());
-        if (data.isCanBreak(e.getBlock().getType().name())) return;
+        if (data.isCanBreak(e.getItemStack().getType().name())) return;
         e.setCancelled(true);
         LangMessages.Message.Work_Error_Use.sendMessage(e.getPlayer());
     }
