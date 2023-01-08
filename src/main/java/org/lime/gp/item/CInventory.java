@@ -6,9 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.ChatComponentText;
 import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.IInventory;
 import net.minecraft.world.ITileInventory;
 import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
@@ -16,32 +13,21 @@ import net.minecraft.world.entity.player.PlayerInventory;
 import net.minecraft.world.inventory.*;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftContainer;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Rows;
-import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.lime;
 import org.lime.gp.player.inventory.InterfaceManager;
-import org.lime.gp.player.module.PlayerData;
 import org.lime.system;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class CInventory {
     public static core.element create() {
@@ -73,7 +59,9 @@ public class CInventory {
     }
 
     private static class ContainerCInventory extends ContainerChest {
+        @SuppressWarnings("unused")
         private final List<ItemStack> buffer;
+        @SuppressWarnings("unused")
         private final ReadonlyInventory view;
         private final List<system.Toast2<String, List<ItemStack>>> view_groups;
 

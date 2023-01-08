@@ -87,6 +87,8 @@ public class Infection implements Listener, CustomUI.IUI {
             switch (player.getGameMode()) {
                 case CREATIVE:
                 case SPECTATOR: return;
+                default:
+                    break;
             }
             InfectionData data = infection(player);
 
@@ -182,6 +184,8 @@ public class Infection implements Listener, CustomUI.IUI {
         switch (player.getGameMode()) {
             case CREATIVE:
             case SPECTATOR: return Collections.emptyList();
+            default:
+                break;
         }
         InfectionData infection = infection(player);
         if (infection.value >= 20) return Collections.emptyList();

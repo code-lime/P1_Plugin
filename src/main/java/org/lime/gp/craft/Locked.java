@@ -2,7 +2,6 @@ package org.lime.gp.craft;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.minecraft.world.level.block.BlockCampfire;
 import org.bukkit.Color;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
@@ -17,9 +16,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.lime.core;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Settings;
-import org.lime.gp.lime;
-import org.lime.gp.player.perm.Perms;
-
 import java.util.Optional;
 import java.util.regex.Pattern;
 

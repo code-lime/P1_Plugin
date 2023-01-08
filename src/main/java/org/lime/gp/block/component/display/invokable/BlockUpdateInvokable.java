@@ -2,7 +2,6 @@ package org.lime.gp.block.component.display.invokable;
 
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
-import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.PlayerConnection;
 import org.bukkit.entity.Player;

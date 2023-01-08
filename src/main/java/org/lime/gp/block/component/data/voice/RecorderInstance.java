@@ -239,88 +239,12 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     }
 
     private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000.0f, 16, 1, 2, 48000.0f, false);
-    private static short[] getAudioShorts(File file) {
-        return Voice.API.getAudioConverter().bytesToShorts(getAudioBytes(file));
-    }
-    private static byte[] getAudioBytes(File file) {
-        try {
-            return convertFormat(file, FORMAT, 1);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
 
     public enum AudioType {
         MP3,
         WAV
     }
-
-    private static byte[] convertFormat(File file, AudioFormat audioFormat, double volume) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
-        AudioInputStream finalInputStream = null;
-        if (file.getName().endsWith(".wav")) {
-            AudioInputStream inputStream = AudioSystem.getAudioInputStream(file);
-            finalInputStream = AudioSystem.getAudioInputStream(audioFormat, inputStream);
-        } else if (file.getName().endsWith(".mp3")) {
-            AudioInputStream inputStream = new MpegAudioFileReader().getAudioInputStream(file);
-            AudioFormat baseFormat = inputStream.getFormat();
-            AudioFormat decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, baseFormat.getSampleRate(), 16, baseFormat.getChannels(), baseFormat.getChannels() * 2, baseFormat.getFrameRate(), false);
-            AudioInputStream convertedInputStream = new MpegFormatConversionProvider().getAudioInputStream(decodedFormat, inputStream);
-            finalInputStream = AudioSystem.getAudioInputStream(audioFormat, convertedInputStream);
-        }
-        assert (finalInputStream != null);
-        return adjustVolume(finalInputStream.readAllBytes(), volume);
-    }
-    private static byte[] getAudioDataBytes(byte[] sourceBytes, AudioFormat audioFormat) throws UnsupportedAudioFileException, IllegalArgumentException, IOException {
-        if (sourceBytes == null || sourceBytes.length == 0 || audioFormat == null) throw new IllegalArgumentException("Illegal Argument passed to this method");
-        try (final ByteArrayInputStream bais = new ByteArrayInputStream(sourceBytes);
-             final AudioInputStream sourceAIS = AudioSystem.getAudioInputStream(bais)) {
-            AudioFormat sourceFormat = sourceAIS.getFormat();
-            AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16, sourceFormat.getChannels(), sourceFormat.getChannels() * 2, sourceFormat.getSampleRate(), false);
-            try (final AudioInputStream convert1AIS = AudioSystem.getAudioInputStream(convertFormat, sourceAIS);
-                 final AudioInputStream convert2AIS = AudioSystem.getAudioInputStream(audioFormat, convert1AIS);
-                 final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[8192];
-                while (true) {
-                    int readCount = convert2AIS.read(buffer, 0, buffer.length);
-                    if (readCount == -1) break;
-                    baos.write(buffer, 0, readCount);
-                }
-                return baos.toByteArray();
-            }
-        }
-    }
-    private static byte[] adjustVolume(byte[] audioSamples, double volume) {
-        if (volume < 0) volume = 0;
-        else if (volume > 1) volume = 1;
-
-        byte[] array = new byte[audioSamples.length];
-        for (int i = 0; i < array.length; i += 2) {
-            short buf1 = audioSamples[i + 1];
-            short buf2 = audioSamples[i];
-            buf1 = (short)((buf1 & 0xFF) << 8);
-            buf2 = (short)(buf2 & 0xFF);
-            short res = (short)(buf1 | buf2);
-            res = (short)((double)res * volume);
-            array[i] = (byte)res;
-            array[i + 1] = (byte)(res >> 8);
-        }
-        return array;
-    }
-
-    private static byte[][] generateFrames(byte[] sound) {
-        short[] shorts = Voice.API.getAudioConverter().bytesToShorts(sound);
-        int shortLength = shorts.length;
-        int frameCount = (int)Math.ceil(shorts.length / 960.0);
-        byte[][] frames = new byte[frameCount][];
-        OpusEncoder encoder = Voice.API.createEncoder();
-        for (int i = 0; i < frameCount; i++) {
-            int framePosition = i * 960;
-            short[] frame = new short[960];
-            System.arraycopy(shorts, framePosition, frame, 0, Math.min(960, shortLength - framePosition));
-            frames[i] = encoder.encode(frame);
-        }
-        return frames;
-    }
+    
     private static byte[][] generateFrames(byte[] sound, system.Action2<Integer, Integer> progress) {
         short[] shorts = Voice.API.getAudioConverter().bytesToShorts(sound);
         int shortLength = shorts.length;
@@ -380,7 +304,6 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     }
 
     private static byte[] writeBIFs(byte[][] frames) {
-        int frameCount = frames.length;
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         for (byte[] frame : frames) {
             stream.writeBytes(Ints.toByteArray(frame.length));

@@ -2,7 +2,6 @@ package org.lime.gp.extension;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lime.gp.lime;
 import org.lime.system;
 
 import java.util.Collection;

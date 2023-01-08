@@ -1,12 +1,9 @@
 package org.lime.gp.database;
 
 import com.google.gson.JsonArray;
-import dev.geco.gsit.api.GSitAPI;
-import dev.geco.gsit.objects.IGPoseSeat;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Pose;
 import org.bukkit.entity.Tameable;
 import org.lime.core;
 import org.lime.gp.admin.Administrator;
@@ -30,6 +27,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public class ReadonlySync {
     public static core.element create() {
         return core.element.create(ReadonlySync.class)
@@ -144,6 +142,7 @@ public class ReadonlySync {
 
             public static <T>Builder<T> of(String table, String key) { return new Builder<>(table, key, null, null, null, null); }
 
+            @SuppressWarnings("unchecked")
             public <TKey>Builder<T> withKey(Class<TKey> tKeyClass, system.Func1<TKey, T> from) {
                 return new Builder<T>(table, key, tKeyClass, v -> from.invoke((TKey)v), keys, data);
             }
@@ -152,7 +151,7 @@ public class ReadonlySync {
             public Builder<T> withKeys(String... keys) { return withKeys(Arrays.asList(keys)); }
             public Builder<T> withData(system.Func0<Map<T, List<Object>>> data) { return new Builder<>(table, key, tKeyClass, from, keys, data); }
 
-            public Readonly<T> build() { return new Readonly(this); }
+            public Readonly<T> build() { return new Readonly<>(this); }
         }
     }
 
@@ -213,6 +212,7 @@ public class ReadonlySync {
             )
             .build();
 
+    @SuppressWarnings("deprecation")
     private static final Readonly<String> ENTITY_READONLY = Readonly.Builder.<String>of("entity", "uuid")
             .withKey(String.class)
             .withKeys("uuid","x","y","z","name","owner_uuid","type")

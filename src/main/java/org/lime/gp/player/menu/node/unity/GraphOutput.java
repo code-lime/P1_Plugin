@@ -3,15 +3,11 @@ package org.lime.gp.player.menu.node.unity;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
-import org.lime.gp.player.menu.NodeCreator;
 import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.connect.IInput;
 import org.lime.gp.player.menu.node.connect.IOutput;
-import org.lime.gp.player.menu.node.connect.output.ActionOutput;
-import org.lime.gp.player.menu.node.connect.output.ObjectOutput;
 import org.lime.system;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +19,8 @@ public class GraphOutput extends BaseNode {
                 .build());
     }
 
+    
+    @SuppressWarnings("unchecked")
     @Override protected void invokeNodeGenerate(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable, Map<Integer, Map<String, Object>> data, Map<IInput, Object> inputExecute) {
         Map<String, Object> _data = data.get(-1);
         if (_data == null) return;

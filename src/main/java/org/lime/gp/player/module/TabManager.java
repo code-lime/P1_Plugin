@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 public class TabManager implements Listener {
     private final static TabManager Instance = new TabManager();
 

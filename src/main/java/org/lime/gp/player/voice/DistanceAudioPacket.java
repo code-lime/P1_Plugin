@@ -1,6 +1,5 @@
 package org.lime.gp.player.voice;
 
-import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.api.Position;
 import de.maxhenkel.voicechat.api.packets.LocationalSoundPacket;
 import de.maxhenkel.voicechat.plugins.impl.ServerLevelImpl;
@@ -31,14 +30,14 @@ public class DistanceAudioPacket {
         this(packet.getSender(), packet.getOpusEncodedData(), packet.getSequenceNumber(), distance, packet.getPosition());
     }
 
-    private static Location ofDistance(Position listener, Position sender, double distance, double voiceDistance) {
+    /*private static Location ofDistance(Position listener, Position sender, double distance, double voiceDistance) {
         return ofDistance(
                 new Vector(listener.getX(), listener.getY(), listener.getZ()),
                 new Vector(sender.getX(), sender.getY(), sender.getZ()),
                 distance,
                 voiceDistance
         ).toLocation(null);
-    }
+    }*/
     public static Vector ofDistance(Vector listener, Vector sender, double distance, double voiceDistance) {
         Vector total = new Vector().add(listener).subtract(sender);
         double totalDistance = total.length();
@@ -51,7 +50,7 @@ public class DistanceAudioPacket {
     }
 
     public void send(World world) {
-        double totalDistance = Voicechat.SERVER_CONFIG.voiceChatDistance.get();
+        //double totalDistance = Voicechat.SERVER_CONFIG.voiceChatDistance.get();
         Voice.getPlayersRange(new ServerLevelImpl(world), location, distance).forEach(player -> {
             if (sender.equals(player.getUuid())) return;
             Voice.getConnectionOf(player.getUuid())
@@ -63,7 +62,7 @@ public class DistanceAudioPacket {
         });
     }
     public void send(Collection<Player> players) {
-        double voiceDistance = Voicechat.SERVER_CONFIG.voiceChatDistance.get();
+        //double voiceDistance = Voicechat.SERVER_CONFIG.voiceChatDistance.get();
         players.forEach(player -> {
             if (sender.equals(player.getUniqueId())) return;
             Voice.getConnectionOf(player.getUniqueId())

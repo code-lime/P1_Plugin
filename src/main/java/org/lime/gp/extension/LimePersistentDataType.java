@@ -18,6 +18,7 @@ public interface LimePersistentDataType<T, Z> extends PersistentDataType<T, Z> {
         return map(this, zClass, parse, format);
     }
 
+    @SuppressWarnings("unchecked")
     default <OUT extends Z> LimePersistentDataType<T, OUT> cast(Class<OUT> zClass) {
         return map(this, zClass, v -> (OUT) v, v -> v);
     }

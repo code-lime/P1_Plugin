@@ -3,29 +3,22 @@ package org.lime.gp.item;
 import com.comphenix.protocol.events.PacketContainer;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemSword;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
 import org.lime.gp.extension.PacketManager;
-import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 public class ItemDamageShow {
     public static core.element create() {
         return core.element.create(ItemDamageShow.class)
                 .withInit(ItemDamageShow::init);
     }
 
-    private static void unMapLore(ItemMeta meta) {
-
-    }
     private static void unMapEdit(ItemStack item) {
         Items.getOptional(Settings.DurabilitySetting.class, item)
                 .map(v -> v.maxDurability)
@@ -49,9 +42,6 @@ public class ItemDamageShow {
                 });
     }
 
-    private static void mapLore(ItemMeta meta) {
-
-    }
     private static void mapEdit(ItemStack item) {
         Items.getOptional(Settings.DurabilitySetting.class, item)
                 .map(v -> v.maxDurability)

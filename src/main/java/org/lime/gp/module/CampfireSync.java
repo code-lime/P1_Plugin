@@ -1,34 +1,24 @@
 package org.lime.gp.module;
 
 import com.google.gson.JsonPrimitive;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.PlayerChunk;
-import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockCampfire;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.TileEntity;
 import net.minecraft.world.level.block.entity.TileEntityCampfire;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.block.state.IBlockData;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_18_R2.event.CraftEventFactory;
 import org.bukkit.craftbukkit.v1_18_R2.persistence.CraftPersistentDataContainer;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
-import org.lime.gp.block.Ticker;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.lime;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class CampfireSync implements Listener {
     public static long CAMPFIRE_TIME_MS = 0;
@@ -41,6 +31,8 @@ public class CampfireSync implements Listener {
     public static void init() {
         lime.repeat(CampfireSync::update, 10);
     }
+    
+    @SuppressWarnings("all")
     public static void update() {
         MinecraftServer.getServer().getAllLevels().forEach(world -> {
             List<BlockPosition> positions = new ArrayList<>();

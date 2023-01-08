@@ -53,7 +53,6 @@ import org.lime.timings.lib.MCTiming;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -97,6 +96,7 @@ public class TownInventory implements Listener {
             generate(html -> generateMap(html, callback));
         }
         private static final ConcurrentHashMap<String, system.Toast2<byte[], Integer>> buffer = new ConcurrentHashMap<>();
+        @SuppressWarnings("unused")
         public static void generateMap(String html, system.Action1<byte[]> callback) {
             system.Toast2<byte[], Integer> data = buffer.getOrDefault(html, null);
             if (data != null) {
@@ -594,6 +594,8 @@ public class TownInventory implements Listener {
         }
         private static byte[] getLoadingMapIcon() { return Arrays.copyOf(loadingMapIcon, loadingMapIcon.length); }
 
+        
+@SuppressWarnings("deprecation")
         protected HomeDisplay(Rows.HouseRow row) {
             super(row.posMain.getLocation(row.posFace.getDirection()));
             pos1 = row.posMin;
@@ -639,10 +641,10 @@ public class TownInventory implements Listener {
             });
             updateMap(row);
         }
-        public void DisplayPreview(Player player) {
+        /*public void DisplayPreview(Player player) {
             displayPreview.remove(player);
             displayPreview.add(player);
-        }
+        }*/
         public void onClick(Player player, boolean isShift) {
             Tables.HOUSE_TABLE.get(houseRowID + "").ifPresent(row -> MenuCreator.show(player, "town.house.open", Apply.of().add("house_", row).add("is_shift", isShift ? "true" : "false")));
 
@@ -792,6 +794,8 @@ public class TownInventory implements Listener {
             case LEFT_CLICK_BLOCK:
             case LEFT_CLICK_AIR:
             case RIGHT_CLICK_AIR: return;
+            default:
+                break;
         }
         Block block = e.getClickedBlock();
         if (block == null) return;

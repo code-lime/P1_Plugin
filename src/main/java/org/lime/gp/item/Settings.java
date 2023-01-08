@@ -3,7 +3,6 @@ package org.lime.gp.item;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
-import github.scarsz.discordsrv.dependencies.alexh.Fluent;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -13,6 +12,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
@@ -260,7 +260,7 @@ public class Settings {
         @Override public int getTime() { return time; }
         @Override public void timeUse(Player player, Player target, ItemStack item) {
             Death.up(target);
-            double total = target.getMaxHealth();
+            double total = target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
             double health = heal.getValue(total);
             target.setHealth(Math.max(0, Math.min(total, target.getHealth() + health)));
         }

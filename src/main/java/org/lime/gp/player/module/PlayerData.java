@@ -6,21 +6,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.nbt.*;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryCustom;
-import org.bukkit.craftbukkit.v1_18_R2.persistence.CraftPersistentDataTypeRegistry;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
-import org.lime.gp.chat.LangMessages;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -71,6 +63,7 @@ public class PlayerData {
         private boolean dirty;
 
         public DirtyJsonPersistentDataContainer() { }
+        @SuppressWarnings("unused")
         public DirtyJsonPersistentDataContainer(Map<NamespacedKey, JsonElement> customTags) { super(customTags); }
         public DirtyJsonPersistentDataContainer(JsonObject json) { super(json); }
 

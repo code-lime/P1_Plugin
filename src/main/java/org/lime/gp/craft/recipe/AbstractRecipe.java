@@ -1,17 +1,7 @@
 package org.lime.gp.craft.recipe;
 
-import com.google.gson.JsonObject;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
-import net.minecraft.EnumChatFormat;
-import net.minecraft.nbt.NBTTagByte;
-import net.minecraft.network.chat.ChatComponentText;
-import net.minecraft.network.chat.ChatModifier;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
-import net.minecraft.world.inventory.InventoryCrafting;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.Recipes;
@@ -21,10 +11,7 @@ import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftCampfireRecipe;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftRecipe;
 import org.bukkit.craftbukkit.v1_18_R2.util.CraftNamespacedKey;
 import org.bukkit.inventory.Recipe;
-import org.lime.gp.chat.ChatHelper;
-
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class AbstractRecipe implements IRecipe<IInventory>, IDisplayRecipe {

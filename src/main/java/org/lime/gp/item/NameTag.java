@@ -60,6 +60,7 @@ public class NameTag implements Listener {
                 cursor.subtract(1);
                 e.setCancelled(true);
             }
+            default -> {}
         }
     }
 

@@ -5,7 +5,6 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.lime;
 import org.lime.gp.player.menu.Logged;
 import org.lime.system;
 

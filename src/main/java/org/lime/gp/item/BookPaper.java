@@ -171,6 +171,8 @@ public class BookPaper implements Listener {
                 cursor.subtract(addPages);
                 e.setCancelled(true);
                 break;
+            default:
+                break;
         }
     }
     @EventHandler public static void onInteract(PlayerInteractEvent e) {
@@ -217,7 +219,11 @@ public class BookPaper implements Listener {
                         }
                         return;
                     }
+                    default:
+                        break;
                 }
+            default:
+                break;
         }
     }
     @EventHandler public static void onBook(PlayerEditBookEvent e) {

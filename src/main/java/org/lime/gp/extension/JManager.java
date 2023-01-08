@@ -33,6 +33,7 @@ public class JManager {
     public static void set(PersistentDataContainer container, String key, JsonElement json) {
         set(container, key(key), json);
     }
+    @SuppressWarnings("unchecked")
     public static <IJson extends JsonElement> IJson get(Class<IJson> tClass, PersistentDataContainer container, NamespacedKey key, IJson _default) {
         String str = container.getOrDefault(key, PersistentDataType.STRING, _default == null ? "" : _default.toString());
         if (str.isEmpty()) return null;

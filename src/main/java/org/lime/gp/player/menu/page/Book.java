@@ -5,16 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.minecraft.network.protocol.game.PacketPlayOutOpenBook;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerEditBookEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Rows;
-import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.player.menu.Slot;
 import org.lime.gp.player.ui.EditorUI;
 

@@ -33,6 +33,7 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
 
     private final DrawMap map = DrawMap.of();
 
+    @SuppressWarnings("unchecked")
     public ITableGameInstance(int count, Class<IElement> elementClass, ComponentDynamic<?, ?> component, CustomTileMetadata metadata) {
         super(component, metadata);
         this.count = count;
@@ -79,6 +80,7 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
     public abstract void drawBackground(int x, int y, DrawMap map);
 
     private int of(int x, int y) { return y * count + x; }
+    @SuppressWarnings("unused")
     private system.Toast2<Integer, Integer> of(int index) { return system.toast(index % count, index / count); }
 
     @Override public void read(JsonObjectOptional json) {

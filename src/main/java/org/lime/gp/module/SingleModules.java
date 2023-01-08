@@ -1,13 +1,9 @@
 package org.lime.gp.module;
 
-import com.google.gson.JsonPrimitive;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PlayerGetUpPoseEvent;
 import io.papermc.paper.event.block.BellRevealRaiderEvent;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.item.EntityFallingBlock;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -27,7 +23,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.permissions.ServerOperator;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.lime.Position;
@@ -39,11 +34,9 @@ import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.PlayerDamageByPlayerEvent;
-import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.voice.Voice;
 import org.lime.system;
 
-import java.time.Duration;
 import java.util.*;
 
 public class SingleModules implements Listener {
@@ -80,6 +73,8 @@ public class SingleModules implements Listener {
                         switch (house.type) {
                             case HOSPITAL:
                                 maxHealth = Math.max(16, maxHealth);
+                                break;
+                            default:
                                 break;
                         }
                     }
@@ -132,6 +127,7 @@ public class SingleModules implements Listener {
             case NORTH: yaw = 0; break;
             case EAST: yaw = 90; break;
             case SOUTH: yaw = 180; break;
+            default: break;
         }
         beds.put(bedLoc, player.getUniqueId());
 
@@ -155,6 +151,7 @@ public class SingleModules implements Listener {
         switch (e.getStatus()) {
             case FAILED_DOWNLOAD:
             case ACCEPTED: return;
+            default: break;
         }
         Player player = e.getPlayer();
         lime.once(() -> {
@@ -201,6 +198,7 @@ public class SingleModules implements Listener {
                 switch (block.getType()) {
                     case GRASS:
                     case GRASS_BLOCK: return;
+                    default: break;
                 }
                 e.setUseItemInHand(Event.Result.DENY);
             }
@@ -259,6 +257,7 @@ public class SingleModules implements Listener {
         switch (e.getBlock().getType()) {
             case GRASS:
             case GRASS_BLOCK: return;
+            default: break;
         }
         e.setCancelled(true);
     }

@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings("unused")
 public class Pets {
     public static core.element create() {
         return core.element.create(Pets.class)
@@ -255,6 +256,7 @@ public class Pets {
         @Override public Models.Model model() { return model; }
         @Override public void tick(Models.Model.ChildDisplay<?> model, Map<String, Object> data) {}
 
+        @SuppressWarnings("all")
         protected VariablePet(String key, JsonObject json) {
             super(key, json);
             this.type = (EntityTypes<? extends EntityLiving>)EntityTypes.byString(json.get("type").getAsString()).get();
@@ -269,6 +271,7 @@ public class Pets {
                     .build();
         }
 
+        @SuppressWarnings("deprecation")
         private static system.Action1<Entity> variableApply(Class<? extends Entity> type, String variable) {
             system.Action1<Entity> apply = v -> {};
             if (variable == null) return apply;
@@ -312,9 +315,13 @@ public class Pets {
             }
             return apply;
         }
+        
+        @SuppressWarnings("unchecked")
         private static <T extends Entity, V>system.Action1<Entity> variableApply(system.Action2<T, V> apply, V value) {
             return e -> apply.invoke((T)e, value);
         }
+        
+        @SuppressWarnings("unchecked")
         private static <T extends Entity, V1, V2>system.Action1<Entity> variableApply(system.Action3<T, V1, V2> apply, V1 value1, V2 value2) {
             return e -> apply.invoke((T)e, value1, value2);
         }

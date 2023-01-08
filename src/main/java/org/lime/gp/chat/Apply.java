@@ -3,7 +3,6 @@ package org.lime.gp.chat;
 import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

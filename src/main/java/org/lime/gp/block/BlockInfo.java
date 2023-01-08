@@ -42,6 +42,7 @@ public final class BlockInfo {
     public BlockInfo add(system.Func1<BlockInfo, ComponentStatic<?>> component) {
         return add(component.invoke(this));
     }
+    @SuppressWarnings("unchecked")
     public <T extends ComponentStatic<?>> Optional<T> component(Class<T> tClass) {
         for (ComponentStatic<?> component : components.values()) {
             if (tClass.isInstance(component))

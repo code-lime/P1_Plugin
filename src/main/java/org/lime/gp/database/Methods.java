@@ -15,7 +15,6 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.lime;
-import org.lime.gp.module.ThreadPool;
 import org.lime.system;
 import org.lime.web;
 
@@ -75,6 +74,7 @@ public class Methods {
             threads.add(new Thread(Methods::threadAction));
         threads.forEach(Thread::start);
     }
+    @SuppressWarnings("deprecation")
     public static void uninit() {
         SQL.close();
         threads.forEach(Thread::stop);

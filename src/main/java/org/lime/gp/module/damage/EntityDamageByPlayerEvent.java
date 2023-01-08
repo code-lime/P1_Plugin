@@ -15,6 +15,7 @@ import org.lime.gp.extension.ExtMethods;
 
 import java.util.Optional;
 
+@SuppressWarnings("deprecation")
 public class EntityDamageByPlayerEvent extends Event {
     public static core.element create() {
         return core.element.create(EntityDamageByPlayerEvent.class)

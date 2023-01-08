@@ -4,7 +4,6 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
 import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo;
@@ -68,7 +67,7 @@ public class Skins implements Listener {
     }
 
     private static PropertyMap map(Player player) { return ((CraftPlayer)player).getHandle().getGameProfile().getProperties(); }
-    private static com.mojang.authlib.properties.Property of(Player player, String key) { return of(map(player), key); }
+    //private static com.mojang.authlib.properties.Property of(Player player, String key) { return of(map(player), key); }
     private static com.mojang.authlib.properties.Property of(PropertyMap properties, String key) { return properties.containsKey(key) ? properties.get(key).iterator().next() : null; }
 
     private static void updateSkin(Player player) {
@@ -188,7 +187,7 @@ public class Skins implements Listener {
         urls.forEach(url -> {
             String md5 = getMD5(url);
             String path = "skins/" + md5;
-            if (lime.existConfig(path)) skins.put(md5, new Property(new JsonParser().parse(lime.readAllConfig(path)).getAsJsonObject()));
+            if (lime.existConfig(path)) skins.put(md5, new Property(system.json.parse(lime.readAllConfig(path)).getAsJsonObject()));
             else
             {
                 Property prop = genSkin(url);
@@ -222,19 +221,6 @@ public class Skins implements Listener {
             json.addProperty("value", value);
             json.addProperty("signature", signature);
             return json;
-        }
-
-        public String getValue() {
-            return this.value;
-        }
-        public void setValue(String value) {
-            this.value = value;
-        }
-        public String getSignature() {
-            return this.signature;
-        }
-        public void setSignature(String signature) {
-            this.signature = signature;
         }
     }
     private static Property genSkin(String url) {

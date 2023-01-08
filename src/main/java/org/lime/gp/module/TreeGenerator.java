@@ -21,6 +21,8 @@ public class TreeGenerator implements Listener {
                 case OAK_LEAVES:
                     if (system.rand_is(0.10)) material = system.rand_is(0.30) ? Material.FLOWERING_AZALEA_LEAVES : Material.AZALEA_LEAVES;
                     break;
+                default:
+                    break;
             }
             switch (material) {
                 case ACACIA_LEAVES:
@@ -32,6 +34,8 @@ public class TreeGenerator implements Listener {
                 case DARK_OAK_LEAVES:
                 case FLOWERING_AZALEA_LEAVES:
                     if (system.rand_is(0.001)) material = Material.COBWEB;
+                    break;
+                default:
                     break;
             }
             if (original != material) v.setType(material);

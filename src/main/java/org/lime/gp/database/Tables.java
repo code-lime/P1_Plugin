@@ -136,6 +136,8 @@ public class Tables {
         private Calendar last_update = system.getZeroTime();
 
         private boolean isInit = false;
+        
+        @SuppressWarnings("unused")
         private final String index;
         private final String table;
         private final String where_select;
@@ -149,6 +151,7 @@ public class Tables {
         private final ConcurrentHashMap<String, V> data = new ConcurrentHashMap<>();
 
         private class OtherData {
+            @SuppressWarnings("unused")
             public final String other_index;
             public final ConcurrentHashMap<String, V> data = new ConcurrentHashMap<>();
             public final ConcurrentHashMap<String, String> keyed_remove = new ConcurrentHashMap<>();

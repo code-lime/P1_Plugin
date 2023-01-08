@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -409,7 +410,7 @@ public class Administrator implements Listener {
                 else {
                     tags.remove("leg.broken");
                     CustomUI.TextUI.show(player, "[Бессмертие]", 15);
-                    player.setHealth(player.getMaxHealth());
+                    player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                     ProxyFoodMetaData.ofPlayer(player)
                             .ifPresent(food -> {
                                 food.setFoodLevel(20);

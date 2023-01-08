@@ -1,6 +1,5 @@
 package org.lime.gp.entity;
 
-import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import net.minecraft.world.entity.EntityLimeMarker;
 import net.minecraft.world.entity.EntityMarkerEventDestroy;
 import org.bukkit.Location;

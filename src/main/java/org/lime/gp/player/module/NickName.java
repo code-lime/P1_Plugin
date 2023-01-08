@@ -11,11 +11,8 @@ import org.lime.gp.chat.ChatMessages;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.module.DrawText;
 import org.lime.gp.module.EntityPosition;
-import org.lime.gp.player.ui.CustomUI;
-import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.player.voice.Voice;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

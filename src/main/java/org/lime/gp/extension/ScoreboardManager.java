@@ -16,6 +16,7 @@ public class ScoreboardManager {
 
     private static Scoreboard _scoreboard = null;
 
+    @SuppressWarnings("deprecation")
     public static Objective objective(String key, boolean create) {
         Scoreboard scoreboard = scoreboard();
         Objective objective;

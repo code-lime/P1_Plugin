@@ -1,7 +1,6 @@
 package org.lime.gp.entity.component;
 
 import com.google.gson.*;
-import org.lime.gp.block.BlockInfo;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.lime;
 import org.lime.system;

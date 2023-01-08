@@ -97,6 +97,8 @@ public class WeaponLoader implements Listener {
                         case Elbow:
                             player.addPotionEffect(ELBOW);
                             break;
+                        default:
+                            break;
                     }
                     if (offhand.getType().isAir()) return;
                     inventory.setItemInOffHand(new ItemStack(Material.AIR));
@@ -223,6 +225,8 @@ public class WeaponLoader implements Listener {
                         });
                 break;
             }
+            default:
+                break;
         }
     }
 }

@@ -2,7 +2,6 @@ package org.lime.gp.sound;
 
 import net.minecraft.core.IRegistry;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBase;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.material.Material;

@@ -95,6 +95,8 @@ public final class FastReflection {
         }
     }
 
+    
+    @SuppressWarnings("unchecked")
     public static Object enumValueOf(Class<?> enumClass, String enumName) {
         return Enum.valueOf(enumClass.asSubclass(Enum.class), enumName);
     }

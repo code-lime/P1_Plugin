@@ -45,6 +45,8 @@ public class Thirst implements Listener, CustomUI.IUI {
                 switch (player.getGameMode()) {
                     case CREATIVE:
                     case SPECTATOR: return;
+                    default:
+                        break;
                 }
                 UUID uuid = player.getUniqueId();
 
@@ -64,6 +66,8 @@ public class Thirst implements Listener, CustomUI.IUI {
             switch (player.getGameMode()) {
                 case CREATIVE:
                 case SPECTATOR: return;
+                default:
+                    break;
             }
             ThirstData data = getThirst(player);
             data.updateDesert(player, 5);
@@ -362,6 +366,8 @@ public class Thirst implements Listener, CustomUI.IUI {
         switch (player.getGameMode()) {
             case CREATIVE:
             case SPECTATOR: return Collections.emptyList();
+            default:
+                break;
         }
         ThirstData data = getThirst(player);
         List<ImageBuilder> images = new ArrayList<>();

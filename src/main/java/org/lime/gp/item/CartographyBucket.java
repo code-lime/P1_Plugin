@@ -63,6 +63,8 @@ public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements
                                     e.setCancelled(true);
                                 });
                                 break;
+                            default:
+                                break;
                         }
                     }
                 });

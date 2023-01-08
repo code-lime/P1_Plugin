@@ -32,6 +32,7 @@ import java.util.*;
 
 public abstract class BaseNode implements Logged.ILoggedDelete {
     private final int id;
+    @SuppressWarnings("unused")
     private final String type;
 
     public final Map<String, IInput> input = new HashMap<>();

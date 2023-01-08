@@ -27,6 +27,8 @@ public class MonitorDisplay extends ObjectDisplay<MapMonitor.MonitorData, Entity
     private int lastMapID;
     private MapMonitor.MonitorData data;
 
+    
+    @SuppressWarnings("deprecation")
     private boolean syncMapID() {
         if (lastMapID == data.mapID) return false;
         lastMapID = data.mapID;

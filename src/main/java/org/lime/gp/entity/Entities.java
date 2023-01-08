@@ -80,6 +80,7 @@ public class Entities implements Listener {
                         })
                 );
     }
+    @SuppressWarnings("deprecation")
     private static final MinecraftServer server = MinecraftServer.getServer();
     public static Stream<EntityLimeMarker> all() {
         return Streams.stream(server.getAllLevels().iterator())

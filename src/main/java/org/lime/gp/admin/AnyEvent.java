@@ -65,6 +65,7 @@ public class AnyEvent {
         public Builder<system.Toast2<T,String>> createParam(String... values) {
             return createParam(v -> v, values);
         }
+        @SuppressWarnings("unchecked")
         public <T1 extends Enum<T1>>Builder<system.Toast2<T,T1>> createParam(T1... values) {
             HashMap<String, T1> map = new HashMap<>();
             for (T1 value : values) map.put(value.name(), value);

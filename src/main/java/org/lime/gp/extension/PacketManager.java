@@ -5,7 +5,6 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import net.kyori.adventure.text.Component;
 import net.minecraft.SystemUtils;
 import net.minecraft.network.chat.IChatBaseComponent;
@@ -24,7 +23,7 @@ import java.util.*;
 
 public class PacketManager {
     public static void sendActionMessage(Player player, String text) { sendActionData(player, Component.text(text)); }
-    public static void sendActionJson(Player player, String json) { sendActionJson(player, new JsonParser().parse(json)); }
+    public static void sendActionJson(Player player, String json) { sendActionJson(player, system.json.parse(json)); }
     public static void sendActionJson(Player player, JsonElement json) { sendActionData(player, ChatHelper.toNMS(json)); }
     public static void sendActionData(Player player, Component data) { sendActionData(player, ChatHelper.toNMS(data)); }
     public static void sendActionData(Player player, IChatBaseComponent data) { PacketManager.sendPacket(player, new PacketPlayOutChat(data, net.minecraft.network.chat.ChatMessageType.GAME_INFO, SystemUtils.NIL_UUID)); }
@@ -56,6 +55,7 @@ public class PacketManager {
                 return add(Collections.singletonList(type), func);
             }
 
+            @SuppressWarnings("unchecked")
             public <T extends Packet<?>>Builder add(Class<T> packetClass, system.Action2<T, PacketEvent> func) {
                 return add(PacketType.fromClass(packetClass), e -> func.invoke((T)e.getPacket().getHandle(), e));
             }

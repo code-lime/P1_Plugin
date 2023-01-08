@@ -10,7 +10,6 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentManager;
-import net.minecraft.world.level.block.entity.TileEntityCampfire;
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.Optional;

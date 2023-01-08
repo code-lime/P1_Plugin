@@ -17,6 +17,7 @@ public class PathFinder {
         return new BlockPosition(vector.getX(), vector.getY(), vector.getZ());
     }
 
+    @SuppressWarnings("unused")
     private static boolean isEmpty(WorldServer reader, int x, int y, int z) {
         return isEmpty(reader, new Vector(x,y,z));
     }
@@ -129,7 +130,7 @@ public class PathFinder {
         return true;
     }
 
-    public static Location setLocationDirection(Location loc, Location lookat) {// TODO not working?
+    public static Location setLocationDirection(Location loc, Location lookat) {
         loc = loc.clone();
         // double b = lookat.getX() - loc.getX();
         // double d = lookat.getY() - loc.getY();

@@ -9,13 +9,7 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumCreatureType;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.BiomeSettingsMobs;
-import net.minecraft.world.level.block.BlockCake;
-import net.minecraft.world.level.block.BlockLadder;
-import net.minecraft.world.level.block.BlockStairs;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.WorldGenStage;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.entity.*;
@@ -43,6 +37,7 @@ public class BiomeMobs implements Listener {
         Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.UNIVERSAL_ANGER, true));
         lime.repeat(BiomeMobs::update, 1);
     }
+    @SuppressWarnings("deprecation")
     public static void config(JsonObject json) {
         MinecraftServer.getServer()
                 .registryAccess()
@@ -61,6 +56,7 @@ public class BiomeMobs implements Listener {
     public static void update() {
         Bukkit.getWorlds().forEach(BiomeMobs::updateWorld);
     }
+    @SuppressWarnings("deprecation")
     public static void updateWorld(World world) {
         world.getEntitiesByClasses(Wolf.class, Silverfish.class, Spider.class).forEach(entity -> {
             if (entity instanceof Wolf wolf) {

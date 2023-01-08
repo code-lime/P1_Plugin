@@ -1,7 +1,6 @@
 package org.lime.gp.craft.slot;
 
 import net.minecraft.world.item.ItemStack;
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.lime.gp.item.Items;
 import org.lime.system;

@@ -91,7 +91,7 @@ public class Drugs implements Listener {
         EffectType(system.Action2<Player, Integer> tick) { this.tick = tick; }
         public void tick(Player player, int time) { tick.invoke(player, time); }
 
-        private static system.Action2<Player, Integer> ofPotion(PotionEffect potionEffect) { return ofPotion(potionEffect, 0); }
+        //private static system.Action2<Player, Integer> ofPotion(PotionEffect potionEffect) { return ofPotion(potionEffect, 0); }
         private static system.Action2<Player, Integer> ofPotion(PotionEffect potionEffect, int skip) {
             PotionEffectType effectType = potionEffect.getType();
             return (player, time) -> {

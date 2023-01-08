@@ -17,6 +17,7 @@ public class ForeDamage implements Listener {
                 .withInstance()
                 .<JsonPrimitive>addConfig("config", v -> v.withParent("fore_damage").withDefault(new JsonPrimitive(0.25)).withInvoke(_v -> fore_damage = _v.getAsDouble()));
     }
+    @SuppressWarnings("deprecation")
     @EventHandler public static void on(PlayerDamageByPlayerEvent e) {
         Player owner = e.getDamageOwner();
         Entity entity = e.getDamageEntity();

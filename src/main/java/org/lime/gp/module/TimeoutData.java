@@ -2,10 +2,7 @@ package org.lime.gp.module;
 
 import org.lime.core;
 import org.lime.gp.lime;
-import org.lime.reflection;
-import org.lime.system;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -35,6 +32,8 @@ public class TimeoutData {
         }
     }
 
+    
+    @SuppressWarnings("unchecked")
     private static  <T extends ITimeout>ConcurrentHashMap<UUID, T> ofClass(Class<T> tClass) {
         return (ConcurrentHashMap<UUID, T>)timeouts.computeIfAbsent(tClass, v -> new ConcurrentHashMap<UUID, T>());
     }

@@ -1,7 +1,6 @@
 package org.lime.gp.sound;
 
 import com.google.common.collect.Streams;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.key.Key;

@@ -169,6 +169,7 @@ public class Path {
     public static boolean has(String key) { return path_list.containsKey(key); }
 
     public static class Part {
+        @SuppressWarnings("unused")
         private enum Variable {
             FIRST(true, false),
             OTHER(false, false),
@@ -184,6 +185,7 @@ public class Path {
         }
         public final Vector position;
         public final double distance;
+        @SuppressWarnings("unused")
         private final Variable variable;
 
         private Part(Vector position, double distance, Variable variable) {
@@ -245,12 +247,6 @@ public class Path {
         double z = (1 - delta) * to.getZ() + delta * from.getZ();
 
         return new Vector(x + 0.5, y + 0.5, z + 0.5);
-    }
-
-    private int f(int value, int size) {
-        if (size <= 0) return 0;
-        while (value < 0) value += size;
-        return value % size;
     }
 
     private Vector get(double point, boolean circle) {

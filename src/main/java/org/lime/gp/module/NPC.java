@@ -1,8 +1,5 @@
 package org.lime.gp.module;
 
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
-import net.minecraft.world.entity.monster.EntityZombie;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
@@ -87,6 +84,7 @@ public class NPC {
         public final boolean single;
         public final List<Component> name = new ArrayList<>();
         public final boolean hide;
+        @SuppressWarnings("unused")
         public final boolean sit;
         public final String shift_menu;
         public final HashMap<EnumItemSlot, ItemStack> equipment = new HashMap<>();

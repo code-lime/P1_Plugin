@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.MobSpawner;
-import net.minecraft.world.level.block.BlockMobSpawner;
 import net.minecraft.world.level.storage.loot.LootSerialization;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.bukkit.event.EventHandler;

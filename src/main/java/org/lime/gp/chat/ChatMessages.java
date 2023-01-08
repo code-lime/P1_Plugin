@@ -1,30 +1,36 @@
 package org.lime.gp.chat;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.ServerOperator;
-import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
-import org.lime.gp.database.Tables;
-import org.lime.gp.extension.ExtMethods;
-import org.lime.gp.lime;
-import org.lime.gp.extension.Cooldown;
-import org.lime.gp.module.JavaScript;
-import org.lime.gp.player.voice.RadioData;
-import org.lime.core;
-import org.lime.gp.player.voice.Voice;
-import org.lime.system;
-import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.lime.gp.player.module.Death;
+import org.bukkit.permissions.ServerOperator;
+import org.lime.core;
+import org.lime.system;
+import org.lime.gp.lime;
+import org.lime.gp.database.Methods;
+import org.lime.gp.database.Rows;
+import org.lime.gp.database.Tables;
+import org.lime.gp.extension.Cooldown;
+import org.lime.gp.extension.ExtMethods;
+import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.gp.player.module.Death;
+import org.lime.gp.player.voice.RadioData;
+import org.lime.gp.player.voice.Voice;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import net.kyori.adventure.text.Component;
 
 public class ChatMessages implements Listener {
     public static core.element create() {
@@ -88,16 +94,12 @@ public class ChatMessages implements Listener {
     }
 
     private static class SendData {
-        public final UUID uuid;
-        public final String text;
         public final long time;
         public final long showTime;
 
         public final List<String> lines;
 
-        public SendData(UUID uuid, String text) {
-            this.uuid = uuid;
-            this.text = text;
+        public SendData(String text) {
             this.time = System.currentTimeMillis();
             this.lines = split(text, 50, 3);
             long showTime = 0;
@@ -159,7 +161,9 @@ public class ChatMessages implements Listener {
                 );
     }
 
-    @EventHandler public static void on(PlayerChatEvent e) {
+    @EventHandler
+    @Deprecated
+    public static void on(org.bukkit.event.player.PlayerChatEvent e) {
         e.setCancelled(true);
 
         String message = e.getMessage();
@@ -175,7 +179,7 @@ public class ChatMessages implements Listener {
                     .add("radio_distance", String.valueOf(radio.total_distance))
             );
         });
-        sendList.put(uuid, new SendData(uuid, message));
+        sendList.put(uuid, new SendData(message));
     }
 
     public static void smsFast(Player player, Rows.UserRow user, int phone, Methods.CallType type, String message) {

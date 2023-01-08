@@ -112,6 +112,8 @@ public class Craft4x4Action {
 
         @Override public Optional<String> vanillaType() { return Optional.ofNullable(vanillaType); }
     }
+    
+    @SuppressWarnings("unused")
     private static class ContainerWorkbench4x4 extends ContainerWorkbench {
         private boolean isPostSuper = false;
         private final UUID block_uuid;
@@ -229,8 +231,10 @@ public class Craft4x4Action {
         public final ContainerAccess access;
         private final EntityHuman player;
         private final InventoryCrafting craftSlots;
+        @SuppressWarnings("unused")
         private final int resultSlotIndex;
         private final InventoryCraftResult resultSlots;
+        @SuppressWarnings("unused")
         private final String vanillaType;
 
         private final int RESULT_SLOT = Craft4x4Action.resultSlots;

@@ -1,11 +1,8 @@
 package org.lime.gp.module;
 
-import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
 import net.minecraft.network.protocol.game.PacketPlayOutMap;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
 import org.apache.commons.lang.StringUtils;
@@ -18,8 +15,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.map.MapPalette;
 import org.lime.core;
-import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.chat.LangMessages;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.gp.map.MapMonitor;
@@ -27,7 +22,6 @@ import org.lime.reflection;
 import org.lime.system;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -37,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class DrawMap {
@@ -244,60 +237,6 @@ public final class DrawMap {
 
         return new hsv(h,s,v);
     }
-    private static rgb hsv2rgb(hsv in) {
-        double      hh, p, q, t, ff;
-        long        i;
-        double r, g, b;
-
-        if(in.s <= 0.0) {       // < is bogus, just shuts up warnings
-            r = in.v;
-            g = in.v;
-            b = in.v;
-            return new rgb(r,g,b);
-        }
-        hh = in.h;
-        if(hh >= 360.0) hh = 0.0;
-        hh /= 60.0;
-        i = (long)hh;
-        ff = hh - i;
-        p = in.v * (1.0 - in.s);
-        q = in.v * (1.0 - (in.s * ff));
-        t = in.v * (1.0 - (in.s * (1.0 - ff)));
-
-        switch ((int) i) {
-            case 0 -> {
-                r = in.v;
-                g = t;
-                b = p;
-            }
-            case 1 -> {
-                r = q;
-                g = in.v;
-                b = p;
-            }
-            case 2 -> {
-                r = p;
-                g = in.v;
-                b = t;
-            }
-            case 3 -> {
-                r = p;
-                g = q;
-                b = in.v;
-            }
-            case 4 -> {
-                r = t;
-                g = p;
-                b = in.v;
-            }
-            default -> {
-                r = in.v;
-                g = p;
-                b = q;
-            }
-        }
-        return new rgb(r,g,b);
-    }
 
     private static final HashMap<Byte, Byte> negativeMap = new HashMap<>();
     private static final byte[] colorConverter = new byte[256*256*256];
@@ -357,7 +296,9 @@ public final class DrawMap {
         return _color.getAlpha() < 128 ? MapPalette.RED : MapPalette.matchColor(_color);*/
     }
     public static Byte to(Color color) { return color == null ? null : to(color.asRGB()); }
+    @SuppressWarnings("deprecation")
     public static Color to(byte color) { return Color.fromRGB(MapPalette.getColor(color).getRGB() & 0xFFFFFF); }
+    @SuppressWarnings("deprecation")
     public static String toHex(byte color) {
         return Integer.toHexString(MapPalette.getColor(color).getRGB()).substring(2);
     }

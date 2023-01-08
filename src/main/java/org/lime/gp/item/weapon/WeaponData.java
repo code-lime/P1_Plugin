@@ -21,7 +21,6 @@ import org.lime.display.transform.Transform;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Settings;
-import org.lime.gp.item.UseSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
@@ -168,13 +167,6 @@ public class WeaponData {
 
         return images;
     }
-
-    private static double rotation(double pitch) {
-        while (pitch < -180) pitch += 360;
-        while (pitch >= 180) pitch -= 360;
-        return pitch;
-    }
-
     public boolean shoot(Player shooter, CraftItemStack main_hand) {
         return shoot(shooter, main_hand, 0);
     }
@@ -183,6 +175,8 @@ public class WeaponData {
         else lime.onceTicks(() -> spawnShoot(shooter, bullet, pose, offset), wait_ticks);
         return true;
     }
+    
+    @SuppressWarnings("deprecation")
     private boolean spawnShoot(Player shooter, Settings.BulletSetting bullet, Settings.WeaponSetting.Pose pose, Vector offset) {
         Location location = shooter.getEyeLocation();
         location = Transform.toWorld(location, new LocalLocation(offset.multiply(new Vector(switch (shooter.getMainHand()) {

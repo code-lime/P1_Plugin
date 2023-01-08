@@ -30,6 +30,8 @@ public class QToNext implements Listener {
                         }));
                 break;
             }
+            default:
+                break;
         }
     }
 }

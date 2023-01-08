@@ -35,6 +35,8 @@ import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
 
+
+@SuppressWarnings("unchecked")
 public class InterfaceManager implements Listener {
     public static core.element create() {
         return core.element.create(InterfaceManager.class)
@@ -81,6 +83,7 @@ public class InterfaceManager implements Listener {
                                     if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot) aslot.onSlotClickAsync(connection.player);
                                 }
                             }
+                            default -> {}
                         }
                     }
                 })
@@ -162,6 +165,7 @@ public class InterfaceManager implements Listener {
     public static ItemStack createItem(final Material material, final String name, final String... lore) {
         return createItem(material, name, null, lore);
     }
+    @SuppressWarnings("deprecation")
     public static ItemStack createItem(final Material material, final String name, system.Action1<ItemStack> init, final String... lore) {
         final ItemStack item = new ItemStack(material, 1);
         final ItemMeta meta = item.getItemMeta();

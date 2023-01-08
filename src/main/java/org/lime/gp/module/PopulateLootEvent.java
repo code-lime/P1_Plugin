@@ -60,6 +60,8 @@ public class PopulateLootEvent extends Event implements Cancellable {
         return core.element.create(PopulateLootEvent.class)
                 .withInit(PopulateLootEvent::init);
     }
+    
+    @SuppressWarnings("deprecation")
     private static void init() {
         LootTableRegistry registry = MinecraftServer.getServer().getLootTables();
         HashMap<MinecraftKey, LootTable> lootTables = new HashMap<>();

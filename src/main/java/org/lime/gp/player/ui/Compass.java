@@ -70,7 +70,7 @@ public class Compass {
                 this.value = value;
             }
 
-            public double getAngle() {
+            /*public double getAngle() {
                 return getAngle(360);
             }
             public double getZeroAngle() {
@@ -78,7 +78,7 @@ public class Compass {
             }
             public double getAngle(double delta) {
                 return getDelta(value * 360, delta);
-            }
+            }*/
             public double getZeroAngle(double delta) {
                 return getDelta(value * 360 - 180, delta);
             }
@@ -95,9 +95,9 @@ public class Compass {
             public static angle of(Location location) {
                 return of(0 - location.getYaw() % 360);
             }
-            public static angle of(Player player) {
+            /*public static angle of(Player player) {
                 return of(player.getLocation());
-            }
+            }*/
             public static angle of(Vector center, Vector offset) {
                 Vector normal = new Vector().add(offset).subtract(center).setY(0).normalize();
                 double x = normal.getX();
@@ -108,16 +108,16 @@ public class Compass {
             public angle add(double angle) {
                 return new angle(value + angle / 360);
             }
-            public angle del(double angle) {
+            /*public angle del(double angle) {
                 return new angle(value - angle / 360);
-            }
+            }*/
 
             public angle add(angle angle) {
                 return new angle(value + angle.value);
             }
-            public angle del(angle angle) {
+            /*public angle del(angle angle) {
                 return new angle(value - angle.value);
-            }
+            }*/
         }
 
         private static List<ImageBuilder> writeNum(int offset, TextColor color, int num) {

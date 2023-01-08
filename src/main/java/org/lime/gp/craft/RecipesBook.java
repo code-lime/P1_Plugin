@@ -44,7 +44,6 @@ import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
-import org.lime.system;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -85,15 +84,10 @@ public class RecipesBook implements Listener {
     private static final HashMap<UUID, String> playerCans = new HashMap<>();
     private static final HashMap<String, RecipesBookData> recipesBooks = new HashMap<>();
     private static class RecipesBookData {
+        @SuppressWarnings("unused")
         public final String id;
         public final IChatBaseComponent title;
         public final Component adventure$title;
-
-        public static JsonObject defaultData() {
-            return system.json.object()
-                    .add("title", "TITLE")
-                    .build();
-        }
 
         public RecipesBookData(String id, JsonObject json) {
             this.id = id;
@@ -141,6 +135,7 @@ public class RecipesBook implements Listener {
         RecipesBook.recipesBooks.clear();
         RecipesBook.recipesBooks.putAll(recipesBooks);
     }
+    @SuppressWarnings("all")
     public static void reload() {
         PacketPlayOutRecipeUpdate packetplayoutrecipeupdate = new PacketPlayOutRecipeUpdate(Recipes.CRAFTING_MANAGER.getRecipes());
         for (EntityPlayer entityplayer : MinecraftServer.getServer().getPlayerList().players) {

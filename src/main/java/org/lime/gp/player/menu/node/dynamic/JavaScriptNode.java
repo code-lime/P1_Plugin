@@ -3,17 +3,14 @@ package org.lime.gp.player.menu.node.dynamic;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
-import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.connect.IInput;
 import org.lime.gp.player.menu.node.connect.IOutput;
 import org.lime.gp.player.menu.node.connect.input.ActionInput;
-import org.lime.gp.player.menu.node.connect.input.ObjectInput;
 import org.lime.gp.player.menu.node.connect.input.StringInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.ObjectOutput;
-import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
 import java.util.*;

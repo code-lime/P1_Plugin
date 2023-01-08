@@ -36,6 +36,7 @@ public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements 
                                     return;
                                 }
                             }
+                            default -> {}
                         }
                     }
                 })

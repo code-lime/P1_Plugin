@@ -1,42 +1,49 @@
 package org.lime.gp.block;
 
-import com.google.common.collect.Iterables;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.world.EnumHand;
-import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.LimeKey;
-import net.minecraft.world.entity.player.EntityHuman;
-import net.minecraft.world.level.ChunkCoordIntPair;
-import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
-import net.minecraft.world.level.block.entity.TileEntitySkullEventRemove;
-import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
-import net.minecraft.world.level.block.entity.TileEntityTypes;
-import net.minecraft.world.level.block.state.IBlockData;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
+
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.permissions.ServerOperator;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.system;
+import org.lime.gp.lime;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.DisplayInstance;
 import org.lime.gp.extension.ExtMethods;
-import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.module.TimeoutData;
-import org.lime.system;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.world.EnumHand;
+import net.minecraft.world.EnumInteractionResult;
+import net.minecraft.world.LimeKey;
+import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.level.ChunkCoordIntPair;
+import net.minecraft.world.level.block.BlockSkullDestroyInfo;
+import net.minecraft.world.level.block.BlockSkullInteractInfo;
+import net.minecraft.world.level.block.BlockSkullPlaceInfo;
+import net.minecraft.world.level.block.BlockSkullShapeInfo;
+import net.minecraft.world.level.block.BlockSkullStateInfo;
+import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
+import net.minecraft.world.level.block.entity.TileEntitySkullEventRemove;
+import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
+import net.minecraft.world.level.block.state.IBlockData;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class CustomTileMetadata extends TileMetadata {
     public static Position DEBUG_BLOCK = null;
@@ -136,6 +143,8 @@ public class CustomTileMetadata extends TileMetadata {
         return Stream.concat(Stream.of(childable), childable.childs().flatMap(v -> v instanceof Childable c ? childsAndThis(c) : Stream.of(v)));
     }
     private final ConcurrentHashMap<Class<?>, List<?>> list_buffer = new ConcurrentHashMap<>();
+    
+    @SuppressWarnings("unchecked")
     public <T extends Element>Stream<T> list(Class<T> tClass) {
         List<?> _data = list_buffer.get(tClass);
         if (_data != null) return ((List<T>)_data).stream();

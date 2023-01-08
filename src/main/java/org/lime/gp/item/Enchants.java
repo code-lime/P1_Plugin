@@ -24,7 +24,6 @@ import org.lime.core;
 import org.lime.system;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Enchants implements Listener {
     public static core.element create() {

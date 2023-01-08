@@ -193,6 +193,7 @@ public class Bullets implements Listener {
                                         if (entity.getBukkitEntity() instanceof LivingEntity lentity) lentity.addPotionEffect(TRAUMATIC_FREEZE);
                                         if (entity.getBukkitEntity() instanceof Player player && system.rand_is(0.12)) Knock.knock(player);
                                     }
+                                    default -> {}
                                 }
                             });
                         }

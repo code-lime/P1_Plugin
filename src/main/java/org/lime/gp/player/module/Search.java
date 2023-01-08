@@ -58,7 +58,7 @@ public class Search implements Listener {
     }
 
     private static boolean inDistance(Location loc1, Location loc2, double distance) { return loc1.getWorld() == loc2.getWorld() && loc1.toVector().distance(loc2.toVector()) < distance; }
-    private static Iterable<Integer> _for(int start, int end) { return _for(start, end, 1); }
+    /*private static Iterable<Integer> _for(int start, int end) { return _for(start, end, 1); }
     private static Iterable<Integer> _for(int start, int end, int step) {
         return () -> new Iterator<>() {
             private int index = start;
@@ -70,13 +70,14 @@ public class Search implements Listener {
             }
         };
     }
+
     private static final HashMap<Integer, system.Toast2<Integer, Boolean>> to_global = system.map.<Integer, system.Toast2<Integer, Boolean>>of()
             .add(_for(0, 9), k -> k + 2 * 9, v -> system.toast(v, true))
             .add(_for(0, 9), k -> k + 1 * 9, v -> system.toast(v + 3 * 9, true))
             .add(_for(0, 9), k -> k + 0 * 9, v -> system.toast(9, false))
             .add(_for(1, 5), k -> k + 0 * 9, v -> system.toast(v + (4 * 9) - 1, false))
             .add(_for(7, 8), k -> k + 0 * 9, v -> system.toast(v + (4 * 9) - 3, true))
-            .build();
+            .build();*/
 
     public static void search(Player player, Player other, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         Apply _other = Apply.of().add("other_uuid", other.getUniqueId().toString());

@@ -108,6 +108,7 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
         item.setItemMeta(meta);
         return item;
     }
+    @SuppressWarnings("deprecation")
     private static byte[] readMap(int index) {
         CraftMapView view = (CraftMapView)Bukkit.getMap(index);
         byte[] data = new byte[128*128];

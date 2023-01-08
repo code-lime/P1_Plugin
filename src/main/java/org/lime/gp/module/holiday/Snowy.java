@@ -45,6 +45,8 @@ public class Snowy implements Listener {
                 );
     }
 
+    
+    @SuppressWarnings("deprecation")
     private final static MinecraftServer server = MinecraftServer.getServer();
     private final static IRegistryCustom.Dimension dimension = server.registryHolder;
     private final static RegistryMaterials<BiomeBase> data = (RegistryMaterials<BiomeBase>)dimension.registryOrThrow(IRegistry.BIOME_REGISTRY);

@@ -19,6 +19,7 @@ public class CacheBlockDisplay {
     }
     private static final ConcurrentHashMap<system.Toast2<BlockPosition, UUID>, ICacheInfo> cacheBlocks = new ConcurrentHashMap<>();
 
+    @SuppressWarnings("all")
     public static boolean trySetCacheBlock(TileEntityLimeSkull skull, ICacheInfo info) {
         return trySetCacheBlock(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid, info);
     }
@@ -26,6 +27,7 @@ public class CacheBlockDisplay {
         return cacheBlocks.putIfAbsent(system.toast(position, worldUUID), info) != info;
     }
 
+    @SuppressWarnings("all")
     public static boolean replaceCacheBlock(TileEntityLimeSkull skull, ICacheInfo info) {
         return replaceCacheBlock(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid, info);
     }
@@ -33,6 +35,7 @@ public class CacheBlockDisplay {
         return cacheBlocks.put(system.toast(position, worldUUID), info) != info;
     }
 
+    @SuppressWarnings("all")
     public static void resetCacheBlock(TileEntityLimeSkull skull) {
         resetCacheBlock(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid);
     }

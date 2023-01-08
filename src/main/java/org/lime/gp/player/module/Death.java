@@ -27,6 +27,7 @@ import org.lime.gp.player.ui.Thirst;
 import com.destroystokyo.paper.ParticleBuilder;
 import com.google.gson.JsonPrimitive;
 import org.bukkit.Particle;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -144,13 +145,13 @@ public class Death implements Listener {
         AnyEvent.addEvent("medic.heal", AnyEvent.type.other, builder -> builder.createParam(UUID::fromString, "[uuid]").createParam(Double::parseDouble, "[HP]"), (player, other, hp) -> {
             Player _other = Bukkit.getPlayer(other);
             if (_other == null) return;
-            _other.setHealth(Math.max(0, Math.min(_other.getMaxHealth(), _other.getHealth() + hp)));
+            _other.setHealth(Math.max(0, Math.min(_other.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), _other.getHealth() + hp)));
             _other.removeScoreboardTag("leg.broken");
         });
         AnyEvent.addEvent("reset.head.all", AnyEvent.type.owner_console, _0 -> Bukkit.getOnlinePlayers().forEach(player -> {
             up(player);
             player.getInventory().clear();
-            player.setHealth(player.getMaxHealth());
+            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
             player.setExp(0);
             player.setLevel(0);
             player.setFireTicks(0);
@@ -333,6 +334,8 @@ public class Death implements Listener {
             switch (player.getGameMode()) {
                 case CREATIVE:
                 case SPECTATOR: return;
+                default:
+                    break;
             }
             if (player.getScoreboardTags().contains("leg.broken")) player.addPotionEffect(PotionEffectType.SLOW
                     .createEffect(5, 2)
@@ -402,6 +405,8 @@ public class Death implements Listener {
                     MenuCreator.show(player, "lang.me", Apply.of().add("key", "LEG_BROKEN"));
                 }
                 break;
+            default:
+                break;
         }
         if (!dieCooldown.containsKey(uuid)) return;
         switch (e.getCause()) {
@@ -413,6 +418,8 @@ public class Death implements Listener {
                 if (!((CraftPlayer)player).getHandle().isInWall()) kill(player, Reason.CAUSE);
                 break;
             case VOID: return;
+            default:
+                break;
         }
         e.setCancelled(true);
     }

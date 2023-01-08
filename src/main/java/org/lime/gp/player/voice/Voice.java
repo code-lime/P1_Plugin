@@ -17,7 +17,6 @@ import de.maxhenkel.voicechat.plugins.impl.packets.SoundPacketImpl;
 import de.maxhenkel.voicechat.voice.common.LocationSoundPacket;
 import de.maxhenkel.voicechat.voice.common.NetworkMessage;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
-import de.maxhenkel.voicechat.voice.common.Utils;
 import de.maxhenkel.voicechat.voice.server.ClientConnection;
 import de.maxhenkel.voicechat.voice.server.PlayerStateManager;
 import de.maxhenkel.voicechat.voice.server.ServerWorldUtils;
@@ -142,7 +141,10 @@ public class Voice implements VoicechatPlugin {
     public static VoicechatApi API;
     //public static Opus OPUS;
 
+    @SuppressWarnings("deprecation")
     private static final MinecraftServer server = MinecraftServer.getServer();
+
+    @SuppressWarnings("all")
     public static void reconnect(Collection<? extends Player> players) {
         Set<String> outgoingChannels = Bukkit.getMessenger().getOutgoingChannels(Voicechat.INSTANCE);
 
@@ -258,7 +260,7 @@ public class Voice implements VoicechatPlugin {
             return audioSamples;
         }
     }
-    private static byte[] adjustVolume(byte[] audioSamples, float volume) {
+    /*private static byte[] adjustVolume(byte[] audioSamples, float volume) {
         byte[] array = new byte[audioSamples.length];
         for (int i = 0; i < array.length; i+=2) {
             // convert byte pair to int
@@ -277,7 +279,7 @@ public class Voice implements VoicechatPlugin {
 
         }
         return array;
-    }
+    }*/
 
     public enum VoiceStatus {
         ACTIVE,
@@ -348,6 +350,7 @@ public class Voice implements VoicechatPlugin {
         withDistance(packet, distance).ifPresent(v -> v.send(players));
     }
 
+    @SuppressWarnings("deprecation")
     private static Optional<DistanceAudioPacket> withDistance(ConvertablePacket packet, double distance) {
         return Optional.ofNullable(packet instanceof SoundPacket sound ? sound : null)
                 .map(SoundPacket::getSender)

@@ -43,6 +43,7 @@ public final class EntityInfo {
     public EntityInfo add(system.Func1<EntityInfo, ComponentStatic<?>> component) {
         return add(component.invoke(this));
     }
+    @SuppressWarnings("unchecked")
     public <T extends ComponentStatic<?>> Optional<T> component(Class<T> tClass) {
         for (ComponentStatic<?> component : components.values()) {
             if (tClass.isInstance(component))

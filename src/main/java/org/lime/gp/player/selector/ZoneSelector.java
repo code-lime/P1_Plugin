@@ -48,6 +48,8 @@ public abstract class ZoneSelector extends ISelector {
                 pos2 = new Position(block);
                 if (pos1 == null) pos1 = pos2;
                 return true;
+            default:
+                break;
         }
         return false;
     }

@@ -3,7 +3,6 @@ package org.lime.gp.player.menu;
 import org.bukkit.entity.Player;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
-import org.lime.gp.lime;
 import org.lime.system;
 
 public class Logged {

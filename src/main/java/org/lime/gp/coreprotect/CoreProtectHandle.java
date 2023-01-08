@@ -5,7 +5,6 @@ import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import net.coreprotect.config.Config;
 import net.coreprotect.config.ConfigHandler;
-import net.coreprotect.listener.player.InventoryChangeListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -15,13 +14,10 @@ import net.minecraft.core.BlockPosition;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.lime.Position;
@@ -127,8 +123,6 @@ public class CoreProtectHandle implements Listener {
     }
 
     private final static class _0 extends net.coreprotect.consumer.Queue {
-        private static int last_time = 0;
-        private static boolean last_isDrop = false;
         private static int getTime(boolean isDrop) {
             int time = (int)(System.currentTimeMillis() / 1000L);
             /*lime.LogOP("TIME: " + time);

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class UnsafeInstance {
+    @SuppressWarnings("unchecked")
     public static <T>T createInstance(Class<T> tClass) {
         try {
             return  (T)unsafe.allocateInstance(tClass);
@@ -40,7 +41,7 @@ public class UnsafeInstance {
             throw new IllegalArgumentException(ex);
         }
     }
-    public static <T extends Field>T nonFinal(T field) {
+    public static Field nonFinal(Field field) {
         int mods = field.getModifiers();
         if (Modifier.isFinal(mods)) MODIFIERS.set(field, mods & ~Modifier.FINAL);
         return field;

@@ -131,9 +131,11 @@ public class ChatHelper {
         return formatComponent(formatText(text, apply), createDefault());
     }
 
+    @SuppressWarnings({"deprecation", "removal"})
     public static String getLegacyText(Component component) {
         return Bukkit.getUnsafe().legacyComponentSerializer().serialize(component);
     }
+    @SuppressWarnings({"deprecation", "removal"})
     public static Component getFromLegacyText(String text) {
         return Bukkit.getUnsafe().legacyComponentSerializer().deserialize(text);
     }
@@ -267,6 +269,7 @@ public class ChatHelper {
                         case RESET: resetStyle(style); break;
                         case UNDERLINE: style.decoration(TextDecoration.UNDERLINED, true); break;
                         case STRIKETHROUGH: style.decoration(TextDecoration.STRIKETHROUGH, true); break;
+                        default: break;
                     }
                 }
             });

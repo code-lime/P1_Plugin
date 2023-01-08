@@ -21,6 +21,7 @@ import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class CustomUI implements Listener {
     public static core.element create() {
         return core.element.create(CustomUI.class)

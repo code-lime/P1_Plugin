@@ -2,27 +2,17 @@ package org.lime.gp.module;
 
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BlockMobSpawner;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.IBlockData;
-import net.minecraft.world.level.levelgen.feature.WorldGenerator;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.generator.CraftLimitedRegion;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.LimitedRegion;
 import org.bukkit.generator.WorldInfo;
-import org.bukkit.util.Vector;
 import org.lime.core;
 import org.lime.gp.lime;
 import org.lime.system;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.function.Predicate;
 
 public class WorldGenModify {
     public static core.element create() {

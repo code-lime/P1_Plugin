@@ -7,7 +7,6 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -50,7 +49,9 @@ public class Rows {
         public HashMap<String, String> appendToReplace(HashMap<String, String> map) { return map; }
         public String applyToString(String line) { return applyToString(line, '{', '}'); }
         public String applyToString(String line, char start, char end) { return applyToString(line, start, end, new HashMap<>()); }
+        @SuppressWarnings("unchecked")
         public String applyToString(String line, system.Toast2<String, String>... map) { return applyToString(line, '{', '}', map); }
+        @SuppressWarnings("unchecked")
         public String applyToString(String line, char start, char end, system.Toast2<String, String>... map) {
             HashMap<String, String> _map = new HashMap<>();
             for (system.Toast2<String, String> kv : map) _map.put(kv.val0, kv.val1);

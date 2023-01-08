@@ -7,7 +7,6 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.global.RunNode;
 import org.lime.gp.player.menu.node.unity.GraphInput;
-import org.lime.json.JsonArrayOptional;
 import org.lime.json.JsonElementOptional;
 import org.lime.system;
 

@@ -27,6 +27,8 @@ public class Saturation implements CustomUI.IUI {
         switch (player.getGameMode()) {
             case CREATIVE:
             case SPECTATOR: return Collections.emptyList();
+            default:
+                break;
         }
         Entity entity = player.getVehicle();
         if (!(entity == null || entity instanceof Boat || entity instanceof Minecart) || Displays.hasVehicle(player.getEntityId())) return Collections.emptyList();

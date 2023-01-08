@@ -71,6 +71,7 @@ public class EntityPosition {
         entityList.putAll(list);
         listRemove.forEach(entityList::remove);
     }*/
+    @SuppressWarnings("deprecation")
     public static final MinecraftServer SERVER = MinecraftServer.getServer();
     public static void updateEntities() {
         HashMap<UUID, Location> locations = new HashMap<>();
@@ -98,6 +99,7 @@ public class EntityPosition {
         public final Location eye;
         public final boolean onGround;
 
+        @SuppressWarnings("deprecation")
         public PositionInfo(Player player) {
             this.location = player.getLocation().clone();
             this.eye = player.getEyeLocation().clone();
@@ -116,6 +118,7 @@ public class EntityPosition {
         Bukkit.getWorlds().forEach(world -> list.addAll(world.getEntitiesByClass(Tameable.class)));
         return list;
     }
+    @SuppressWarnings("unused")
     private static List<Tameable>getEntities(system.Func1<Tameable, Boolean> removeIf) {
         List<Tameable> list = getEntities();
         list.removeIf(removeIf::invoke);

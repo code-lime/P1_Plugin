@@ -64,6 +64,7 @@ public class JsonNBT {
         @Override public void setChild(NBTBase parent, NBTBase child) {
             setChild((NBTList<?>)parent, index, child);
         }
+        @SuppressWarnings("unchecked")
         private static <T extends NBTBase>void setChild(NBTList<T> parent, int index, NBTBase child) {
             parent.set(index, (T)child);
         }
@@ -96,6 +97,7 @@ public class JsonNBT {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static <T extends NBTBase>DynamicNBT<T> _toDynamicNBT(JsonElement jsonElement, List<String> list) {
         system.Toast2<NBTBase, Map<String, List<MultiPath>>> data = toDynamicNBT(Collections.emptyList(), jsonElement, list);
         NBTBase nbt = data.val0;

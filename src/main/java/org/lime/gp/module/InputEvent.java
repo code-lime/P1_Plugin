@@ -14,7 +14,6 @@ import org.bukkit.event.HandlerList;
 import org.lime.core;
 import org.lime.system;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 

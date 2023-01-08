@@ -87,7 +87,7 @@ public class BlockLimeSkull extends BlockSkull implements IFluidContainer {
         if (skull != null) skull.onDestroy(new BlockSkullDestroyInfo(this, state, world, pos, Optional.of(player)));
         super.playerWillDestroy(world, pos, state, player);
     }
-    @Override public void onRemove(IBlockData state, World world, BlockPosition pos, IBlockData newState, boolean moved) {
+    @Override @Deprecated public void onRemove(IBlockData state, World world, BlockPosition pos, IBlockData newState, boolean moved) {
         if (state.is(newState.getBlock())) return;
         TileEntityLimeSkull skull = of(world, pos);
         if (skull != null) skull.onDestroy(new BlockSkullDestroyInfo(this, state, world, pos, Optional.empty()));

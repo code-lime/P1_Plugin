@@ -1,19 +1,15 @@
 package org.lime.gp.craft.recipe;
 
-import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.injector.server.TemporaryPlayerFactory;
 import com.google.common.collect.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.core.IRegistry;
 import net.minecraft.core.RegistryMaterials;
 import net.minecraft.network.protocol.game.PacketPlayOutRecipeUpdate;
 import net.minecraft.resources.MinecraftKey;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.stats.RecipeBook;
 import net.minecraft.stats.RecipeBookServer;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
@@ -21,9 +17,6 @@ import net.minecraft.world.item.crafting.CraftingManager;
 import net.minecraft.world.item.crafting.IRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.World;
-import org.apache.commons.lang.RandomStringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -34,11 +27,9 @@ import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
-import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.perm.Perms;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -47,6 +38,7 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
         return core.element.create(Recipes.class)
                 .withInit(Recipes::init);
     }
+    @SuppressWarnings("unused")
     private static class IgnoreRecipe implements IRecipe<IInventory> {
         @Override public boolean matches(IInventory iInventory, World world) { return false; }
         @Override public ItemStack assemble(IInventory iInventory) { return null; }
@@ -79,17 +71,13 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
 
                                 List<IRecipe<?>> append = new ArrayList<>();
                                 appendQuery.add(append);
-                                int anyCount = 0;
-
                                 for (IRecipe<?> recipe : original) {
                                     if (recipe instanceof IDisplayRecipe abstractRecipe) {
                                         for (IRecipe<?> displayRecipe : iterable(abstractRecipe.getDisplayRecipe())) {
-                                            anyCount++;
                                             if (book.contains(displayRecipe.getId())) append.add(displayRecipe);
                                         }
                                     }
                                     if (recipe.getSerializer() != null) {
-                                        anyCount++;
                                         if (book.contains(recipe.getId())) append.add(recipe);
                                     }
                                 }
@@ -126,7 +114,9 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
     public static Recipes<LaboratoryRecipe> LABORATORY = Recipes.register("laboratory");
     public static Recipes<ConverterRecipe> CONVERTER = Recipes.register("converter");
 
+    @SuppressWarnings("deprecation")
     public static final CraftingManager CRAFTING_MANAGER = MinecraftServer.getServer().getRecipeManager();
+    @SuppressWarnings("deprecation")
     public static final PlayerList PLAYER_LIST = MinecraftServer.getServer().getPlayerList();
 
     static {

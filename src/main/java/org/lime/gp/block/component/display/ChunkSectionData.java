@@ -1,24 +1,17 @@
 package org.lime.gp.block.component.display;
 
-import net.minecraft.core.Registry;
 import net.minecraft.network.PacketDataSerializer;
-import net.minecraft.util.DataBits;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.SimpleBitStorage;
-import net.minecraft.util.ZeroBitStorage;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.chunk.*;
-import org.lime.gp.lime;
 import org.lime.system;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Deprecated
 public class ChunkSectionData {
     public int bottomBlockY;
     public short nonEmptyBlockCount;
@@ -188,9 +181,10 @@ public class ChunkSectionData {
         }
         return system.toast(sum, buf -> items.forEach(item -> item.invoke(buf)));
     }
+    /* 
     private static int lengthBits(int val) {
         return Math.max(Integer.SIZE - Integer.numberOfLeadingZeros(val), 1);
-    }
+    }*/
 }
 
 

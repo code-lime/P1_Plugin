@@ -2,26 +2,16 @@ package org.lime.gp.block.component.display;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.SectionPosition;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.LimeKey;
 import net.minecraft.world.level.ChunkCoordIntPair;
 import net.minecraft.world.level.World;
-import net.minecraft.world.level.block.BlockCampfire;
-import net.minecraft.world.level.block.BlockCoralDead;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.block.state.IBlockData;
-import net.minecraft.world.level.chunk.DataPaletteBlock;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,7 +21,6 @@ import org.lime.core;
 import org.lime.display.Displays;
 import org.lime.display.Models;
 import org.lime.display.invokable.PacketInvokable;
-import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.event.BlockMarkerEventInteract;
@@ -40,12 +29,9 @@ import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
 import org.lime.system;
 
-import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockDisplay implements Listener {
     public static core.element create() {
@@ -179,6 +165,7 @@ public class BlockDisplay implements Listener {
 //*/
 
     private static class PacketListener {
+        /*
         private static BlockPosition toPosition(int val, int chunkX, int chunkY, int chunkZ) {
             int shift = 4;
             int radix = 1 << shift;
@@ -201,7 +188,7 @@ public class BlockDisplay implements Listener {
         private static Optional<BlockPosition> getBlockPosition(NBTTagCompound compound) {
             try { return Optional.of(new BlockPosition(compound.getInt("x"),compound.getInt("y"),compound.getInt("z"))); }
             catch (Exception e) { return Optional.empty(); }
-        }
+        }*/
 
         private static Optional<IBlock> tryReplace(Player player, WorldServer world, BlockPosition position, IBlockData data) {
             return tryReplace(player, world, position, data, false);
@@ -238,7 +225,7 @@ public class BlockDisplay implements Listener {
                             default -> Optional.empty();
                     });*/
         }
-
+/*
         private static class BlockEntity {
             private final Object handle;
 
@@ -255,7 +242,7 @@ public class BlockDisplay implements Listener {
             public void tag(NBTTagCompound tag) {
                 ReflectionAccess.tag_a_ClientboundLevelChunkPacketData.set(handle, tag);
             }
-        }
+        }*/
 
         public static void onPacket(PacketPlayOutBlockChange packet, PacketEvent event) {
             Player player = event.getPlayer();

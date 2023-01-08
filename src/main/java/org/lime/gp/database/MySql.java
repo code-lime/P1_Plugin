@@ -11,20 +11,16 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.lime.gp.lime;
-import org.lime.gp.module.ThreadPool;
 import org.lime.system;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -338,7 +334,7 @@ public final class MySql implements Closeable {
         private _async() {}
 
         private final system.LockToast1<Boolean> debug = system.toast(false).lock();
-        private boolean isMenu() {
+        /*private boolean isMenu() {
             if (!debug.get0()) return false;
             boolean is_menu = false;
             for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
@@ -348,7 +344,7 @@ public final class MySql implements Closeable {
                 }
             }
             return is_menu;
-        }
+        }*/
 
         private final system.LockToast1<Integer> nextCall = system.toast(0).lock();
         private int nextCallIndex() { return nextCall.edit0(v -> v + 1); }
@@ -367,7 +363,6 @@ public final class MySql implements Closeable {
         public debug rawSql(String query, Map<String, Object> args, system.Action0 callback) {
             int index = nextCallIndex();
             calls.put(index, system.toast("SQL." + query, nowTime()));
-            boolean is_menu = isMenu();
             debug debug = new debug();
             system.Toast1<String> _sql = system.toast(query);
             callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {
@@ -402,7 +397,6 @@ public final class MySql implements Closeable {
         public <T>debug rawSqlOnce(String query, Map<String, Object> args, system.Func1<ResultSet, T> reader, system.Action1<T> callback) {
             int index = nextCallIndex();
             calls.put(index, system.toast("SQL_ONCE." + query, nowTime()));
-            boolean is_menu = isMenu();
             debug debug = new debug();
             system.Toast1<String> _sql = system.toast(query);
             callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {
@@ -423,7 +417,6 @@ public final class MySql implements Closeable {
         public <T>debug rawSqlQuery(String query, Map<String, Object> args, system.Func1<ResultSet, T> reader, system.Action1<List<T>> callback) {
             int index = nextCallIndex();
             calls.put(index, system.toast("SQL_QUERY." + query, nowTime()));
-            boolean is_menu = isMenu();
             debug debug = new debug();
             system.Toast1<String> _sql = system.toast(query);
             callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {

@@ -8,7 +8,6 @@ import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.connect.IInput;
 import org.lime.gp.player.menu.node.connect.IOutput;
 import org.lime.gp.player.menu.node.connect.input.ActionInput;
-import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.system;
 
 import java.util.List;

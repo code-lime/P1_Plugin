@@ -70,6 +70,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("deprecation")
 public class Items implements Listener {
     public static core.element create() {
         return core.element.create(Items.class)
@@ -354,6 +355,8 @@ public class Items implements Listener {
             } else throw new UnsupportedOperationException("Unsupported element: " + json);
         }
 
+        
+        @SuppressWarnings("unchecked")
         public <T extends Settings.IItemSetting>Optional<T> getOptional(Class<T> tClass) {
             return settings.values()
                     .stream()
@@ -361,6 +364,7 @@ public class Items implements Listener {
                     .map(v -> (T)v)
                     .findFirst();
         }
+        @SuppressWarnings("unchecked")
         public <T extends Settings.IItemSetting>List<T> getAll(Class<T> tClass) {
             return settings.values()
                     .stream()
@@ -559,6 +563,7 @@ public class Items implements Listener {
         }
     }
 
+    @SuppressWarnings("all")
     private static Location dropBlockPosition(Location location) {
         World world = location.getWorld();
         Random random = ((CraftWorld)world).getHandle().random;

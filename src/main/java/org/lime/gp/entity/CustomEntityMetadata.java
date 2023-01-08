@@ -1,6 +1,5 @@
 package org.lime.gp.entity;
 
-import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import net.minecraft.world.LimeKey;
 import net.minecraft.world.entity.EntityLimeMarker;
 import net.minecraft.world.entity.EntityMarkerEventDestroy;
@@ -59,6 +58,7 @@ public class CustomEntityMetadata extends EntityMetadata {
     private static Stream<Element> childsAndThis(Childable childable) {
         return Stream.concat(Stream.of(childable), childable.childs().flatMap(v -> v instanceof Childable c ? childsAndThis(c) : Stream.of(v)));
     }
+    @SuppressWarnings("unchecked")
     public <T extends Element>Stream<T> list(Class<T> tClass) {
         Stream<Object> stream = instances.values().stream().map(v -> v);
         if (info != null) stream = Stream.concat(stream, info.components.values().stream());

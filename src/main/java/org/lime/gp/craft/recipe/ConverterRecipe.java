@@ -11,15 +11,12 @@ import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
 import org.lime.gp.craft.slot.OutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
-import org.lime.gp.item.Items;
-import org.lime.gp.lime;
 import org.lime.system;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class ConverterRecipe extends AbstractRecipe {

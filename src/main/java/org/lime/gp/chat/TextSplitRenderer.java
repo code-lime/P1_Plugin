@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class TextSplitRenderer {
+    @SuppressWarnings("deprecation")
     private record Frame(Component component, Style style, String context) {
         public static Frame of(Component component, Style parent) {
             component = component.children(Collections.emptyList());

@@ -6,9 +6,7 @@ import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.system;
 
-import java.util.HashMap;
 import java.util.Optional;
-import java.util.UUID;
 
 public class ViewPosition {
     private final int x;

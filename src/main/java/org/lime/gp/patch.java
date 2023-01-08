@@ -8,8 +8,6 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.minecraft.data.worldgen.BiomeSettings;
-import net.minecraft.network.PacketDataSerializer;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
 import net.minecraft.server.Main;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
@@ -47,6 +45,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
+@SuppressWarnings("all")
 public class patch {
     private enum JarType {
         VersionBase,
