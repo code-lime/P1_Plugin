@@ -238,6 +238,7 @@ public class Discord implements Listener {
     }
 
     public static void sendRecord(long discord_id) {
+        if (!DiscordSRV.getPlugin().isEnabled()) return;
         DiscordSRV.getPlugin()
                 .getJda()
                 .getGuilds()
@@ -262,6 +263,7 @@ public class Discord implements Listener {
 
     private static Map<String, RestAction<Void>> update(long discord_id, String user_name, List<Long> discord_roles, UUID uuid) {
         HashMap<String, RestAction<Void>> actions = new HashMap<>();
+        if (!DiscordSRV.getPlugin().isEnabled()) return actions;
         String main_prefix = main_guild + ":";
         DiscordSRV.getPlugin().getJda().getGuilds().forEach(guild -> {
             String prefix = guild.getId() + ":";
