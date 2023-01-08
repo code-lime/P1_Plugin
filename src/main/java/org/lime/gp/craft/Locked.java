@@ -2,11 +2,13 @@ package org.lime.gp.craft;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+
 import org.bukkit.Color;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockCookEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -80,6 +82,13 @@ public class Locked implements Listener {
                     return;
         }
     }
+    @EventHandler public static void on(BlockCookEvent e) {
+        if (!e.getRecipe().getKey().getNamespace().equals("lime")
+        && Items.getIDByItem(e.getSource())
+                .map(Items.creators::get)
+                .map(id -> { e.setCancelled(true); return true; })
+                .orElse(false)) return;
+    }
 
     private static final TextReplacementConfig REMOVE_FORMATS = TextReplacementConfig.builder()
             .replacement("")
@@ -104,38 +113,4 @@ public class Locked implements Listener {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
