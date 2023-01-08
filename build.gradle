@@ -16,7 +16,9 @@ boolean _mapped = true
 
 artifacts {
     archives(
-            new File(decompilePath((_mapped ? "paper-unmapped-" : "spigot-") + _version+".zip"))
+            decompileFile((_mapped ? "paper-unmapped-" : "spigot-") + _version+".zip"),
+            decompileGit("Core"),
+            decompileGit("LimeDisplay")
     )
 }
 
@@ -46,8 +48,13 @@ static String yandexDiskMinecraftPath() {
     return Paths.get(yandex_disk(), "PLUGINS", "Minecraft");
 }
 
-static String decompilePath(String file) {
-    return Paths.get(yandexDiskMinecraftPath(), ".decompile", file);
+File decompileGit(String file) {
+    String path = Paths.get(projectDir.parent, file, "src", "main", "java").toString();
+    return new File(path);
+}
+static File decompileFile(String file) {
+    String path = Paths.get(yandexDiskMinecraftPath(), ".decompile", file).toString();
+    return new File(path);
 }
 static String libPath(String file) {
     return Paths.get(yandexDiskMinecraftPath(), ".libs", file);
