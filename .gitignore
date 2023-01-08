@@ -10,4 +10,3 @@ src_any/
 
 hs_err_pid(.*).log
 replay_pid(.*).log
-src.7z
