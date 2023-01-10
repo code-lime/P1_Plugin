@@ -154,9 +154,11 @@ public class Drugs implements Listener {
     private static final NamespacedKey DRUGS_EFFECTS = new NamespacedKey(lime._plugin, "drugs_effects");
 
     public static void lockArmsTick(Player player) {
+        if (player == null) return;
         lockArmsTick(player, player.getInventory());
     }
     public static void lockArmsTick(Player player, PlayerInventory inventory) {
+        if (player == null || inventory == null) return;
         regive(player, inventory, EquipmentSlot.OFF_HAND);
         regive(player, inventory, EquipmentSlot.HAND);
     }

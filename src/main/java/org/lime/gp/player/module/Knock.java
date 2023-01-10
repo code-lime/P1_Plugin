@@ -33,6 +33,7 @@ public class Knock implements Listener {
     private static final HashMap<UUID, system.Toast2<Long, Location>> knockCooldown = new HashMap<>();
     public static void init() {
         lime.repeat(Knock::update, 0.1);
+        lime.repeatTicks(Knock::updateLock, 1);
     }
     public static void knock(Player player) {
         if (lime.isSit(player) || lime.isLay(player)) return;
@@ -49,6 +50,9 @@ public class Knock implements Listener {
     }
     public static boolean isKnock(UUID uuid) {
         return knockCooldown.containsKey(uuid);
+    }
+    public static void updateLock() {
+        knockCooldown.keySet().forEach(uuid -> Drugs.lockArmsTick(Bukkit.getPlayer(uuid)));
     }
     public static void update() {
         long now = System.currentTimeMillis();

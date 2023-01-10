@@ -86,6 +86,7 @@ public class TargetMove implements Listener {
         }
         Player target = Bukkit.getPlayer(targetUUID);
         if (target == null) return true;
+        Drugs.lockArmsTick(target);
         GSeat seat = GSitAPI.getSeat(target);
         if (seat == null) return true;
         system.Toast1<Boolean> remove = system.toast(false);
