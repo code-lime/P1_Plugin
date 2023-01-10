@@ -55,28 +55,6 @@ public class patch {
         System.out.println(log);
     }
     private static MemoryMappingTree tree;
-    /*
-    private static Closeable loadDeobf() throws Throwable {
-        InputStream mappingsInputStream = ObfHelper.class.getClassLoader().getResourceAsStream("META-INF/mappings/reobf.tiny");
-        tree = new MemoryMappingTree();
-        if (mappingsInputStream == null) return () -> {};
-        MappingReader.read(new InputStreamReader(mappingsInputStream, StandardCharsets.UTF_8), MappingFormat.TINY_2, tree);
-        for (MappingTree.ClassMapping classMapping : tree.getClasses()) {
-            classes.put(classMapping.getName(ObfHelper.SPIGOT_NAMESPACE).replace('/', '.'), classMapping);
-            //classMapping.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE).replace('/', '.')
-        }
-        return mappingsInputStream;
-    }
-    private static final Map<String, MappingTree.ClassMapping> classes = new HashMap<>();
-    private static String ofMojang(Class<?> tClass, String name, String desc, boolean isMethod) {
-        MappingTree.ClassMapping mapping = classes.get(tClass.getName());
-        if (mapping == null) return name;
-        MappingTree.MemberMapping member = isMethod ? mapping.getMethod(name, desc) : mapping.getField(name, desc);
-        String src_name = member.getName(ObfHelper.SPIGOT_NAMESPACE);
-        if (src_name == null || src_name.equals(name)) src_name = member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE);
-        if (src_name == null) src_name = name;
-        return src_name;
-    }*/
     private static Closeable loadDeobf() throws Throwable {
         InputStream mappingsInputStream = ObfHelper.class.getClassLoader().getResourceAsStream("META-INF/mappings/reobf.tiny");
         tree = new MemoryMappingTree();
@@ -109,18 +87,11 @@ public class patch {
         if (src_name == null) {
             src_name = name;
         }
-        //log("Class " + tClass.getName() + " with found " + (isMethod ? "method" : "field") + " " + name + desc + " -> " + src_name + "" + (isFound ? "" : "*"));
         return src_name;
     }
     private static String ofMojang(Class<?> tClass, String name, Type desc, boolean isMethod) {
         return ofMojang(tClass, name, desc.getDescriptor(), isMethod);
     }
-    /*private static void testDeobf() {
-        log(ofMojang(ContainerGrindstone.class, "createResult", Type.getMethodType(Type.VOID_TYPE), true) + " / l");
-        log(ofMojang(RecipeRepair.class, "assemble", Type.getMethodType(Type.getType(net.minecraft.world.item.ItemStack.class), Type.getType(InventoryCrafting.class)), true));
-        log(ofMojang(CraftItemStack.class, "getMaxStackSize", Type.getMethodType(Type.INT_TYPE), true));
-        log(ofMojang(ItemStack.class, "getMaxStackSize", Type.getMethodType(Type.INT_TYPE), true));
-    }*/
 
     public static void patch(URL url) {
         try {
