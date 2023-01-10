@@ -1,11 +1,11 @@
-out/
-org/
-build/
-bin/
-.vscode/
-.idea/
-.gradle/
-__.idea/
+/out/
+/org/
+/build/
+/bin/
+/.vscode/
+/.idea/
+/.gradle/
+/__.idea/
 
-hs_err_pid(.*).log
-replay_pid(.*).log
+/hs_err_pid(.*).log
+/replay_pid(.*).log
