@@ -24,7 +24,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
 import org.lime.gp.lime;
-import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.json.JsonArrayOptional;
