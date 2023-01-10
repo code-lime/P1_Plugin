@@ -3,9 +3,21 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.function.Predicate
 import java.util.jar.JarFile
+import java.io.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
+import org.gradle.plugins.ide.eclipse.model.Library
 
 plugins {
     id 'java'
+    id 'eclipse'
 }
 
 group = pluginGroup
@@ -13,14 +25,6 @@ version = pluginVersion
 
 String _version = "1.18.2"
 boolean _mapped = true
-
-artifacts {
-    archives(
-            decompileFile((_mapped ? "paper-unmapped-" : "spigot-") + _version+".zip"),
-            decompileGit("Core"),
-            decompileGit("LimeDisplay")
-    )
-}
 
 dependencies {
     compileOnly(
@@ -44,6 +48,26 @@ dependencies {
 }
 
 //<editor-fold desc="LOADER">
+
+eclipse.classpath.file.whenMerged {
+	for (ClasspathEntry entry : entries) {
+        String entryFile = entry.path;
+        if (entryFile.endsWith('.jar')) {
+            File folder = new File(entryFile).getParentFile();
+            File srcFile = new File(getFileNameWithoutExt(entryFile) + "-src.zip");
+            if (srcFile.exists()) {
+                entry.setSourcePath(it.fileReference(srcFile));
+            }
+        }
+	}
+}
+
+static String getFileNameWithoutExt(String fileName) {
+    int pos = fileName.lastIndexOf(".");
+    if (pos > 0 && pos < (fileName.length() - 1)) return fileName.substring(0, pos);
+    return fileName;
+}
+
 static String yandexDiskMinecraftPath() {
     return Paths.get(yandex_disk(), "PLUGINS", "Minecraft");
 }
@@ -52,9 +76,11 @@ File decompileGit(String file) {
     String path = Paths.get(projectDir.parent, file, "src", "main", "java").toString();
     return new File(path);
 }
+static String decompilePath(String file) {
+    return Paths.get(yandexDiskMinecraftPath(), ".decompile", file).toString();
+}
 static File decompileFile(String file) {
-    String path = Paths.get(yandexDiskMinecraftPath(), ".decompile", file).toString();
-    return new File(path);
+    return new File(decompilePath(file));
 }
 static String libPath(String file) {
     return Paths.get(yandexDiskMinecraftPath(), ".libs", file);
@@ -175,15 +201,53 @@ String generateFile(File dir, String text) {
     return edited ? String.join("\n", output) : null;
 }
 
+static byte[] zip(HashMap<String, byte[]> entries) {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    try {
+        ZipOutputStream zip = new ZipOutputStream(stream);
+        try {
+            for (Map.Entry<String, byte[]> kv : entries.entrySet()) {
+                ZipEntry entry = new ZipEntry(kv.getKey());
+                zip.putNextEntry(entry);
+                zip.write(kv.getValue());
+                zip.closeEntry();
+            }
+        } finally {
+            zip.close();
+        }
+        return stream.toByteArray();
+    } catch (Exception e) {
+        throw new IllegalArgumentException(e);
+    } finally {
+        stream.close();
+    }
+}
+
 task generator() {
-    for (File file : getFiles(Paths.get(projectDir.absolutePath, "src", "main").toAbsolutePath().toFile())) {
+    HashMap<String, byte[]> entries = new HashMap<>();
+    String prefix = Paths.get(projectDir.absolutePath, "src", "main", "java").toAbsolutePath();
+    for (File file : getFiles(Paths.get(projectDir.absolutePath, "src", "main", "java").toAbsolutePath().toFile())) {
         if (!file.path.endsWith(".java")) continue;
+        String filePath = file.toPath().toAbsolutePath().toString();
         String text = file.text;
         String _file = generateFile(file.parentFile, text);
-        if (_file == null) continue;
-        System.out.println("EDITED: " + file.toPath().toAbsolutePath().toString());
-        file.text = _file;
+        if (_file != null) {
+            System.out.println("EDITED: " + filePath);
+            file.text = text = _file;
+        }
+        entries.put(filePath.replace(prefix + "\\", ""), text.getBytes());
     }
+
+    java.nio.file.Path srcPath = Paths.get(projectDir.absolutePath, "build", "src");
+    if (!srcPath.toFile().exists()) srcPath.toFile().mkdirs();
+
+    Paths.get(projectDir.absolutePath,
+        "build",
+        "src",
+        getFileNameWithoutExt(jar.archiveFile.get().asFile.toPath().fileName.toString()) + '-src.zip')
+            .toAbsolutePath()
+            .toFile()
+            .bytes = zip(entries);
 }
 
 static java.nio.file.Path java_mapper() {
@@ -199,6 +263,7 @@ copyToLib.doLast {
     println "Copy..."
     java.nio.file.Path originalPath = jar.archiveFile.get().asFile.toPath()
     String file_name = originalPath.fileName.toString();
+    String src_name = getFileNameWithoutExt(file_name) + "-src.zip";
     if (_mapped) {
         try {
             println "Unmapping..."
@@ -222,16 +287,21 @@ copyToLib.doLast {
             throw ex
         }
     }
-    for (String path : [Paths.get(yandex_disk(), "Minecraft-Paper", "plugins")])
+
+    for (String path : [
+        Paths.get(yandex_disk(), "Minecraft-Paper", "plugins"),
+        Paths.get(yandex_disk(), "PLUGINS", "Minecraft", ".libs")
+    ])
     {
         java.nio.file.Path copied = Paths.get(path, file_name)
+        java.nio.file.Path copied_src = Paths.get(path, src_name)
         File dir = new File(path)
         if (!dir.exists()) dir.mkdir()
-        println "> CD " + copied
+        println "> CD " + copied + " & " + copied_src
         Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(Paths.get(projectDir.absolutePath, "build", "src", src_name), copied_src, StandardCopyOption.REPLACE_EXISTING)
     }
 }
-
 
 build {
     dependsOn copyToLib
