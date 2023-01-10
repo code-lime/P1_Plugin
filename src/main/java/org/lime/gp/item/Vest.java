@@ -24,10 +24,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
 import org.lime.gp.lime;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.json.JsonArrayOptional;
 import org.lime.json.JsonObjectOptional;
+import org.lime.system.Action1;
 import org.lime.system;
 
 import java.util.*;
@@ -124,7 +126,7 @@ public class Vest implements Listener {
         public void setSlotItem(String slot) { json.addProperty("slot_item", slot); }
 
         public List<ItemStack> getItems() { return json.getAsJsonArray("items").map(VestData::loadItems).orElse(Collections.emptyList()); }
-        public Optional<VestInventory> createInventory(Player owner) {
+        private Optional<VestInventory> createInventory(Action1<List<ItemStack>> dropItems) {
             return Optional.ofNullable(getSlotItem())
                     .flatMap(slot_item -> Items.getItemCreator(slot_item)
                             .map(v -> v instanceof Items.ItemCreator c ? c : null)
@@ -141,11 +143,14 @@ public class Vest implements Listener {
                                         .filter(v -> !v.getType().isAir())
                                         .forEach(drops::add);
 
-                                Items.dropGiveItem(owner, drops, false);
+                                dropItems.invoke(drops);
                                 inventory.setContents(items.toArray(ItemStack[]::new));
                                 return new VestInventory(slot_item, vest_data, inventory);
                             })
                     );
+        }
+        public Optional<VestInventory> createInventory(Player owner) {
+            return createInventory(drops -> Items.dropGiveItem(owner, drops, false));
         }
 
         public VestData setItems(List<ItemStack> items) {
@@ -160,6 +165,9 @@ public class Vest implements Listener {
 
         public static VestData read(PlayerData.JsonPersistentDataContainer container, EquipmentSlot slot) {
             return new VestData(JsonObjectOptional.of(Optional.ofNullable(container.getJson(VEST_KEY_BIMAP.get(slot))).map(JsonElement::getAsJsonObject).orElseGet(JsonObject::new)));
+        }
+        public static boolean has(PlayerData.JsonPersistentDataContainer container, EquipmentSlot slot) {
+            return container.has(VEST_KEY_BIMAP.get(slot));
         }
         public static void remove(PlayerData.JsonPersistentDataContainer container, EquipmentSlot slot) {
             container.remove(VEST_KEY_BIMAP.get(slot));
@@ -220,6 +228,16 @@ public class Vest implements Listener {
                 .computeIfAbsent(uuid, (_uuid) -> new HashMap<>())
                 .computeIfAbsent(slot, (_slot) -> VestData.read(PlayerData.getPlayerData(uuid), slot).createInventory(target).orElse(null));
         return vest != null && openFilterInventory(viewer, vest, readonly, filter, click);
+    }
+    public static boolean hasVest(Player viewer, UUID target_uuid, EquipmentSlot slot) {
+        HashMap<EquipmentSlot, VestInventory> map = inventoryVest.computeIfAbsent(target_uuid, (_uuid) -> new HashMap<>());
+        return map.get(slot) != null || VestData.has(PlayerData.getPlayerData(target_uuid), slot);
+    }
+    public static boolean openVestAdmin(Player viewer, UUID target_uuid, EquipmentSlot slot) {
+        VestInventory vest = inventoryVest
+                .computeIfAbsent(target_uuid, (_uuid) -> new HashMap<>())
+                .computeIfAbsent(slot, (_slot) -> VestData.read(PlayerData.getPlayerData(target_uuid), slot).createInventory(viewer).orElse(null));
+        return vest != null && openFilterInventory(viewer, vest, false, item -> item, item -> false);
     }
 
     private static Optional<EquipmentSlot> getEquipmentSlot(PlayerInventory inventory, int slot) {
