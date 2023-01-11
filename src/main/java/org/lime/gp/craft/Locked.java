@@ -10,11 +10,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCookEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.inventory.CartographyInventory;
+import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
 import org.lime.core;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Settings;
@@ -31,6 +36,10 @@ public class Locked implements Listener {
     private static final int RED_COLOR_TO = 0x08;
 
     @EventHandler public static void on(CraftItemEvent e) {
+        if (isMapAuthor(e.getInventory())) {
+            e.setCancelled(true);
+            return;
+        }
         if (e.getRecipe() instanceof Keyed keyed && !keyed.getKey().getNamespace().equals("lime")) {
             boolean isDye = keyed.getKey().getKey().equals("armor_dye");
             Optional.ofNullable(e.getInventory().getResult())
@@ -57,6 +66,10 @@ public class Locked implements Listener {
         }
     }
     @EventHandler public static void on(PrepareItemCraftEvent e) {
+        if (isMapAuthor(e.getInventory())) {
+            e.getInventory().setResult(null);
+            return;
+        }
         if (e.getRecipe() instanceof Keyed keyed && !keyed.getKey().getNamespace().equals("lime")) {
             boolean isDye = keyed.getKey().getKey().equals("armor_dye");
             Optional.ofNullable(e.getInventory().getResult())
@@ -111,6 +124,23 @@ public class Locked implements Listener {
                         result.setItemMeta(meta);
                     });
         }
+    }
+    @EventHandler public void on(InventoryClickEvent e) {
+        if (e.getSlotType() == InventoryType.SlotType.RESULT && e.getClickedInventory() instanceof CartographyInventory inventory)
+            for (ItemStack item : inventory)
+                if (isMapAuthor(item))
+                    e.setCancelled(true);
+    }
+    private static boolean isMapAuthor(ItemStack item) {
+        if (item != null && item.getType() == Material.FILLED_MAP && item.getItemMeta() instanceof MapMeta map)
+            return map.hasMapView() && map.getMapView().isLocked();
+        return false;
+    }
+    private static boolean isMapAuthor(CraftingInventory inv) {
+        for (ItemStack item : inv.getMatrix())
+            if (isMapAuthor(item))
+                return true;
+        return false;
     }
 }
 
