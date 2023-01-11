@@ -35,9 +35,10 @@ import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.OtherGenericInstance;
-import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.block.IBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
+import org.lime.gp.block.component.display.instance.TickTimeInfo;
 import org.lime.gp.block.component.list.MultiBlockComponent;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.LimePersistentDataType;
@@ -199,8 +200,8 @@ public class Blocks implements Listener {
         CacheBlockDisplay.reset();
     }
     public static final system.LockToast2<Long, Long> nextAsyncTimes = system.toast(0L, 0L).lock();
-    public static final system.LockToast1<DisplayInstance.TickTimeInfo> deltaTime = system.toast(new DisplayInstance.TickTimeInfo()).lock();
-    private static final system.LockToast2<DisplayInstance.TickTimeInfo,DisplayInstance.TickTimeInfo> lastDeltaTime = system.toast(new DisplayInstance.TickTimeInfo(),new DisplayInstance.TickTimeInfo()).lock();
+    public static final system.LockToast1<TickTimeInfo> deltaTime = system.toast(new TickTimeInfo()).lock();
+    private static final system.LockToast2<TickTimeInfo,TickTimeInfo> lastDeltaTime = system.toast(new TickTimeInfo(),new TickTimeInfo()).lock();
     public static void init() {
         AnyEvent.addEvent("blocks.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, overrides::keySet), (p, key) -> lime.logOP("Block '" + key + "':\n" + overrides.getOrDefault(key, null)));
         setBlockData(0.0f);
@@ -214,11 +215,11 @@ public class Blocks implements Listener {
             deltaTime.edit0(time -> {
                 lastDeltaTime.set0(time);
                 lastDeltaTime.edit1(v -> {
-                    if (v.count > 500) v = new DisplayInstance.TickTimeInfo();
+                    if (v.count > 500) v = new TickTimeInfo();
                     v.append(time);
                     return v;
                 });
-                return new DisplayInstance.TickTimeInfo();
+                return new TickTimeInfo();
             });
             TimeoutData.values(CustomTileMetadata.ChunkBlockTimeout.class).forEach(info -> info.last_metadata.onTickAsync());
         }, nextAsyncTimes);
@@ -394,10 +395,10 @@ public class Blocks implements Listener {
         Optional.ofNullable(e.getClickedBlock())
                 .flatMap(Blocks::of)
                 .map(skull -> CacheBlockDisplay.getCacheBlock(skull.getBlockPos(), skull.getLevel().getWorld().getUID())
-                        .map(v -> v.cache(e.getPlayer().getUniqueId()))
-                        .flatMap(BlockDisplay.IBlock::data)
-                        .map(display -> display.getDestroySpeed(skull.getLevel(), skull.getBlockPos()))
-                        .orElse(1.0F)
+                    .map(v -> v.cache(e.getPlayer().getUniqueId()))
+                    .flatMap(IBlock::data)
+                    .map(display -> display.getDestroySpeed(skull.getLevel(), skull.getBlockPos()))
+                    .orElse(1.0F)
                 )
                 .ifPresent(Blocks::setBlockData);
     }
