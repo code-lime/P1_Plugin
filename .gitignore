@@ -1,12 +1,12 @@
-out/
-org/
-build/
-bin/
-.vscode/
-.idea/
-.gradle/
-__.idea/
-src_any/
+/out/
+/org/
+/build/
+/bin/
+/.vscode/
+/.idea/
+/.gradle/
+/__.idea/
+/src_any/
 
-hs_err_pid(.*).log
-replay_pid(.*).log
+/hs_err_pid(.*).log
+/replay_pid(.*).log
