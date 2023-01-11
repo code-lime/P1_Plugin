@@ -4,7 +4,7 @@ import net.minecraft.world.level.block.state.properties.BlockPropertyStairsShape
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.InfoComponent;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.StairComponent;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;

@@ -1,4 +1,4 @@
-package org.lime.gp.block.component.display;
+package org.lime.gp.block.component.display.display;
 
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.lime.display.DisplayManager;
 import org.lime.display.EditedDataWatcher;
 import org.lime.display.ObjectDisplay;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.module.TimeoutData;
 import org.lime.system;
 

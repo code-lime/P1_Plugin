@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.TileEntityTypes;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.MultiBlockComponent;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;

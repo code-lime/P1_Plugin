@@ -23,7 +23,8 @@ import org.lime.gp.lime;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.block.IBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.module.TimeoutData;
@@ -275,7 +276,7 @@ public class CustomTileMetadata extends TileMetadata {
                 .flatMap(Optional::stream)
                 .filter(_v -> _v.data().isPresent())
                 .findFirst()
-                .flatMap(BlockDisplay.IBlock::data)
+                .flatMap(IBlock::data)
                 .orElse(null);
     }
     @Override public void onLoot(PopulateLootEvent event) {

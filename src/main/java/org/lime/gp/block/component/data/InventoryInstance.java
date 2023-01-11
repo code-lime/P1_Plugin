@@ -24,6 +24,7 @@ import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
+import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.list.InventoryComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
@@ -142,9 +143,9 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         }, ChatHelper.toNMS(component.title)));
         return EnumInteractionResult.CONSUME;
     }
-    @Override public Optional<BlockDisplay.IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+    @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
         Models.Model model = display.get0();
-        return model == null ? Optional.empty() : Optional.of(BlockDisplay.IModelBlock.of(null, model, 10));
+        return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, 10));
     }
 }
 

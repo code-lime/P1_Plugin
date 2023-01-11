@@ -1,13 +1,12 @@
-package org.lime.gp.block.component.display;
+package org.lime.gp.block.component.display.instance;
 
 import com.google.gson.JsonPrimitive;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
+
 import net.minecraft.core.BlockPosition;
+import net.minecraft.core.SectionPosition;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkCoordIntPair;
 import net.minecraft.world.level.block.BlockSkullShapeInfo;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
@@ -16,7 +15,6 @@ import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -27,8 +25,17 @@ import org.lime.display.Models;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.block.component.display.BlockDisplay;
+import org.lime.gp.block.component.display.CacheBlockDisplay;
+import org.lime.gp.block.component.display.block.IBlock;
+import org.lime.gp.block.component.display.block.IModelBlock;
+import org.lime.gp.block.component.display.display.BlockModelDisplay;
 import org.lime.gp.block.component.display.invokable.BlockDirtyInvokable;
 import org.lime.gp.block.component.display.invokable.BlockUpdateInvokable;
+import org.lime.gp.block.component.display.partial.BlockPartial;
+import org.lime.gp.block.component.display.partial.FramePartial;
+import org.lime.gp.block.component.display.partial.ModelPartial;
+import org.lime.gp.block.component.display.partial.Partial;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.ProxyMap;
@@ -40,7 +47,7 @@ import org.lime.system;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class DisplayInstance extends BlockInstance implements CustomTileMetadata.Shapeable, CustomTileMetadata.Tickable, CustomTileMetadata.AsyncTickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable {
     private static int TIMEOUT_TICKS = 20;
@@ -55,7 +62,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
     private final system.LockToast1<Long> variableIndex = system.toast(1L).lock();
     private final ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<UUID, DisplayPartial.Partial> partials = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, system.Toast2<Partial, Integer>> partials = new ConcurrentHashMap<>();
 
     @Override public DisplayComponent component() { return (DisplayComponent)super.component(); }
 
@@ -89,12 +96,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         return get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle);
     }
 
-    public Optional<DisplayPartial.Partial> getPartial(double distanceSquared, Map<String, String> variables) {
-        for (DisplayPartial.Partial partial : component().partials) {
-            if (partial.distanceSquared <= distanceSquared)
-                return Optional.of(partial.partial(variables));
-        }
-        return Optional.empty();
+    public Partial getPartial(int distanceChunk, Map<String, String> variables) {
+        return component().partials.get(distanceChunk).partial(variables);
     }
 
     public static final class DisplayMap extends TimeoutData.ITimeout {
@@ -129,13 +132,13 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     }
     @Override public system.json.builder.object write() { return system.json.object().add(variables, k -> k, v -> v); }
 
-    private DisplayPartial.Partial orSync(CustomTileMetadata metadata, UUID playerUUID, Player player, Map<String, String> variable, DisplayPartial.Partial _new, DisplayPartial.Partial _old) {
+    private Partial orSync(CustomTileMetadata metadata, UUID playerUUID, Player player, Map<String, String> variable, Partial _new, Partial _old) {
         if (Objects.equals(_new, _old)) return _new;
         TileEntityLimeSkull skull = metadata.skull;
         WorldServer world = (WorldServer)skull.getLevel();
         UUID worldUUID = world.uuid;
         BlockPosition position = skull.getBlockPos();
-        if (_new instanceof DisplayPartial.BlockPartial block) cacheDisplay.put(playerUUID, block.getDynamicDisplay(position, variable));
+        if (_new instanceof BlockPartial block) cacheDisplay.put(playerUUID, block.getDynamicDisplay(position, variable));
         else cacheDisplay.remove(playerUUID);
         lime.invokable(new BlockUpdateInvokable(player, worldUUID, position, 1));
         lime.invokable(new BlockUpdateInvokable(player, worldUUID, position, 20));
@@ -160,7 +163,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         return markDirtyBlock(((CraftWorld)position.world).getHandle(), new BlockPosition(position.x, position.y, position.z));
     }
 
-    private final ConcurrentHashMap<UUID, BlockDisplay.IBlock> cacheDisplay = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, IBlock> cacheDisplay = new ConcurrentHashMap<>();
 
     private final ConcurrentHashMap<String, Object> animationData = new ConcurrentHashMap<>();
     @Override public void onFirstTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
@@ -172,149 +175,105 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     private int update_ticks = -1;
     private final system.LockToast1<IBlockData> last_state = system.toast(Blocks.AIR.defaultBlockState()).lock();
 
-    public static class TickTimeInfo {
-        public int count = 1;
-
-        public int calls = 0;
-        public long preinit_ns = 0;
-        public long remove_init_ns = 0;
-        public long cache_init_ns = 0;
-        public long foreach_ns = 0;
-        public long remove_ns = 0;
-        public long display_ns = 0;
-        public long apply_ns = 0;
-
-        private Map<String, Long> nanoMap() {
-            return system.map.<String, Long>of()
-                    .add("preinit", -preinit_ns/count)
-                    .add("remove_init", -remove_init_ns/count)
-                    .add("cache_init", -cache_init_ns/count)
-                    .add("foreach", -foreach_ns/count)
-                    .add("remove", -remove_ns/count)
-                    .add("display", -display_ns/count)
-                    .add("apply_ns", -apply_ns/count)
-                    .build();
-        }
-
-        public Component toComponent() {
-            Map<String, Long> nanoMap = nanoMap();
-            long total_ns = nanoMap.values().stream().mapToLong(v -> v).sum();
-            List<Component> components = new ArrayList<>();
-            components.add(Component.text("calls: " + (calls / count) + "*" + count));
-            nanoMap.forEach((name, ns) -> components.add(Component.empty()
-                    .append(Component.text("[" + name.charAt(0) + "")
-                            .append(Component.text(":").color(NamedTextColor.WHITE))
-                            .append(Component.text((ns * 100 / total_ns) + "%").color(NamedTextColor.AQUA))
-                            .append(Component.text("]"))
-                            .color(NamedTextColor.GREEN)
-                            .hoverEvent(HoverEvent.showText(Component.text(String.join("\n",
-                                    "Name: " + name,
-                                    "Time: " + ns + " ns ("+TimeUnit.NANOSECONDS.toMillis(ns)+" ms)",
-                                    "Percent: " + (ns * 100 / total_ns) + "%"
-                            ))))
-                    )));
-            return Component.join(JoinConfiguration.separator(Component.text(" ")), components);
-        }
-
-        public void append(TickTimeInfo info) {
-            this.count += info.count;
-            this.calls += info.calls;
-            this.preinit_ns += info.preinit_ns;
-            this.remove_init_ns += info.remove_init_ns;
-            this.cache_init_ns += info.cache_init_ns;
-            this.foreach_ns += info.foreach_ns;
-            this.remove_ns += info.remove_ns;
-            this.display_ns += info.display_ns;
-            this.apply_ns += info.apply_ns;
-        }
+    private static int getChunkDistance(ChunkCoordIntPair coord1, ChunkCoordIntPair coord2) {
+        return Math.min(Math.abs(coord1.x - coord2.x), Math.abs(coord1.z - coord2.z));
     }
 
+    private long lastUpdateDirtyIndex = -1;
+    private final ConcurrentLinkedQueue<UUID> dirtyQueue = new ConcurrentLinkedQueue<>();
     @Override public void onAsyncTick(CustomTileMetadata metadata) {
         TickTimeInfo tickTimeInfo = org.lime.gp.block.Blocks.deltaTime.get0();
+        tickTimeInfo.resetTime();
         tickTimeInfo.calls++;
 
-        long time_ns = System.nanoTime();
+        long currUpdateDirtyIndex = variableIndex();
 
-        TileEntityLimeSkull skull = metadata.skull;
-        BlockPosition block_position = skull.getBlockPos();
-        Location block_location = metadata.location(0.5,0.5,0.5);
-        World world = block_location.getWorld();
-        net.minecraft.world.level.World handle_world = ((CraftWorld)world).getHandle();
-        Vector pos = block_location.toVector();
-        IBlockData state = last_state.get0();
+        Collection<UUID> users;
+        if (currUpdateDirtyIndex != lastUpdateDirtyIndex) {
+            users = EntityPosition.onlinePlayers.keySet();
+        } else {
+            if (dirtyQueue.isEmpty()) return;
+            UUID uuid;
+            users = new ArrayList<>();
+            while ((uuid = dirtyQueue.poll()) != null) users.add(uuid);
+        }
+        tickTimeInfo.users_ns += tickTimeInfo.nextTime();
 
         Map<String, String> variables = getAll();
+
+        TileEntityLimeSkull skull = metadata.skull;
+        net.minecraft.world.level.World handle_world = skull.getLevel();
+        CraftWorld world = handle_world.getWorld();
+        IBlockData state = last_state.get0();
+        Location block_location = metadata.location(0.5,0.5,0.5);
+        BlockPosition block_position = skull.getBlockPos();
+        Vector pos = block_location.toVector();
         int angle = getRotation().map(v -> v.angle).orElse(0);
 
-        ConcurrentHashMap<Player, Double> shows = new ConcurrentHashMap<>();
-        ConcurrentHashMap<UUID, ItemFrameDisplayObject> frameMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new ConcurrentHashMap<>();
+        ChunkCoordIntPair blockCoord = new ChunkCoordIntPair(block_position);
 
-        time_ns -= System.nanoTime();
-        tickTimeInfo.preinit_ns += time_ns;
-        time_ns = System.nanoTime();
+        tickTimeInfo.variables_ns += tickTimeInfo.nextTime();
 
-        HashSet<UUID> removeList = new HashSet<>(partials.keySet());
-
-        time_ns -= System.nanoTime();
-        tickTimeInfo.remove_init_ns += time_ns;
-        time_ns = System.nanoTime();
-
-        removeList.addAll(cacheDisplay.keySet());
-
-        time_ns -= System.nanoTime();
-        tickTimeInfo.cache_init_ns += time_ns;
-        time_ns = System.nanoTime();
-
-        EntityPosition.playerLocations.forEach((player, location) -> {
-            UUID playerUUID = player.getUniqueId();
-            removeList.remove(playerUUID);
-            system.Toast1<Double> distance = system.toast(null);
-            Optional.ofNullable(partials.compute(playerUUID, (k, v) -> world == location.getWorld()
-                            ? getPartial(distance.val0 = location.toVector().distanceSquared(pos), variables).map(partial -> orSync(metadata, playerUUID, player, variables, partial, v)).orElse(v)
-                            : orSync(metadata, playerUUID, player, variables, null, v))
-                    )
-                    .ifPresent(partial -> {
-                        if (partial instanceof DisplayPartial.FramePartial frame && frame.show) frameMap.put(playerUUID, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
-                        if (partial instanceof DisplayPartial.ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
-                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
-                                k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
-                        ).viewers.add(playerUUID));
-                    });
-            if (distance.val0 == null) return;
-            shows.put(player, distance.val0);
+        users.forEach(uuid -> {
+            Player player = EntityPosition.onlinePlayers.get(uuid);
+            if (player == null) {
+                partials.remove(uuid);
+                return;
+            }
+            Location location = EntityPosition.playerLocations.get(player);
+            if (location == null) {
+                partials.remove(uuid);
+                return;
+            }
+            ChunkCoordIntPair coord = new ChunkCoordIntPair(SectionPosition.blockToSectionCoord(location.getBlockX()), SectionPosition.blockToSectionCoord(location.getBlockZ()));
+            int distanceChunk = getChunkDistance(coord, blockCoord);
+            partials.compute(uuid, (k, v) -> {
+                Partial partial = location.getWorld() != world
+                    ? orSync(metadata, uuid, player, variables, null, v.val0)
+                    : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables), v.val0);
+                if (partial == null) return null;
+                return system.toast(partial, distanceChunk);
+            });
         });
 
-        time_ns -= System.nanoTime();
-        tickTimeInfo.foreach_ns += time_ns;
-        time_ns = System.nanoTime();
+        tickTimeInfo.check_ns += tickTimeInfo.nextTime();
 
-        removeList.forEach(partials::remove);
-        removeList.forEach(cacheDisplay::remove);
+        ConcurrentHashMap<Player, Integer> shows = new ConcurrentHashMap<>();
+        ConcurrentHashMap<UUID, ItemFrameDisplayObject> frameMap = new ConcurrentHashMap<>();
+        ConcurrentHashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new ConcurrentHashMap<>();
+        partials.entrySet().removeIf(kv -> {
+            UUID uuid = kv.getKey();
+            Player player = EntityPosition.onlinePlayers.get(uuid);
+            if (player == null) return true;
+            Partial partial = kv.getValue().val0;
+            int distanceChunk = kv.getValue().val1;
+            if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
+            if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
+                    new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
+                    k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
+            ).viewers.add(uuid));
+            shows.put(player, distanceChunk);
+            return false;
+        });
 
-        time_ns -= System.nanoTime();
-        tickTimeInfo.remove_ns += time_ns;
-        time_ns = System.nanoTime();
+        tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
 
         metadata.list(BlockDisplay.Displayable.class)
-                .forEach(displayable -> shows.forEach((player, distanceSquared) -> displayable.onDisplayAsync(player, handle_world, block_position, state)
-                        .filter(v -> distanceSquared <= v.distanceSquared())
-                        .flatMap(BlockDisplay.IModelBlock::model)
+                .forEach(displayable -> shows.forEach((player, distanceChunk) -> displayable.onDisplayAsync(player, handle_world, block_position, state)
+                        .filter(v -> distanceChunk <= v.distanceChunk())
+                        .flatMap(IModelBlock::model)
                         .ifPresent(_model -> modelMap.computeIfAbsent(
                                 new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, displayable.unique()),
                                 k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
                         ).viewers.add(player.getUniqueId()))
                 ));
 
-        time_ns -= System.nanoTime();
-        tickTimeInfo.display_ns += time_ns;
-        time_ns = System.nanoTime();
+        tickTimeInfo.metadata_ns += tickTimeInfo.nextTime();
 
         if (frameMap.size() == 0 && modelMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
         else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(frameMap, modelMap));
 
-        time_ns -= System.nanoTime();
-        tickTimeInfo.apply_ns += time_ns;
+        tickTimeInfo.apply_ns += tickTimeInfo.nextTime();
     }
     private final ProxyMap<String, String> proxyVariables = ProxyMap.of(this.variables);
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
@@ -343,19 +302,10 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         markDirtyBlock(skull.getLevel(), skull.getBlockPos());
     }
     @Override public @Nullable VoxelShape onShape(CustomTileMetadata metadata, BlockSkullShapeInfo event) {
-        Map<String, String> variables = new HashMap<>(getAll());
-        variables.put("shape", "this");
-        return getPartial(0, variables)
-                .map(v -> v instanceof CustomTileMetadata.Shapeable shapeable ? shapeable : null)
-                .map(shapeable -> shapeable.onShape(metadata, event))
-                .orElse(null);
+        return getPartial(0, new UnmodifiableMergeMap<>(getAll(), Collections.singletonMap("shape", "this"))) instanceof CustomTileMetadata.Shapeable shapeable
+            ? shapeable.onShape(metadata, event)
+            : null;
     }
-    /*@Override public Optional<BlockDisplay.IBlock> onDisplayAsync(Player player, net.minecraft.world.level.World world, BlockPosition position, IBlockData data) {
-        Map<String, String> variables = getAll();
-        return getPartial(player.getLocation().toVector().distanceSquared(new Vector(position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5)), variables)
-                .map(v -> v instanceof DisplayPartial.BlockPartial blockPartial ? blockPartial : null)
-                .flatMap(blockPartial -> blockPartial.getDynamicDisplay(player, world, position, data, variables));
-    }*/
     @Override public void onRemove(CustomTileMetadata metadata, TileEntitySkullEventRemove event) {
         TimeoutData.remove(unique(), DisplayMap.class);
         cacheDisplay.clear();

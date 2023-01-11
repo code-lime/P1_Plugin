@@ -23,7 +23,7 @@ import org.lime.Position;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.CustomTileMetadata.Tickable;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.SafeBoxComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Methods;

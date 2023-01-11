@@ -31,6 +31,7 @@ import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
+import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.list.ConverterComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.craft.RecipesBook;
@@ -161,8 +162,8 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
     /*@Override public Map<String, String> onDisplayVariable() {
         return displayVariable;
     }*/
-    @Override public Optional<BlockDisplay.IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        return Optional.of(BlockDisplay.IModelBlock.of(null, model.get0(), 10));
+    @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+        return Optional.of(IModelBlock.of(null, model.get0(), 10));
     }
     @Override public void onLoot(CustomTileMetadata metadata, PopulateLootEvent event) {
         if (!head.getType().isAir()) event.addItem(head);
