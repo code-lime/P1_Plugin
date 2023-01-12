@@ -35,7 +35,6 @@ public class PartialLoader {
         json.entrySet().forEach(kv -> {
             if (kv.getKey().equals("animation")) return;
             String[] _arr = kv.getKey().split("\\?");
-            /* TODO: Change config from BLOCK to CHUNK distance */
             int distanceChunk = BlockDisplay.getChunkSize(Double.parseDouble(_arr[0]));
             String[] _args = Arrays.stream(_arr).skip(1).collect(Collectors.joining("?")).replace('?', '&').split("&");
             List<system.Toast2<String, List<String>>> map = new ArrayList<>();
