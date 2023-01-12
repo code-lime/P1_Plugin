@@ -1,8 +1,8 @@
 package org.lime.gp.block.component.display.instance;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.lime.system;
@@ -18,7 +18,9 @@ public class TickTimeInfo {
     public int calls = 0;
 
     public long users_ns = 0;
-    public long variables_ns = 0;
+    public long variables1_ns = 0;
+    public long variables2_ns = 0;
+    public long variables3_ns = 0;
     public long check_ns = 0;
     public long partial_ns = 0;
     public long metadata_ns = 0;
@@ -36,23 +38,24 @@ public class TickTimeInfo {
         last_ns = System.nanoTime();
     }
 
-    private Map<String, Long> nanoMap() {
-        return system.map.<String, Long>of()
-                .add("users", users_ns/count)
-                .add("variables", variables_ns/count)
-                .add("check", check_ns/count)
-                .add("partial", partial_ns/count)
-                .add("metadata", metadata_ns/count)
-                .add("apply", apply_ns/count)
-                .build();
+    private List<system.Toast2<String, Long>> nanoMap() {
+        return Arrays.asList(
+            system.toast("users", users_ns/count),
+            system.toast("variables1", variables1_ns/count),
+            system.toast("variables2", variables2_ns/count),
+            system.toast("variables3", variables3_ns/count),
+            system.toast("check", check_ns/count),
+            system.toast("partial", partial_ns/count),
+            system.toast("metadata", metadata_ns/count),
+            system.toast("apply", apply_ns/count));
     }
 
     public Component toComponent() {
-        Map<String, Long> nanoMap = nanoMap();
-        long total_ns = Math.max(1, nanoMap.values().stream().mapToLong(v -> v).sum());
+        List<system.Toast2<String, Long>> nanoMap = nanoMap();
+        long total_ns = Math.max(1, nanoMap.stream().mapToLong(v -> v.val1).sum());
         List<Component> components = new ArrayList<>();
         components.add(Component.text("calls: " + (calls / count) + "*" + count));
-        nanoMap.forEach((name, ns) -> components.add(Component.empty()
+        nanoMap.forEach(v -> v.invoke((name, ns) -> components.add(Component.empty()
                 .append(Component.text("[" + name.charAt(0) + "")
                         .append(Component.text(":").color(NamedTextColor.WHITE))
                         .append(Component.text((ns * 100 / total_ns) + "%").color(NamedTextColor.AQUA))
@@ -63,7 +66,7 @@ public class TickTimeInfo {
                                 "Time: " + ns + " ns ("+TimeUnit.NANOSECONDS.toMillis(ns)+" ms)",
                                 "Percent: " + (ns * 100 / total_ns) + "%"
                         ))))
-                )));
+                ))));
         return Component.join(JoinConfiguration.separator(Component.text(" ")), components);
     }
 
@@ -71,7 +74,9 @@ public class TickTimeInfo {
         this.count += info.count;
         this.calls += info.calls;
         this.users_ns += info.users_ns;
-        this.variables_ns += info.variables_ns;
+        this.variables1_ns += info.variables1_ns;
+        this.variables2_ns += info.variables2_ns;
+        this.variables3_ns += info.variables3_ns;
         this.check_ns += info.check_ns;
         this.partial_ns += info.partial_ns;
         this.metadata_ns += info.metadata_ns;

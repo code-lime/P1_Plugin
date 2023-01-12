@@ -61,12 +61,16 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
     private final system.LockToast1<Long> variableIndex = system.toast(1L).lock();
     private final ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
+    private final Map<String, String> unmodifiableVariables = Collections.unmodifiableMap(variables);
     private final ConcurrentHashMap<UUID, system.Toast2<Partial, Integer>> partials = new ConcurrentHashMap<>();
 
     @Override public DisplayComponent component() { return (DisplayComponent)super.component(); }
 
+    private system.LockToast1<InfoComponent.Rotation.Value> rotationCache = system.<InfoComponent.Rotation.Value>toast(null).lock();
+
     private void variableDirty() {
         variableIndex.edit0(v -> v + 1);
+        rotationCache.set0(get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle).orElse(null));
         saveData();
     }
 
@@ -87,12 +91,12 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     }
     public Optional<String> get(String key) { return Optional.ofNullable(variables.get(key)); }
     public Map<String, String> getAll() {
-        return Collections.unmodifiableMap(variables);
+        return unmodifiableVariables;
     }
     public long variableIndex() { return variableIndex.get0(); }
 
     public Optional<InfoComponent.Rotation.Value> getRotation() {
-        return get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle);
+        return Optional.ofNullable(rotationCache.get0());
     }
 
     public Optional<Partial> getPartial(int distanceChunk, Map<String, String> variables) {
@@ -206,6 +210,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
         Map<String, String> variables = getAll();
 
+        tickTimeInfo.variables1_ns += tickTimeInfo.nextTime();
+
         TileEntityLimeSkull skull = metadata.skull;
         net.minecraft.world.level.World handle_world = skull.getLevel();
         CraftWorld world = handle_world.getWorld();
@@ -213,11 +219,13 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         Location block_location = metadata.location(0.5,0.5,0.5);
         BlockPosition block_position = skull.getBlockPos();
         Vector pos = block_location.toVector();
-        int angle = getRotation().map(v -> v.angle).orElse(0);
-
         ChunkCoordCache.Cache blockCoord = ChunkCoordCache.Cache.of(block_position, world);
 
-        tickTimeInfo.variables_ns += tickTimeInfo.nextTime();
+        tickTimeInfo.variables2_ns += tickTimeInfo.nextTime();
+
+        int angle = getRotation().orElse(InfoComponent.Rotation.Value.ANGLE_0).angle;
+
+        tickTimeInfo.variables3_ns += tickTimeInfo.nextTime();
 
         users.forEach(uuid -> {
             Player player = EntityPosition.onlinePlayers.get(uuid);
