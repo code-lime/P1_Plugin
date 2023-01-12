@@ -7,22 +7,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-import net.minecraft.world.level.ChunkCoordIntPair;
-
 public class PlayerChunkMoveEvent extends PlayerEvent {
     private static final HandlerList handlers = new HandlerList();
 
-    private final ChunkCoordIntPair chunkCoord;
-    public PlayerChunkMoveEvent(@Nonnull Player who, @Nonnull ChunkCoordIntPair chunkCoord) {
+    private final ChunkCoordCache.Cache chunkCoord;
+    public PlayerChunkMoveEvent(@Nonnull Player who, @Nonnull ChunkCoordCache.Cache chunkCoord) {
         super(who);
         this.chunkCoord = chunkCoord;
     }
-    public static void execute(@Nonnull Player who, @Nonnull ChunkCoordIntPair chunkCoord) {
+    public static void execute(@Nonnull Player who, @Nonnull ChunkCoordCache.Cache chunkCoord) {
         Bukkit.getPluginManager().callEvent(new PlayerChunkMoveEvent(who, chunkCoord));
     }
 
 
-    public ChunkCoordIntPair getChunkCoord() { return chunkCoord; }
+    public ChunkCoordCache.Cache getChunkCoord() { return chunkCoord; }
 
     @Override @Nonnull public HandlerList getHandlers() { return handlers; }
     @Nonnull public static HandlerList getHandlerList() { return handlers; }

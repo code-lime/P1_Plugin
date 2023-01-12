@@ -51,7 +51,7 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
         }
         LinkedList<Partial> partials = new LinkedList<>();
         maxDistanceSquared = PartialLoader.load(info, json, partials, this.partialMap);
-        this.partials = createPartials(partials);
+        this.partials = createPartials(info, partials);
     }
 
     public DisplayComponent(BlockInfo info, List<Partial> partials) {
@@ -59,30 +59,28 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
         animation_tick = null;
         LinkedList<Partial> _partials = new LinkedList<>();
         maxDistanceSquared = PartialLoader.loadStatic(info, partials, _partials, this.partialMap);
-        this.partials = createPartials(_partials);
+        this.partials = createPartials(info, _partials);
     }
 
-    private static HashMapWithDefault<Integer, Partial> createPartials(LinkedList<Partial> partials) {
+    private static Map<Integer, Partial> createPartials(BlockInfo info, LinkedList<Partial> partials) {
         int lenght = partials.size();
-        Partial lastDefault = partials.get(lenght - 1);
-        HashMapWithDefault<Integer, Partial> outPartials = new HashMapWithDefault<>(lastDefault);
-        int maxValue = 0;
-        for (int i = lenght - 1; i >= 0; i++) {
+        if (lenght == 0) return Collections.emptyMap();
+        HashMapWithDefault<Integer, Partial> outPartials = new HashMapWithDefault<>(partials.get(0));
+        Partial last = null;
+        for (int i = lenght - 1; i >= 0; i--) {
             Partial partial = partials.get(i);
-            maxValue = Math.max(partial.distanceChunk, maxValue);
-            outPartials.put(partial.distanceChunk, partial);
-        }
-        Partial append = null;
-        for (int i = 0; i < maxValue; i++) {
-            if (outPartials.containsKey(i)) {
-                append = outPartials.get(i);
-                continue;
+            if (last != null) {
+                int lastDistanceChunk = last.distanceChunk;
+                int delta = partial.distanceChunk - lastDistanceChunk;
+                for (int _i = 1; _i < delta; _i++) {
+                    outPartials.put(lastDistanceChunk + _i, last);
+                }
             }
-            if (append != null) outPartials.put(i, append);
+            if (outPartials.putIfAbsent(partial.distanceChunk, partial) == null) last = partial;
         }
         return outPartials;
     }
-
+    
     @Override
     public DisplayInstance createInstance(CustomTileMetadata metadata) {
         return new DisplayInstance(this, metadata);

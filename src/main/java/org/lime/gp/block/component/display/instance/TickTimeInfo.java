@@ -49,7 +49,7 @@ public class TickTimeInfo {
 
     public Component toComponent() {
         Map<String, Long> nanoMap = nanoMap();
-        long total_ns = nanoMap.values().stream().mapToLong(v -> v).sum();
+        long total_ns = Math.max(1, nanoMap.values().stream().mapToLong(v -> v).sum());
         List<Component> components = new ArrayList<>();
         components.add(Component.text("calls: " + (calls / count) + "*" + count));
         nanoMap.forEach((name, ns) -> components.add(Component.empty()

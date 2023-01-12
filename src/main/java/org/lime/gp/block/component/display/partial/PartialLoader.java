@@ -3,6 +3,7 @@ package org.lime.gp.block.component.display.partial;
 import com.google.gson.JsonObject;
 
 import org.lime.gp.block.BlockInfo;
+import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -35,7 +36,7 @@ public class PartialLoader {
             if (kv.getKey().equals("animation")) return;
             String[] _arr = kv.getKey().split("\\?");
             /* TODO: Change config from BLOCK to CHUNK distance */
-            int distance = (int)Math.ceil(Double.parseDouble(_arr[0]) / 16);
+            int distanceChunk = BlockDisplay.getChunkSize(Double.parseDouble(_arr[0]));
             String[] _args = Arrays.stream(_arr).skip(1).collect(Collectors.joining("?")).replace('?', '&').split("&");
             List<system.Toast2<String, List<String>>> map = new ArrayList<>();
             for (String _arg : _args) {
@@ -46,9 +47,9 @@ public class PartialLoader {
                 }
                 map.add(system.toast(_kv[0], Arrays.asList(Arrays.stream(_kv).skip(1).collect(Collectors.joining("=")).split(","))));
             }
-            distanceBuilder.compute(distance, (k,v) -> {
+            distanceBuilder.compute(distanceChunk, (k,v) -> {
                 if (v == null) v = new Builder(k);
-                v.append(Partial.parse(distance, kv.getValue().getAsJsonObject()), map);
+                v.append(Partial.parse(distanceChunk, kv.getValue().getAsJsonObject()), map);
                 return v;
             });
         });

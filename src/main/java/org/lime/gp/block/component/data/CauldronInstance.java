@@ -456,7 +456,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
             Models.Model model = this.model.get0();
-            return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, 10));
+            return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10)));
         }
     }
     public class LavaCauldron extends ICauldron implements CustomTileMetadata.Tickable {

@@ -94,7 +94,7 @@ public class CustomTileMetadata extends TileMetadata {
     public interface Childable extends Element { Stream<? extends Element> childs(); }
 
     public interface Tickable extends Element { void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event); }
-    public interface AsyncTickable extends Element { void onAsyncTick(CustomTileMetadata metadata); }
+    public interface AsyncTickable extends Element { void onAsyncTick(CustomTileMetadata metadata, long tick); }
     public interface FirstTickable extends Element { void onFirstTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event); }
     public interface Removeable extends Element { void onRemove(CustomTileMetadata metadata, TileEntitySkullEventRemove event); }
     public interface Interactable extends Element { EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event); }
@@ -233,8 +233,8 @@ public class CustomTileMetadata extends TileMetadata {
                     return true;
                 }));
     }
-    @Override public void onTickAsync() {
-        list(AsyncTickable.class).forEach(v -> v.onAsyncTick(this));
+    @Override public void onTickAsync(long tick) {
+        list(AsyncTickable.class).forEach(v -> v.onAsyncTick(this, tick));
     }
     @Override public void onRemove(TileEntitySkullEventRemove event) {
         list(Removeable.class).forEach(v -> v.onRemove(this, event));

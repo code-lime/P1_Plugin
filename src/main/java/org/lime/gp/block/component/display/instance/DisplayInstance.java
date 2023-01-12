@@ -3,10 +3,8 @@ package org.lime.gp.block.component.display.instance;
 import com.google.gson.JsonPrimitive;
 
 import net.minecraft.core.BlockPosition;
-import net.minecraft.core.SectionPosition;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkCoordIntPair;
 import net.minecraft.world.level.block.BlockSkullShapeInfo;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
@@ -30,6 +28,7 @@ import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.display.BlockModelDisplay;
+import org.lime.gp.block.component.display.event.ChunkCoordCache;
 import org.lime.gp.block.component.display.invokable.BlockDirtyInvokable;
 import org.lime.gp.block.component.display.invokable.BlockUpdateInvokable;
 import org.lime.gp.block.component.display.partial.BlockPartial;
@@ -96,8 +95,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         return get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle);
     }
 
-    public Partial getPartial(int distanceChunk, Map<String, String> variables) {
-        return component().partials.get(distanceChunk).partial(variables);
+    public Optional<Partial> getPartial(int distanceChunk, Map<String, String> variables) {
+        return Optional.ofNullable(component().partials.get(distanceChunk)).map(v -> v.partial(variables));
     }
 
     public static final class DisplayMap extends TimeoutData.ITimeout {
@@ -175,13 +174,21 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     private int update_ticks = -1;
     private final system.LockToast1<IBlockData> last_state = system.toast(Blocks.AIR.defaultBlockState()).lock();
 
-    private static int getChunkDistance(ChunkCoordIntPair coord1, ChunkCoordIntPair coord2) {
-        return Math.min(Math.abs(coord1.x - coord2.x), Math.abs(coord1.z - coord2.z));
+    private long lastUpdateDirtyIndex = -1;
+    private static final ConcurrentLinkedQueue<UUID> dirtyQueue = new ConcurrentLinkedQueue<>();
+    private static final List<UUID> cachedDirtyQueue = new ArrayList<>();
+    public static void appendDirtyQueue(UUID uuid) {
+        dirtyQueue.add(uuid);
     }
 
-    private long lastUpdateDirtyIndex = -1;
-    private final ConcurrentLinkedQueue<UUID> dirtyQueue = new ConcurrentLinkedQueue<>();
-    @Override public void onAsyncTick(CustomTileMetadata metadata) {
+    private static long lastTickID = -1;
+    @Override public void onAsyncTick(CustomTileMetadata metadata, long tick) {
+        if (lastTickID != tick) {
+            lastTickID = tick;
+            UUID uuid;
+            cachedDirtyQueue.clear();
+            while ((uuid = dirtyQueue.poll()) != null) cachedDirtyQueue.add(uuid);
+        }
         TickTimeInfo tickTimeInfo = org.lime.gp.block.Blocks.deltaTime.get0();
         tickTimeInfo.resetTime();
         tickTimeInfo.calls++;
@@ -191,11 +198,9 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         Collection<UUID> users;
         if (currUpdateDirtyIndex != lastUpdateDirtyIndex) {
             users = EntityPosition.onlinePlayers.keySet();
+            lastUpdateDirtyIndex = currUpdateDirtyIndex;
         } else {
-            if (dirtyQueue.isEmpty()) return;
-            UUID uuid;
-            users = new ArrayList<>();
-            while ((uuid = dirtyQueue.poll()) != null) users.add(uuid);
+            users = cachedDirtyQueue;
         }
         tickTimeInfo.users_ns += tickTimeInfo.nextTime();
 
@@ -210,7 +215,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         Vector pos = block_location.toVector();
         int angle = getRotation().map(v -> v.angle).orElse(0);
 
-        ChunkCoordIntPair blockCoord = new ChunkCoordIntPair(block_position);
+        ChunkCoordCache.Cache blockCoord = ChunkCoordCache.Cache.of(block_position, world);
 
         tickTimeInfo.variables_ns += tickTimeInfo.nextTime();
 
@@ -220,33 +225,29 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                 partials.remove(uuid);
                 return;
             }
-            Location location = EntityPosition.playerLocations.get(player);
-            if (location == null) {
-                partials.remove(uuid);
-                return;
-            }
-            ChunkCoordIntPair coord = new ChunkCoordIntPair(SectionPosition.blockToSectionCoord(location.getBlockX()), SectionPosition.blockToSectionCoord(location.getBlockZ()));
-            int distanceChunk = getChunkDistance(coord, blockCoord);
-            partials.compute(uuid, (k, v) -> {
-                Partial partial = location.getWorld() != world
-                    ? orSync(metadata, uuid, player, variables, null, v.val0)
-                    : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables), v.val0);
-                if (partial == null) return null;
-                return system.toast(partial, distanceChunk);
-            });
+            ChunkCoordCache.getCoord(uuid).ifPresentOrElse(cache -> {
+                int distanceChunk = cache.distance(blockCoord);
+                partials.compute(uuid, (k, v) -> {
+                    Partial partial = cache.world() != world
+                        ? orSync(metadata, uuid, player, variables, null, v == null ? null : v.val0)
+                        : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v == null ? null : v.val0);
+                    if (partial == null) return null;
+                    return system.toast(partial, distanceChunk);
+                });
+            }, () -> partials.remove(uuid));
         });
 
         tickTimeInfo.check_ns += tickTimeInfo.nextTime();
 
-        ConcurrentHashMap<Player, Integer> shows = new ConcurrentHashMap<>();
-        ConcurrentHashMap<UUID, ItemFrameDisplayObject> frameMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new ConcurrentHashMap<>();
+        HashMap<Player, Integer> shows = new HashMap<>();
+        HashMap<UUID, ItemFrameDisplayObject> frameMap = new HashMap<>();
+        HashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
         partials.entrySet().removeIf(kv -> {
             UUID uuid = kv.getKey();
             Player player = EntityPosition.onlinePlayers.get(uuid);
             if (player == null) return true;
-            Partial partial = kv.getValue().val0;
             int distanceChunk = kv.getValue().val1;
+            Partial partial = kv.getValue().val0;
             if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
             if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
                     new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
@@ -302,7 +303,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         markDirtyBlock(skull.getLevel(), skull.getBlockPos());
     }
     @Override public @Nullable VoxelShape onShape(CustomTileMetadata metadata, BlockSkullShapeInfo event) {
-        return getPartial(0, new UnmodifiableMergeMap<>(getAll(), Collections.singletonMap("shape", "this"))) instanceof CustomTileMetadata.Shapeable shapeable
+        return getPartial(0, new UnmodifiableMergeMap<>(getAll(), Collections.singletonMap("shape", "this"))).orElse(null) instanceof CustomTileMetadata.Shapeable shapeable
             ? shapeable.onShape(metadata, event)
             : null;
     }

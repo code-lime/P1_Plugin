@@ -145,7 +145,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
     }
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
         Models.Model model = display.get0();
-        return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, 10));
+        return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10)));
     }
 }
 

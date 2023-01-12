@@ -26,6 +26,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class BlockDisplay implements Listener {
+    public static final int CHUNK_SIZE = 8;
+    public static int getChunkSize(double coord) {
+        return (int)Math.ceil((coord + 1) / BlockDisplay.CHUNK_SIZE);
+    }
+
     public static core.element create() {
         return core.element.create(BlockDisplay.class)
                 .withInit(BlockDisplay::init)
@@ -88,7 +93,7 @@ public class BlockDisplay implements Listener {
                 .ifPresent(v -> v.list(Interactable.class).forEach(_v -> _v.onInteract(v, e)));
     }
     @EventHandler public static void move(PlayerChunkMoveEvent e) {
-        
+        DisplayInstance.appendDirtyQueue(e.getPlayer().getUniqueId());
     }
 }
 

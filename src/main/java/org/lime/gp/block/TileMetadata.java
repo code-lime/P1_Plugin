@@ -25,7 +25,7 @@ public abstract class TileMetadata implements ITickMetadata {
         return new TileMetadata(skull) {
             @Override public boolean isLoaded() { return lime._plugin.isEnabled(); }
             @Override public void onTick(TileEntitySkullTickInfo event) {}
-            @Override public void onTickAsync() {}
+            @Override public void onTickAsync(long tick) {}
             @Override public void onRemove(TileEntitySkullEventRemove event) {}
             @Override public @Nullable EnumInteractionResult onInteract(BlockSkullInteractInfo event) { return null; }
             @Override public @Nullable VoxelShape onShape(BlockSkullShapeInfo event) { return null; }
@@ -45,7 +45,7 @@ public abstract class TileMetadata implements ITickMetadata {
     }
     @Override public boolean isLoaded() { return lime._plugin.isEnabled(); }
     @Override public abstract void onTick(TileEntitySkullTickInfo event);
-    public abstract void onTickAsync();
+    public abstract void onTickAsync(long tick);
     public abstract void onRemove(TileEntitySkullEventRemove event);
     @Override public abstract @Nullable EnumInteractionResult onInteract(BlockSkullInteractInfo event);
     @Override public abstract @Nullable VoxelShape onShape(BlockSkullShapeInfo event);

@@ -202,6 +202,7 @@ public class Blocks implements Listener {
     public static final system.LockToast2<Long, Long> nextAsyncTimes = system.toast(0L, 0L).lock();
     public static final system.LockToast1<TickTimeInfo> deltaTime = system.toast(new TickTimeInfo()).lock();
     private static final system.LockToast2<TickTimeInfo,TickTimeInfo> lastDeltaTime = system.toast(new TickTimeInfo(),new TickTimeInfo()).lock();
+    
     public static void init() {
         AnyEvent.addEvent("blocks.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, overrides::keySet), (p, key) -> lime.logOP("Block '" + key + "':\n" + overrides.getOrDefault(key, null)));
         setBlockData(0.0f);
@@ -211,7 +212,10 @@ public class Blocks implements Listener {
                 .append(Component.text("\n - Tick info:\n    ").append(lastDeltaTime.get0().toComponent()))
                 .append(Component.text("\n - Average info:\n    ").append(lastDeltaTime.get1().toComponent()))
         ));
+        system.Toast1<Long> tick = system.toast(0L);
         ThreadPool.Type.Async.executeRepeat(() -> {
+            long _tick = tick.val0;
+            tick.val0 = _tick + 1;
             deltaTime.edit0(time -> {
                 lastDeltaTime.set0(time);
                 lastDeltaTime.edit1(v -> {
@@ -221,7 +225,7 @@ public class Blocks implements Listener {
                 });
                 return new TickTimeInfo();
             });
-            TimeoutData.values(CustomTileMetadata.ChunkBlockTimeout.class).forEach(info -> info.last_metadata.onTickAsync());
+            TimeoutData.values(CustomTileMetadata.ChunkBlockTimeout.class).forEach(info -> info.last_metadata.onTickAsync(_tick));
         }, nextAsyncTimes);
     }
     private static void setBlockData(float speed) {
