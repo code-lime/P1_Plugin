@@ -69,7 +69,7 @@ public class ThreadPool {
                         }
 
                         Thread.sleep(10);
-                        long last = loggerTimes.get0();
+                        long last = loggerTimes.get0() + 10;
                         long now = System.currentTimeMillis();
                         loggerTimes.set0(now);
                         loggerTimes.set1(now - last);
