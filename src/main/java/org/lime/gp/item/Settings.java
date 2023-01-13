@@ -885,6 +885,14 @@ public class Settings {
             });
         }
     }
+    @Setting(name = "remote_execute") public static class RemoteExecuteSetting extends ItemSetting<JsonArray> {
+        public final List<String> execute;
+        public RemoteExecuteSetting(Items.ItemCreator creator, JsonArray array) {
+            super(creator);
+            execute = new ArrayList<>();
+            array.forEach(item -> execute.add(item.getAsString()));
+        }
+    }
 }
 
 

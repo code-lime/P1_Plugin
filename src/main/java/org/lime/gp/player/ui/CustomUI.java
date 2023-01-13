@@ -16,7 +16,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
+import org.lime.gp.block.Blocks;
+import org.lime.gp.block.component.list.RemoteExecuteComponent;
 import org.lime.gp.extension.PacketManager;
+import org.lime.gp.item.Items;
+import org.lime.gp.item.Settings;
+import org.lime.gp.item.Items.ItemCreator;
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
@@ -111,15 +116,32 @@ public class CustomUI implements Listener {
             public static Share parse(JsonObject json) { return new Share(json.get("download").getAsString(), json.get("upload").getAsString()); }
 
             public void share(String rp_url) {
-                lime.logOP("Download 'resourcepack.zip'...");
-                web.method.GET
-                        .create(rp_url)
-                        .data()
-                        .executeAsync((bytes, code) -> {
-                            lime.logOP("Upload 'resourcepack.zip'...");
-                            web.method.POST.create(upload, bytes)
-                                    .none()
-                                    .executeAsync((_none, _code) -> lime.logOP("Status: " + _code));
+                lime.logOP("[Share] Setup remote generator...");
+                String jsonString = system.json.array()
+                    .add(Items.creatorIDs.values()
+                        .stream()
+                        .map(v -> v instanceof ItemCreator c ? c : null)
+                        .filter(Objects::nonNull)
+                        .flatMap(v -> Items.getAll(Settings.RemoteExecuteSetting.class, v).stream())
+                        .flatMap(v -> v.execute.stream())
+                        .iterator(), item -> item)
+                    .add(Blocks.creators.values()
+                        .stream()
+                        .flatMap(v -> v.components.values().stream())
+                        .map(v -> v instanceof RemoteExecuteComponent c ? c : null)
+                        .filter(Objects::nonNull)
+                        .flatMap(v -> v.execute.stream())
+                        .iterator(), item -> item)
+                    .build()
+                    .toString();
+                lime.logOP("[Share] Execute remote generator...");
+                web.method.POST
+                        .create(rp_url, jsonString)
+                        .expectContinue(true)
+                        .json()
+                        .executeAsync((_json, code) -> {
+                            JsonObject json = _json == null ? null : _json.getAsJsonObject();
+                            lime.logOP("[Share] Ended. Remote generator status: " + (json == null ? "[NULL:"+code+"]" : json.get("status").getAsString()));
                         });
             }
         }
