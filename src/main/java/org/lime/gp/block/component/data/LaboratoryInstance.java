@@ -35,8 +35,9 @@ import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.event.BlockMarkerEventInteract;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.LaboratoryComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.craft.RecipesBook;
@@ -114,8 +115,8 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                     .build());
             return this;
         }
-        @Override public Optional<BlockDisplay.IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-            return Optional.of(BlockDisplay.IModelBlock.of(null, model.get0(), 10));
+        @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+            return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10)));
         }
     }
     private static class WaterLaboratorySlot extends LaboratorySlot {
@@ -287,8 +288,8 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         return RecipesBook.openCustomWorkbench(event.player(), metadata, Recipes.LABORATORY, Recipes.LABORATORY.getAllRecipes());
     }
-    @Override public Optional<BlockDisplay.IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        return Optional.of(BlockDisplay.IModelBlock.of(null, model_interact, 10));
+    @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+        return Optional.of(IModelBlock.of(null, model_interact, BlockDisplay.getChunkSize(10)));
     }
     private int ticks = 0;
     private static final int TOTAL_TICKS = 30 * 20;

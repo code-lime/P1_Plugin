@@ -41,6 +41,7 @@ public class ThreadPool {
         public void executeRepeat(system.Action0 func) {
             pool.execute(() -> {
                 while (true) {
+                    if (DISABLE_TOKEN.get0()) return;
                     try {
                         if (TestData.ENABLE_TYPE.get0().isOther()) {
                             Thread.sleep(1000);
@@ -60,6 +61,7 @@ public class ThreadPool {
             loggerTimes.set1(0L);
             pool.execute(() -> {
                 while (true) {
+                    if (DISABLE_TOKEN.get0()) return;
                     try {
                         if (TestData.ENABLE_TYPE.get0().isOther()) {
                             Thread.sleep(1000);
@@ -67,7 +69,7 @@ public class ThreadPool {
                         }
 
                         Thread.sleep(10);
-                        long last = loggerTimes.get0();
+                        long last = loggerTimes.get0() + 10;
                         long now = System.currentTimeMillis();
                         loggerTimes.set0(now);
                         loggerTimes.set1(now - last);
@@ -114,10 +116,12 @@ public class ThreadPool {
     public static void init() {
 
     }
+    private static system.LockToast1<Boolean> DISABLE_TOKEN = system.toast(false).lock();
     public static void uninit() {
         for (Type type : Type.values())
             if (type.pool != null)
                 type.pool.shutdown();
+        DISABLE_TOKEN.set0(true);
     }
 }
 

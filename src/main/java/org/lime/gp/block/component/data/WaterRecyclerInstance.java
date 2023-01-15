@@ -22,7 +22,7 @@ import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.WaterRecyclerComponent;
 import org.lime.gp.item.Settings;
 import org.lime.json.JsonObjectOptional;

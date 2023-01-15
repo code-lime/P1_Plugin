@@ -39,6 +39,9 @@ public class InfoComponent {
             public static Value ofAngle(int angle) {
                 return valueOf("ANGLE_" + angle);
             }
+            public static Value ofAngle(String angle_name) {
+                return valueOf("ANGLE_" + angle_name);
+            }
 
             public system.Toast3<Integer, Integer, Integer> rotate(system.Toast3<Integer, Integer, Integer> pos) {
                 return switch (this) {

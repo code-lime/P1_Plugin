@@ -31,7 +31,8 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.block.IModelBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.recipe.Recipes;
@@ -453,9 +454,9 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     .map(Models.Builder::build)
                     .orElse(null));
         }
-        @Override public Optional<BlockDisplay.IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+        @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
             Models.Model model = this.model.get0();
-            return model == null ? Optional.empty() : Optional.of(BlockDisplay.IModelBlock.of(null, model, 10));
+            return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10)));
         }
     }
     public class LavaCauldron extends ICauldron implements CustomTileMetadata.Tickable {

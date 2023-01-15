@@ -12,7 +12,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.lime.display.Displays;
 import org.lime.display.Models;
 import org.lime.gp.block.Blocks;
-import org.lime.gp.block.component.display.BlockModelDisplay;
+import org.lime.gp.block.component.display.display.BlockModelDisplay;
 
 import java.util.Optional;
 

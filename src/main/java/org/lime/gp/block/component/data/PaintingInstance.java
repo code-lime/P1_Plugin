@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.chat.LangMessages;

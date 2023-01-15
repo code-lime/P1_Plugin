@@ -15,7 +15,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.OtherGenericComponent;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.json.JsonObjectOptional;

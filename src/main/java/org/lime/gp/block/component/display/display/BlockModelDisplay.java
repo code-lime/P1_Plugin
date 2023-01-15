@@ -1,4 +1,4 @@
-package org.lime.gp.block.component.display;
+package org.lime.gp.block.component.display.display;
 
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Marker;
@@ -9,6 +9,8 @@ import org.lime.Position;
 import org.lime.display.DisplayManager;
 import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
+import org.lime.gp.block.component.display.BlockDisplay;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.module.TimeoutData;
 
 import java.util.Map;
@@ -52,7 +54,7 @@ public class BlockModelDisplay extends ObjectDisplay<DisplayInstance.ModelDispla
         @Override public boolean isFast() { return true; }
 
         @Override public Map<BlockModelKey, DisplayInstance.ModelDisplayObject> getData() {
-            return TimeoutData.values(org.lime.gp.block.component.display.DisplayInstance.DisplayMap.class)
+            return TimeoutData.values(org.lime.gp.block.component.display.instance.DisplayInstance.DisplayMap.class)
                     .flatMap(kv -> kv.modelMap.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }

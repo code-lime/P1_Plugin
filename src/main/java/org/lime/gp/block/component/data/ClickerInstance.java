@@ -27,7 +27,8 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.list.ClickerComponent;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.BlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.block.IModelBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
@@ -170,11 +171,11 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             updateModel();
         }
     }
-    @Override public Optional<BlockDisplay.IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+    @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
         Models.Model model = this.model.get0();
         return model == null
                 ? Optional.empty()
-                : Optional.of(BlockDisplay.IModelBlock.of(null, model, 5));
+                : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(5)));
     }
     @Override public void onDamage(CustomTileMetadata metadata, BlockDamageEvent event) {
         Player player = event.getPlayer();

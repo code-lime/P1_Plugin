@@ -23,7 +23,8 @@ import org.lime.gp.lime;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.block.IBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.module.TimeoutData;
@@ -93,7 +94,7 @@ public class CustomTileMetadata extends TileMetadata {
     public interface Childable extends Element { Stream<? extends Element> childs(); }
 
     public interface Tickable extends Element { void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event); }
-    public interface AsyncTickable extends Element { void onAsyncTick(CustomTileMetadata metadata); }
+    public interface AsyncTickable extends Element { void onAsyncTick(CustomTileMetadata metadata, long tick); }
     public interface FirstTickable extends Element { void onFirstTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event); }
     public interface Removeable extends Element { void onRemove(CustomTileMetadata metadata, TileEntitySkullEventRemove event); }
     public interface Interactable extends Element { EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event); }
@@ -232,8 +233,8 @@ public class CustomTileMetadata extends TileMetadata {
                     return true;
                 }));
     }
-    @Override public void onTickAsync() {
-        list(AsyncTickable.class).forEach(v -> v.onAsyncTick(this));
+    @Override public void onTickAsync(long tick) {
+        list(AsyncTickable.class).forEach(v -> v.onAsyncTick(this, tick));
     }
     @Override public void onRemove(TileEntitySkullEventRemove event) {
         list(Removeable.class).forEach(v -> v.onRemove(this, event));
@@ -275,7 +276,7 @@ public class CustomTileMetadata extends TileMetadata {
                 .flatMap(Optional::stream)
                 .filter(_v -> _v.data().isPresent())
                 .findFirst()
-                .flatMap(BlockDisplay.IBlock::data)
+                .flatMap(IBlock::data)
                 .orElse(null);
     }
     @Override public void onLoot(PopulateLootEvent event) {

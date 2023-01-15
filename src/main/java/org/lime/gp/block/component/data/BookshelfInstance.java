@@ -30,7 +30,7 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.LootComponent;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
-import org.lime.gp.block.component.display.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.map.MapMonitor;
 import org.lime.gp.map.MonitorInstance;
 import org.lime.gp.map.ViewPosition;
