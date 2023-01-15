@@ -59,6 +59,16 @@ public class ChatMessages implements Listener {
                         .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.me", Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
+                .addCommand("news", v -> v
+                        .withCheck(_v -> _v instanceof Player)
+                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.news", Apply.of().add("text", String.join(" ", args))))
+                        .withTab("[сообщение]")
+                )
+                .addCommand("news.test", v -> v
+                        .withCheck(_v -> _v instanceof Player)
+                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.news.test", Apply.of().add("text", String.join(" ", args))))
+                        .withTab("[сообщение]")
+                )
                 .addCommand("now", v -> v
                         .withCheck(_v -> _v instanceof Player)
                         .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.time"))
