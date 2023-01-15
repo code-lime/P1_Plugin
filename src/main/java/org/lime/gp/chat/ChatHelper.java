@@ -21,6 +21,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.lime.gp.database.MySql;
 import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.extension.ExtMethods;
@@ -108,6 +109,16 @@ public class ChatHelper {
                             if (!_args.containsKey(key)) return null;
                             String out = _args.get(key);
                             return txtFix(out == null ? "" : out);
+                        }
+                        case "SQL": {
+                            if (!_args.containsKey(key)) return null;
+                            String out = _args.get(key);
+                            return MySql.toSqlObject(out == null ? "" : out);
+                        }
+                        case "JS.SQL": {
+                            if (!_args.containsKey(key)) return null;
+                            String out = _args.get(key);
+                            return jsFix(MySql.toSqlObject(out == null ? "" : out));
                         }
                     }
                 }
