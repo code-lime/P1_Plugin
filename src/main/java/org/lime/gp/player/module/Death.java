@@ -198,6 +198,7 @@ public class Death implements Listener {
         }, 2);
 
         lime.repeat(Death::update, 0.1);
+        lime.repeatTicks(Death::updateLock, 1);
     }
     private static StringBuilder toLog(ItemStack item) {
         StringBuilder builder = new StringBuilder();
@@ -312,6 +313,9 @@ public class Death implements Listener {
     private static final PotionEffect BLINDNESS = PotionEffectType.BLINDNESS.createEffect(40, 1).withParticles(false).withAmbient(false).withIcon(false);
     private static final PotionEffect INVISIBILITY = PotionEffectType.INVISIBILITY.createEffect(20, 1).withParticles(false).withAmbient(false).withIcon(false);
 
+    public static void updateLock() {
+        dieCooldown.keySet().forEach(uuid -> Drugs.lockArmsTick(Bukkit.getPlayer(uuid)));
+    }
     public static void update() {
         dieCooldown.entrySet().removeIf(kv -> {
             if (!(Bukkit.getPlayer(kv.getKey()) instanceof CraftPlayer player)) return true;

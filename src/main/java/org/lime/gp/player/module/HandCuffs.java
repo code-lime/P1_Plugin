@@ -36,6 +36,7 @@ public class HandCuffs implements Listener {
     }
     public static void init() {
         lime.repeat(HandCuffs::update, 0.1);
+        lime.repeatTicks(HandCuffs::updateLock, 1);
     }
 
     private static final HashMap<UUID, MoveInfo> moveList = new HashMap<>();
@@ -47,6 +48,9 @@ public class HandCuffs implements Listener {
         }
     }
 
+    public static void updateLock() {
+        moveList.keySet().forEach(uuid -> Drugs.lockArmsTick(Bukkit.getPlayer(uuid)));
+    }
     public static void update() {
         moveList.entrySet().removeIf(kv -> {
             Player other = Bukkit.getPlayer(kv.getKey());

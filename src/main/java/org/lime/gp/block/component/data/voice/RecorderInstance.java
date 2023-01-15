@@ -298,9 +298,13 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
             UUID uuid = UUID.randomUUID();
             Files.write(lime.getConfigFile("sounds/" + uuid + ".bif").toPath(), bifs);
             return new GoodOut(uuid, -1);
-        } catch (Exception e) {
-            return new ErrorOut(e.getMessage());
-        }
+        } catch (AssertionError e) {
+            String message = e.getMessage();
+            return new ErrorOut(message == null ? "Ошибка чтения файла! Данный файл не поддерживается либо содержит ошибку!" : message);
+        } catch (Throwable e) {
+            String message = e.getMessage();
+            return new ErrorOut(message == null ? "Неизвестная ошибка" : message);
+        } 
     }
 
     private static byte[] writeBIFs(byte[][] frames) {

@@ -26,6 +26,7 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.coreprotect.CoreProtectHandle;
+import org.lime.gp.database.Rows.UserRow;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Vest;
@@ -34,6 +35,7 @@ import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.system;
+import org.lime.display.lime;
 
 import java.util.*;
 
@@ -55,29 +57,10 @@ public class Search implements Listener {
             if (other == null) return;
             search(player, other, false, checker::check);
         });
+        AnyEvent.addEvent("inventory.open", AnyEvent.type.owner, v -> v.createParam(UUID::fromString, "[uuid]"), Search::searchAdmin);
     }
 
     private static boolean inDistance(Location loc1, Location loc2, double distance) { return loc1.getWorld() == loc2.getWorld() && loc1.toVector().distance(loc2.toVector()) < distance; }
-    /*private static Iterable<Integer> _for(int start, int end) { return _for(start, end, 1); }
-    private static Iterable<Integer> _for(int start, int end, int step) {
-        return () -> new Iterator<>() {
-            private int index = start;
-            @Override public boolean hasNext() { return index < end; }
-            @Override public Integer next() {
-                int last = index;
-                index += step;
-                return last;
-            }
-        };
-    }
-
-    private static final HashMap<Integer, system.Toast2<Integer, Boolean>> to_global = system.map.<Integer, system.Toast2<Integer, Boolean>>of()
-            .add(_for(0, 9), k -> k + 2 * 9, v -> system.toast(v, true))
-            .add(_for(0, 9), k -> k + 1 * 9, v -> system.toast(v + 3 * 9, true))
-            .add(_for(0, 9), k -> k + 0 * 9, v -> system.toast(9, false))
-            .add(_for(1, 5), k -> k + 0 * 9, v -> system.toast(v + (4 * 9) - 1, false))
-            .add(_for(7, 8), k -> k + 0 * 9, v -> system.toast(v + (4 * 9) - 3, true))
-            .build();*/
 
     public static void search(Player player, Player other, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         Apply _other = Apply.of().add("other_uuid", other.getUniqueId().toString());
@@ -213,48 +196,97 @@ public class Search implements Listener {
                 return other.isOnline() && player.isOnline() && inDistance(player.getLocation(), other.getLocation(), 5);
             }
         }, ChatHelper.toNMS(Component.text("Вещи человека" + (readonly ? " *просмотр*" : "")))));
-
-        /*
-        system.Toast1<Boolean> isOpen = system.toast(true);
-        system.Toast1<BukkitTask> task = system.toast(null);
-
-        InterfaceManager.GUI gui = InterfaceManager.create(Component.text("Вещи человека" + (readonly ? " *просмотр*" : "")), 3 * 9, new InterfaceManager.IGUI() {
-            @Override public void init(InterfaceManager.GUI gui) {
-                task.val0 = lime.repeat(() -> {
-                    if (!isOpen.val0) {
-                        task.val0.cancel();
-                        return;
-                    }
-                    if (!other.isOnline() || !player.isOnline() || !inDistance(player.getLocation(), other.getLocation(), 5)) {
-                        player.closeInventory();
-                        return;
-                    }
-                    PlayerInventory inventory = other.getInventory();
-                    to_global.forEach((local, global) -> gui.inventory.setItem(local, inventory.getItem(global.val0)));
-                }, 0.1);
+    }
+    public static void searchAdmin(Player player, UUID other_uuid) {
+        ReadonlyInventory view = ReadonlyInventory.ofNMS(NonNullList.withSize(1 * 9, net.minecraft.world.item.ItemStack.EMPTY));
+        
+        ((CraftPlayer)player).getHandle().openMenu(new TileInventory((syncId, inventory, target) -> new ContainerChest(Containers.GENERIC_9x1, syncId, inventory, view, 1) {
+            private static ItemStack lore(ItemStack item, Component title, Component... lore) {
+                ItemMeta meta = item.getItemMeta();
+                meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+                meta.displayName(title);
+                meta.lore(List.of(lore));
+                item.setItemMeta(meta);
+                return item;
             }
-            @Override public void onClick(InterfaceManager.GUI gui, Player player, Integer slot, Inventory inventory, org.bukkit.inventory.ItemStack item, ClickType click, system.Action1<ItemStack> setCursor) {
-                if (readonly) return;
-                if (inventory.getType() != InventoryType.CHEST) return;
-                system.Toast2<Integer, Boolean> _slot = to_global.getOrDefault(slot, null);
-                if (_slot == null) return;
-                if (!_slot.val1) return;
-                ItemStack _item = other.getInventory().getItem(_slot.val0);
-                if (MainPlayerInventory.checkBarrier(_item)) return;
-                Location location = other.getLocation();
-
-                other.getInventory().setItem(_slot.val0, null);
-                CoreProtectHandle.logDrop(location, other, _item);
-                Items.dropGiveItem(player, _item, true);
-                MenuCreator.show(player, "lang.search.item", _other);
+            private static ItemStack loreSearch(ItemStack item) {
+                return lore(item, Component.text("Открыть инвентарь"), ChatHelper.formatComponent("<YELLOW>[ПКМ] <GRAY>Открыть инвентарь"));
             }
+            private static final net.minecraft.world.item.ItemStack NONE_SLOT = CraftItemStack.asNMSCopy(MainPlayerInventory.createBarrier(false));
+            private static final net.minecraft.world.item.ItemStack EMPTY_SLOT = Optional.of(Material.BARRIER)
+                    .map(ItemStack::new)
+                    .map(v -> lore(v, Component.text("Пустой слот"), ChatHelper.formatComponent("<AQUA>В данном слоте отсутствует инвентарь")))
+                    .map(CraftItemStack::asNMSCopy)
+                    .get();
+            private static final net.minecraft.world.item.ItemStack WALLET_SLOT = Items.createItem("wallet.full")
+                    .map(ItemStack::new)
+                    .map(v -> loreSearch(v))
+                    .map(CraftItemStack::asNMSCopy)
+                    .get();
+            private static final net.minecraft.world.item.ItemStack HELMET = Optional.of(Material.IRON_HELMET)
+                    .map(ItemStack::new)
+                    .map(v -> loreSearch(v))
+                    .map(CraftItemStack::asNMSCopy)
+                    .get();
+            private static final net.minecraft.world.item.ItemStack CHESTPLATE = Optional.of(Material.IRON_CHESTPLATE)
+                    .map(ItemStack::new)
+                    .map(v -> loreSearch(v))
+                    .map(CraftItemStack::asNMSCopy)
+                    .get();
+            private static final net.minecraft.world.item.ItemStack LEGGINGS = Optional.of(Material.IRON_LEGGINGS)
+                    .map(ItemStack::new)
+                    .map(v -> loreSearch(v))
+                    .map(CraftItemStack::asNMSCopy)
+                    .get();
+            private static final net.minecraft.world.item.ItemStack BOOTS = Optional.of(Material.IRON_BOOTS)
+                    .map(ItemStack::new)
+                    .map(v -> loreSearch(v))
+                    .map(CraftItemStack::asNMSCopy)
+                    .get();
 
-            @Override public void onClose(InterfaceManager.GUI gui, Player player) {
-                isOpen.val0 = false;
+            @Override protected Slot addSlot(Slot slot) {
+                if (slot.container == view) {
+                    return super.addSlot(new InterfaceManager.AbstractBaseSlot(slot) {
+                        @Override public net.minecraft.world.item.ItemStack getItem() {
+                            return switch (getRowY()) {
+                                case 0 -> switch (getRowX()) {
+                                    case 0 -> Vest.hasVest(player, other_uuid, EquipmentSlot.FEET) ? BOOTS : EMPTY_SLOT;
+                                    case 1 -> Vest.hasVest(player, other_uuid, EquipmentSlot.LEGS) ? LEGGINGS : EMPTY_SLOT;
+                                    case 2 -> Vest.hasVest(player, other_uuid, EquipmentSlot.CHEST) ? CHESTPLATE : EMPTY_SLOT;
+                                    case 3 -> Vest.hasVest(player, other_uuid, EquipmentSlot.HEAD) ? HELMET : EMPTY_SLOT;
+                                    case 4 -> WALLET_SLOT;
+                                    default -> NONE_SLOT;
+                                };
+                                default -> NONE_SLOT;
+                            };
+                        }
+                        @Override public boolean mayPickup(EntityHuman playerEntity) {
+                            lime.once(() -> {
+                                switch (getRowY()) {
+                                    case 0 -> {
+                                        switch (getRowX()) {
+                                            case 0 -> Vest.openVestAdmin(player, other_uuid, EquipmentSlot.FEET);
+                                            case 1 -> Vest.openVestAdmin(player, other_uuid, EquipmentSlot.LEGS);
+                                            case 2 -> Vest.openVestAdmin(player, other_uuid, EquipmentSlot.CHEST);
+                                            case 3 -> Vest.openVestAdmin(player, other_uuid, EquipmentSlot.HEAD);
+                                            case 4 -> WalletInventory.openWallet(player, other_uuid);
+                                        }
+                                    }
+                                }
+                            }, 0.1);
+                            return false;
+                        }
+                        @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
+                    });
+                }
+                return InterfaceManager.AbstractSlot.noneInteractSlot(super.addSlot(slot));
             }
-        });
-        gui.show(player);
-        */
+            @Override public boolean stillValid(EntityHuman _player) {
+                return true;
+            }
+        }, ChatHelper.toNMS(Component.text("Вещи человека " + UserRow.getBy(other_uuid)
+            .map(v -> v.firstName + " " + v.lastName + " (" + v.userName + ")")
+            .orElse("*Not user: "+other_uuid+"*")))));
     }
 }
 

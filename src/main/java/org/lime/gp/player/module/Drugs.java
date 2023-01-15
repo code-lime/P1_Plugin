@@ -77,8 +77,7 @@ public class Drugs implements Listener {
         }),
         ARMS_LOCK((player, tick) -> {
             PlayerInventory inventory = player.getInventory();
-            regive(player, inventory, EquipmentSlot.OFF_HAND);
-            regive(player, inventory, EquipmentSlot.HAND);
+            lockArmsTick(player, inventory);
         }),
         TREMBLING((player, tick) -> {
             freezeList.compute(player.getEntityId(), (_id, _value) -> {
@@ -153,6 +152,17 @@ public class Drugs implements Listener {
     }
     private static final ConcurrentHashMap<Integer, Integer> freezeList = new ConcurrentHashMap<>();
     private static final NamespacedKey DRUGS_EFFECTS = new NamespacedKey(lime._plugin, "drugs_effects");
+
+    public static void lockArmsTick(Player player) {
+        if (player == null) return;
+        lockArmsTick(player, player.getInventory());
+    }
+    public static void lockArmsTick(Player player, PlayerInventory inventory) {
+        if (player == null || inventory == null) return;
+        regive(player, inventory, EquipmentSlot.OFF_HAND);
+        regive(player, inventory, EquipmentSlot.HAND);
+    }
+
     public static void init() {
         PacketManager.adapter()
                 .add(PacketPlayOutEntityMetadata.class, (packet, event) -> {
