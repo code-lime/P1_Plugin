@@ -112,10 +112,22 @@ public class CustomUI implements Listener {
     }
 
     private static class ResourcePack {
-        public record Share(String download, String upload) {
-            public static Share parse(JsonObject json) { return new Share(json.get("download").getAsString(), json.get("upload").getAsString()); }
+        public record Share(String url, Map<String, String> headers) {
+            public static Share parse(JsonObject json) {
+                return new Share(
+                    json.get("url").getAsString(),
+                    system.map.<String, String>of()
+                        .add(json.get("headers")
+                            .getAsJsonObject()
+                            .entrySet()
+                            .iterator(),
+                            kv -> kv.getKey(),
+                            kv -> kv.getValue().getAsString())
+                        .build()
+                );
+            }
 
-            public void share(String rp_url) {
+            public void share() {
                 lime.logOP("[Share] Setup remote generator...");
                 String jsonString = system.json.array()
                     .add(Items.creatorIDs.values()
@@ -139,10 +151,7 @@ public class CustomUI implements Listener {
                         .create(rp_url, jsonString)
                         .expectContinue(true)
                         .json()
-                        .executeAsync((_json, code) -> {
-                            JsonObject json = _json == null ? null : _json.getAsJsonObject();
-                            lime.logOP("[Share] Ended. Remote generator status: " + (json == null ? "[NULL:"+code+"]" : json.get("status").getAsString()));
-                        });
+                        .executeAsync((json, code) -> lime.logOP("[Share] Ended. Remote generator result: " + json));
             }
         }
         public Share SHARE;
@@ -301,7 +310,7 @@ public class CustomUI implements Listener {
             return;
         }
         lime.logOP("Start share...");
-        RP.SHARE.share(RP.RP_URL);
+        RP.SHARE.share();
     }
     /*public static void upload() {
         if (RP.URL == null) return;
