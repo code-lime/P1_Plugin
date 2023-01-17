@@ -28,6 +28,8 @@ import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.admin.AnyEvent.type;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
@@ -62,7 +64,27 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
                 .add(v -> new LootComponent(v, List.of(Material.CARTOGRAPHY_TABLE)))
                 .addReplace(Material.CARTOGRAPHY_TABLE)
         );
-        return core.element.create(CartographyInstance.class);
+        return core.element.create(CartographyInstance.class)
+            .withInit(CartographyInstance::init);
+    }
+
+    public static void init() {
+        AnyEvent.addEvent("template.map", type.owner, player -> {
+            DrawMap map = DrawMap.of(new byte[128*128]);
+
+            int i = 0;
+            int offset = Byte.MAX_VALUE - Byte.MIN_VALUE;
+            for (int x = 0; x < 32; x++) {
+                if (i > offset) break;
+                for (int y = 0; y < 32; y++) {
+                    if (i > offset) break;
+                    map.rectangle(x * 4, y * 4, 4, 4, (byte)(i + Byte.MIN_VALUE));
+                    i++;
+                }
+            }
+
+            Items.dropGiveItem(player, createMap(map.save()), false);
+        });
     }
 
     private byte[] map;
