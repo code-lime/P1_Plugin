@@ -1,5 +1,7 @@
 package org.lime.gp.player.ui;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.chat.IChatBaseComponent;
@@ -16,7 +18,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
+import org.lime.gp.block.Blocks;
+import org.lime.gp.block.component.list.RemoteExecuteComponent;
 import org.lime.gp.extension.PacketManager;
+import org.lime.gp.item.Items;
+import org.lime.gp.item.Settings;
+import org.lime.gp.item.Items.ItemCreator;
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
@@ -29,7 +36,8 @@ public class CustomUI implements Listener {
                 .withInstance()
                 .addEmpty("rp-send", CustomUI::sendAll)
                 .addEmpty("rp-share", CustomUI::share)
-                .<JsonObject>addConfig("resourcepack", v -> v.withInvoke(CustomUI::config).withDefault(new JsonObject()));
+                .<JsonObject>addConfig("resourcepack", v -> v.withInvoke(CustomUI::config).withDefault(new JsonObject()))
+                .<JsonElement>addConfig("share", v -> v.withInvoke(CustomUI::configShare).withDefault(JsonNull.INSTANCE));
     }
 
     private static class CustomBossBattle extends BossBattle {
@@ -106,46 +114,82 @@ public class CustomUI implements Listener {
         iuis.add(iui);
     }
 
-    private static class ResourcePack {
-        public record Share(String download, String upload) {
-            public static Share parse(JsonObject json) { return new Share(json.get("download").getAsString(), json.get("upload").getAsString()); }
-
-            public void share(String rp_url) {
-                lime.logOP("Download 'resourcepack.zip'...");
-                web.method.GET
-                        .create(rp_url)
-                        .data()
-                        .executeAsync((bytes, code) -> {
-                            lime.logOP("Upload 'resourcepack.zip'...");
-                            web.method.POST.create(upload, bytes)
-                                    .none()
-                                    .executeAsync((_none, _code) -> lime.logOP("Status: " + _code));
-                        });
-            }
+    public record Share(
+        String url,
+        String owner,
+        String repo,
+        String branch,
+        Map<String, String> headers) {
+        public static Share parse(JsonObject json) {
+            return new Share(
+                json.get("url").getAsString(),
+                json.get("owner").getAsString(),
+                json.get("repo").getAsString(),
+                json.get("branch").getAsString(),
+                system.map.<String, String>of()
+                    .add(json.get("headers")
+                        .getAsJsonObject()
+                        .entrySet()
+                        .iterator(),
+                        kv -> kv.getKey(),
+                        kv -> kv.getValue().getAsString())
+                    .build()
+            );
         }
-        public Share SHARE;
+
+        public void share() {
+            lime.logOP("[Share] Setup remote generator...");
+            String jsonString = system.json.object()
+                .addArray("execute", _v -> _v
+                    .add(Items.creatorIDs.values()
+                        .stream()
+                        .map(v -> v instanceof ItemCreator c ? c : null)
+                        .filter(Objects::nonNull)
+                        .flatMap(v -> Items.getAll(Settings.RemoteExecuteSetting.class, v).stream())
+                        .flatMap(v -> v.execute.stream())
+                        .iterator(), item -> item)
+                    .add(Blocks.creators.values()
+                        .stream()
+                        .flatMap(v -> v.components.values().stream())
+                        .map(v -> v instanceof RemoteExecuteComponent c ? c : null)
+                        .filter(Objects::nonNull)
+                        .flatMap(v -> v.execute.stream())
+                        .iterator(), item -> item)
+                )
+                .add("owner", owner)
+                .add("repo", repo)
+                .add("branch", branch)
+                .build()
+                .toString();
+            lime.logOP("[Share] Execute remote generator...");
+            web.method.POST
+                    .create(url, jsonString)
+                    .expectContinue(true)
+                    .lines()
+                    .executeAsync((lines, code) -> {
+                        lime.logOP("[Share] Remote generator logs:");
+                        lines.forEach(line -> {
+                            lime.logOP("[Share]  - " + line);
+                        });
+                    });
+        }
+    }
+    private static class ResourcePack {
         public String SEND_URL;
         public String RP_URL;
         public String VERSION;
 
-        public ResourcePack(Share SHARE, String URL, String VERSION) {
+        public ResourcePack(String URL, String VERSION) {
             this.RP_URL = URL;
-            this.SEND_URL = createUrl(SHARE, URL, VERSION);
-            this.SHARE = SHARE;
+            this.SEND_URL = createUrl(URL, VERSION);
             this.VERSION = VERSION;
         }
 
-        private static String createUrl(Share share, String url, String version) {
+        private static String createUrl(String url, String version) {
             try {
-                if (share == null) {
-                    URIBuilder _url = new URIBuilder(url);
-                    _url.addParameter("v", version);
-                    return _url.toString();
-                } else {
-                    URIBuilder _url = new URIBuilder(share.download);
-                    _url.addParameter("v", version);
-                    return _url.toString();
-                }
+                URIBuilder _url = new URIBuilder(url);
+                _url.addParameter("v", version);
+                return _url.toString();
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
             }
@@ -156,6 +200,7 @@ public class CustomUI implements Listener {
         }
     }
     private static ResourcePack RP;
+    private static Share SHARE;
     private static String VERSION;
     private static Component NOT_SUPPORTED;
     private static boolean REQIRE_RP;
@@ -266,20 +311,26 @@ public class CustomUI implements Listener {
         NOT_SUPPORTED = Component.empty();
         for (int i = 0; i < 10; i++) NOT_SUPPORTED = NOT_SUPPORTED.append(not_supported);
         RP = new ResourcePack(
-                json.has("share") ? ResourcePack.Share.parse(json.get("share").getAsJsonObject()) : null,
                 json.get("version").isJsonNull() ? null : json.get("default").getAsString(),
                 VERSION + "." + build);
+    }
+    public static void configShare(JsonElement _json) {
+        if (_json.isJsonNull()) {
+            SHARE = null;
+        } else {
+            SHARE = Share.parse(_json.getAsJsonObject());
+        }
     }
     public static void sendAll() {
         Bukkit.getOnlinePlayers().forEach(RP::send);
     }
     public static void share() {
-        if (RP.SHARE == null) {
+        if (SHARE == null) {
             lime.logOP("Share disabled!");
             return;
         }
         lime.logOP("Start share...");
-        RP.SHARE.share(RP.RP_URL);
+        SHARE.share();
     }
     /*public static void upload() {
         if (RP.URL == null) return;
