@@ -137,6 +137,13 @@ public class CustomUI implements Listener {
             );
         }
 
+        public String replace(String text) {
+            return text
+                .replace("{owner}", owner)
+                .replace("{repo}", repo)
+                .replace("{branch}", branch);
+        }
+
         public void share() {
             lime.logOP("[Share] Setup remote generator...");
             String jsonString = system.json.object()
@@ -165,11 +172,13 @@ public class CustomUI implements Listener {
             web.method.POST
                     .create(url, jsonString)
                     .expectContinue(true)
+                    .headers(headers)
                     .lines()
                     .executeAsync((lines, code) -> {
                         lime.logOP("[Share] Remote generator logs:");
                         lines.forEach(line -> {
-                            lime.logOP("[Share]  - " + line);
+                            if (!line.isBlank())
+                                lime.logOP("[Share]  - " + line);
                         });
                     });
         }
@@ -196,7 +205,7 @@ public class CustomUI implements Listener {
         }
         public void send(Player player) {
             if (SEND_URL == null) return;
-            player.setResourcePack(SEND_URL, VERSION);
+            player.setResourcePack(SHARE == null ? SEND_URL : (SHARE.replace(SEND_URL)), VERSION);
         }
     }
     private static ResourcePack RP;
@@ -332,16 +341,6 @@ public class CustomUI implements Listener {
         lime.logOP("Start share...");
         SHARE.share();
     }
-    /*public static void upload() {
-        if (RP.URL == null) return;
-        lime.logOP("Download 'resourcepack.zip'...");
-        HashMap<String, byte[]> map = zip.unzip(web.method.GET.create(RP.URL).data().execute().val0);
-        map.put("tmp3.txt", "tmp_data".getBytes());
-        Path path = Paths.get("/", "var","www","html","p1", "resourcepack.zip");
-        lime.logOP("Path: " + path);
-        system.<Path, byte[]>actionEx(java.nio.file.Files::write).throwable().invoke(path, zip.zip(map));
-        lime.logOP("Saved in " + new File("/var/www/html/p1/resourcepack.zip").toPath().toAbsolutePath());
-    }*/
     public static void update() {
         Bukkit.getOnlinePlayers().forEach(CustomUI::updatePlayer);
         IType.sync();
