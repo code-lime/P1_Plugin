@@ -2,6 +2,7 @@
 /org/
 /build/
 /bin/
+/.settings/
 /.vscode/
 /.idea/
 /.gradle/
