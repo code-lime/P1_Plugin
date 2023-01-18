@@ -2,6 +2,7 @@ package org.lime.gp.block.component;
 
 import com.google.gson.*;
 import org.lime.gp.block.BlockInfo;
+import org.lime.system.Func2;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -78,6 +79,8 @@ public abstract class ComponentStatic<T extends JsonElement> {
     }
 
     public static ComponentStatic<?> parse(String key, BlockInfo creator, JsonElement json) {
-        return components.get(key).invoke(creator, json);
+        Func2<BlockInfo, JsonElement, ComponentStatic<?>> func = components.get(key);
+        if (func == null) throw new IllegalArgumentException("Block component '"+key+"' not founded!");
+        return func.invoke(creator, json);
     }
 }
