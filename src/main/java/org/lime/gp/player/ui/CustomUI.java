@@ -184,13 +184,11 @@ public class CustomUI implements Listener {
         }
     }
     private static class ResourcePack {
-        public String SEND_URL;
         public String RP_URL;
         public String VERSION;
 
         public ResourcePack(String URL, String VERSION) {
             this.RP_URL = URL;
-            this.SEND_URL = createUrl(URL, VERSION);
             this.VERSION = VERSION;
         }
 
@@ -204,8 +202,8 @@ public class CustomUI implements Listener {
             }
         }
         public void send(Player player) {
-            if (SEND_URL == null) return;
-            player.setResourcePack(SHARE == null ? SEND_URL : (SHARE.replace(SEND_URL)), VERSION);
+            if (RP_URL == null) return;
+            player.setResourcePack(createUrl(SHARE == null ? RP_URL : (SHARE.replace(RP_URL)), VERSION), VERSION);
         }
     }
     private static ResourcePack RP;
