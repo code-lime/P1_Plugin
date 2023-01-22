@@ -67,6 +67,7 @@ public class LangMessages {
         BookEditor_Paper_Name("book_editor", "paper", "name"),
         BookEditor_Book_Title("book_editor", "book", "title"),
         BookEditor_Book_Lore("book_editor", "book", "lore"),
+        BookEditor_Book_SignLore("book_editor", "book", "sign_lore"),
 
         Phone_Wallet_Title("phone", "wallet", "title"),
 
