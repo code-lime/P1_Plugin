@@ -333,18 +333,19 @@ public class Discord implements Listener {
         return actions;
     }
     private static void reset(long discord_id) {
-        Guild guild = DiscordSRV.getPlugin().getMainGuild();
-        Member member = guild.getMemberById(discord_id);
-        if (member == null) return;
-
-        List<Role> delRoles = new ArrayList<>();
-        delRoles.add(guild.getRoleById(online_role));
-        delRoles.add(guild.getRoleById(gift_role));
-        delRoles.add(guild.getRoleById(confirmed_role));
-
-        role_list.keySet().forEach(_roleId -> delRoles.add(guild.getRoleById(_roleId)));
-        guild.modifyMemberRoles(member, new ArrayList<>(), delRoles).queue();
-        if (!member.isOwner()) member.modifyNickname(null).queue();
+        DiscordSRV.getPlugin().getJda().getGuilds().forEach(guild -> {
+            Member member = guild.getMemberById(discord_id);
+            if (member == null) return;
+    
+            List<Role> delRoles = new ArrayList<>();
+            delRoles.add(guild.getRoleById(online_role));
+            delRoles.add(guild.getRoleById(gift_role));
+            delRoles.add(guild.getRoleById(confirmed_role));
+    
+            role_list.keySet().forEach(_roleId -> delRoles.add(guild.getRoleById(_roleId)));
+            guild.modifyMemberRoles(member, new ArrayList<>(), delRoles).queue();
+            if (!member.isOwner()) member.modifyNickname(null).queue();
+        });
     }
 
     private static RestAction<Void> combine(Collection<RestAction<Void>> actions) {
