@@ -111,9 +111,6 @@ public class Items implements Listener {
         return new ItemStack(Material.STONE, 0);
     }
 
-    /**
-     * 
-     */
     public static void init() {
         lime.logOP("Feather max stack size: " + new ItemStack(Material.FEATHER).getMaxStackSize());
 
