@@ -4,12 +4,15 @@ import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,6 +29,8 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Rows;
+import org.lime.gp.database.Tables;
+import org.lime.gp.database.Rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.extension.JManager;
@@ -34,6 +39,7 @@ import org.lime.gp.chat.ChatHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BookPaper implements Listener {
     public static core.element create() {
@@ -49,6 +55,9 @@ public class BookPaper implements Listener {
     private static int getPageCount(ItemMeta book) {
         return JManager.get(JsonPrimitive.class, book.getPersistentDataContainer(), "page_count", new JsonPrimitive(3)).getAsInt();
     }
+    public static int getAuthorID(ItemMeta book) {
+        return book.getPersistentDataContainer().getOrDefault(AUTHOR_KEY, PersistentDataType.INTEGER, -1);
+    }
     private static void setPageCount(ItemStack book, int count) {
         ItemMeta meta = book.getItemMeta();
         if (!(meta instanceof BookMeta bookMeta)) return;
@@ -56,7 +65,7 @@ public class BookPaper implements Listener {
         book.setItemMeta(bookMeta);
         updateInfo(book);
     }
-    private static void setPageCount(BookMeta meta, int count) {
+    public static void setPageCount(BookMeta meta, int count) {
         JManager.set(meta.getPersistentDataContainer(), "page_count", new JsonPrimitive(count));
         List<Component> old_pages = meta.pages();
         int old_count = old_pages.size();
@@ -67,9 +76,37 @@ public class BookPaper implements Listener {
     }
     private static void updateInfo(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        int count = getPageCount(item);
-        meta.lore(LangMessages.Message.BookEditor_Book_Lore.getMessages(Apply.of().add("pages", String.valueOf(count))));
-        item.setItemMeta(meta);
+        if (updateInfo(meta)) item.setItemMeta(meta);
+    }
+    public static boolean updateInfo(ItemMeta meta) {
+        return meta instanceof BookMeta book && updateInfo(book);
+    }
+    public static boolean updateInfo(BookMeta meta) {
+        int count = getPageCount(meta);
+        
+        PersistentDataContainer data = meta.getPersistentDataContainer();
+        String author_name = meta.hasAuthor() ? Optional.ofNullable(data.getOrDefault(AUTHOR_KEY, PersistentDataType.INTEGER, null))
+            .flatMap(UserRow::getBy)
+            .map(v -> ChatColor.AQUA + v.firstName + " " + v.lastName + " " + ChatColor.GREEN + Integer.toHexString(0xFFFF - v.id).toUpperCase())
+            .orElseGet(() -> ChatColor.RED + "Неизвестно") : null;
+
+        List<Component> lore = (author_name == null
+            ? LangMessages.Message.BookEditor_Book_Lore
+            : LangMessages.Message.BookEditor_Book_SignLore)
+            .getMessages(Apply.of().add("pages", String.valueOf(count)));
+        
+        boolean modify = false;
+
+        if (!lore.equals(meta.lore())) {
+            meta.lore(lore);
+            modify = true;
+        }
+        if (author_name != null) {
+            meta.setAuthor(author_name);
+            modify = true;
+        }
+        
+        return modify;
     }
     private static List<String> getLines(String page) {
         List<String> lines = new ArrayList<>();
@@ -144,6 +181,33 @@ public class BookPaper implements Listener {
                 }
             }
         }
+
+        ExecuteItem.execute.add(BookPaper::onExecute);
+    }
+
+    private static final NamespacedKey AUTHOR_KEY = new NamespacedKey(lime._plugin, "author");
+
+    private static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
+        return metaBox.val0 instanceof BookMeta meta ? onExecute(meta) : false;
+    }
+    private static boolean onExecute(BookMeta meta) {
+        boolean update = false;
+        if (meta.hasAuthor()) {
+            PersistentDataContainer data = meta.getPersistentDataContainer();
+            Integer author_id = data.getOrDefault(AUTHOR_KEY, PersistentDataType.INTEGER, null);
+            if (author_id == null) {
+                String author = meta.getAuthor().replaceAll("&.", "");
+                author_id = Optional.ofNullable(Bukkit.getOfflinePlayer(author))
+                    .map(OfflinePlayer::getUniqueId)
+                    .flatMap(Rows.UserRow::getBy)
+                    .or(() -> Tables.USER_TABLE.getBy(v -> v.firstName.equals(author)))
+                    .map(v -> v.id)
+                    .orElse(-1);
+                data.set(AUTHOR_KEY, PersistentDataType.INTEGER, author_id);
+                update = true;
+            }
+        }
+        return updateInfo(meta) || update;
     }
 
     @EventHandler public static void onClick(InventoryClickEvent e) {
@@ -230,6 +294,7 @@ public class BookPaper implements Listener {
         BookMeta _new = e.getNewBookMeta();
         setPageCount(_new, getPageCount(_new));
         if (e.isSigning()) JManager.set(_new.getPersistentDataContainer(), "signing_time", new JsonPrimitive(System.currentTimeMillis()));
+        onExecute(_new);
         e.setNewBookMeta(_new);
         Player player = e.getPlayer();
         lime.once(player::updateInventory, 0.1);
