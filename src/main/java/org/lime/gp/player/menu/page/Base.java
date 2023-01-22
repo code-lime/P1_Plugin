@@ -9,7 +9,7 @@ import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.menu.Slot;
@@ -58,9 +58,9 @@ public abstract class Base implements Logged.ILoggedDelete {
         if (player != null) {
             PlayerInventory playerInventory = player.getInventory();
 
-            if (isLockMenu && Items.getOptional(Settings.LockMenuSetting.class, playerInventory.getItemInMainHand())
+            if (isLockMenu && Items.getOptional(LockMenuSetting.class, playerInventory.getItemInMainHand())
                     .filter(v -> v.isLock)
-                    .or(() -> Items.getOptional(Settings.LockMenuSetting.class, playerInventory.getItemInOffHand()).filter(v -> v.isLock))
+                    .or(() -> Items.getOptional(LockMenuSetting.class, playerInventory.getItemInOffHand()).filter(v -> v.isLock))
                     .isPresent()
             ) {
                 LangMessages.Message.Menu_Error_Weapon.sendMessage(player);

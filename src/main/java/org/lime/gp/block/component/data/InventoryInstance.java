@@ -28,7 +28,7 @@ import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.list.InventoryComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -92,8 +92,8 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
                         .local(kv.getValue())
                         .nbt(v -> v.putBoolean("Invulnerable", true))
                         .nbt(v -> v.putBoolean("Marker", true))
-                        .addEquipment(EnumItemSlot.HEAD, Items.getOptional(Settings.TableDisplaySetting.class, item)
-                                .flatMap(v -> v.of(Settings.TableDisplaySetting.TableType.inventory, component.type))
+                        .addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, item)
+                                .flatMap(v -> v.of(TableDisplaySetting.TableType.inventory, component.type))
                                 .map(v -> v.display(item))
                                 .orElseGet(item::copy))
                 );

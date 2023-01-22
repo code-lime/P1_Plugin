@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.sound.Sounds;
 
 public class QToNext implements Listener {
@@ -17,8 +18,8 @@ public class QToNext implements Listener {
             case DROP: {
                 ItemStack item = e.getCurrentItem();
                 if (item == null) return;
-                Items.getOptional(Settings.NextSetting.class, item)
-                        .ifPresent(_v -> Items.getOptional(Settings.QToNextSetting.class, item).ifPresent(qtn -> {
+                Items.getOptional(NextSetting.class, item)
+                        .ifPresent(_v -> Items.getOptional(QToNextSetting.class, item).ifPresent(qtn -> {
                                     Items.getItemCreator(_v.next)
                                     .map(v -> v instanceof Items.ItemCreator c ? c : null)
                                     .map(next -> next.apply(item))

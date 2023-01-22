@@ -35,7 +35,7 @@ import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.recipe.ClickerRecipe;
 import org.lime.gp.craft.recipe.Recipes;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
 import org.lime.gp.module.PopulateLootEvent;
@@ -116,8 +116,8 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         }
         Models.Builder builder = lime.models.builder();
         LocalLocation offset = component().show;
-        for (int i = 0; i < items.size(); i++) builder = builder.addChild(builder_item.local(ofHeight(i).add(offset)).addEquipment(EnumItemSlot.HEAD, Optional.of(items.get(i)).map(item -> Items.getOptional(Settings.TableDisplaySetting.class, item)
-                .flatMap(v -> v.of(Settings.TableDisplaySetting.TableType.clicker, component().type))
+        for (int i = 0; i < items.size(); i++) builder = builder.addChild(builder_item.local(ofHeight(i).add(offset)).addEquipment(EnumItemSlot.HEAD, Optional.of(items.get(i)).map(item -> Items.getOptional(TableDisplaySetting.class, item)
+                .flatMap(v -> v.of(TableDisplaySetting.TableType.clicker, component().type))
                 .map(v -> v.display(item))
                 .orElseGet(() -> CraftItemStack.asNMSCopy(item))).orElseThrow()));
         model.set0(builder.build());
@@ -193,7 +193,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         String clicker_type = component.type;
         if (player.getAttackCooldown() <= 0.9) return;
         if (clicker.getType().isAir()) return;
-        if (Items.getOptional(Settings.ClickerSetting.class, clicker).map(v -> v.type).filter(v -> v.equals(clicker_type)).isEmpty()) {
+        if (Items.getOptional(ClickerSetting.class, clicker).map(v -> v.type).filter(v -> v.equals(clicker_type)).isEmpty()) {
             DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
             return;
         }

@@ -22,7 +22,8 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.lime.core;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
+
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -58,7 +59,7 @@ public class Locked implements Listener {
             for (ItemStack item : e.getInventory().getMatrix())
                 if (Items.getIDByItem(item)
                         .map(Items.creators::get)
-                        .filter(v -> v instanceof Items.ItemCreator c ? c.getOptional(Settings.DyeColorSetting.class).map(_v -> !_v.dyeColor || !isDye).orElse(true) : true)
+                        .filter(v -> v instanceof Items.ItemCreator c ? c.getOptional(DyeColorSetting.class).map(_v -> !_v.dyeColor || !isDye).orElse(true) : true)
                         .map(id -> { e.setCancelled(true); return true; })
                         .orElse(false)
                 )
@@ -88,7 +89,7 @@ public class Locked implements Listener {
             for (ItemStack item : e.getInventory().getMatrix())
                 if (Items.getIDByItem(item)
                         .map(Items.creators::get)
-                        .filter(v -> v instanceof Items.ItemCreator c ? c.getOptional(Settings.DyeColorSetting.class).map(_v -> !_v.dyeColor || !isDye).orElse(true) : true)
+                        .filter(v -> v instanceof Items.ItemCreator c ? c.getOptional(DyeColorSetting.class).map(_v -> !_v.dyeColor || !isDye).orElse(true) : true)
                         .map(id -> { e.getInventory().setResult(null); return true; })
                         .orElse(false)
                 )

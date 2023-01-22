@@ -59,6 +59,12 @@ import org.lime.gp.player.menu.page.slot.ISlot;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
+import org.lime.gp.item.settings.IItemSetting;
+import org.lime.gp.item.settings.*;
+import org.lime.gp.item.settings.list.DurabilitySetting;
+import org.lime.gp.item.settings.list.EquipSetting;
+import org.lime.gp.item.settings.list.MaxStackSetting;
+import org.lime.gp.item.settings.list.SweepSetting;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.coreprotect.CoreProtectHandle;
@@ -105,15 +111,41 @@ public class Items implements Listener {
         return new ItemStack(Material.STONE, 0);
     }
 
+    /**
+     * 
+     */
     public static void init() {
         lime.logOP("Feather max stack size: " + new ItemStack(Material.FEATHER).getMaxStackSize());
 
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()), (player, _creators) -> {
-            _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(Rows.UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
+            _creators.getWhitelistKeys()
+                .map(Items.creatorIDs::get)
+                .forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(Rows.UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
         });
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> system.json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
             _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(Rows.UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));
         });
+        AnyEvent.addEvent("drop.item", AnyEvent.type.owner_console, builder -> builder
+            .createParam(Double::parseDouble, "[x]")
+            .createParam(Double::parseDouble, "[y]")
+            .createParam(Double::parseDouble, "[z]")
+            .createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()),
+             (s, x, y, z, _creators) -> {
+                _creators.getWhitelistKeys()
+                    .map(Items.creatorIDs::get)
+                    .forEach(creator -> Items.dropItem(new Location(lime.MainWorld, x, y, z), creator.createItem()));
+            });
+        AnyEvent.addEvent("drop.item", AnyEvent.type.owner_console, builder -> builder
+            .createParam(Double::parseDouble, "[x]")
+            .createParam(Double::parseDouble, "[y]")
+            .createParam(Double::parseDouble, "[z]")
+            .createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList())
+            .createParam(t -> system.json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), 
+            (s, x, y, z, _creators, args) -> {
+                _creators.getWhitelistKeys()
+                    .map(Items.creatorIDs::get)
+                    .forEach(creator -> Items.dropItem(new Location(lime.MainWorld, x, y, z), creator.createItem(v -> v.addApply(Apply.of().add(args)))));
+            });
     }
 
     public static final String AIR = Items.getMaterialKey(Material.AIR);
@@ -208,7 +240,7 @@ public class Items implements Listener {
         public final List<String> charged = new ArrayList<>();
         public final HashMap<String, JsonElement> data = new HashMap<>();
         public final LinkedHashMultimap<Attribute, AttributeModifier> attributes = LinkedHashMultimap.create();
-        public final HashMap<String, Settings.ItemSetting<?>> settings = new HashMap<>();
+        public final HashMap<String, ItemSetting<?>> settings = new HashMap<>();
 
         public final String head_uuid;
         public final String head_data;
@@ -259,7 +291,7 @@ public class Items implements Listener {
             if (json.has("flags")) json.get("flags").getAsJsonArray().forEach(arg -> this.flags.add(ItemFlag.valueOf(arg.getAsString())));
             if (json.has("enchants")) json.get("enchants").getAsJsonObject().entrySet().forEach(kv -> enchants.put(kv.getKey(), kv.getValue().getAsString()));
             if (json.has("settings")) json.get("settings").getAsJsonObject().entrySet().forEach(kv -> {
-                Settings.ItemSetting<?> setting = Settings.ItemSetting.parse(kv.getKey(), this, kv.getValue());
+                ItemSetting<?> setting = ItemSetting.parse(kv.getKey(), this, kv.getValue());
                 settings.put(setting.name(), setting);
             });
             if (json.has("charged")) json.get("charged").getAsJsonArray().forEach(item -> charged.add(item.getAsString()));
@@ -357,7 +389,7 @@ public class Items implements Listener {
 
         
         @SuppressWarnings("unchecked")
-        public <T extends Settings.IItemSetting>Optional<T> getOptional(Class<T> tClass) {
+        public <T extends IItemSetting>Optional<T> getOptional(Class<T> tClass) {
             return settings.values()
                     .stream()
                     .filter(tClass::isInstance)
@@ -365,14 +397,14 @@ public class Items implements Listener {
                     .findFirst();
         }
         @SuppressWarnings("unchecked")
-        public <T extends Settings.IItemSetting>List<T> getAll(Class<T> tClass) {
+        public <T extends IItemSetting>List<T> getAll(Class<T> tClass) {
             return settings.values()
                     .stream()
                     .filter(tClass::isInstance)
                     .map(v -> (T)v)
                     .collect(Collectors.toList());
         }
-        public boolean has(Class<? extends Settings.IItemSetting> tClass) {
+        public boolean has(Class<? extends IItemSetting> tClass) {
             return settings.values()
                     .stream()
                     .anyMatch(tClass::isInstance);
@@ -670,52 +702,52 @@ public class Items implements Listener {
         return Optional.ofNullable(creators.get(id)).map(v -> v.createItem(builder));
     }
 
-    public static <T extends Settings.IItemSetting>Optional<T> getOptional(Class<T> tClass, ItemStack item) {
+    public static <T extends IItemSetting>Optional<T> getOptional(Class<T> tClass, ItemStack item) {
         return getItemCreator(item)
                 .map(v -> v instanceof ItemCreator creator ? creator : null)
                 .flatMap(v -> v.getOptional(tClass));
     }
-    public static <T extends Settings.IItemSetting>Optional<T> getOptional(Class<T> tClass, net.minecraft.world.item.ItemStack item) {
+    public static <T extends IItemSetting>Optional<T> getOptional(Class<T> tClass, net.minecraft.world.item.ItemStack item) {
         return getItemCreator(item)
                 .map(v -> v instanceof ItemCreator creator ? creator : null)
                 .flatMap(v -> v.getOptional(tClass));
     }
-    public static <T extends Settings.IItemSetting>Optional<T> getOptional(Class<T> tClass, ItemCreator creator) {
+    public static <T extends IItemSetting>Optional<T> getOptional(Class<T> tClass, ItemCreator creator) {
         return Optional.ofNullable(creator)
                 .flatMap(v -> v.getOptional(tClass));
     }
 
-    public static <T extends Settings.IItemSetting>List<T> getAll(Class<T> tClass, ItemStack item) {
+    public static <T extends IItemSetting>List<T> getAll(Class<T> tClass, ItemStack item) {
         return getItemCreator(item)
                 .map(v -> v instanceof ItemCreator creator ? creator : null)
                 .map(v -> v.getAll(tClass))
                 .orElseGet(Collections::emptyList);
     }
-    public static <T extends Settings.IItemSetting>List<T> getAll(Class<T> tClass, net.minecraft.world.item.ItemStack item) {
+    public static <T extends IItemSetting>List<T> getAll(Class<T> tClass, net.minecraft.world.item.ItemStack item) {
         return getItemCreator(item)
                 .map(v -> v instanceof ItemCreator creator ? creator : null)
                 .map(v -> v.getAll(tClass))
                 .orElseGet(Collections::emptyList);
     }
-    public static <T extends Settings.IItemSetting>List<T> getAll(Class<T> tClass, ItemCreator creator) {
+    public static <T extends IItemSetting>List<T> getAll(Class<T> tClass, ItemCreator creator) {
         return Optional.ofNullable(creator)
                 .map(v -> v.getAll(tClass))
                 .orElseGet(Collections::emptyList);
     }
 
-    public static boolean has(Class<? extends Settings.IItemSetting> tClass, ItemStack item) {
+    public static boolean has(Class<? extends IItemSetting> tClass, ItemStack item) {
         return getItemCreator(item)
                 .map(v -> v instanceof ItemCreator creator ? creator : null)
                 .map(v -> has(tClass, v))
                 .orElse(false);
     }
-    public static boolean has(Class<? extends Settings.IItemSetting> tClass, net.minecraft.world.item.ItemStack item) {
+    public static boolean has(Class<? extends IItemSetting> tClass, net.minecraft.world.item.ItemStack item) {
         return getItemCreator(item)
                 .map(v -> v instanceof ItemCreator creator ? creator : null)
                 .map(v -> has(tClass, v))
                 .orElse(false);
     }
-    public static boolean has(Class<? extends Settings.IItemSetting> tClass, ItemCreator creator) { return creator != null && creator.has(tClass); }
+    public static boolean has(Class<? extends IItemSetting> tClass, ItemCreator creator) { return creator != null && creator.has(tClass); }
 
     public static Optional<IItemCreator> getItemCreator(String key) {
         return Optional.ofNullable(creatorIDs.get(key))
@@ -756,24 +788,24 @@ public class Items implements Listener {
         //lime.logOP("Item '"+e.getType()+"' has max size is " + e.getMaxItemStack() + " of CMD '" + e.getCustomModelData() + "'");
         e.getCustomModelData()
                 .map(creators::get)
-                .flatMap(v -> v instanceof ItemCreator c ? c.is_stack ? c.getOptional(Settings.MaxStackSetting.class).map(_v -> _v.maxStack) : Optional.of(1) : Optional.empty())
+                .flatMap(v -> v instanceof ItemCreator c ? c.is_stack ? c.getOptional(MaxStackSetting.class).map(_v -> _v.maxStack) : Optional.of(1) : Optional.empty())
                 .ifPresent(e::setMaxItemStack);
     }
     @EventHandler public static void on(ItemMaxDamageEvent e) {
         //lime.logOP("Item '"+e.getType()+"' has max damage is " + e.getMaxDamage() + " of CMD '" + e.getCustomModelData() + "'");
         e.getCustomModelData()
                 .map(creators::get)
-                .flatMap(v -> v instanceof ItemCreator c ? c.getOptional(Settings.DurabilitySetting.class).map(_v -> _v.maxDurability) : Optional.empty())
+                .flatMap(v -> v instanceof ItemCreator c ? c.getOptional(DurabilitySetting.class).map(_v -> _v.maxDurability) : Optional.empty())
                 .ifPresent(e::setMaxDamage);
     }
     @EventHandler public static void on(EntityAttackSweepEvent e) {
         //lime.logOP("Entity " + e.getHuman() + " attack " + (e.getSweep() ? "with" : "without") + " sweep");
-        Items.getOptional(Settings.SweepSetting.class, e.getHuman().getItemInHand(EnumHand.MAIN_HAND))
+        Items.getOptional(SweepSetting.class, e.getHuman().getItemInHand(EnumHand.MAIN_HAND))
                 .map(v -> v.sweep)
                 .ifPresent(e::setSweep);
     }
     @EventHandler public static void on(EntityEquipmentSlotEvent e) {
-        getOptional(Settings.EquipSetting.class, e.getItemStack())
+        getOptional(EquipSetting.class, e.getItemStack())
                 .map(v -> v.slot)
                 .ifPresent(e::setSlot);
     }

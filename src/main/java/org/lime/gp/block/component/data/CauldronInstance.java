@@ -38,7 +38,7 @@ import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.recipe.Recipes;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.player.perm.Perms;
@@ -434,7 +434,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         private final system.LockToast1<Models.Model> model = system.<Models.Model>toast(null).lock();
 
         private void refreshDisplay() {
-            this.model.set0(Items.getOptional(Settings.ThirstSetting.class, result)
+            this.model.set0(Items.getOptional(ThirstSetting.class, result)
                     .map(v -> v.color)
                     .map(color -> {
                         int cmd;

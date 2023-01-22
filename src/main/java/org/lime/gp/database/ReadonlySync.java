@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.lime.core;
 import org.lime.gp.admin.Administrator;
-import org.lime.gp.item.Settings;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.Skins;
@@ -17,6 +16,7 @@ import org.lime.gp.player.selector.SelectorType;
 import org.lime.gp.player.voice.Radio;
 import org.lime.system;
 import org.lime.gp.extension.JManager;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.selector.UserSelector;
 import org.lime.gp.player.module.TabManager;
 import org.lime.gp.player.module.Death;
@@ -179,7 +179,7 @@ public class ReadonlySync {
                         selector_name,
                         Death.isDamageLay(uuid),
                         lime.isLay(player) ? "LAY" : lime.isSit(player) ? "SIT" : "NONE",
-                        Settings.HideNickSetting.isHide(player) ? 1 : 0,
+                        HideNickSetting.isHide(player) ? 1 : 0,
                         Skins.getSkinURL(player)
                 );
             })))

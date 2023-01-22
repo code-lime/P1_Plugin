@@ -44,7 +44,7 @@ import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.craft.recipe.Recipes;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.player.perm.Perms;
@@ -107,8 +107,8 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                     .addChild(builder_interact
                             .nbt(v -> v.putBoolean("Invulnerable", true))
                             .nbt(v -> v.putBoolean("Marker", true))
-                            .addEquipment(EnumItemSlot.HEAD, Items.getOptional(Settings.TableDisplaySetting.class, item)
-                                    .flatMap(v -> v.of(Settings.TableDisplaySetting.TableType.laboratory, null))
+                            .addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, item)
+                                    .flatMap(v -> v.of(TableDisplaySetting.TableType.laboratory, null))
                                     .map(v -> v.display(item))
                                     .orElseGet(() -> CraftItemStack.asNMSCopy(item)))
                     )
@@ -126,7 +126,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         }
         @Override public WaterLaboratorySlot set(ItemStack item) {
             super.set(item);
-            color = ChatColorHex.toHex(Items.getOptional(Settings.ThirstSetting.class, item).map(v -> v.color).orElse(Settings.ThirstSetting.DEFAULT_WATER_COLOR)).substring(1);
+            color = ChatColorHex.toHex(Items.getOptional(ThirstSetting.class, item).map(v -> v.color).orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1);
             return this;
         }
         public void applyVariable(Map<String, String> variables) {
@@ -243,7 +243,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                             world.gameEvent(null, GameEvent.FLUID_PICKUP, blockposition);
                         } else {
                             if (of(slotType).isPresent()) return;
-                            if (!Items.has(Settings.ThirstSetting.class, itemstack)) return;
+                            if (!Items.has(ThirstSetting.class, itemstack)) return;
                             if (Items.getGlobalKeyByItem(itemstack).filter(Recipes.LABORATORY.getCacheWhitelistKeys()::contains).isEmpty()) return;
                             of(slotType).set(itemstack.asBukkitCopy());
                             syncDisplayVariable();
@@ -270,7 +270,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                             world.playSound(null, blockposition, SoundEffects.ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1.0f, 0.25f);
                         } else {
                             if (of(slotType).isPresent()) return;
-                            if (Items.has(Settings.ThirstSetting.class, itemstack)) return;
+                            if (Items.has(ThirstSetting.class, itemstack)) return;
                             if (Items.getGlobalKeyByItem(itemstack).filter(Recipes.LABORATORY.getCacheWhitelistKeys()::contains).isEmpty()) return;
 
                             of(slotType).set(itemstack.asBukkitCopy().asOne());
@@ -304,7 +304,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             for (Map.Entry<SlotType, LaboratorySlot> kv : items.entrySet()) {
                 if (!kv.getKey().thirst
                         && kv.getValue().isEmpty()
-                        && !Items.has(Settings.ThirstSetting.class, itemStack)
+                        && !Items.has(ThirstSetting.class, itemStack)
                         && Items.getGlobalKeyByItem(itemStack).filter(Recipes.LABORATORY.getCacheWhitelistKeys()::contains).isPresent()
                 ) {
                     kv.getValue().set(itemStack.asOne());

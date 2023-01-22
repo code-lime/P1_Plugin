@@ -22,8 +22,8 @@ import net.minecraft.world.level.block.entity.TileEntityBanner;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.lime.core;
-import org.lime.gp.item.Settings;
 import org.lime.system;
+import org.lime.gp.item.settings.list.DyeColorSetting;
 
 import java.util.Map;
 import java.util.function.Predicate;
@@ -47,7 +47,7 @@ public interface CauldronBlockInteraction {
         }
         if (org.lime.gp.item.Items.getIDByItem(itemstack)
                 .map(org.lime.gp.item.Items.creators::get)
-                .filter(v -> v instanceof org.lime.gp.item.Items.ItemCreator c ? c.getOptional(Settings.DyeColorSetting.class).map(_v -> !_v.dyeColor).orElse(true) : true)
+                .filter(v -> v instanceof org.lime.gp.item.Items.ItemCreator c ? c.getOptional(DyeColorSetting.class).map(_v -> !_v.dyeColor).orElse(true) : true)
                 .isPresent()
         ) return EnumInteractionResult.PASS;
         if (!world.isClientSide) {
@@ -63,7 +63,7 @@ public interface CauldronBlockInteraction {
         if (TileEntityBanner.getPatternCount(itemstack) <= 0) return EnumInteractionResult.PASS;
         if (org.lime.gp.item.Items.getIDByItem(itemstack)
                 .map(org.lime.gp.item.Items.creators::get)
-                .filter(v -> v instanceof org.lime.gp.item.Items.ItemCreator c ? c.getOptional(Settings.DyeColorSetting.class).map(_v -> !_v.dyeColor).orElse(true) : true)
+                .filter(v -> v instanceof org.lime.gp.item.Items.ItemCreator c ? c.getOptional(DyeColorSetting.class).map(_v -> !_v.dyeColor).orElse(true) : true)
                 .isPresent()
         ) return EnumInteractionResult.PASS;
         if (!world.isClientSide) {
@@ -87,7 +87,7 @@ public interface CauldronBlockInteraction {
         if (!idyeable.hasCustomColor(itemstack)) return EnumInteractionResult.PASS;
         if (org.lime.gp.item.Items.getIDByItem(itemstack)
                 .map(org.lime.gp.item.Items.creators::get)
-                .filter(v -> v instanceof org.lime.gp.item.Items.ItemCreator c ? c.getOptional(Settings.DyeColorSetting.class).map(_v -> !_v.dyeColor).orElse(true) : true)
+                .filter(v -> v instanceof org.lime.gp.item.Items.ItemCreator c ? c.getOptional(DyeColorSetting.class).map(_v -> !_v.dyeColor).orElse(true) : true)
                 .isPresent()
         ) return EnumInteractionResult.PASS;
         if (!world.isClientSide) {

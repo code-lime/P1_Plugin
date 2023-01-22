@@ -20,7 +20,7 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.extension.Cooldown;
@@ -123,7 +123,7 @@ public final class MainPlayerInventory implements Listener {
         if (item == null) return 0;
         return Items.getItemCreator(item)
                 .map(i -> i instanceof Items.ItemCreator c ? c : null)
-                .map(creator -> creator.getOptional(Settings.SlotsSetting.class).map(v -> v.slots).orElse(0))
+                .map(creator -> creator.getOptional(SlotsSetting.class).map(v -> v.slots).orElse(0))
                 .orElseGet(() -> slotCounter.getOrDefault(item.getType(), 0));
     }
 

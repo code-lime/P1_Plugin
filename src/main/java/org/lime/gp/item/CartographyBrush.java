@@ -13,6 +13,7 @@ import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawMap;
 import org.lime.gp.player.menu.MenuCreator;
@@ -107,14 +108,14 @@ public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements 
         return Optional.ofNullable(current_brush.get(uuid));
     }
     public static Optional<CartographyBrush> getData(ItemStack item) {
-        if (!Items.has(Settings.BrushSetting.class, item)) return Optional.empty();
+        if (!Items.has(BrushSetting.class, item)) return Optional.empty();
         ItemMeta meta = item.getItemMeta();
         JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "brush.data", null);
         return Optional.of(new CartographyBrush(json == null ? new JsonObject() : json));
     }
     public static void modifyData(ItemStack item, system.Action1<CartographyBrush> modify) {
         Items.getItemCreator(item).map(v -> v instanceof Items.ItemCreator creator ? creator : null).ifPresent(creator -> {
-            if (!creator.has(Settings.BrushSetting.class)) return;
+            if (!creator.has(BrushSetting.class)) return;
             ItemMeta meta = item.getItemMeta();
             JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "brush.data", null);
             CartographyBrush data = new CartographyBrush(json == null ? new JsonObject() : json);

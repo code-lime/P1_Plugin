@@ -35,7 +35,7 @@ import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.extension.JManager;
@@ -306,7 +306,7 @@ public class Perms implements Listener {
             return;
         }
 
-        if (data.isCanPlace(Items.getOptional(Settings.BlockSetting.class, e.getItemInHand())
+        if (data.isCanPlace(Items.getOptional(BlockSetting.class, e.getItemInHand())
                 .flatMap(setting -> {
                     InfoComponent.Rotation.Value rotation = InfoComponent.Rotation.of(e.getPlayer().getLocation().getDirection(), setting.rotation.keySet());
                     return Optional.ofNullable(setting.rotation.get(rotation));

@@ -40,7 +40,7 @@ import org.lime.gp.craft.recipe.Recipes;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -109,8 +109,8 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
     public void setItem(ItemStack item, boolean save) {
         if (item == null) head = new ItemStack(Material.AIR);
         else head = item.clone();
-        model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(Settings.TableDisplaySetting.class, head)
-                .flatMap(v -> v.of(Settings.TableDisplaySetting.TableType.converter, component().converter_type))
+        model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, head)
+                .flatMap(v -> v.of(TableDisplaySetting.TableType.converter, component().converter_type))
                 .map(v -> v.display(head))
                 .orElseGet(() -> CraftItemStack.asNMSCopy(head))
         ).build());

@@ -44,7 +44,7 @@ import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.gp.extension.Modify;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.gp.module.ThreadPool;
@@ -371,7 +371,7 @@ public class Blocks implements Listener {
         if (!e.canBuild()) return;
         Block block = e.getBlock();
         ItemStack item = e.getItemInHand();
-        Items.getOptional(Settings.BlockSetting.class, item)
+        Items.getOptional(BlockSetting.class, item)
                 .ifPresent(setting -> {
                     InfoComponent.Rotation.Value rotation = InfoComponent.Rotation.of(e.getPlayer().getLocation().getDirection(), setting.rotation.keySet());
                     Optional.ofNullable(setting.rotation.get(rotation))

@@ -20,7 +20,9 @@ import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.BulletSetting;
+import org.lime.gp.item.settings.list.MagazineSetting;
+import org.lime.gp.item.settings.list.WeaponSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
@@ -50,14 +52,14 @@ public class WeaponData {
             return values[(ordinal() + 1) % values.length];
         }
 
-        public State next(Settings.WeaponSetting weapon) {
+        public State next(WeaponSetting weapon) {
             State state = this;
             do state = state.next();
             while (!weapon.states.contains(state) && this != state);
             return state;
         }
 
-        public static State def(Settings.WeaponSetting weapon) {
+        public static State def(WeaponSetting weapon) {
             for (State state : values()) {
                 if (weapon.states.contains(state))
                     return state;
@@ -75,14 +77,14 @@ public class WeaponData {
             return values[(ordinal() + 1) % values.length];
         }
 
-        public Pose next(Settings.WeaponSetting weapon) {
+        public Pose next(WeaponSetting weapon) {
             Pose pose = this;
             do pose = pose.next();
             while (!weapon.poses.containsKey(pose) && this != pose);
             return pose;
         }
 
-        public static Pose def(Settings.WeaponSetting weapon) {
+        public static Pose def(WeaponSetting weapon) {
             for (Pose pose : values()) {
                 if (weapon.poses.containsKey(pose))
                     return pose;
@@ -95,7 +97,7 @@ public class WeaponData {
 
     public State state;
     public Pose pose;
-    public Settings.WeaponSetting weapon;
+    public WeaponSetting weapon;
     public CraftItemStack item;
     public double recoil = 0;
     public int ammo;
@@ -103,7 +105,7 @@ public class WeaponData {
 
     public final String cooldownKey;
 
-    public WeaponData(Settings.WeaponSetting weapon, CraftItemStack item) {
+    public WeaponData(WeaponSetting weapon, CraftItemStack item) {
         this.waitInitTime = System.currentTimeMillis() + (int)(weapon.init_sec * 1000);
         this.weapon = weapon;
         this.state = Optional.of(item)
@@ -117,9 +119,9 @@ public class WeaponData {
         this.item = item;
         this.cooldownKey = "weapon.shoot." + weapon.creator().getKey();
 
-        this.ammo = Settings.WeaponSetting.getMagazine(item)
-                .or(() -> Items.has(Settings.MagazineSetting.class, item) ? Optional.of(item) : Optional.empty())
-                .flatMap(Settings.MagazineSetting::getBullets)
+        this.ammo = WeaponSetting.getMagazine(item)
+                .or(() -> Items.has(MagazineSetting.class, item) ? Optional.of(item) : Optional.empty())
+                .flatMap(MagazineSetting::getBullets)
                 .map(List::size)
                 .orElse(0);
     }
@@ -129,19 +131,19 @@ public class WeaponData {
         long sec = totalMs / 1000;
         return StringUtils.leftPad(String.valueOf(sec), 2, '0') + "." + StringUtils.leftPad(String.valueOf(ms), 1, '0');
     }
-    public void update(Settings.WeaponSetting weapon, CraftItemStack item) {
+    public void update(WeaponSetting weapon, CraftItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(weapon.weaponDisplay(this.pose, Settings.WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo));
+        meta.setCustomModelData(weapon.weaponDisplay(this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo));
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(STATE_KEY, PersistentDataType.STRING, state.name());
         item.setItemMeta(meta);
         this.item = item;
     }
-    public void sync(Settings.WeaponSetting weapon, CraftItemStack item) {
-        Settings.WeaponSetting.Pose pose = weapon.poses.getOrDefault(this.pose, null);
+    public void sync(WeaponSetting weapon, CraftItemStack item) {
+        WeaponSetting.Pose pose = weapon.poses.getOrDefault(this.pose, null);
         if (pose == null) return;
         ItemMeta meta = item.getItemMeta();
-        int custom_model_data = weapon.weaponDisplay(this.pose, Settings.WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo);
+        int custom_model_data = weapon.weaponDisplay(this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo);
         if (meta.hasCustomModelData() && custom_model_data == meta.getCustomModelData()) return;
         meta.setCustomModelData(custom_model_data);
         item.setItemMeta(meta);
@@ -170,14 +172,14 @@ public class WeaponData {
     public boolean shoot(Player shooter, CraftItemStack main_hand) {
         return shoot(shooter, main_hand, 0);
     }
-    private boolean spawnShoot(Player shooter, Settings.BulletSetting bullet, Settings.WeaponSetting.Pose pose, Vector offset, int wait_ticks) {
+    private boolean spawnShoot(Player shooter, BulletSetting bullet, WeaponSetting.Pose pose, Vector offset, int wait_ticks) {
         if (wait_ticks == 0) return spawnShoot(shooter, bullet, pose, offset);
         else lime.onceTicks(() -> spawnShoot(shooter, bullet, pose, offset), wait_ticks);
         return true;
     }
     
     @SuppressWarnings("deprecation")
-    private boolean spawnShoot(Player shooter, Settings.BulletSetting bullet, Settings.WeaponSetting.Pose pose, Vector offset) {
+    private boolean spawnShoot(Player shooter, BulletSetting bullet, WeaponSetting.Pose pose, Vector offset) {
         Location location = shooter.getEyeLocation();
         location = Transform.toWorld(location, new LocalLocation(offset.multiply(new Vector(switch (shooter.getMainHand()) {
             case RIGHT -> -1;
@@ -204,29 +206,29 @@ public class WeaponData {
     public boolean shoot(Player shooter, CraftItemStack main_hand, int wait_ticks) {
         item = main_hand;
         if (waitInitTime - System.currentTimeMillis() > 0) return false;
-        return Settings.WeaponSetting.getMagazine(item)
-                .or(() -> Items.has(Settings.MagazineSetting.class, item) ? Optional.of(item) : Optional.empty())
+        return WeaponSetting.getMagazine(item)
+                .or(() -> Items.has(MagazineSetting.class, item) ? Optional.of(item) : Optional.empty())
                 .map(magazine -> {
-                    List<ItemStack> bullets = Settings.MagazineSetting.getBullets(magazine).orElseGet(ArrayList::new);
+                    List<ItemStack> bullets = MagazineSetting.getBullets(magazine).orElseGet(ArrayList::new);
                     int length = bullets.size();
                     if (length == 0) return null;
                     ItemStack bullet = bullets.remove(length - 1);
-                    Settings.MagazineSetting.setBullets(magazine, bullets);
+                    MagazineSetting.setBullets(magazine, bullets);
                     ammo = length - 1;
-                    Settings.WeaponSetting.setMagazine(item, magazine == item ? null : magazine);
+                    WeaponSetting.setMagazine(item, magazine == item ? null : magazine);
                     item.handle.hurtAndBreak(1, ((CraftPlayer)shooter).getHandle(), e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
                     return bullet;
                 })
-                .flatMap(v -> Items.getOptional(Settings.BulletSetting.class, v))
+                .flatMap(v -> Items.getOptional(BulletSetting.class, v))
                 .map(bullet -> spawnShoot(shooter, bullet, weapon.poses.getOrDefault(this.pose, null), weapon.poses.get(pose).offset.clone(), wait_ticks))
                 .orElse(false);
     }
 
-    public static void updateSync(Player player, Settings.WeaponSetting weapon, ItemStack item) {
+    public static void updateSync(Player player, WeaponSetting weapon, ItemStack item) {
         if (WeaponLoader.data.containsKey(player.getUniqueId())) return;
         ItemMeta meta = item.getItemMeta();
-        Optional<ItemStack> magazine = Settings.WeaponSetting.getMagazine(item);
-        int custom_model_data = weapon.weaponDisplay(Pose.def(weapon), magazine.map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), magazine.flatMap(Settings.MagazineSetting::getBullets).map(List::size).orElse(0));
+        Optional<ItemStack> magazine = WeaponSetting.getMagazine(item);
+        int custom_model_data = weapon.weaponDisplay(Pose.def(weapon), magazine.map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), magazine.flatMap(MagazineSetting::getBullets).map(List::size).orElse(0));
         if (meta.hasCustomModelData() && custom_model_data == meta.getCustomModelData()) return;
         meta.setCustomModelData(custom_model_data);
         item.setItemMeta(meta);

@@ -33,7 +33,8 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.BottleComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.*;
+import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
@@ -56,8 +57,8 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
         system.json.builder.object save();
 
         static Optional<IFluid> of(ItemStack item) {
-            return Items.getOptional(Settings.ThirstSetting.class, item)
-                    .map(Settings.ItemSetting::creator)
+            return Items.getOptional(ThirstSetting.class, item)
+                    .map(ItemSetting::creator)
                     .map(Items.ItemCreator::getID)
                     .<IFluid>map(CustomFluid::new)
                     .or(() -> PotionFluid.of(item))
@@ -84,9 +85,9 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
         @Override public Color waterColor() {
             return Optional.ofNullable(Items.creators.get(id))
                     .map(v -> v instanceof Items.ItemCreator creator ? creator : null)
-                    .flatMap(v -> v.getOptional(Settings.ThirstSetting.class))
+                    .flatMap(v -> v.getOptional(ThirstSetting.class))
                     .map(v -> v.color)
-                    .orElse(Settings.ThirstSetting.DEFAULT_WATER_COLOR);
+                    .orElse(ThirstSetting.DEFAULT_WATER_COLOR);
         }
 
         public static Optional<CustomFluid> load(JsonObjectOptional json) {
@@ -123,7 +124,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
             item.setItemMeta(meta);
             return item;
         }
-        @Override public Color waterColor() { return Optional.ofNullable(color).orElse(Settings.ThirstSetting.DEFAULT_WATER_COLOR); }
+        @Override public Color waterColor() { return Optional.ofNullable(color).orElse(ThirstSetting.DEFAULT_WATER_COLOR); }
 
         public static Optional<PotionFluid> of(ItemStack item) {
             return Optional.ofNullable(item.getItemMeta() instanceof PotionMeta meta ? meta : null)
@@ -205,7 +206,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
             return item;
         }
         @Override public ItemStack createBottle() { return createWaterBottle(); }
-        @Override public Color waterColor() { return Settings.ThirstSetting.DEFAULT_WATER_COLOR; }
+        @Override public Color waterColor() { return ThirstSetting.DEFAULT_WATER_COLOR; }
 
         public static Optional<WaterFluid> load(JsonObjectOptional json) {
             return Optional.of(new WaterFluid());
@@ -286,7 +287,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
     }
     private void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
-            map.put("water_color", ChatColorHex.toHex(Optional.ofNullable(fluid).map(IFluid::waterColor).orElse(Settings.ThirstSetting.DEFAULT_WATER_COLOR)).substring(1));
+            map.put("water_color", ChatColorHex.toHex(Optional.ofNullable(fluid).map(IFluid::waterColor).orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1));
             map.put("water_level", level + "");
             return true;
         }));

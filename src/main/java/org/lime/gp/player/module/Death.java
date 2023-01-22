@@ -13,9 +13,9 @@ import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.Tables;
 import org.lime.gp.entity.component.data.BackPackInstance;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
 import org.lime.gp.item.UseSetting;
 import org.lime.gp.item.Vest;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.inventory.MainPlayerInventory;
@@ -265,7 +265,7 @@ public class Death implements Listener {
         if (!dropped.isEmpty()) {
             List<ItemStack> out = new ArrayList<>();
             dropped.removeIf(item -> {
-                if (Items.has(Settings.BackPackDropSetting.class, item)) {
+                if (Items.has(BackPackDropSetting.class, item)) {
                     out.add(item);
                     return true;
                 }

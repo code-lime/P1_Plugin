@@ -32,7 +32,7 @@ import org.lime.gp.database.Tables;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
@@ -93,7 +93,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         String insert_type = component().insert;
         int cash = items_container.getContents()
                 .stream()
-                .mapToInt(item -> Items.getOptional(Settings.InsertSetting.class, item).filter(v -> insert_type.equals(v.type)).map(v -> v.weight).orElse(0))
+                .mapToInt(item -> Items.getOptional(InsertSetting.class, item).filter(v -> insert_type.equals(v.type)).map(v -> v.weight).orElse(0))
                 .sum();
         if (cash > 0) Methods.bankReturnOPG(cash, () -> {});
         items_container.clearContent();
@@ -111,7 +111,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                 .filter(v -> houseList.stream().anyMatch(_v -> _v.inZone(v)))
                 .count();
         items_container.clearContent();
-        Methods.bankOPG(count, cash -> Settings.InsertSetting.createOf(component().insert, cash)
+        Methods.bankOPG(count, cash -> InsertSetting.createOf(component().insert, cash)
                 .forEach(item -> items_container.addItem(CraftItemStack.asNMSCopy(item)))
         );
         system.randomize(items_container.items);
@@ -125,7 +125,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         ItemStack deKey = entityhuman.getItemInHand(hand);
         if (Items.getItemCreator(deKey)
                 .map(v -> v instanceof Items.ItemCreator c ? c : null)
-                .filter(v -> v.has(Settings.DeKeySetting.class))
+                .filter(v -> v.has(DeKeySetting.class))
                 .filter(v -> Perms.getCanData(entityhuman.getUUID()).isCanUse(v.getKey()))
                 .isEmpty()
         ) return false;

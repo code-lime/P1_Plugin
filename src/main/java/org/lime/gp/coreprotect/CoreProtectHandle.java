@@ -23,7 +23,7 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.lime.Position;
 import org.lime.core;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Grants;
 import org.lime.gp.player.perm.Perms;
@@ -105,7 +105,7 @@ public class CoreProtectHandle implements Listener {
         Bukkit.getOnlinePlayers().forEach(player -> {
             Items.getItemCreator(player.getInventory().getItemInMainHand())
                     .map(v -> v instanceof Items.ItemCreator _v ? _v : null)
-                    .filter(creator -> creator.has(Settings.MagnifierSetting.class))
+                    .filter(creator -> creator.has(MagnifierSetting.class))
                     .filter(creator -> Perms.getCanData(player).isCanUse(creator.getKey()))
                     .ifPresentOrElse(creator -> Grants.getGrantData(player.getUniqueId()).filter(v -> v.magnifier).ifPresent(role -> {
                         if (coi_toggle.containsKey(player)) return;

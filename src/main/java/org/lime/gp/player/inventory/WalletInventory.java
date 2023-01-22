@@ -12,7 +12,7 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.WalletSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.system;
@@ -34,10 +34,10 @@ public final class WalletInventory implements Listener {
     }
 
     public static boolean filterWallet(ItemStack item) {
-        return item.getType() == Material.PAPER || Items.has(Settings.WalletSetting.class, item);
+        return item.getType() == Material.PAPER || Items.has(WalletSetting.class, item);
     }
     public static boolean filterWallet(net.minecraft.world.item.ItemStack item) {
-        return item.is(net.minecraft.world.item.Items.PAPER) || Items.has(Settings.WalletSetting.class, CraftItemStack.asBukkitCopy(item));
+        return item.is(net.minecraft.world.item.Items.PAPER) || Items.has(WalletSetting.class, CraftItemStack.asBukkitCopy(item));
     }
     private static boolean openFilterInventory(Player player, CraftInventory inventory, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
         player.closeInventory();

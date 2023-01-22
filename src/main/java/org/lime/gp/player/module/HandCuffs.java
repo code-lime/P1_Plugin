@@ -19,7 +19,7 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.menu.MenuCreator;
@@ -145,7 +145,7 @@ public class HandCuffs implements Listener {
                     if (moveInfo != null) {
                         if (!player.getUniqueId().equals(moveInfo.owner)) return;
                         boolean canUse = Perms.getCanData(player.getUniqueId()).isCanUse(creator.getKey());
-                        if (!canUse || !creator.has(Settings.HandcuffsSetting.class)) return;
+                        if (!canUse || !creator.has(HandcuffsSetting.class)) return;
                         unLock(other);
                         return;
                     }
@@ -153,8 +153,8 @@ public class HandCuffs implements Listener {
                     if (Death.isDamageLay(other.getUniqueId())) return;
                     boolean canUse = Perms.getCanData(player.getUniqueId()).isCanUse(creator.getKey());
                     if (canUse) {
-                        if (creator.has(Settings.HandcuffsSetting.class)) HandCuffs.lock(player, other);
-                        else if (creator.has(Settings.BatonSetting.class)) Search.search(player, other, !inPolice(player.getLocation()), item -> true);
+                        if (creator.has(HandcuffsSetting.class)) HandCuffs.lock(player, other);
+                        else if (creator.has(BatonSetting.class)) Search.search(player, other, !inPolice(player.getLocation()), item -> true);
                     }
                 });
     }

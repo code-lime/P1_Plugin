@@ -51,7 +51,8 @@ import org.lime.gp.chat.LangMessages;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.MapUUID;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.MegaPhoneSetting;
+import org.lime.gp.item.settings.list.RadioSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.menu.MenuCreator;
@@ -310,7 +311,7 @@ public class Voice implements VoicechatPlugin {
             ItemStack item = player.getInventory().getItemInMainHand();
             byte[] bytes = packet.getOpusEncodedData();
             Cooldown.setCooldown(uuid, "voice.active", 0.25);
-            Items.getOptional(Settings.RadioSetting.class, item)
+            Items.getOptional(RadioSetting.class, item)
                     .flatMap(v -> RadioData.getData(item))
                     .filter(v -> v.enable)
                     .filter(v -> v.state.isInput)
@@ -322,7 +323,7 @@ public class Voice implements VoicechatPlugin {
                     .filter(v -> !TimeoutData.has(v.unique, Radio.RadioLockTimeout.class))
                     .forEach(v -> Radio.playRadio(Radio.SenderInfo.player(uuid), v.location, v.total_distance, v.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.block.input", uuid, v.unique), bytes, v.volume)));
 
-            Items.getOptional(Settings.MegaPhoneSetting.class, item)
+            Items.getOptional(MegaPhoneSetting.class, item)
                     .flatMap(v -> MegaPhoneData.getData(item))
                     .ifPresent(data -> {
                         event.cancel();

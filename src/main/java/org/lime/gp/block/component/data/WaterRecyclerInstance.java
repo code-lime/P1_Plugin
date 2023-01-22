@@ -24,7 +24,7 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.WaterRecyclerComponent;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
@@ -76,7 +76,7 @@ public class WaterRecyclerInstance extends BlockInstance implements CustomTileMe
             if (!world.isClientSide) {
                 if (clearLevel < 1) return EnumInteractionResult.SUCCESS;
 
-                net.minecraft.world.item.ItemStack potion = CraftItemStack.asNMSCopy(Settings.ThirstSetting.createClearBottle());
+                net.minecraft.world.item.ItemStack potion = CraftItemStack.asNMSCopy(ThirstSetting.createClearBottle());
                 clearLevel--;
                 syncDisplayVariable();
                 saveData();

@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.gp.lime;
+import org.lime.gp.item.settings.list.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class DisplayHand {
                             .map(v -> v.getInt("CustomModelData"))
                             .flatMap(id -> Optional.ofNullable(Items.creators.get(id))
                                     .map(v -> v instanceof Items.ItemCreator creator ? creator : null)
-                                    .flatMap(creator -> Items.getOptional(Settings.DisplaySetting.class, creator))
+                                    .flatMap(creator -> Items.getOptional(DisplaySetting.class, creator))
                                     .flatMap(v -> v.item(id))
                             )
                             .map(CraftItemStack::asNMSCopy);

@@ -24,6 +24,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
 import org.lime.gp.lime;
+import org.lime.gp.item.settings.ItemSetting;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.json.JsonArrayOptional;
@@ -43,7 +45,7 @@ public class Vest implements Listener {
                 .withInstance()
                 .withUninit(Vest::uninit);
     }
-    private record VestInventory(String item, Settings.VestSetting vest_data, CraftInventory inventory) {
+    private record VestInventory(String item, VestSetting vest_data, CraftInventory inventory) {
         public void close() { inventory.close(); }
     }
 
@@ -87,7 +89,7 @@ public class Vest implements Listener {
             VestData.VEST_KEY_BIMAP.forEach((slot, slot_key) -> {
                 VestData vestData = VestData.read(container, slot);
                 String vest_slot_data = vestData.getSlotItem();
-                String real_data = Items.getOptional(Settings.VestSetting.class, inventory.getItem(slot)).map(Settings.ItemSetting::creator).map(Items.ItemCreator::getKey).orElse(null);
+                String real_data = Items.getOptional(VestSetting.class, inventory.getItem(slot)).map(ItemSetting::creator).map(Items.ItemCreator::getKey).orElse(null);
                 if (Objects.equals(vest_slot_data, real_data)) return;
                 Optional.ofNullable(inventoryVest.get(uuid)).map(v -> v.get(slot)).map(v -> {
                     vestData.setItems(v.inventory);
@@ -129,7 +131,7 @@ public class Vest implements Listener {
             return Optional.ofNullable(getSlotItem())
                     .flatMap(slot_item -> Items.getItemCreator(slot_item)
                             .map(v -> v instanceof Items.ItemCreator c ? c : null)
-                            .flatMap(v -> v.getOptional(Settings.VestSetting.class))
+                            .flatMap(v -> v.getOptional(VestSetting.class))
                             .map(vest_data -> {
                                 List<ItemStack> items = getItems();
                                 CraftInventoryCustom inventory = new CraftInventoryCustom(null, vest_data.rows * 9, vest_data.title);

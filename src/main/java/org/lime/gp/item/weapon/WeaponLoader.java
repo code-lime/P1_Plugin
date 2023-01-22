@@ -17,7 +17,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.Death;
@@ -105,11 +105,11 @@ public class WeaponLoader implements Listener {
                     Items.dropGiveItem(player, offhand, false);
                     return;
                 }
-                if (Items.has(Settings.WeaponSetting.class, offhand)) {
+                if (Items.has(WeaponSetting.class, offhand)) {
                     inventory.setItemInOffHand(new ItemStack(Material.AIR));
                     Items.dropGiveItem(player, offhand, false);
                 }
-                Items.getOptional(Settings.WeaponSetting.class, mainhand)
+                Items.getOptional(WeaponSetting.class, mainhand)
                         .ifPresent(weapon -> data.put(uuid, new WeaponData(weapon, mainhand)));
             });
             last_click.clear();
@@ -124,7 +124,7 @@ public class WeaponLoader implements Listener {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
         if (e.useItemInHand() == Event.Result.DENY || !(e.getItem() instanceof CraftItemStack item) || Death.isDamageLay(uuid) || HandCuffs.isMove(uuid) || Knock.isKnock(uuid)) return;
-        Items.getOptional(Settings.WeaponSetting.class, item).ifPresent(weapon -> {
+        Items.getOptional(WeaponSetting.class, item).ifPresent(weapon -> {
             WeaponData data = WeaponLoader.data.getOrDefault(uuid, null);
             if (data == null) return;
             if (!data.item.isSimilar(item)) return;
@@ -143,7 +143,7 @@ public class WeaponLoader implements Listener {
     }
     @EventHandler public static void on(PlayerSwapHandItemsEvent e) {
         if (!(e.getOffHandItem() instanceof CraftItemStack offhand)) return;
-        Items.getOptional(Settings.WeaponSetting.class, offhand).ifPresent(weapon -> {
+        Items.getOptional(WeaponSetting.class, offhand).ifPresent(weapon -> {
             Player player = e.getPlayer();
             UUID uuid = player.getUniqueId();
             WeaponData data = WeaponLoader.data.getOrDefault(uuid, null);
@@ -163,27 +163,27 @@ public class WeaponLoader implements Listener {
             case DROP: {
                 ItemStack item = e.getCurrentItem();
                 if (item == null) return;
-                Items.getOptional(Settings.WeaponSetting.class, item)
-                        .ifPresent(weapon -> Settings.WeaponSetting.getMagazine(item)
+                Items.getOptional(WeaponSetting.class, item)
+                        .ifPresent(weapon -> WeaponSetting.getMagazine(item)
                                 .map(_v -> system.toast(weapon, _v))
                                 .ifPresent(vv -> {
                                     Items.dropGiveItem(player, vv.val1, false);
-                                    Settings.WeaponSetting.setMagazine(item, null);
+                                    WeaponSetting.setMagazine(item, null);
                                     WeaponLoader.data.remove(player.getUniqueId());
                                     Sounds.playSound(vv.val0.sound_unload, player);
                                     WeaponData.updateSync(player, weapon, item);
                                     e.setCancelled(true);
                                 })
                         );
-                Items.getOptional(Settings.MagazineSetting.class, item)
-                        .flatMap(v -> Settings.MagazineSetting.getBullets(item).map(_v -> system.toast(v, _v)))
+                Items.getOptional(MagazineSetting.class, item)
+                        .flatMap(v -> MagazineSetting.getBullets(item).map(_v -> system.toast(v, _v)))
                         .ifPresent(vv -> {
                             List<ItemStack> bullets = vv.val1;
                             int length = bullets.size();
                             if (length == 0) return;
                             ItemStack bullet = bullets.remove(length - 1);
                             Items.dropGiveItem(player, bullet, false);
-                            Settings.MagazineSetting.setBullets(item, bullets);
+                            MagazineSetting.setBullets(item, bullets);
                             WeaponLoader.data.remove(player.getUniqueId());
                             Sounds.playSound(vv.val0.sound_unload, player);
                             e.setCancelled(true);
@@ -195,10 +195,10 @@ public class WeaponLoader implements Listener {
                 ItemStack cursor = e.getCursor();
                 ItemStack item = e.getCurrentItem();
                 if (cursor == null || item == null) return;
-                Items.getOptional(Settings.MagazineSetting.class, item)
-                        .filter(v -> Items.getOptional(Settings.BulletSetting.class, cursor).filter(_v -> _v.bullet_type.equals(v.bullet_type)).isPresent())
+                Items.getOptional(MagazineSetting.class, item)
+                        .filter(v -> Items.getOptional(BulletSetting.class, cursor).filter(_v -> _v.bullet_type.equals(v.bullet_type)).isPresent())
                         .ifPresent(magazine_setting -> {
-                            List<ItemStack> items = Settings.MagazineSetting.getBullets(item).orElseGet(ArrayList::new);
+                            List<ItemStack> items = MagazineSetting.getBullets(item).orElseGet(ArrayList::new);
                             if (items.size() >= magazine_setting.size) return;
                             e.setCancelled(true);
                             if (Cooldown.hasCooldown(player.getUniqueId(), "weapon.load")) return;
@@ -206,18 +206,18 @@ public class WeaponLoader implements Listener {
                             ItemStack bullet = cursor.asOne();
                             cursor.subtract(1);
                             items.add(bullet);
-                            Settings.MagazineSetting.setBullets(item, items);
+                            MagazineSetting.setBullets(item, items);
                             WeaponLoader.data.remove(player.getUniqueId());
                             Sounds.playSound(magazine_setting.sound_load, (Player)e.getWhoClicked());
                             e.setCancelled(true);
                         });
-                Items.getOptional(Settings.WeaponSetting.class, item)
-                        .filter(v -> Items.getOptional(Settings.MagazineSetting.class, cursor).filter(_v -> _v.magazine_type != null).filter(_v -> _v.magazine_type.equals(v.magazine_type)).isPresent())
+                Items.getOptional(WeaponSetting.class, item)
+                        .filter(v -> Items.getOptional(MagazineSetting.class, cursor).filter(_v -> _v.magazine_type != null).filter(_v -> _v.magazine_type.equals(v.magazine_type)).isPresent())
                         .ifPresent(weapon -> {
-                            if (Settings.WeaponSetting.getMagazine(item).isPresent()) return;
+                            if (WeaponSetting.getMagazine(item).isPresent()) return;
                             ItemStack magazine = cursor.asOne();
                             cursor.subtract(1);
-                            Settings.WeaponSetting.setMagazine(item, magazine);
+                            WeaponSetting.setMagazine(item, magazine);
                             WeaponLoader.data.remove(player.getUniqueId());
                             Sounds.playSound(weapon.sound_load, (Player)e.getWhoClicked());
                             WeaponData.updateSync(player, weapon, item);

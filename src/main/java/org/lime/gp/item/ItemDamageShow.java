@@ -8,6 +8,8 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
 import org.lime.gp.extension.PacketManager;
+import org.lime.gp.item.settings.list.DurabilitySetting;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +22,7 @@ public class ItemDamageShow {
     }
 
     private static void unMapEdit(ItemStack item) {
-        Items.getOptional(Settings.DurabilitySetting.class, item)
+        Items.getOptional(DurabilitySetting.class, item)
                 .map(v -> v.maxDurability)
                 .ifPresent(maxDurability -> {
                     int maxDamageDefault = item.getItem().getMaxDamage();
@@ -30,7 +32,7 @@ public class ItemDamageShow {
                 });
     }
     private static Optional<ItemStack> unMapCopy(ItemStack item) {
-        return Items.getOptional(Settings.DurabilitySetting.class, item)
+        return Items.getOptional(DurabilitySetting.class, item)
                 .map(v -> v.maxDurability)
                 .map(maxDurability -> {
                     int maxDamageDefault = item.getItem().getMaxDamage();
@@ -43,7 +45,7 @@ public class ItemDamageShow {
     }
 
     private static void mapEdit(ItemStack item) {
-        Items.getOptional(Settings.DurabilitySetting.class, item)
+        Items.getOptional(DurabilitySetting.class, item)
                 .map(v -> v.maxDurability)
                 .ifPresent(maxDurability -> {
                     int maxDamageDefault = item.getItem().getMaxDamage();
@@ -62,7 +64,7 @@ public class ItemDamageShow {
                 });
     }
     private static Optional<ItemStack> mapCopy(ItemStack item) {
-        return Items.getOptional(Settings.DurabilitySetting.class, item)
+        return Items.getOptional(DurabilitySetting.class, item)
                 .map(v -> v.maxDurability)
                 .map(maxDurability -> {
                     int maxDamageDefault = item.getItem().getMaxDamage();

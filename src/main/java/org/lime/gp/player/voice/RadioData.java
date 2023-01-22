@@ -13,7 +13,7 @@ import org.lime.gp.block.component.list.RadioComponent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.RadioSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
@@ -51,7 +51,7 @@ public class RadioData {
         return Math.min(Math.max(level, min_level), max_level);
     }
 
-    public RadioData(Settings.RadioSetting setting) {
+    public RadioData(RadioSetting setting) {
         this(setting.min_level, setting.max_level, setting.def_level, setting.state, setting.total_distance, setting.is_on);
     }
     public RadioData(RadioComponent component) {
@@ -83,7 +83,7 @@ public class RadioData {
     }
 
     public static Optional<RadioData> getData(ItemStack item) {
-        return Items.getOptional(Settings.RadioSetting.class, item).map(setting -> {
+        return Items.getOptional(RadioSetting.class, item).map(setting -> {
             ItemMeta meta = item.getItemMeta();
             RadioData data = new RadioData(setting);
             Optional.ofNullable(JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "radio.data", null))
@@ -93,13 +93,13 @@ public class RadioData {
         });
     }
     public static void modifyData(ItemStack item, system.Action1<RadioData> modify) {
-        Items.getOptional(Settings.RadioSetting.class, item).ifPresent(setting -> {
+        Items.getOptional(RadioSetting.class, item).ifPresent(setting -> {
             ItemMeta meta = item.getItemMeta();
             modifyData(setting, meta, modify);
             item.setItemMeta(meta);
         });
     }
-    public static void modifyData(Settings.RadioSetting setting, ItemMeta meta, system.Action1<RadioData> modify) {
+    public static void modifyData(RadioSetting setting, ItemMeta meta, system.Action1<RadioData> modify) {
         RadioData data = new RadioData(setting);
         PersistentDataContainer container = meta.getPersistentDataContainer();
         Optional.ofNullable(JManager.get(JsonObject.class, container, "radio.data", null))

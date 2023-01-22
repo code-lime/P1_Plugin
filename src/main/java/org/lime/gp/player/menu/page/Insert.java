@@ -13,10 +13,11 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Rows;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.menu.Slot;
+import org.lime.system.Func1;
 import org.lime.system;
 
 import java.util.*;
@@ -27,26 +28,31 @@ public class Insert extends Base {
                 .withInit(Insert::init);
     }
     public static void init() {
-        AnyEvent.addEvent("insert.give", AnyEvent.type.other, b -> b.createParam("[type]").createParam(Integer::parseUnsignedInt, "[cash:int]"), (p, type, cash) -> Items.dropGiveItem(p, Settings.InsertSetting.createOf(type, cash), false));
+        AnyEvent.addEvent("insert.give", AnyEvent.type.other, b -> b.createParam("[type]").createParam(Integer::parseUnsignedInt, "[cash:int]"), (p, type, cash) -> Items.dropGiveItem(p, InsertSetting.createOf(type, cash), false));
         lime.repeatTicks(Insert::tick, 1);
     }
 
-    private static boolean filter(net.minecraft.world.item.ItemStack item, String type) {
-        return Items.getOptional(Settings.InsertSetting.class, CraftItemStack.asBukkitCopy(item))
+    private static Func1<net.minecraft.world.item.ItemStack, Boolean> filter(String type) {
+        return item -> Items.getOptional(InsertSetting.class, CraftItemStack.asBukkitCopy(item))
                 .filter(v -> v.type.equals(type))
                 .isPresent();
     }
-    private static boolean openFilterInventory(Player player, CraftInventory inventory, String type) {
+    private static Func1<net.minecraft.world.item.ItemStack, Boolean> filter(List<String> items) {
+        Items.Checker checker = Items.createCheck(items);
+        return checker::check;
+    }
+
+    private static boolean openFilterInventory(Player player, CraftInventory inventory, Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         player.closeInventory();
         return InterfaceManager.of(player, inventory)
-                .filter(v -> filter(v, type))
+                .filter(filter)
                 .open();
     }
-    private static boolean open(Player player, Component title, int rows, system.Action1<Integer> callback, String type) {
+    private static boolean open(Player player, Component title, int rows, system.Action1<Integer> callback, Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         return openFilterInventory(player, inventoryWallets.compute(player.getUniqueId(), (uuid, inv) -> inv == null
                 ? system.toast(new CraftInventoryCustom(null, rows * 9, title), callback)
                 : inv
-        ).val0, type);
+        ).val0, filter);
     }
     private static final HashMap<UUID, system.Toast2<CraftInventory, system.Action1<Integer>>> inventoryWallets = new HashMap<>();
     private static void tick() {
@@ -55,21 +61,25 @@ public class Insert extends Base {
             if (inventory.getViewers().size() != 0) return false;
             int cash = 0;
             for (ItemStack item : inventory)
-                cash += Items.getOptional(Settings.InsertSetting.class, item).map(v -> v.weight).map(v -> v * item.getAmount()).orElse(0);
+                cash += Items.getOptional(InsertSetting.class, item).map(v -> v.weight).map(v -> v * item.getAmount()).orElse(1);
             kv.val1.invoke(cash);
             return true;
         });
     }
 
     public String title;
-    public String type;
+    public Func1<net.minecraft.world.item.ItemStack, Boolean> filter;
     public int rows;
     public List<Slot> output = new ArrayList<>();
 
     public Insert(JsonObject json) {
         super(json);
         title = json.has("title") ? json.get("title").getAsString() : "Chest";
-        type = json.get("insert").getAsString();
+        if (json.has("insert")) {
+            filter = Insert.filter(json.get("insert").getAsString());
+        } else {
+            filter = Insert.filter(system.list.<String>of().add(json.get("regex").getAsJsonArray(), v -> v.getAsString()).build());
+        }
         rows = json.has("rows") ? json.get("rows").getAsInt() : 3;
         if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(Slot.parse(this, kv.getAsJsonObject())));
     }
@@ -79,7 +89,7 @@ public class Insert extends Base {
         open(player, ChatHelper.formatComponent(title, apply), rows, (cash) -> {
             apply.add("weight", cash + "");
             output.forEach(i -> i.invoke(player, apply, true));
-        }, type);
+        }, filter);
     }
 }
 

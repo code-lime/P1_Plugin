@@ -22,8 +22,8 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.list.RemoteExecuteComponent;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
 import org.lime.gp.item.Items.ItemCreator;
+import org.lime.gp.item.settings.list.RemoteExecuteSetting;
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
@@ -152,7 +152,7 @@ public class CustomUI implements Listener {
                         .stream()
                         .map(v -> v instanceof ItemCreator c ? c : null)
                         .filter(Objects::nonNull)
-                        .flatMap(v -> Items.getAll(Settings.RemoteExecuteSetting.class, v).stream())
+                        .flatMap(v -> Items.getAll(RemoteExecuteSetting.class, v).stream())
                         .flatMap(v -> v.execute.stream())
                         .iterator(), item -> item)
                     .add(Blocks.creators.values()

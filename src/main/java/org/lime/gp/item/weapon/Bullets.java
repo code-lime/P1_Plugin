@@ -39,7 +39,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.BulletSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.ui.ImageBuilder;
@@ -173,10 +173,10 @@ public class Bullets implements Listener {
 
                         double timeSec = arrow.tickCount / 20.0;
 
-                        Optional<Settings.BulletSetting> bulletSetting = Optional.ofNullable(_arrow.getPersistentDataContainer().get(ARROW_ITEM_ID_KEY, PersistentDataType.INTEGER))
+                        Optional<BulletSetting> bulletSetting = Optional.ofNullable(_arrow.getPersistentDataContainer().get(ARROW_ITEM_ID_KEY, PersistentDataType.INTEGER))
                                 .map(Items.creators::get)
                                 .map(v -> v instanceof Items.ItemCreator c ? c : null)
-                                .flatMap(v -> v.getOptional(Settings.BulletSetting.class));
+                                .flatMap(v -> v.getOptional(BulletSetting.class));
                         float hurt_amount = (float)(double)bulletSetting.filter(v -> !Double.isInfinite(v.time_sec))
                                 .map(v -> v.time_sec < timeSec ? v.time_damage_scale : (damage - (1 - v.time_damage_scale) * damage * (timeSec / v.time_sec)))
                                 .orElse(damage);
@@ -207,7 +207,7 @@ public class Bullets implements Listener {
                         Optional.ofNullable(_arrow.getPersistentDataContainer().get(ARROW_ITEM_ID_KEY, PersistentDataType.INTEGER))
                                 .map(Items.creators::get)
                                 .map(v -> v instanceof Items.ItemCreator c ? c : null)
-                                .flatMap(v -> v.getOptional(Settings.BulletSetting.class))
+                                .flatMap(v -> v.getOptional(BulletSetting.class))
                                 .ifPresent(bullet -> bullet.playSound(_block.getNMS(), _arrow.getLocation()));
                         arrow.setSoundEvent(SOUND_EFFECT_NONE);
                         world.getBlockEntity(_block.getPosition(), TileEntityTypes.SKULL)

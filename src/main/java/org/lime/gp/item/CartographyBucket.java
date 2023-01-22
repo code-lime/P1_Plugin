@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
+import org.lime.gp.item.settings.list.*;
 import org.lime.system;
 
 import java.util.HashMap;
@@ -93,7 +94,7 @@ public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements
     @Override public JsonObject toJson() { return system.json.object().add(map()).build(); }
 
     public static Optional<CartographyBucket> getData(ItemStack item) {
-        if (!Items.has(Settings.BucketSetting.class, item)) return Optional.empty();
+        if (!Items.has(BucketSetting.class, item)) return Optional.empty();
         ItemMeta meta = item.getItemMeta();
         JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "bucket.data", null);
         return Optional.of(new CartographyBucket(json == null ? new JsonObject() : json));
@@ -103,7 +104,7 @@ public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements
     }
     public static <T> Optional<T> modifyData(ItemStack item, system.Func1<CartographyBucket, T> modify) {
         return Items.getItemCreator(item).map(v -> v instanceof Items.ItemCreator creator ? creator : null).map(creator -> {
-            if (!creator.has(Settings.BucketSetting.class)) return null;
+            if (!creator.has(BucketSetting.class)) return null;
             ItemMeta meta = item.getItemMeta();
             JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "bucket.data", null);
             CartographyBucket data = new CartographyBucket(json == null ? new JsonObject() : json);

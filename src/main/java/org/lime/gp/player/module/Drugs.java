@@ -24,7 +24,7 @@ import org.lime.display.EditedDataWatcher;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.DrugsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.inventory.MainPlayerInventory;
@@ -225,7 +225,7 @@ public class Drugs implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true) public static void on(PlayerItemConsumeEvent e) {
-        Items.getOptional(Settings.DrugsSetting.class, e.getItem())
+        Items.getOptional(DrugsSetting.class, e.getItem())
                 .ifPresent(drugs -> getGroupEffect(e.getPlayer().getUniqueId())
                         .setup(drugs.effects));
     }

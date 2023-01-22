@@ -11,6 +11,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
 import org.lime.gp.extension.Cooldown;
+import org.lime.gp.item.settings.IItemSetting;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.HandCuffs;
@@ -24,7 +26,7 @@ public class UseSetting implements Listener {
         return core.element.create(UseSetting.class)
                 .withInstance();
     }
-    public interface IUse extends Settings.IItemSetting {
+    public interface IUse extends IItemSetting {
         boolean use(Player player, Player target, EquipmentSlot arm, boolean shift);
         EquipmentSlot arm();
     }
@@ -51,7 +53,7 @@ public class UseSetting implements Listener {
                                         int _ticks = ticks == null ? setting.getTime() : ticks;
                                         if (_ticks <= 0) {
                                             timeUse(player, target, item);
-                                            Items.getOptional(Settings.NextSetting.class, item)
+                                            Items.getOptional(NextSetting.class, item)
                                                     .flatMap(v -> Items.createItem(v.next))
                                                     .ifPresent(v -> Items.dropGiveItem(player, v, false));
                                             item.subtract(1);
