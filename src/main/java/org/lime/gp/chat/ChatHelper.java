@@ -2,6 +2,8 @@ package org.lime.gp.chat;
 
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+
 import io.papermc.paper.adventure.AdventureComponent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -82,7 +84,13 @@ public class ChatHelper {
         return text.contains(String.valueOf(start)) || text.contains(String.valueOf(end)) ? IFormatComponent(text, start, end, style) : Component.text(text.replace("\u0000", ""), style.build());
     }
     private static String jsFix(String js) {
-        return js.replace("\\", "\\\\").replace("'", "\\'").replace("<", "<<").replace(">", ">>");
+        String str = new JsonPrimitive(js)
+            .toString()
+            .replace("<", "<<")
+            .replace(">", ">>")
+            .replace("'", "\\'");
+        return str.substring(1, str.length() - 1);
+        //return js.replace("\\", "\\\\").replace("'", "\\'").replace("<", "<<").replace(">", ">>");
     }
     private static String txtFix(String txt) {
         return txt.replace("<", "<<").replace(">", ">>");
