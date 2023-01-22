@@ -13,9 +13,14 @@ import org.lime.system;
 public final class MFPComponent extends ComponentDynamic<JsonObject, MFPInstance> {
     public final Vector offset;
 
+    public final double out_rotation;
+    public final Vector out_offset;
+
     public MFPComponent(BlockInfo info, JsonObject json) {
         super(info, json);
         this.offset = json.has("offset") ? system.getVector(json.get("offset").getAsString()) : new Vector(0, 0, 0);
+        this.out_rotation = json.has("out_rotation") ? json.get("out_rotation").getAsDouble() : 0;
+        this.out_offset = json.has("out_offset") ? system.getVector(json.get("out_offset").getAsString()) : new Vector(0, 0, 0);
     }
 
     @Override

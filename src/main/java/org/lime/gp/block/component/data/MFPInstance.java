@@ -11,12 +11,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.util.Vector;
 import org.lime.system;
 import org.lime.display.Models;
 import org.lime.display.transform.LocalLocation;
+import org.lime.display.transform.Transform;
 import org.lime.gp.lime;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
@@ -24,7 +27,7 @@ import org.lime.gp.block.component.list.MFPComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Settings;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.module.PopulateLootEvent;
 import org.lime.json.JsonObjectOptional;
 
@@ -63,8 +66,8 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     public void setItem(ItemStack item, boolean save) {
         if (item == null) head = new ItemStack(Material.AIR);
         else head = item.clone();
-        model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(Settings.TableDisplaySetting.class, head)
-                .flatMap(v -> v.of(Settings.TableDisplaySetting.TableType.converter, null))
+        model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, head)
+                .flatMap(v -> v.of(TableDisplaySetting.TableType.converter, null))
                 .map(v -> v.display(head))
                 .orElseGet(() -> CraftItemStack.asNMSCopy(head))
         ).build());
@@ -110,21 +113,38 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     }
     
     private void syncDisplayVariable() {
-        Optional<String> text = Optional.ofNullable(head)
+        MFPComponent component = component();
+        Optional<system.Toast3<String, Optional<String>, Optional<String>>> text = Optional.ofNullable(head)
             .filter(ItemStack::hasItemMeta)
             .map(ItemStack::getItemMeta)
             .map(v -> v instanceof BookMeta m ? m : null)
-            .map(v -> v.pages()
-                .stream()
-                .map(ChatHelper::getLegacyText)
-                .map(_v -> _v.replace("\t", ""))
-                .collect(Collectors.joining("\t")));
+            .map(v -> system.toast(
+                v.pages()
+                    .stream()
+                    .map(ChatHelper::getLegacyText)
+                    .map(_v -> _v.replace("\t", ""))
+                    .collect(Collectors.joining("\t")),
+                Optional.ofNullable(v.author()).map(ChatHelper::getLegacyText),
+                Optional.ofNullable(v.displayName()).or(() -> Optional.ofNullable(v.title())).map(ChatHelper::getLegacyText)
+            ));
         metadata()
             .list(DisplayInstance.class)
             .findAny()
             .ifPresent(display -> {
                 display.set("mfp.has_book", text.isPresent() ? "true" : "false");
-                display.set("mfp.book", text.orElse(""));
+                display.set("mfp.book", text.map(v -> v.val0).orElse(""));
+                display.set("mfp.book.author", text.flatMap(v -> v.val1).orElse(""));
+                display.set("mfp.book.title", text.flatMap(v -> v.val2).orElse(""));
+
+                double rotation = display.getRotation().orElse(InfoComponent.Rotation.Value.ANGLE_0).angle / 360.0;
+                rotation += component.out_rotation / 360.0;
+                rotation = (rotation % 1) * 360;
+                if (rotation > 180) rotation -= 360;
+                Vector rotated_offset = Transform.toWorld(new Location(null, 0, 0, 0, (float) rotation, 0), new LocalLocation(component.out_offset)).toVector();
+
+                display.set("mfp.out", system.getString(metadata()
+                    .location(rotated_offset.getX(), rotated_offset.getY(), rotated_offset.getZ())
+                    .toVector()));
             });
     }
 }
