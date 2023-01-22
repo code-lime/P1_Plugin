@@ -26,6 +26,7 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.MFPComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.extension.PacketManager;
+import org.lime.gp.item.BookPaper;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.module.PopulateLootEvent;
@@ -114,7 +115,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     
     private void syncDisplayVariable() {
         MFPComponent component = component();
-        Optional<system.Toast3<String, Optional<String>, Optional<String>>> text = Optional.ofNullable(head)
+        Optional<system.Toast4<String, Optional<String>, Optional<String>, Integer>> text = Optional.ofNullable(head)
             .filter(ItemStack::hasItemMeta)
             .map(ItemStack::getItemMeta)
             .map(v -> v instanceof BookMeta m ? m : null)
@@ -125,7 +126,8 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                     .map(_v -> _v.replace("\t", ""))
                     .collect(Collectors.joining("\t")),
                 Optional.ofNullable(v.author()).map(ChatHelper::getLegacyText),
-                Optional.ofNullable(v.displayName()).or(() -> Optional.ofNullable(v.title())).map(ChatHelper::getLegacyText)
+                Optional.ofNullable(v.displayName()).or(() -> Optional.ofNullable(v.title())).map(ChatHelper::getLegacyText),
+                BookPaper.getAuthorID(v)
             ));
         metadata()
             .list(DisplayInstance.class)
@@ -134,6 +136,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                 display.set("mfp.has_book", text.isPresent() ? "true" : "false");
                 display.set("mfp.book", text.map(v -> v.val0).orElse(""));
                 display.set("mfp.book.author", text.flatMap(v -> v.val1).orElse(""));
+                display.set("mfp.book.author_id", text.map(v -> v.val3).orElse(-1) + "");
                 display.set("mfp.book.title", text.flatMap(v -> v.val2).orElse(""));
 
                 double rotation = display.getRotation().orElse(InfoComponent.Rotation.Value.ANGLE_0).angle / 360.0;
@@ -143,7 +146,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                 Vector rotated_offset = Transform.toWorld(new Location(null, 0, 0, 0, (float) rotation, 0), new LocalLocation(component.out_offset)).toVector();
 
                 display.set("mfp.out", system.getString(metadata()
-                    .location(rotated_offset.getX(), rotated_offset.getY(), rotated_offset.getZ())
+                    .location(rotated_offset.getX() + 0.5, rotated_offset.getY() + 0.5, rotated_offset.getZ() + 0.5)
                     .toVector()));
             });
     }
