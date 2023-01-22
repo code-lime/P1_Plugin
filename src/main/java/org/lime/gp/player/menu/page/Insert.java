@@ -61,7 +61,9 @@ public class Insert extends Base {
             if (inventory.getViewers().size() != 0) return false;
             int cash = 0;
             for (ItemStack item : inventory)
-                cash += Items.getOptional(InsertSetting.class, item).map(v -> v.weight).map(v -> v * item.getAmount()).orElse(1);
+                cash += Items.getOptional(InsertSetting.class, item)
+                    .map(v -> v.weight)
+                    .orElse(1) * Optional.ofNullable(item).map(ItemStack::getAmount).orElse(0);
             kv.val1.invoke(cash);
             return true;
         });
