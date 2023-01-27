@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.BookMeta.Generation;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.BookPaper;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.*;
@@ -25,14 +26,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 @Setting(name = "book") public class BookSetting extends ItemSetting<JsonObject> {
-    public Optional<String> author;
+    public Optional<String> author_id;
     public Optional<String> title;
     public Optional<String> generation;
     public List<List<String>> pages = new ArrayList<>();
 
     public BookSetting(Items.ItemCreator creator, JsonObject json) {
         super(creator);
-        author = json.has("author") ? Optional.of(json.get("author").getAsString()) : Optional.empty();
+        author_id = json.has("author_id") ? Optional.of(json.get("author_id").getAsString()) : Optional.empty();
         title = json.has("title") ? Optional.of(json.get("title").getAsString()) : Optional.empty();
         generation = json.has("generation") ? Optional.of(json.get("generation").getAsString()) : Optional.empty();
         json.get("pages").getAsJsonArray().forEach(_json -> pages.add(_json.isJsonArray() ? Streams.stream(_json.getAsJsonArray().iterator()).map(JsonElement::getAsString).collect(Collectors.toList()) : Collections.singletonList(_json.getAsString())));
@@ -40,7 +41,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
     @Override public void apply(ItemStack item, ItemMeta meta, Apply apply) {
         if (meta instanceof BookMeta book) {
-            author.map(apply::apply).map(ChatHelper::formatComponent).ifPresent(book::author);
+            author_id.map(apply::apply).flatMap(ExtMethods::parseInt).ifPresent(id -> BookPaper.setAuthorID(book, id));
             generation.map(apply::apply).map(Generation::valueOf).ifPresent(book::setGeneration);
             title.map(apply::apply).map(ChatHelper::formatComponent).ifPresent(book::title);
             List<Component> pages = this.pages.stream()
