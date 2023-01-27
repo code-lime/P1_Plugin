@@ -58,6 +58,10 @@ public class BookPaper implements Listener {
     public static int getAuthorID(ItemMeta book) {
         return book.getPersistentDataContainer().getOrDefault(AUTHOR_KEY, PersistentDataType.INTEGER, -1);
     }
+    public static void setAuthorID(BookMeta book, int id) {
+        book.getPersistentDataContainer().set(AUTHOR_KEY, PersistentDataType.INTEGER, id);
+        book.setAuthor("Updating...");
+    }
     private static void setPageCount(ItemStack book, int count) {
         ItemMeta meta = book.getItemMeta();
         if (!(meta instanceof BookMeta bookMeta)) return;
