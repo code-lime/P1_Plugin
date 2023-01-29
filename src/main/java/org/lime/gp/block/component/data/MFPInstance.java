@@ -1,6 +1,7 @@
 package org.lime.gp.block.component.data;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.Location;
@@ -113,6 +114,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
         if (!head.getType().isAir()) event.addItem(head);
     }
     
+    private static final Pattern REMOVE_FORMATS = Pattern.compile("§.");
     private void syncDisplayVariable() {
         MFPComponent component = component();
         Optional<system.Toast4<String, Optional<String>, Optional<String>, Integer>> text = Optional.ofNullable(head)
@@ -126,7 +128,10 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                     .map(_v -> _v.replace("\t", ""))
                     .collect(Collectors.joining("\t")),
                 Optional.ofNullable(v.author()).map(ChatHelper::getLegacyText),
-                Optional.ofNullable(v.displayName()).or(() -> Optional.ofNullable(v.title())).map(ChatHelper::getLegacyText),
+                Optional.ofNullable(v.displayName())
+                    .or(() -> Optional.ofNullable(v.title()))
+                    .map(ChatHelper::getLegacyText)
+                    .map(_v -> String.join("", REMOVE_FORMATS.split(_v))),
                 BookPaper.getAuthorID(v)
             ));
         metadata()
