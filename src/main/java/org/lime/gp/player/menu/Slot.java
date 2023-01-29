@@ -45,6 +45,7 @@ public class Slot implements Logged.ILoggedDelete {
     public List<String> commands = new ArrayList<>();
     public List<String> sql = new ArrayList<>();
     public List<String> messages = new ArrayList<>();
+    public List<String> logs = new ArrayList<>();
     public String page = null;
     public int wait = 0;
     public List<system.Toast2<String, String>> pageArgs = new ArrayList<>();
@@ -67,6 +68,7 @@ public class Slot implements Logged.ILoggedDelete {
         action.close = json.has("close") && json.get("close").getAsBoolean();
         action.online = json.has("online") && json.get("online").getAsBoolean();
         if (json.has("messages")) json.get("messages").getAsJsonArray().forEach(msg -> action.messages.add(msg.getAsString()));
+        if (json.has("logs")) json.get("logs").getAsJsonArray().forEach(msg -> action.logs.add(msg.getAsString()));
         if (json.has("sql")) json.get("sql").getAsJsonArray().forEach(msg -> action.sql.add(msg.getAsString()));
         action.page = json.has("page") ? json.get("page").getAsString() : null;
         if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> action.args.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
@@ -93,6 +95,7 @@ public class Slot implements Logged.ILoggedDelete {
             else Bukkit.dispatchCommand(player, _cmd);
         });
         messages.forEach(msg -> player.sendMessage(ChatHelper.formatComponent(msg, apply)));
+        logs.forEach(msg -> lime.logOP(ChatHelper.formatComponent(msg, apply)));
         sql.stream()
                 .map(sql -> ChatHelper.formatText(sql, apply))
                 .filter(v -> !v.isEmpty())
