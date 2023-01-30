@@ -19,6 +19,7 @@ public class Enchants implements Listener {
     public static core.element create() {
         return core.element.create(Enchants.class)
                 .withInstance()
+                .withInit(Enchants::init)
                 .<JsonArray>addConfig("allow_enchants", v -> v
                         .withDefault(system.json.array()
                                 .add("vanishing_curse") //Проклятие утраты
@@ -67,7 +68,7 @@ public class Enchants implements Listener {
         if (meta instanceof EnchantmentStorageMeta esm)
             save = removeEnchants(() -> esm.getStoredEnchants().keySet(), esm::removeStoredEnchant, e -> esm.addStoredEnchant(e, 1, true), true) || save;
 
-        return false;
+        return save;
     }
 
     @EventHandler public static void on(PrepareItemEnchantEvent e) {
