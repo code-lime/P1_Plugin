@@ -2,7 +2,6 @@
 /org/
 /build/
 /bin/
-/.settings/
 /.vscode/
 /.idea/
 /.gradle/
@@ -10,3 +9,6 @@
 
 /hs_err_pid(.*).log
 /replay_pid(.*).log
+/.project
+/.classpath
+.settings/
