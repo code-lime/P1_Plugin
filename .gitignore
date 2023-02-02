@@ -6,6 +6,7 @@
 /.idea/
 /.gradle/
 /__.idea/
+/gradle/wrapper/gradle-wrapper.jar
 
 /hs_err_pid(.*).log
 /replay_pid(.*).log
