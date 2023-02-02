@@ -32,6 +32,7 @@ import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.ConverterComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.craft.RecipesBook;
@@ -117,11 +118,9 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         if (save) saveData();
         unique_key = UUID.randomUUID();
         nms_head = CraftItemStack.asNMSCopy(head);
-        /*displayVariable = system.map.<String, String>of()
-                .add("item_converter.unique", unique_key = UUID.randomUUID().toString())
-                .add("item_converter.id", Items.getIDByItem(head).map(v -> v + "").orElse("null"))
-                .add("item_converter.type", head.getType().isAir() ? "" : head.getType().name())
-                .build();*/
+        metadata()
+            .list(DisplayInstance.class)
+            .forEach(display -> display.variableDirty());
     }
 
     @Override public void read(JsonObjectOptional json) {

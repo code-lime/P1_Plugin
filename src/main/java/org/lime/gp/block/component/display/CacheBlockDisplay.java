@@ -11,10 +11,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheBlockDisplay {
+    public interface IConcurrentCacheInfo extends ICacheInfo
+    {
+        @Override default boolean isConcurrent() { return true; }
+    }
     public interface ICacheInfo {
         IBlock cache(UUID uuid);
+        default boolean isConcurrent() { return false; }
 
-        static ICacheInfo of(ConcurrentHashMap<UUID, IBlock> cache) { return cache::get; }
+        static IConcurrentCacheInfo of(ConcurrentHashMap<UUID, IBlock> cache) { return cache::get; }
         static ICacheInfo of(IBlock data) { return uuid -> data; }
         static ICacheInfo of(IBlockData data) { return of(IBlock.of(data)); }
     }
@@ -45,6 +50,15 @@ public class CacheBlockDisplay {
     }
     public static Optional<ICacheInfo> getCacheBlock(BlockPosition position, UUID worldUUID) {
         return Optional.ofNullable(cacheBlocks.get(system.toast(position, worldUUID)));
+    }
+    
+    @SuppressWarnings("all")
+    public static boolean isConcurrent(TileEntityLimeSkull skull) {
+        return isConcurrent(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid);
+    }
+    public static boolean isConcurrent(BlockPosition position, UUID worldUUID) {
+        ICacheInfo info = cacheBlocks.get(system.toast(position, worldUUID));
+        return info != null && info.isConcurrent();
     }
 
     public static void reset() {

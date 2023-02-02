@@ -25,6 +25,7 @@ import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.InventoryComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
@@ -99,6 +100,9 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
                 );
             }
             display.set0(builder.build());
+            metadata()
+                .list(DisplayInstance.class)
+                .forEach(display -> display.variableDirty());
             saveData();
         }
     }

@@ -287,7 +287,11 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
             if (isClearStep) result = null;
             if (state != State.RECIPE || isClearStep) refreshDisplay();
         }
+
+        private int particleTick = 0;
         private void spawnParticle(Location center) {
+            particleTick = (particleTick + 1) % 4;
+            if (particleTick != 0) return;
             center.getWorld().playSound(center, Sound.BLOCK_POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, org.bukkit.SoundCategory.BLOCKS, 1, 0.1f);
             center.getWorld().spawnParticle(Particle.WATER_BUBBLE, center.clone().add(0, 0.2 * level(), 0), 3, 0.1, 0, 0.1);
         }
@@ -453,6 +457,9 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     })
                     .map(Models.Builder::build)
                     .orElse(null));
+            CauldronInstance.this.metadata()
+                .list(DisplayInstance.class)
+                .forEach(display -> display.variableDirty());
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
             Models.Model model = this.model.get0();

@@ -112,6 +112,9 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     private void updateModel() {
         if (items.isEmpty()) {
             model.set0(null);
+            metadata()
+                .list(DisplayInstance.class)
+                .forEach(display -> display.variableDirty());
             return;
         }
         Models.Builder builder = lime.models.builder();
@@ -121,6 +124,9 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
                 .map(v -> v.display(item))
                 .orElseGet(() -> CraftItemStack.asNMSCopy(item))).orElseThrow()));
         model.set0(builder.build());
+        metadata()
+            .list(DisplayInstance.class)
+            .forEach(display -> display.variableDirty());
     }
 
     private static int hurt(ItemStack damageItem) {

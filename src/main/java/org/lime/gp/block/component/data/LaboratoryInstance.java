@@ -94,7 +94,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
 
     @Override public Stream<? extends CustomTileMetadata.Element> childs() { return items.values().stream(); }
 
-    private static class ItemLaboratorySlot extends LaboratorySlot implements BlockDisplay.Displayable {
+    private class ItemLaboratorySlot extends LaboratorySlot implements BlockDisplay.Displayable {
         private system.LockToast1<Models.Model> model;
         public ItemLaboratorySlot(LaboratoryComponent component, SlotType type) {
             super(component, type);
@@ -113,13 +113,16 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                                     .orElseGet(() -> CraftItemStack.asNMSCopy(item)))
                     )
                     .build());
+            LaboratoryInstance.this.metadata()
+                .list(DisplayInstance.class)
+                .forEach(display -> display.variableDirty());
             return this;
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
             return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10)));
         }
     }
-    private static class WaterLaboratorySlot extends LaboratorySlot {
+    private class WaterLaboratorySlot extends LaboratorySlot {
         private String color;
         public WaterLaboratorySlot(LaboratoryComponent component, SlotType type) {
             super(component, type);
@@ -134,7 +137,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             variables.put("water_level_" + (type.index + 1), isPresent() ? "1" : "0");
         }
     }
-    private static abstract class LaboratorySlot implements CustomTileMetadata.Uniqueable {
+    private abstract class LaboratorySlot implements CustomTileMetadata.Uniqueable {
         public final UUID unique;
         public final SlotType type;
         public final LocalLocation local;

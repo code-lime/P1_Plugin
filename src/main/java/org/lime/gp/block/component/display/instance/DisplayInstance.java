@@ -62,13 +62,13 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     private final system.LockToast1<Long> variableIndex = system.toast(1L).lock();
     private final ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
     private final Map<String, String> unmodifiableVariables = Collections.unmodifiableMap(variables);
-    private final ConcurrentHashMap<UUID, system.Toast2<Partial, Integer>> partials = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Partial> partials = new ConcurrentHashMap<>();
 
     @Override public DisplayComponent component() { return (DisplayComponent)super.component(); }
 
     private system.LockToast1<InfoComponent.Rotation.Value> rotationCache = system.<InfoComponent.Rotation.Value>toast(null).lock();
 
-    private void variableDirty() {
+    public void variableDirty() {
         variableIndex.edit0(v -> v + 1);
         rotationCache.set0(get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle).orElse(null));
         saveData();
@@ -186,6 +186,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     }
 
     private static long lastTickID = -1;
+    private final HashMap<UUID, ItemFrameDisplayObject> frameMap = new HashMap<>();
+    private final HashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
     @Override public void onAsyncTick(CustomTileMetadata metadata, long tick) {
         if (lastTickID != tick) {
             lastTickID = tick;
@@ -199,13 +201,38 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
         long currUpdateDirtyIndex = variableIndex();
 
+        Set<UUID> onlineUUIDs = EntityPosition.onlinePlayers.keySet();
+        frameMap.keySet().removeIf(uuid -> !onlineUUIDs.contains(uuid));
+        modelMap.values().removeIf(data -> {
+            data.viewers.removeIf(uuid -> !onlineUUIDs.contains(uuid));
+            return data.viewers.isEmpty();
+        });
+        partials.keySet().removeIf(uuid -> !onlineUUIDs.contains(uuid));
+        tickTimeInfo.filter_ns += tickTimeInfo.nextTime();
+
         Collection<UUID> users;
         if (currUpdateDirtyIndex != lastUpdateDirtyIndex) {
-            users = EntityPosition.onlinePlayers.keySet();
+            users = onlineUUIDs;
             lastUpdateDirtyIndex = currUpdateDirtyIndex;
+            modelMap.clear();
+            frameMap.clear();
         } else {
             users = cachedDirtyQueue;
+            if (!users.isEmpty()) {
+                frameMap.keySet().removeIf(uuid -> users.contains(uuid));
+                modelMap.values().removeIf(data -> {
+                    data.viewers.removeIf(uuid -> users.contains(uuid));
+                    return data.viewers.isEmpty();
+                });
+            }
         }
+        if (users.isEmpty()) {
+            if (frameMap.size() == 0 && modelMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
+            else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(frameMap, modelMap));
+            tickTimeInfo.users_ns += tickTimeInfo.nextTime();
+            return;
+        }
+
         tickTimeInfo.users_ns += tickTimeInfo.nextTime();
 
         Map<String, String> variables = getAll();
@@ -224,48 +251,48 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         tickTimeInfo.variables2_ns += tickTimeInfo.nextTime();
 
         int angle = getRotation().orElse(InfoComponent.Rotation.Value.ANGLE_0).angle;
+        HashMap<Player, Integer> shows = new HashMap<>();
+        boolean isControl = CacheBlockDisplay.isConcurrent(block_position, world.getUID());
 
         tickTimeInfo.variables3_ns += tickTimeInfo.nextTime();
-
-        users.forEach(uuid -> {
-            Player player = EntityPosition.onlinePlayers.get(uuid);
-            if (player == null) {
-                partials.remove(uuid);
-                return;
-            }
-            ChunkCoordCache.getCoord(uuid).ifPresentOrElse(cache -> {
-                int distanceChunk = cache.distance(blockCoord);
-                partials.compute(uuid, (k, v) -> {
-                    Partial partial = cache.world() != world
-                        ? orSync(metadata, uuid, player, variables, null, v == null ? null : v.val0)
-                        : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v == null ? null : v.val0);
-                    if (partial == null) return null;
-                    return system.toast(partial, distanceChunk);
-                });
-            }, () -> partials.remove(uuid));
-        });
-
-        tickTimeInfo.check_ns += tickTimeInfo.nextTime();
-
-        HashMap<Player, Integer> shows = new HashMap<>();
-        HashMap<UUID, ItemFrameDisplayObject> frameMap = new HashMap<>();
-        HashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
-        partials.entrySet().removeIf(kv -> {
-            UUID uuid = kv.getKey();
-            Player player = EntityPosition.onlinePlayers.get(uuid);
-            if (player == null) return true;
-            int distanceChunk = kv.getValue().val1;
-            Partial partial = kv.getValue().val0;
-            if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
-            if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
-                    new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
-                    k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
-            ).viewers.add(uuid));
-            shows.put(player, distanceChunk);
-            return false;
-        });
-
-        tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
+        
+        if (isControl) {
+            users.forEach(uuid -> {
+                Player player = EntityPosition.onlinePlayers.get(uuid);
+                if (player == null) {
+                    partials.remove(uuid);
+                    return;
+                }
+                ChunkCoordCache.getCoord(uuid).ifPresentOrElse(cache -> {
+                    int distanceChunk = cache.distance(blockCoord);
+                    partials.compute(uuid, (k, v) -> {
+                        Partial partial = cache.world() != world
+                            ? orSync(metadata, uuid, player, variables, null, v == null ? null : v)
+                            : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v == null ? null : v);
+                        if (partial == null) return null;
+                        if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
+                        if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
+                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
+                                _k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
+                        ).viewers.add(uuid));
+                        shows.put(player, distanceChunk);
+                        return partial;
+                    });
+                }, () -> partials.remove(uuid));
+            });
+            tickTimeInfo.check_ns += tickTimeInfo.nextTime();
+            tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
+        }
+        else {
+            users.forEach(uuid -> {
+                Player player = EntityPosition.onlinePlayers.get(uuid);
+                if (player == null) return;
+                ChunkCoordCache.getCoord(uuid)
+                    .ifPresent(cache -> shows.put(player, cache.distance(blockCoord)));
+            });
+            tickTimeInfo.check_ns += tickTimeInfo.nextTime();
+            tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
+        }
 
         metadata.list(BlockDisplay.Displayable.class)
                 .forEach(displayable -> shows.forEach((player, distanceChunk) -> displayable.onDisplayAsync(player, handle_world, block_position, state)
@@ -276,7 +303,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                                 k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
                         ).viewers.add(player.getUniqueId()))
                 ));
-
+        
         tickTimeInfo.metadata_ns += tickTimeInfo.nextTime();
 
         if (frameMap.size() == 0 && modelMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
@@ -293,6 +320,9 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         if (proxyVariables.checkDirty(true)) variableDirty();
     }
     public void reshow() {
+        partials.clear();
+        variableDirty();
+
         TimeoutData.remove(unique(), DisplayMap.class);
         TileEntityLimeSkull skull = metadata().skull;
         UUID block_uuid = metadata().key.uuid();

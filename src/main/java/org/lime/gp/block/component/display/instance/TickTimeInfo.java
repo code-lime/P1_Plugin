@@ -17,6 +17,7 @@ public class TickTimeInfo {
 
     public int calls = 0;
 
+    public long filter_ns = 0;
     public long users_ns = 0;
     public long variables1_ns = 0;
     public long variables2_ns = 0;
@@ -40,6 +41,7 @@ public class TickTimeInfo {
 
     private List<system.Toast2<String, Long>> nanoMap() {
         return Arrays.asList(
+            system.toast("filter", filter_ns/count),
             system.toast("users", users_ns/count),
             system.toast("variables1", variables1_ns/count),
             system.toast("variables2", variables2_ns/count),
@@ -73,6 +75,7 @@ public class TickTimeInfo {
     public void append(TickTimeInfo info) {
         this.count += info.count;
         this.calls += info.calls;
+        this.filter_ns += info.filter_ns;
         this.users_ns += info.users_ns;
         this.variables1_ns += info.variables1_ns;
         this.variables2_ns += info.variables2_ns;
