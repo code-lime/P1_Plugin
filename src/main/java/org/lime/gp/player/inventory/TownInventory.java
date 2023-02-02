@@ -177,15 +177,7 @@ public class TownInventory implements Listener {
     }
 
     public enum HtmlType {
-        //PRISON("prison", row -> row.Type == Rows.HouseRow.HouseType.PRISON),
         HOME("home", row -> true);
-        /*PRISON("prison", row -> row.Type == Rows.HouseRow.HouseType.PRISON),
-        OWNER("home_owner", row -> !row.IsRoom && row.OwnerID != null),
-        NONE("home_none", row -> !row.IsRoom && row.Cost == 0),
-        SELL("home_sell", row -> !row.IsRoom),
-        ROOM_OWNER("room_owner", row -> row.IsRoom && row.OwnerID != null),
-        ROOM_NONE("room_none", row -> row.IsRoom && row.Cost == 0),
-        ROOM_SELL("room_sell", row -> row.IsRoom);*/
 
         private final system.Func1<Rows.HouseRow, Boolean> isUse;
         public final String key;
@@ -247,276 +239,6 @@ public class TownInventory implements Listener {
     public static final HashMap<String, PrivatePattern> patterns = new HashMap<>();
 
     public static void init() {
-        /*
-        AnyEvent.addEvent("town.add", AnyEvent.type.other, builder -> builder.createParam("district", "house", "room", "street").createParam(Integer::parseInt, "[id_of_district]", "[id_of_street]", "[id_of_house]", "0"), (player, type, id) -> {
-
-            switch (type) {
-                case "room":
-                case "house":
-                    LangMessages.Message.Phone_TownAdd_InfoSelect.sendMessage(player);
-                    ZoneMainSelector.create((pos1, pos2, posMain, faceMain) -> {
-                        PhoneInventory.InputName(player, name -> DataReader.AddTownHouse(name, id, type.equals("room"), pos1, pos2, posMain, faceMain, () -> {
-                            LangMessages.Message.Phone_TownAdd_Done.sendMessage(player, ApplyOld.of("name", name).add("type", type));
-                        }));
-                    }).select(player);
-                    return;
-                case "district":
-                case "street":
-                    PhoneInventory.InputName(player, name -> DataReader.AddTown(type, name, id, state -> {
-                        if (state.equals("ok")) LangMessages.Message.Phone_TownAdd_Done.sendMessage(player, ApplyOld.of("name", name).add("type", type));
-                        else LangMessages.Message.Phone_TownAdd_Error.sendMessage(player);
-                    }));
-                    return;
-            }
-        });
-        AnyEvent.addEvent("town.delete", AnyEvent.type.other, builder -> builder.createParam("district", "house", "street").createParam(Integer::parseInt, "[id]"), (player, type, id) -> {
-            DataReader.DeleteTown(type, id, callback -> {
-                switch (callback) {
-                    case "error": LangMessages.Message.Phone_TownDelete_Error_HouseNotFound.sendMessage(player); return;
-                    case "ok": LangMessages.Message.Phone_TownDelete_Done.sendMessage(player); return;
-                }
-            });
-        });
-        AnyEvent.addEvent("town.select", AnyEvent.type.other, builder -> builder.createParam("show", "hide").createParam(Integer::parseInt, "[house_id]", "0"), (player, state, house_id) -> {
-            switch (state) {
-                case "hide": UserSelector.removeSelector(player); return;
-                case "show": {
-                    DataReader.HouseRow row = DataReader.HOUSE_TABLE.get(house_id + "", null);
-                    if (row == null) return;
-                    UserSelector.setSelector(player, new ZoneReadonly(row.Pos1, row.Pos2));
-                    return;
-                }
-            }
-        });
-        AnyEvent.addEvent("town.rename", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[id]").createParam("district", "house", "street"), (player, id, type) -> {
-            switch (type) {
-                case "district":
-                case "house":
-                case "street":
-                    PhoneInventory.InputName(player, name -> DataReader.RenameTown(type, id, name, state -> {
-                        if (state.equals("ok")) LangMessages.Message.Phone_TownRename_Done.sendMessage(player, ApplyOld.of("name", name).add("type", type));
-                        else LangMessages.Message.Phone_TownRename_Error.sendMessage(player);
-                    }));
-            }
-        });
-        AnyEvent.addEvent("town.modify", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[id]").createParam("cost", "rent"), (player, id, type) -> {
-            switch (type) {
-                case "cost":
-                case "rent":
-                    PhoneInventory.InputValue(player, value -> DataReader.ModifyTown(type, value, id, state -> {
-                        if (state.equals("ok")) LangMessages.Message.Phone_TownModify_Done.sendMessage(player, ApplyOld.of("value", String.valueOf(value)).add("type", type));
-                        else LangMessages.Message.Phone_TownModify_Error.sendMessage(player);
-                    }));
-            }
-        });
-        AnyEvent.addEvent("town.owner", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[id]").createParam(Integer::parseInt, "[user_id]"), (player, id, user_id) -> {
-            DataReader.ModifyTown("owner", user_id, id, state -> {
-                if (state.equals("ok")) LangMessages.Message.Phone_TownOwner_Done.sendMessage(player, ApplyOld.of("user_id", String.valueOf(user_id)));
-                else LangMessages.Message.Phone_TownOwner_Error.sendMessage(player);
-            });
-        });
-        AnyEvent.addEvent("town.buy", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[house_id]"), (player, house_id) -> {
-            DataReader.BuyTown(DataReader.UserRow.getBy(player.getUniqueId()).ID, house_id, callback -> {
-                switch (callback) {
-                    case "house_not_found": LangMessages.Message.Phone_TownBuy_Error_HouseNotFound.sendMessage(player); return;
-                    case "balance_error": LangMessages.Message.Phone_TownBuy_Error_BalanceError.sendMessage(player); return;
-                    case "done": LangMessages.Message.Phone_TownBuy_Done.sendMessage(player); return;
-                }
-            });
-        });
-        AnyEvent.addEvent("town.sub", AnyEvent.type.other, builder -> builder.createParam("add","del").createParam(Integer::parseInt, "[house_id]").createParam(Integer::parseInt, "[sub_id]"), (player, type, house_id, sub_id) -> {
-            switch (type) {
-                case "add": DataReader.AddTownSub(house_id, sub_id, () -> LangMessages.Message.Phone_TownSub_Add_Done.sendMessage(player)); break;
-                case "del": DataReader.DelTownSub(house_id, sub_id, () -> LangMessages.Message.Phone_TownSub_Delete_Done.sendMessage(player)); break;
-            }
-        });
-        AnyEvent.addEvent("town.district", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[atm_id]").createParam(Integer::parseInt, "[district_id]").createParam("put", "withdraw"), (player, atm_id, district_id, type) -> {
-            switch (type) {
-                case "put": {
-                    Inventory inv = Bukkit.createInventory(null, 3 * 9, LangMessages.Message.Phone_TownDistrict_Put_Title.getSingleMessage());
-                    atmAuthList.put(inv, e -> {
-                        List<ItemStack> drops = new ArrayList<>();
-                        List<ItemStack> dropCash = new ArrayList<>();
-                        int cash = 0;
-                        for (ItemStack item : e.getInventory()) {
-                            if (item == null || item.getType() == Material.AIR) continue;
-                            Integer _cash = ItemManager.getCash(item);
-                            if (_cash != null) {
-                                dropCash.add(item);
-                                cash += _cash * item.getAmount();
-                                continue;
-                            }
-                            drops.add(item);
-                        }
-                        atmAuthList.remove(e.getInventory());
-                        if (cash <= 0) {
-                            drops.addAll(dropCash);
-                            ItemManager.dropGiveItem(player, drops, false);
-                            return;
-                        }
-                        ItemManager.dropGiveItem(player, drops, false);
-                        DataReader.PutTownDistrict(atm_id, district_id, cash, () -> LangMessages.Message.Phone_TownDistrict_Put_Done.sendMessage(player));
-                    });
-                    player.openInventory(inv);
-                    break;
-                }
-                case "withdraw": {
-                    PhoneInventory.InputValue(player, value -> {
-                        DataReader.UserRow row = DataReader.UserRow.getBy(player.getUniqueId());
-                        if (row == null) return;
-                        DataReader.WithdrawTownDistrict(atm_id, district_id, value, state -> {
-                            switch (state) {
-                                case 0:
-                                    ItemManager.dropGiveItem(player, ItemManager.createCash(value), false);
-                                    LangMessages.Message.Phone_TownDistrict_Withdraw_Done.sendMessage(player);
-                                    return;
-                                case 1: LangMessages.Message.Phone_TownDistrict_Withdraw_Error_BalanceError.sendMessage(player); return;
-                                case 2: LangMessages.Message.Phone_TownDistrict_Withdraw_Error_DistrictNotFound.sendMessage(player); return;
-                            }
-                        });
-                    });
-                    break;
-                }
-            }
-        });
-        AnyEvent.addEvent("town.private", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[house_id]").createParam(patterns::get, patterns::keySet).createParam("on", "off"), (player, house_id, private_type, state) -> {
-            DataReader.HouseRow row = DataReader.HOUSE_TABLE.get(house_id + "", null);
-            if (row == null) return;
-            long type;
-            switch (state) {
-                case "on": type = private_type == null ? 0 : PrivatePattern.del(row.Private, private_type); break;
-                case "off": type = private_type == null ? PrivatePattern.from(patterns.values().stream().filter(Objects::nonNull).collect(Collectors.toList())) : PrivatePattern.add(row.Private, private_type); break;
-                default: return;
-            }
-            DataReader.PrivateTown(house_id, type, () -> LangMessages.Message.Phone_TownPrivate_Done.sendMessage(player));
-        });
-
-        AnyEvent.addEvent("atm.add", AnyEvent.type.other, (player) -> {
-            LangMessages.Message.Phone_AtmAdd_InfoSelect.sendMessage(player);
-            MainSelector.create(block -> block.getBlockData() instanceof Stairs, (posMain, faceMain) -> DataReader.AddATM(posMain,() -> {
-                LangMessages.Message.Phone_AtmAdd_Done.sendMessage(player);
-            })).select(player);
-        });
-        AnyEvent.addEvent("atm.trade", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[atm_id]").createParam("put", "withdraw", "insert"), (player, id, type) -> {
-            switch (type) {
-                case "put": {
-                    CraftInventory inventory = (CraftInventory)Bukkit.createInventory(null, 3 * 9, LangMessages.Message.Phone_AtmPut_Title.getSingleMessage());
-                    atmAuthList.put(inventory, e -> {
-                        DataReader.UserRow row = DataReader.UserRow.getBy(player.getUniqueId());
-                        List<ItemStack> drops = new ArrayList<>();
-                        List<ItemStack> dropCash = new ArrayList<>();
-                        int cash = 0;
-                        for (ItemStack item : e.getInventory()) {
-                            if (item == null || item.getType() == Material.AIR) continue;
-                            Integer _cash = ItemManager.getCash(item);
-                            if (_cash != null) {
-                                dropCash.add(item);
-                                cash += _cash * item.getAmount();
-                                continue;
-                            }
-                            drops.add(item);
-                        }
-                        atmAuthList.remove(e.getInventory());
-                        if (cash <= 0) {
-                            drops.addAll(dropCash);
-                            ItemManager.dropGiveItem(player, drops, false);
-                            return;
-                        }
-                        int _cash = cash;
-                        DataReader.PutATM(row.ID, id, cash, state -> {
-                            switch (state) {
-                                case 0:
-                                    ItemManager.dropGiveItem(player, drops, false);
-                                    LangMessages.Message.Phone_AtmPut_Done.sendMessage(player, ApplyOld.of("cash", String.valueOf(_cash)));
-                                    return;
-                                case 1: LangMessages.Message.Phone_AtmPut_Error_CardNotFound.sendMessage(player); break;
-                                case 2: LangMessages.Message.Phone_AtmPut_Error_AtmNotFound.sendMessage(player); break;
-                            }
-                            drops.addAll(dropCash);
-                            ItemManager.dropGiveItem(player, drops, false);
-                        });
-                    });
-                    InterfaceManager.openInventory(player, inventory, (_id, playerInventory, iinventory) -> new ContainerChest(Containers.GENERIC_9x3, _id, playerInventory, iinventory, 3) {
-                        private CraftInventoryView bukkitEntity = null;
-                        @Override protected Slot addSlot(Slot slot) {
-                            return super.addSlot(slot.container == iinventory
-                                    ? InterfaceManager.filterSlot(slot, stack -> ItemManager.getCash(CraftItemStack.asBukkitCopy(stack)) != null)
-                                    : slot);
-                        }
-                        @Override public CraftInventoryView getBukkitView() {
-                            if (this.bukkitEntity != null) return this.bukkitEntity;
-                            this.bukkitEntity = new CraftInventoryView(playerInventory.player.getBukkitEntity(), inventory, this);
-                            return this.bukkitEntity;
-                        }
-                    });
-                    return;
-                }
-                case "withdraw": {
-                    PhoneInventory.InputValue(player, value -> {
-                        DataReader.UserRow row = DataReader.UserRow.getBy(player.getUniqueId());
-                        if (row == null) return;
-                        DataReader.WithdrawATM(row.ID, id, value, state -> {
-                            switch (state) {
-                                case 0:
-                                    ItemManager.dropGiveItem(player, ItemManager.createCash(value), false);
-                                    LangMessages.Message.Phone_AtmWithdraw_Done.sendMessage(player, ApplyOld.of("cash", String.valueOf(value)));
-                                    return;
-                                case 1: LangMessages.Message.Phone_AtmWithdraw_Error_BalanceError.sendMessage(player); return;
-                                case 2: LangMessages.Message.Phone_AtmWithdraw_Error_AtmNotFound.sendMessage(player); return;
-                                case 3: LangMessages.Message.Phone_AtmWithdraw_Error_AtmBalanceError.sendMessage(player); return;
-                            }
-                        });
-                    });
-                    return;
-                }
-                case "insert": {
-                    CraftInventory inventory = (CraftInventory)Bukkit.createInventory(null, 3 * 9, LangMessages.Message.Phone_AtmInsert_Title.getSingleMessage());
-                    atmAuthList.put(inventory, e -> {
-                        List<ItemStack> drops = new ArrayList<>();
-                        List<ItemStack> dropCash = new ArrayList<>();
-                        int cash = 0;
-                        for (ItemStack item : e.getInventory()) {
-                            if (item == null || item.getType() == Material.AIR) continue;
-                            Integer _cash = ItemManager.getCash(item);
-                            if (_cash != null) {
-                                dropCash.add(item);
-                                cash += _cash * item.getAmount();
-                                continue;
-                            }
-                            drops.add(item);
-                        }
-                        atmAuthList.remove(e.getInventory());
-                        if (cash <= 0) {
-                            drops.addAll(dropCash);
-                            ItemManager.dropGiveItem(player, drops, false);
-                            return;
-                        }
-                        ItemManager.dropGiveItem(player, drops, false);
-                        int _cash = cash;
-                        DataReader.InsertATM(id, cash, () -> LangMessages.Message.Phone_AtmInsert_Done.sendMessage(player, ApplyOld.of("cash", String.valueOf(_cash))));
-                    });
-                    InterfaceManager.openInventory(player, inventory, (_id, playerInventory, iinventory) -> new ContainerChest(Containers.GENERIC_9x3, _id, playerInventory, iinventory, 3) {
-                        private CraftInventoryView bukkitEntity = null;
-                        @Override protected Slot addSlot(Slot slot) {
-                            return super.addSlot(slot.container == iinventory
-                                    ? InterfaceManager.filterSlot(slot, stack -> ItemManager.getCash(CraftItemStack.asBukkitCopy(stack)) != null)
-                                    : slot);
-                        }
-                        @Override public CraftInventoryView getBukkitView() {
-                            if (this.bukkitEntity != null) return this.bukkitEntity;
-                            this.bukkitEntity = new CraftInventoryView(playerInventory.player.getBukkitEntity(), inventory, this);
-                            return this.bukkitEntity;
-                        }
-                    });
-                    return;
-                }
-            }
-        });
-        AnyEvent.addEvent("atm.delete", AnyEvent.type.other, builder -> builder.createParam(Integer::parseInt, "[atm_id]"), (player, id) -> {
-            DataReader.DeleteATM(id, () -> DataReader.ExistATM(id, (state) -> {
-            }));
-        });
-        */
         Displays.initDisplay(HOME_MANAGER);
 
         lime.repeat(() -> {
@@ -595,7 +317,7 @@ public class TownInventory implements Listener {
         private static byte[] getLoadingMapIcon() { return Arrays.copyOf(loadingMapIcon, loadingMapIcon.length); }
 
         
-@SuppressWarnings("deprecation")
+        @SuppressWarnings("deprecation")
         protected HomeDisplay(Rows.HouseRow row) {
             super(row.posMain.getLocation(row.posFace.getDirection()));
             pos1 = row.posMin;
@@ -641,23 +363,8 @@ public class TownInventory implements Listener {
             });
             updateMap(row);
         }
-        /*public void DisplayPreview(Player player) {
-            displayPreview.remove(player);
-            displayPreview.add(player);
-        }*/
         public void onClick(Player player, boolean isShift) {
             Tables.HOUSE_TABLE.get(houseRowID + "").ifPresent(row -> MenuCreator.show(player, "town.house.open", Apply.of().add("house_", row).add("is_shift", isShift ? "true" : "false")));
-
-            //int userID = Rows.UserRow.getBy(player.getUniqueId()).ID;
-
-
-            /*if (isShift) MenuCreator.show(player, "town.house", Apply.of().add("house_", row));
-            else if (row.Type == Rows.HouseRow.HouseType.PRISON) MenuCreator.show(player, "town.prison", Apply.of().add("house_", row));
-            else if (row.OwnerID == null) {
-                if (row.Cost > 0) MenuCreator.show(player, "town.house.buy", Apply.of().add("house_", row));
-            }
-            else if (row.OwnerID == userID) MenuCreator.show(player, "town.house.user", Apply.of().add("house_", row));
-            else if (Tables.HOUSE_SUBS_TABLE.hasBy(v -> v.HouseID == row.ID && v.UserID == userID && v.IsOwner == 1)) MenuCreator.show(player, "town.house.sub_owner", Apply.of().add("house_", row));*/
         }
 
         public static HomeDisplay create(Integer integer, Rows.HouseRow houseRow) {
@@ -676,9 +383,6 @@ public class TownInventory implements Listener {
         }
         return null;
     }
-
-    //private static final HashMap<Inventory, system.Action1<InventoryCloseEvent>> atmAuthList = new HashMap<>();
-
     private static boolean isCantBreak(Block block, Player player) {
         PrivatePattern privateType = PrivatePattern.patternBreaks.getOrDefault(Blocks.getBlockKey(block), null);
         if (privateType == null) return false;
@@ -702,8 +406,6 @@ public class TownInventory implements Listener {
         private void child(HomePerm room) { perms.add(room); }
         public Boolean isCan(PrivatePattern privateType, Location pos, Rows.UserRow user) {
             return display(privateType, pos, user, false).val1;
-            /*system.Toast2<List<String>, Boolean> data = display(privateType, pos, user, false);
-            return data.val1;*/
         }
         public system.Toast2<List<String>, Boolean> display(PrivatePattern privateType, Location pos, Rows.UserRow user, boolean createList) {
             String prefix = StringUtils.leftPad(String.valueOf(row.id), 2, '0');
@@ -767,13 +469,6 @@ public class TownInventory implements Listener {
     private static boolean isCant(PrivatePattern privateType, Location pos, Player player) {
         return Rows.UserRow.getBy(player.getUniqueId()).map(user -> !user.isOwner() && !HomePerm.isCanAll(privateType, pos, user)).orElse(true);
     }
-
-    /*@EventHandler public static void onClose(InventoryCloseEvent e) {
-        system.Action1<InventoryCloseEvent> invoke = atmAuthList.getOrDefault(e.getInventory(), null);
-        if (invoke == null) return;
-        invoke.invoke(e);
-    }*/
-
     private static Player getOwner(Entity damager) {
         if (damager instanceof Player) return (Player)damager;
         else if (damager instanceof Projectile) {
