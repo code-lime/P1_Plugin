@@ -23,7 +23,8 @@ public class JavaScript {
     public static core.element create() {
         js = (org.lime.JavaScript) lime._plugin.add(org.lime.JavaScript.create()).element().map(v -> v.instance).orElseThrow();
         js.instances.put("jsmenu", new JSMenu());
-        return core.element.create(JavaScript.class);
+        return core.element.create(JavaScript.class)
+            .addText("generic.js", v -> v.withInvoke(t -> {}).withDefault(""));
     }
 
     public static class JSMenu extends org.lime.JavaScript.InstanceJS {
