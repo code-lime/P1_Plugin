@@ -16,6 +16,7 @@ import org.lime.system;
 
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class JavaScript {
@@ -28,6 +29,17 @@ public class JavaScript {
     }
 
     public static class JSMenu extends org.lime.JavaScript.InstanceJS {
+        private static final ConcurrentHashMap<String, Object> staticMemory = new ConcurrentHashMap<>();
+        public Object memoryGetOrAdd(String key, system.Func0<Object> def) {
+            return staticMemory.computeIfAbsent(key, k -> def.invoke());
+        }
+        public Object memoryGet(String key) {
+            return staticMemory.get(key);
+        }
+        public void memorySet(String key, Object value) {
+            staticMemory.put(key, value);
+        }
+
         public boolean has_permission(String uuid, String perm) {
             Player player = Bukkit.getPlayer(UUID.fromString(uuid));
             return player != null && player.hasPermission(perm);
