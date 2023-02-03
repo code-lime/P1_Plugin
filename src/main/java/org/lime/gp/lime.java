@@ -152,6 +152,7 @@ public class lime extends core {
     public static org.lime.autodownload autodownload;
     public static Models models;
 
+    @Override protected org.lime.JavaScript js() { return JavaScript.js; }
     @Override protected void init() {
         Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.NATURAL_REGENERATION, false));
         MainWorld = (CraftWorld)Bukkit.getWorlds().get(0);
