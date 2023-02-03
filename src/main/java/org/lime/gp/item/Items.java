@@ -112,6 +112,27 @@ public class Items implements Listener {
     }
 
     public static void init() {
+        
+        Items.addHardcodeItem("tmp.backpack", system.json.object()
+            .add("item", Material.STONE.name())
+            .add("id", -50)
+            .addObject("settings", v -> v
+                .add("equip", "CHEST")
+                .addObject("backpack", _v -> _v
+                    .addObject("NONE", __v -> __v
+                        .add("id", 0)
+                        .add("type", Material.FURNACE.name())
+                        .add("offset", "0 0 0")
+                    )
+                    .addObject("SHIFT", __v -> __v
+                        .add("id", 0)
+                        .add("type", Material.BIRCH_DOOR.name())
+                        .add("offset", "0 0 0")
+                    )
+                )
+            )
+            .build());
+
         lime.logOP("Feather max stack size: " + new ItemStack(Material.FEATHER).getMaxStackSize());
 
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()), (player, _creators) -> {

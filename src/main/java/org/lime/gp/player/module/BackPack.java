@@ -14,44 +14,60 @@ import org.lime.display.Displays;
 import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
 import org.lime.display.Models.Model;
+import org.lime.gp.lime;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BackPackSetting;
+
+import net.minecraft.core.Vector3f;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.Marker;
+import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.world.item.ItemStack;
 
 public class BackPack {
     public static org.lime.core.element create() {
         return org.lime.core.element.create(BackPack.class)
                 .withInit(BackPack::init);
     }
-    
+    private static final BackPackManager manager = new BackPackManager();
+    private static final Model model = lime.models.builder(EntityTypes.ARMOR_STAND)
+        .nbt(() -> {
+            EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
+            stand.setNoBasePlate(true);
+            stand.setSmall(true);
+            stand.setInvisible(true);
+            stand.setInvulnerable(true);
+            stand.setMarker(true);
+            stand.setHeadPose(new Vector3f(0, 0, 0));
+            return stand;
+        })
+        .addEquipment(EnumItemSlot.HEAD, net.minecraft.world.item.ItemStack.EMPTY)
+        .build();
     public static void init() {
-        Displays.initDisplay(new BackPackManager());
+        Displays.initDisplay(manager);
     }
 
-    private static class BackPackDisplay extends ObjectDisplay<Model, Marker> {
+    private static class BackPackDisplay extends ObjectDisplay<ItemStack, Marker> {
         @Override public double getDistance() { return 15; }
         @Override public Location location() { return player.getLocation(); }
 
         private final Player player;
 
-        public Model data;
-        public Models.Model.ChildDisplay<Model> model;
+        public ItemStack data;
+        public Models.Model.ChildDisplay<ItemStack> model;
     
-        protected BackPackDisplay(Player player, Model data) {
+        protected BackPackDisplay(Player player, ItemStack data) {
             super(player.getLocation());
             this.player = player;
             this.data = data;
-            this.model = preInitDisplay(data.display(this));
+            this.model = preInitDisplay(BackPack.model.display(this));
+            this.model.setEquipment(EnumItemSlot.HEAD, data);
             postInit();
-            Displays.addPassengerID(entityID, this.model.entityID);
+            Displays.addPassengerID(player.getEntityId(), this.model.entityID);
         }
-        @Override public void update(Model data, double delta) {
-            if (this.data != data) {
-                Displays.addPassengerID(entityID, this.model.entityID);
-                Displays.removePassengerID(this.model.entityID);
-                this.data = data;
-            }
+        @Override public void update(ItemStack data, double delta) {
+            if (this.data != data) this.model.setEquipment(EnumItemSlot.HEAD, this.data = data);
             super.update(data, delta);
             this.invokeAll(this::sendData);
         }
@@ -60,9 +76,9 @@ public class BackPack {
             return new Marker(EntityTypes.MARKER, ((CraftWorld)location.getWorld()).getHandle());
         }
     }
-    private static class BackPackManager extends DisplayManager<Player, Model, BackPackDisplay> {
+    private static class BackPackManager extends DisplayManager<Player, ItemStack, BackPackDisplay> {
         @Override public boolean isFast() { return true; }
-        @Override public Map<Player, Model> getData() {
+        @Override public Map<Player, ItemStack> getData() {
             return Bukkit.getOnlinePlayers()
                 .stream()
                 .flatMap(player -> {
@@ -74,6 +90,6 @@ public class BackPack {
                 })
                 .collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1));
         }
-        @Override public BackPackDisplay create(Player player, Model data) { return new BackPackDisplay(player, data); }
+        @Override public BackPackDisplay create(Player player, ItemStack data) { return new BackPackDisplay(player, data); }
     }
 }
