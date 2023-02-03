@@ -20,11 +20,11 @@ import java.util.stream.Collectors;
 
 public class JavaScript {
     public static org.lime.JavaScript js;
-    public static core.element create() {
+    public static void createAdd() {
+        lime._plugin.add(core.element.create(JavaScript.class).addText("generic.js", v -> v.withInvoke(t -> {}).withDefault("")));
+        
         js = (org.lime.JavaScript) lime._plugin.add(org.lime.JavaScript.create()).element().map(v -> v.instance).orElseThrow();
         js.instances.put("jsmenu", new JSMenu());
-        return core.element.create(JavaScript.class)
-            .addText("generic.js", v -> v.withInvoke(t -> {}).withDefault(""));
     }
 
     public static class JSMenu extends org.lime.JavaScript.InstanceJS {

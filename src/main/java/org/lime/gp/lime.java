@@ -163,7 +163,7 @@ public class lime extends core {
         autodownload = (org.lime.autodownload) add(org.lime.autodownload.create()).element().map(v -> v.instance).orElseThrow();
         add(ThreadPool.create());
         add(Methods.create());
-        add(JavaScript.create());
+        JavaScript.createAdd();
         models = (Models) add(Models.create(JavaScript.js)).element().map(v -> v.instance).orElseThrow();
         library("../libs/mp3spi-1.9.13.jar");
         //library("gdx-1.11.1-SNAPSHOT.jar", "gdx-jnigen-loader-2.3.1.jar", "gdx-bullet-1.11.1-SNAPSHOT.jar");
