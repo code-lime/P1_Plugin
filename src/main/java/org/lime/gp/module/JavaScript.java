@@ -86,6 +86,9 @@ public class JavaScript {
             this.inits.add(lime.repeat(func, sec));
         }
 
+        public String toJsonString(Object obj) {
+            return system.json.by(obj).build().toString();
+        }
         public void once(system.Action0 func, double sec) {
             system.Toast1<BukkitTask> bukkitTask = system.toast(null);
             bukkitTask.val0 = lime.once(func, sec);
