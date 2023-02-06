@@ -77,7 +77,9 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
     public ItemSetting(Items.ItemCreator creator) { this._creator = creator; }
     public ItemSetting(Items.ItemCreator creator, T json) { this(creator); }
     public static ItemSetting<?> parse(String key, Items.ItemCreator creator, JsonElement json) {
-        ItemSetting<?> setting = settings.get(key).invoke(creator, json);
+        system.Func2<Items.ItemCreator, JsonElement, ItemSetting<?>> func = settings.get(key);
+        if (func == null) throw new IllegalArgumentException("Item setting '"+key+"' not founded!");
+        ItemSetting<?> setting = func.invoke(creator, json);
         setting._name = key;
         return setting;
     }
