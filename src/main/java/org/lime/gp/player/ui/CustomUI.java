@@ -34,10 +34,12 @@ public class CustomUI implements Listener {
         return core.element.create(CustomUI.class)
                 .withInit(CustomUI::init)
                 .withInstance()
+                .addEmpty("rp-up", CustomUI::up)
                 .addEmpty("rp-send", CustomUI::sendAll)
                 .addEmpty("rp-share", CustomUI::share)
                 .<JsonObject>addConfig("resourcepack", v -> v.withInvoke(CustomUI::config).withDefault(new JsonObject()))
-                .<JsonElement>addConfig("share", v -> v.withInvoke(CustomUI::configShare).withDefault(JsonNull.INSTANCE));
+                .<JsonElement>addConfig("share", v -> v.withInvoke(CustomUI::configShare).withDefault(JsonNull.INSTANCE))
+                .<JsonElement>addConfig("unique_rp", v -> v.withInvoke(CustomUI::configUp).withDefault(JsonNull.INSTANCE));
     }
 
     private static class CustomBossBattle extends BossBattle {
@@ -196,6 +198,7 @@ public class CustomUI implements Listener {
             try {
                 URIBuilder _url = new URIBuilder(url);
                 _url.addParameter("v", version);
+                UP_POSTFIX.ifPresent(unique -> _url.addParameter("unique", unique));
                 return _url.toString();
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
@@ -328,8 +331,17 @@ public class CustomUI implements Listener {
             SHARE = Share.parse(_json.getAsJsonObject());
         }
     }
+    private static Optional<String> UP_POSTFIX = Optional.empty();
+    public static void configUp(JsonElement _json) {
+        UP_POSTFIX = _json.isJsonNull() ? Optional.empty() : Optional.of(_json.getAsString());
+    }
     public static void sendAll() {
         Bukkit.getOnlinePlayers().forEach(RP::send);
+    }
+    public static void up() {
+        String unique = UUID.randomUUID().toString();
+        UP_POSTFIX = Optional.of(unique);
+        lime.writeAllConfig("unique_rp", unique);
     }
     public static void share() {
         if (SHARE == null) {
