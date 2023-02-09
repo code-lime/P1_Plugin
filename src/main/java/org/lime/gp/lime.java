@@ -159,7 +159,8 @@ public class lime extends core {
         NetherWorld = (CraftWorld)Bukkit.getWorld("world_nether");
         EndWorld = (CraftWorld)Bukkit.getWorld("world_the_end");
         Bukkit.getWorlds().add(LoginWorld = (CraftWorld)new WorldCreator("world_login").type(WorldType.FLAT).createWorld());
-
+        
+        add(branch.create());
         autodownload = (org.lime.autodownload) add(org.lime.autodownload.create()).element().map(v -> v.instance).orElseThrow();
         add(ThreadPool.create());
         add(Methods.create());
