@@ -43,6 +43,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.lime.core;
+import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RadioInstance;
 import org.lime.gp.chat.Apply;
@@ -311,21 +312,28 @@ public class Voice implements VoicechatPlugin {
             ItemStack item = player.getInventory().getItemInMainHand();
             byte[] bytes = packet.getOpusEncodedData();
             Cooldown.setCooldown(uuid, "voice.active", 0.25);
+            system.Toast1<Boolean> use = system.toast(false);
             Items.getOptional(RadioSetting.class, item)
                     .flatMap(v -> RadioData.getData(item))
                     .filter(v -> v.enable)
                     .filter(v -> v.state.isInput)
-                    .ifPresent(data -> Radio.playRadio(Radio.SenderInfo.player(uuid), player.getLocation(), data.total_distance, data.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.input", uuid), bytes, data.volume)));
+                    .ifPresent(data -> {
+                        use.val0 = true;
+                        Radio.playRadio(Radio.SenderInfo.player(uuid), player.getLocation(), data.total_distance, data.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.input", uuid), bytes, data.volume));
+                    });
             Location _location = player.getLocation();
             TimeoutData.values(RadioInstance.RadioVoiceData.class)
                     .filter(v -> v.state.isInput)
                     .filter(v -> v.isDistance(_location, 3))
                     .filter(v -> !TimeoutData.has(v.unique, Radio.RadioLockTimeout.class))
-                    .forEach(v -> Radio.playRadio(Radio.SenderInfo.player(uuid), v.location, v.total_distance, v.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.block.input", uuid, v.unique), bytes, v.volume)));
+                    .forEach(v -> {
+                        Radio.playRadio(Radio.SenderInfo.player(uuid), v.location, v.total_distance, v.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.block.input", uuid, v.unique), bytes, v.volume));
+                    });
 
             Items.getOptional(MegaPhoneSetting.class, item)
                     .flatMap(v -> MegaPhoneData.getData(item))
                     .ifPresent(data -> {
+                        use.val0 = true;
                         event.cancel();
 
                         Location location = player.getLocation();
@@ -339,6 +347,15 @@ public class Voice implements VoicechatPlugin {
                                 false
                         );
                     });
+            
+            if (use.val0 && !Cooldown.hasOrSetCooldown(uuid, "voice.use.lock", 1)) {
+                lime.invokeSync(() -> {
+                    ItemStack syncItem = player.getInventory().getItemInMainHand();
+                    if (!syncItem.isSimilar(item)) return;
+                    Items.hurt(syncItem, player, 1);
+                    player.getInventory().setItemInMainHand(syncItem);
+                });
+            }
         } catch (Throwable e) {
             lime.logStackTrace(e);
         }
