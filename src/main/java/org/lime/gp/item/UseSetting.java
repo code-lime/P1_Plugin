@@ -66,7 +66,7 @@ public class UseSetting implements Listener {
                                         Cooldown.setCooldown(player.getUniqueId(), "use_item", 1);
                                         lime.onceTicks(() -> {
                                             if (!item.isSimilar(player.getInventory().getItemInMainHand())) return;
-                                            if (!isDistance(l1, player.getLocation(), 0.1) || !isDistance(l2, target.getLocation(), 0.1)) return;
+                                            if (!isDistance(l1, player.getLocation(), 0.25) || !isDistance(l2, target.getLocation(), 0.25)) return;
                                             useTick(player, target, arm, _ticks - 1);
                                         }, 1);
                                         return true;
