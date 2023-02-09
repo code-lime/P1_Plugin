@@ -805,6 +805,11 @@ public class Items implements Listener {
     public static void hurt(net.minecraft.world.item.ItemStack item, EntityPlayer player, int amount) {
         item.hurtAndBreak(amount, player, e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
     }
+    public static void hurt(ItemStack item, Player player, int amount) {
+        net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
+        hurt(nms, ((CraftPlayer)player).getHandle(), amount);
+        ExecuteItem.replace(item, CraftItemStack.asBukkitCopy(nms));
+    }
 
     @EventHandler public static void on(ItemStackSizeEvent e) {
         //lime.logOP("Item '"+e.getType()+"' has max size is " + e.getMaxItemStack() + " of CMD '" + e.getCustomModelData() + "'");
