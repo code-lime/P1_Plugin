@@ -23,6 +23,7 @@ import net.minecraft.world.effect.MobEffectList;
 import net.minecraft.world.entity.EntityAttackSweepEvent;
 import net.minecraft.world.entity.EntityEquipmentSlotEvent;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemMaxDamageEvent;
 import net.minecraft.world.item.ItemStackSizeEvent;
@@ -800,6 +801,9 @@ public class Items implements Listener {
 
     public static int getMaxDamage(ItemStack item) {
         return CraftItemStack.asNMSCopy(item).getMaxDamage();
+    }
+    public static void hurt(net.minecraft.world.item.ItemStack item, EntityPlayer player, int amount) {
+        item.hurtAndBreak(amount, player, e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
     }
 
     @EventHandler public static void on(ItemStackSizeEvent e) {
