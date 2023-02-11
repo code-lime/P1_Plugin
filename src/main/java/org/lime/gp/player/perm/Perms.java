@@ -189,10 +189,10 @@ public class Perms implements Listener {
             work.map(grantData.worksCans::get).ifPresent(canData::add);
         });
         row.ifPresent(user -> {
-            int userID = user.id;
+            UUID _uuid = user.uuid;
             int workID = work.orElse(0);
             Tables.USERCRAFTS_TABLE.forEach(craftRow -> {
-                if (craftRow.userID != userID) return;
+                if (craftRow.uuid != _uuid) return;
                 if (craftRow.craftWorks != null && !craftRow.craftWorks.contains(workID)) return;
                 Integer useCount = userCraftUsages.get(craftRow.id);
                 if (useCount == null) useCount = craftRow.useCount;
@@ -226,9 +226,9 @@ public class Perms implements Listener {
         if (uuid == null) return;
         system.Toast1<Boolean> use = system.toast(false);
         data.work().ifPresent(work -> Rows.UserRow.getBy(uuid).ifPresent(user -> {
-            int userID = user.id;
+            UUID _uuid = user.uuid;
             Tables.USERCRAFTS_TABLE.forEach(craftRow -> {
-                if (use.val0 || craftRow.userID != userID || craftRow.useCount == null) return;
+                if (use.val0 || craftRow.uuid != _uuid || craftRow.useCount == null) return;
                 if (craftRow.craftWorks != null && !craftRow.craftWorks.contains(work)) return;
                 if (!Crafts.canDataByRegex(craftRow.craftRegex).isCanCraft(recipePath)) return;
                 userCraftUsages.compute(craftRow.id, (id, usage) -> (usage == null ? craftRow.useCount : usage) - 1);

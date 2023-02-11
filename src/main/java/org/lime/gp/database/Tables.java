@@ -62,8 +62,8 @@ public class Tables {
     public static final KeyedTable<Rows.UserFlagsRow> USERFLAGS_TABLE = KeyedTable.of("user_flags", Rows.UserFlagsRow::new).where("user_flags.backpack_id > 0").keyed("id", v -> v.id + "").other("uuid", v -> v.uuid.toString()).build();
     public static final KeyedTable<Rows.UserCraftsRow> USERCRAFTS_TABLE = KeyedTable.of("user_crafts", Rows.UserCraftsRow::new)
             .keyed("id", v -> v.id + "")
-            .event(KeyedTable.Event.Removed, row -> Rows.UserRow.getBy(row.userID).ifPresent(RecipesBook::editRow))
-            .event(KeyedTable.Event.Updated, row -> Rows.UserRow.getBy(row.userID).ifPresent(RecipesBook::editRow))
+            .event(KeyedTable.Event.Removed, row -> Rows.UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
+            .event(KeyedTable.Event.Updated, row -> Rows.UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
             .event(KeyedTable.Event.Removed, Perms::onUserCraftUpdate)
             .event(KeyedTable.Event.Updated, Perms::onUserCraftUpdate)
             .build();

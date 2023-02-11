@@ -671,7 +671,7 @@ public class Rows {
     }
     public static class UserCraftsRow extends DataBaseRow {
         public int id;
-        public int userID;
+        public UUID uuid;
         public ImmutableSet<Integer> craftWorks;
         public String craftRegex;
         public Integer useCount;
@@ -679,7 +679,7 @@ public class Rows {
         protected UserCraftsRow(ResultSet set) {
             super(set);
             id = MySql.readObject(set, "id", Integer.class);
-            userID = MySql.readObject(set, "user_id", Integer.class);
+            uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));
             craftWorks = Optional.ofNullable(MySql.readObject(set, "craft_works", String.class))
                     .map(v -> Arrays.stream(v.split(",")).map(ExtMethods::parseInt).flatMap(Optional::stream).collect(ImmutableSet.toImmutableSet()))
                     .orElse(null);
@@ -689,7 +689,7 @@ public class Rows {
         @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
             map = super.appendToReplace(map);
             map.put("id", String.valueOf(id));
-            map.put("user_id", String.valueOf(userID));
+            map.put("uuid", uuid.toString());
             map.put("craft_works", craftWorks == null ? null : craftWorks.stream().map(Object::toString).collect(Collectors.joining(",")));
             map.put("craft_regex", craftRegex);
             map.put("use_count", String.valueOf(useCount));
