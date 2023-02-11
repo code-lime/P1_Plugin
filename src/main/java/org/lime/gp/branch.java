@@ -51,11 +51,12 @@ public class branch {
             .addCommand("branch.swap", v -> v
                 .withCheck(CommandSender::isOp)
                 .withTab((sender, args) -> args.length == 1 
-                    ? Collections.emptyList()
-                    : BranchData.getBranchKeys())
+                    ? BranchData.getBranchKeys()
+                    : Collections.emptyList())
                 .withExecutor((sender, args) -> {
                     if (args.length != 1) return false;
                     BranchData.getBranchList().get(args[0]).applyBranch();
+                    sender.sendMessage("Branch swap to '"+args[0]+"'");
                     return true;
                 })
             );
