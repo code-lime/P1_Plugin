@@ -197,7 +197,7 @@ public class CustomUI implements Listener {
         private static String createUrl(String url, String version) {
             try {
                 URIBuilder _url = new URIBuilder(url);
-                _url.addParameter("v", version);
+                //_url.addParameter("v", version);
                 UP_POSTFIX.ifPresent(unique -> _url.addParameter("unique", unique));
                 return _url.toString();
             } catch (Exception e) {
