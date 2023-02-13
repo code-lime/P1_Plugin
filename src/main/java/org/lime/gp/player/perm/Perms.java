@@ -192,7 +192,7 @@ public class Perms implements Listener {
             UUID _uuid = user.uuid;
             int workID = work.orElse(0);
             Tables.USERCRAFTS_TABLE.forEach(craftRow -> {
-                if (craftRow.uuid != _uuid) return;
+                if (!craftRow.uuid.equals(_uuid)) return;
                 if (craftRow.craftWorks != null && !craftRow.craftWorks.contains(workID)) return;
                 Integer useCount = userCraftUsages.get(craftRow.id);
                 if (useCount == null) useCount = craftRow.useCount;
@@ -228,7 +228,7 @@ public class Perms implements Listener {
         data.work().ifPresent(work -> Rows.UserRow.getBy(uuid).ifPresent(user -> {
             UUID _uuid = user.uuid;
             Tables.USERCRAFTS_TABLE.forEach(craftRow -> {
-                if (use.val0 || craftRow.uuid != _uuid || craftRow.useCount == null) return;
+                if (use.val0 || !craftRow.uuid.equals(_uuid) || craftRow.useCount == null) return;
                 if (craftRow.craftWorks != null && !craftRow.craftWorks.contains(work)) return;
                 if (!Crafts.canDataByRegex(craftRow.craftRegex).isCanCraft(recipePath)) return;
                 userCraftUsages.compute(craftRow.id, (id, usage) -> (usage == null ? craftRow.useCount : usage) - 1);
