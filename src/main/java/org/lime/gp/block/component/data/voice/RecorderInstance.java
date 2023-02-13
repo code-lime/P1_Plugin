@@ -238,7 +238,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         syncDisplayVariable();
     }
 
-    private static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000.0f, 16, 1, 2, 48000.0f, false);
+    public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000.0f, 16, 1, 2, 48000.0f, false);
 
     public enum AudioType {
         MP3,
