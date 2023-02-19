@@ -79,6 +79,7 @@ public class Tables {
             .event(KeyedTable.Event.Updated, PredonateWhitelist::onUpdate)
             .build();
     public static final KeyedTable<Rows.PreDonateItemsRow> PREDONATE_ITEMS_TABLE = KeyedTable.of("predonate_items", Rows.PreDonateItemsRow::new).where("predonate_items.amount > 0").keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<Rows.SmsPresetRow> SMSPRESET_TABLE = KeyedTable.of("sms_preset", Rows.SmsPresetRow::new).keyed("id", v -> v.id + "").build();
 
     public static abstract class ITable<V extends Rows.DataBaseRow> {
         public abstract List<V> getRows();

@@ -2,6 +2,7 @@ package org.lime.gp.chat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +43,7 @@ public class ChatMessages implements Listener {
                         .withCheck(_v -> _v instanceof Player)
                         .withTab((sender, args) -> {
                             Player player = (Player) sender;
-                            if (args.length > 1) return Collections.singletonList("[cообщение]");
+                            if (args.length > 1) return getSmsPresets(args[0]);
                             List<String> list = Rows.FriendRow.getFriendsByUUID(player.getUniqueId()).stream().map(f -> f.friendName).filter(Objects::nonNull).collect(Collectors.toList());
                             list.add("101");
                             list.add("103");
@@ -97,6 +98,16 @@ public class ChatMessages implements Listener {
                             return true;
                         })
                 );
+    }
+
+    private static Collection<String> getSmsPresets(String phone) {
+        List<String> presets = new ArrayList<>();
+        presets.add("[cообщение]");
+        Tables.SMSPRESET_TABLE.forEach(row -> {
+            if (!phone.equals(row.phone)) return;
+            presets.add(row.text);
+        });
+        return presets;
     }
 
     public static void init() {
