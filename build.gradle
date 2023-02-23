@@ -36,13 +36,13 @@ dependencies {
             files(libPath("GSit-1.1.0.jar")),
             files(libPath("LimeCoreProtect-1.0.jar")),
             files(libPath("ProtocolLib.jar")),
-            files(libPath("DiscordSRV-Build-1.26.0.jar")),
+            files(libPath("DiscordSRV-Build-1.26.1.jar")),
             files(libPath("voicechat-bukkit-1.18.2-2.3.1.jar")),
             files(libPath("byte-buddy-1.11.18.jar")),
             files(libPath("byte-buddy-agent-1.11.18.jar")),
             files(libPath("Physics-1.11.0.jar")),
             files(libPath("ode4j-core-0.4.1.jar")),
-            files(libPath("MyLinker-5_1.jar")),
+            files(libPath("MyLinker-6.1.jar")),
             files(libPath("mp3spi-1.9.13.jar"))
     )
 }
