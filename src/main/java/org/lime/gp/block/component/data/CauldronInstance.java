@@ -263,8 +263,8 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     .stream()
                     .map(kv -> Items.getItemCreator(kv.val0).map(v -> v.createItem(kv.val1)))
                     .flatMap(Optional::stream)
-                    /*.map(Items::byMaxStack)
-                    .flatMap(Collection::stream)*/;
+                    .map(Items::byMaxStack)
+                    .flatMap(Collection::stream);
         }
 
         private void dropNotRecipeReset(Location center) {
