@@ -58,9 +58,8 @@ public class PacketListener {
         if (section.val0 == null || shorts.isEmpty()) return;
         long chunkID = section.val0.chunk().longKey;
         Player player = event.getPlayer();
-        TimeoutData.values(CustomTileMetadata.ChunkBlockTimeout.class)
+        TimeoutData.values(new CustomTileMetadata.ChunkGroup(player.getWorld().getUID(), chunkID), CustomTileMetadata.ChunkBlockTimeout.class)
                 .forEach(timeout -> {
-                    if (timeout.chunk != chunkID) return;
                     short posID = SectionPosition.sectionRelativePos(timeout.pos);
                     if (shorts.remove(posID) != null) return;
                     timeout.sync(player);
@@ -71,8 +70,7 @@ public class PacketListener {
         long chunk = ChunkCoordIntPair.asLong(packet.getX(), packet.getZ());
         Player player = event.getPlayer();
         UUID worldUUID = player.getWorld().getUID();
-        TimeoutData.values(CustomTileMetadata.ChunkBlockTimeout.class)
-                .filter(v -> v.chunk == chunk && worldUUID.equals(v.worldUUID))
+        TimeoutData.values(new CustomTileMetadata.ChunkGroup(worldUUID, chunk), CustomTileMetadata.ChunkBlockTimeout.class)
                 .forEach(block -> block.sync(player));
     }
     public static void onPacket(PacketPlayOutTileEntityData packet, PacketEvent event) {

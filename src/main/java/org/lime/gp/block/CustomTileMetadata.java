@@ -178,17 +178,20 @@ public class CustomTileMetadata extends TileMetadata {
     }
 
     private boolean isFirst = true;
-    public static class ChunkBlockTimeout extends TimeoutData.ITimeout {
+    public record ChunkGroup(UUID world, long chunk) implements TimeoutData.TGroup {
+        public ChunkGroup(UUID world, BlockPosition pos) {
+            this(world, ChunkCoordIntPair.asLong(pos));
+        }
+    }
+    public static class ChunkBlockTimeout extends TimeoutData.IGroupTimeout {
         public final UUID worldUUID;
         public final BlockPosition pos;
-        public final long chunk;
         public final CustomTileMetadata last_metadata;
         private final Position position;
 
         public ChunkBlockTimeout(CustomTileMetadata last_metadata, Position position) {
             this.worldUUID = position.world.getUID();
             this.pos = new BlockPosition(position.x, position.y, position.z);
-            this.chunk = ChunkCoordIntPair.asLong(this.pos);
             this.position = position;
             this.last_metadata = last_metadata;
         }
@@ -220,8 +223,7 @@ public class CustomTileMetadata extends TileMetadata {
                         });
                     });
                     ChunkBlockTimeout timeout = new ChunkBlockTimeout(this, position());
-                    //boolean debug = this.position().equals(DEBUG_BLOCK);
-                    boolean firstSync = TimeoutData.put(key.uuid(), ChunkBlockTimeout.class, timeout);
+                    boolean firstSync = TimeoutData.put(new ChunkGroup(timeout.worldUUID, ChunkCoordIntPair.asLong(timeout.pos)), key.uuid(), ChunkBlockTimeout.class, timeout);
                     //if (debug) lime.logOP("Tick debug block!");
                     boolean firstTick = isFirst;
                     if (firstTick) isFirst = false;
@@ -238,8 +240,11 @@ public class CustomTileMetadata extends TileMetadata {
     }
     @Override public void onRemove(TileEntitySkullEventRemove event) {
         list(Removeable.class).forEach(v -> v.onRemove(this, event));
-        CacheBlockDisplay.resetCacheBlock(event.getSkull());
-        TimeoutData.remove(key.uuid(), ChunkBlockTimeout.class);
+        TileEntityLimeSkull skull = event.getSkull();
+        BlockPosition pos = skull.getBlockPos();
+        UUID worldUUID = skull.getLevel().getWorld().getUID();
+        CacheBlockDisplay.resetCacheBlock(skull);
+        TimeoutData.remove(new ChunkGroup(worldUUID, ChunkCoordIntPair.asLong(pos)), key.uuid(), ChunkBlockTimeout.class);
     }
 
     private final Map<Integer, Integer> interactLocker = new HashMap<>();

@@ -17,55 +17,135 @@ public class TimeoutData {
         lime.repeatTicks(TimeoutData::update, 1);
     }
     public static void update() {
-        timeouts.values().forEach(map -> map.values().removeIf(ITimeout::isRemove));
+        groupTimeouts.values().forEach(groups -> groups.values().forEach(map -> map.values().removeIf(IRemoveable::isRemove)));
     }
 
-    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<UUID, ? extends ITimeout>> timeouts = new ConcurrentHashMap<>();
-    public static abstract class ITimeout {
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<TGroup, ConcurrentHashMap<UUID, ? extends IRemoveable>>> groupTimeouts = new ConcurrentHashMap<>();
+    public static abstract class IRemoveable {
         private int ticks;
-        public ITimeout(int ticks) { this.ticks = ticks; }
-        public ITimeout() { this(20); }
+        public IRemoveable(int ticks) { this.ticks = ticks; }
 
         private boolean isRemove() {
             ticks--;
             return ticks <= 0;
         }
     }
+    public static abstract class ITimeout extends IRemoveable {
+        public ITimeout(int ticks) { super(ticks); }
+        public ITimeout() { super(20); }
+    }
+    public static abstract class IGroupTimeout extends IRemoveable {
+        public IGroupTimeout(int ticks) { super(ticks); }
+        public IGroupTimeout() { super(20); }
+    }
+    
+    private static final class SingleGroupKey implements TGroup {
+        private SingleGroupKey() {}
 
+        public static final TGroup INSTANCE = new SingleGroupKey();
+
+        @Override public boolean equals(Object obj) { return obj instanceof SingleGroupKey; }
+        @Override public int hashCode() { return 0; }
+    }
+    
+    public static interface TGroup {
+
+    }
     
     @SuppressWarnings("unchecked")
-    private static  <T extends ITimeout>ConcurrentHashMap<UUID, T> ofClass(Class<T> tClass) {
-        return (ConcurrentHashMap<UUID, T>)timeouts.computeIfAbsent(tClass, v -> new ConcurrentHashMap<UUID, T>());
+    private static <T extends IRemoveable>ConcurrentHashMap<UUID, T> ofClass(TGroup group, Class<T> tClass) {
+        return (ConcurrentHashMap<UUID, T>)groupTimeouts
+            .computeIfAbsent(tClass, v -> new ConcurrentHashMap<TGroup, ConcurrentHashMap<UUID, ? extends IRemoveable>>())
+            .computeIfAbsent(group, v -> new ConcurrentHashMap<UUID, T>());
     }
-
-    public static <T extends ITimeout>boolean put(UUID uuid, Class<T> tClass, T timeout) {
-        ConcurrentHashMap<UUID, T> timeouts = ofClass(tClass);
+    
+    @SuppressWarnings("unchecked")
+    public static <T extends IRemoveable> Stream<T> allValues(Class<T> tClass) {
+        ConcurrentHashMap<TGroup, ConcurrentHashMap<UUID, ? extends IRemoveable>> data = groupTimeouts.get(tClass);
+        if (data == null) return Stream.empty();
+        return data.values().stream().flatMap(v -> v.values().stream()).map(v -> (T)v);
+    }
+    
+    private static <T extends IRemoveable>boolean _put(TGroup group, UUID uuid, Class<T> tClass, T timeout) {
+        ConcurrentHashMap<UUID, T> timeouts = ofClass(group, tClass);
         return timeout == null
                 ? timeouts.remove(uuid) != null
                 : timeouts.put(uuid, timeout) == null;
     }
-    public static <T extends ITimeout>Optional<T> get(UUID uuid, Class<T> tClass) {
-        return Optional.ofNullable(ofClass(tClass).get(uuid));
+    private static <T extends IRemoveable>Optional<T> _get(TGroup group, UUID uuid, Class<T> tClass) {
+        return Optional.ofNullable(ofClass(group, tClass).get(uuid));
     }
-    public static <T extends ITimeout>boolean has(UUID uuid, Class<T> tClass) {
-        ConcurrentHashMap<UUID, T> map = ofClass(tClass);
+    private static <T extends IRemoveable>boolean _has(TGroup group, UUID uuid, Class<T> tClass) {
+        ConcurrentHashMap<UUID, T> map = ofClass(group, tClass);
         return map != null && map.containsKey(uuid);
     }
+    private static void _remove(TGroup group, UUID uuid, Class<? extends IRemoveable> tClass) {
+        ofClass(group, tClass).remove(uuid);
+    }
+    private static <T extends IRemoveable> Map<UUID, T> _map(TGroup group, Class<T> tClass) {
+        return _stream(group, tClass).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+    private static <T extends IRemoveable> Stream<Map.Entry<UUID, T>> _stream(TGroup group, Class<T> tClass) {
+        return ofClass(group, tClass).entrySet().stream();
+    }
+    private static <T extends IRemoveable> Stream<UUID> _keys(TGroup group, Class<T> tClass) {
+        return ofClass(group, tClass).keySet().stream();
+    }
+    private static <T extends IRemoveable> Stream<T> _values(TGroup group, Class<T> tClass) {
+        return ofClass(group, tClass).values().stream();
+    }
+
+    public static <T extends IGroupTimeout>boolean put(TGroup group, UUID uuid, Class<T> tClass, T timeout) {
+        return _put(group, uuid, tClass, timeout);
+    }
+    public static <T extends IGroupTimeout>Optional<T> get(TGroup group, UUID uuid, Class<T> tClass) {
+        return _get(group, uuid, tClass);
+    }
+    public static <T extends IGroupTimeout>boolean has(TGroup group, UUID uuid, Class<T> tClass) {
+        return _has(group, uuid, tClass);
+    }
+    public static void remove(TGroup group, UUID uuid, Class<? extends IGroupTimeout> tClass) {
+        _remove(group, uuid, tClass);
+    }
+    public static <T extends IGroupTimeout> Map<UUID, T> map(TGroup group, Class<T> tClass) {
+        return _map(group, tClass);
+    }
+    public static <T extends IGroupTimeout> Stream<Map.Entry<UUID, T>> stream(TGroup group, Class<T> tClass) {
+        return _stream(group, tClass);
+    }
+    public static <T extends IGroupTimeout> Stream<UUID> keys(TGroup group, Class<T> tClass) {
+        return _keys(group, tClass);
+    }
+    public static <T extends IGroupTimeout> Stream<T> values(TGroup group, Class<T> tClass) {
+        return _values(group, tClass);
+    }
+
+
+    public static <T extends ITimeout>boolean put(UUID uuid, Class<T> tClass, T timeout) {
+        return _put(SingleGroupKey.INSTANCE, uuid, tClass, timeout);
+    }
+    public static <T extends ITimeout>Optional<T> get(UUID uuid, Class<T> tClass) {
+        return _get(SingleGroupKey.INSTANCE, uuid, tClass);
+    }
+    public static <T extends ITimeout>boolean has(UUID uuid, Class<T> tClass) {
+        return _has(SingleGroupKey.INSTANCE, uuid, tClass);
+    }
     public static void remove(UUID uuid, Class<? extends ITimeout> tClass) {
-        ofClass(tClass).remove(uuid);
+        _remove(SingleGroupKey.INSTANCE, uuid, tClass);
     }
     public static <T extends ITimeout> Map<UUID, T> map(Class<T> tClass) {
-        return stream(tClass).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return _map(SingleGroupKey.INSTANCE, tClass);
     }
     public static <T extends ITimeout> Stream<Map.Entry<UUID, T>> stream(Class<T> tClass) {
-        return ofClass(tClass).entrySet().stream();
+        return _stream(SingleGroupKey.INSTANCE, tClass);
     }
     public static <T extends ITimeout> Stream<UUID> keys(Class<T> tClass) {
-        return ofClass(tClass).keySet().stream();
+        return _keys(SingleGroupKey.INSTANCE, tClass);
     }
     public static <T extends ITimeout> Stream<T> values(Class<T> tClass) {
-        return ofClass(tClass).values().stream();
+        return _values(SingleGroupKey.INSTANCE, tClass);
     }
+
     /*
     public static void update() {
         timeouts.values().removeIf(ITimeout::isRemove);
