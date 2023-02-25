@@ -204,20 +204,20 @@ public class Voice implements VoicechatPlugin {
         });
     }
 
-    public static int MAX_NOICE = 2500;
-    public static int MIN_NOICE = 0;
-    public static float LERP_NOICE = 0.7f;
+    public static int MAX_NOISE = 2500;
+    public static int MIN_NOISE = 0;
+    public static float LERP_NOISE = 0.7f;
 
     public static void init() {
         AnyEvent.addEvent("opus.type", AnyEvent.type.owner_console, v -> v.createParam(OpusEncoderMode.values()), (p,v) -> {
             MODE = v;
             OPUS.clear();
         });
-        AnyEvent.addEvent("voice.noice", AnyEvent.type.owner_console, v -> v.createParam("min","max","lerp").createParam(Integer::parseInt, "[value]"), (p,type,value) -> {
+        AnyEvent.addEvent("voice.noise", AnyEvent.type.owner_console, v -> v.createParam("min","max","lerp").createParam(Integer::parseInt, "[value]"), (p,type,value) -> {
             switch (type) {
-                case "max": MAX_NOICE = value; break;
-                case "min": MIN_NOICE = value; break;
-                case "lerp": LERP_NOICE = value / 100.0f; break;
+                case "max": MAX_NOISE = value; break;
+                case "min": MIN_NOISE = value; break;
+                case "lerp": LERP_NOISE = value / 100.0f; break;
             }
         });
 
@@ -263,7 +263,7 @@ public class Voice implements VoicechatPlugin {
         return (int) (a + (b - a) * value);
     }
     public static byte[] modifyVolume(Radio.SenderInfo info, UUID id, byte[] audioSamples, int volume, boolean noise) {
-        if (volume == 100) return audioSamples;
+        if (volume == 100 && !noise) return audioSamples;
         Opus opus = OPUS.computeIfAbsent(id, _id -> new Opus(API));
 
         if (volume < 0) volume = 0;
@@ -274,9 +274,9 @@ public class Voice implements VoicechatPlugin {
             {
                 int value = ((((int)shorts[i]) * volume) / 100);
                 if (noise) {
-                    int delta = system.rand(MIN_NOICE, MAX_NOICE);
+                    int delta = system.rand(MIN_NOISE, MAX_NOISE);
                     int ofDelta = NoiseModify.getOrDefault(id, delta);
-                    delta = lerp(delta, ofDelta, LERP_NOICE);
+                    delta = lerp(delta, ofDelta, LERP_NOISE);
                     NoiseModify.put(id, delta);
                     value += delta;
 
