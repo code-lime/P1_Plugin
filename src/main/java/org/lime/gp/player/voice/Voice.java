@@ -204,10 +204,21 @@ public class Voice implements VoicechatPlugin {
         });
     }
 
+    public static int MAX_NOICE = 2500;
+    public static int MIN_NOICE = 0;
+    public static float LERP_NOICE = 0.7f;
+
     public static void init() {
         AnyEvent.addEvent("opus.type", AnyEvent.type.owner_console, v -> v.createParam(OpusEncoderMode.values()), (p,v) -> {
             MODE = v;
             OPUS.clear();
+        });
+        AnyEvent.addEvent("voice.noice", AnyEvent.type.owner_console, v -> v.createParam("min","max","lerp").createParam(Integer::parseInt, "[value]"), (p,type,value) -> {
+            switch (type) {
+                case "max": MAX_NOICE = value; break;
+                case "min": MIN_NOICE = value; break;
+                case "lerp": LERP_NOICE = value / 100.0f; break;
+            }
         });
 
         BukkitVoicechatService service = Bukkit.getServer().getServicesManager().load(BukkitVoicechatService.class);
@@ -247,7 +258,11 @@ public class Voice implements VoicechatPlugin {
         return VoicechatConnectionImpl.fromPlayer(player) != null;
     }
     private static final ConcurrentHashMap<UUID, Opus> OPUS = new ConcurrentHashMap<>();
-    public static byte[] modifyVolume(Radio.SenderInfo info, UUID id, byte[] audioSamples, int volume) {
+    private static final ConcurrentHashMap<UUID, Integer> NoiseModify = new ConcurrentHashMap<>();
+    private static int lerp(int a, int b, float value) {
+        return (int) (a + (b - a) * value);
+    }
+    public static byte[] modifyVolume(Radio.SenderInfo info, UUID id, byte[] audioSamples, int volume, boolean noise) {
         if (volume == 100) return audioSamples;
         Opus opus = OPUS.computeIfAbsent(id, _id -> new Opus(API));
 
@@ -255,7 +270,21 @@ public class Voice implements VoicechatPlugin {
         else if (volume > 100) volume = 100;
         try {
             short[] shorts = opus.decode(audioSamples);
-            for (int i = 0; i < shorts.length; i++) shorts[i] = (short)((((int)shorts[i]) * volume) / 100);
+            for (int i = 0; i < shorts.length; i++)
+            {
+                int value = ((((int)shorts[i]) * volume) / 100);
+                if (noise) {
+                    int delta = system.rand(MIN_NOICE, MAX_NOICE);
+                    int ofDelta = NoiseModify.getOrDefault(id, delta);
+                    delta = lerp(delta, ofDelta, LERP_NOICE);
+                    NoiseModify.put(id, delta);
+                    value += delta;
+
+                    shorts[i] = value < Short.MIN_VALUE ? Short.MIN_VALUE : value > Short.MAX_VALUE ? Short.MAX_VALUE : (short)value;
+                } else {
+                    shorts[i] = (short)value;
+                }
+            }
             return opus.encode(shorts);
         } catch (Throwable e) {
             Radio.logRadioError(info, e);
@@ -314,20 +343,20 @@ public class Voice implements VoicechatPlugin {
             Cooldown.setCooldown(uuid, "voice.active", 0.25);
             system.Toast1<Boolean> use = system.toast(false);
             Items.getOptional(RadioSetting.class, item)
-                    .flatMap(v -> RadioData.getData(item))
+                .ifPresent(setting -> RadioData.getData(item)
                     .filter(v -> v.enable)
                     .filter(v -> v.state.isInput)
                     .ifPresent(data -> {
                         use.val0 = true;
-                        Radio.playRadio(Radio.SenderInfo.player(uuid), player.getLocation(), data.total_distance, data.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.input", uuid), bytes, data.volume));
-                    });
+                        Radio.playRadio(Radio.SenderInfo.player(uuid), player.getLocation(), data.total_distance, data.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.input", uuid), bytes, data.volume, setting.noise));
+                    }));
             Location _location = player.getLocation();
             TimeoutData.values(RadioInstance.RadioVoiceData.class)
                     .filter(v -> v.state.isInput)
                     .filter(v -> v.isDistance(_location, 3))
                     .filter(v -> !TimeoutData.has(v.unique, Radio.RadioLockTimeout.class))
                     .forEach(v -> {
-                        Radio.playRadio(Radio.SenderInfo.player(uuid), v.location, v.total_distance, v.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.block.input", uuid, v.unique), bytes, v.volume));
+                        Radio.playRadio(Radio.SenderInfo.player(uuid), v.location, v.total_distance, v.level, modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("radio.block.input", uuid, v.unique), bytes, v.volume, false));
                     });
 
             Items.getOptional(MegaPhoneSetting.class, item)
@@ -340,7 +369,7 @@ public class Voice implements VoicechatPlugin {
                         sendLocationPacket(
                                 location.getWorld(),
                                 packet.locationalSoundPacketBuilder()
-                                        .opusEncodedData(modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("voice.megaphone", uuid), bytes, data.volume))
+                                        .opusEncodedData(modifyVolume(Radio.SenderInfo.player(uuid), MapUUID.of("voice.megaphone", uuid), bytes, data.volume, false))
                                         .position(new PositionImpl(location.getX(), location.getY(), location.getZ()))
                                         .distance(data.distance)
                                         .build(),

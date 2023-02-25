@@ -77,7 +77,7 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
         @Override public void play(Radio.SenderInfo sender, byte[] data, int level) {
             Cooldown.setCooldown(unique, "voice.active", 0.25);
             UUID packet_sender = MapUUID.of("radio.block", this.unique, sender.uuid());
-            Voice.sendLocationPacket(location.getWorld(), new LocationSoundPacket(packet_sender, location, Voice.modifyVolume(sender, packet_sender, data, volume), Voice.nextSequence(packet_sender), distance, null), true);
+            Voice.sendLocationPacket(location.getWorld(), new LocationSoundPacket(packet_sender, location, Voice.modifyVolume(sender, packet_sender, data, volume, false), Voice.nextSequence(packet_sender), distance, null), true);
         }
     }
 

@@ -41,7 +41,7 @@ public class Radio {
                     UUID sender = info.uuid();
                     if (uuid.equals(sender)) return;
                     UUID packet_sender = MapUUID.of("radio.self", uuid, sender);
-                    Voice.sendPacket(uuid, new GroupSoundPacket(packet_sender, Voice.modifyVolume(info, packet_sender, data, levels.getOrDefault(level, 100)), Voice.nextSequence(packet_sender), ""));
+                    Voice.sendPacket(uuid, new GroupSoundPacket(packet_sender, Voice.modifyVolume(info, packet_sender, data, levels.getOrDefault(level, 100), false), Voice.nextSequence(packet_sender), ""));
                 }
             };
         }).filter(Objects::nonNull));

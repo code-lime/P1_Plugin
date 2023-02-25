@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
     public final int on;// 19,
     public final int off;// 20
     public final short total_distance;
+    public final boolean noise;
     public final boolean is_on;
     public final RadioData.RadioState state;
     public RadioSetting(Items.ItemCreator creator, JsonObject json) {
@@ -31,6 +32,7 @@ import com.google.gson.JsonObject;
         on = json.get("on").getAsInt();
         off = json.get("off").getAsInt();
         is_on = !json.has("is_on") || json.get("is_on").getAsBoolean();
+        noise = json.has("noise") ? json.get("noise").getAsBoolean() : false;
         state = json.has("state") ? RadioData.RadioState.valueOf(json.get("state").getAsString()) : RadioData.RadioState.all;
     }
 

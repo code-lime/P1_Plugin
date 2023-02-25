@@ -175,7 +175,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
                                 .filter(v -> connection.equals(v.unique))
                                 .forEach(v -> {
                                     if (v.state.isOutput) v.play(sender, bifs[position], v.level);
-                                    if (v.state.isInput) Radio.playRadio(sender, v.location, v.total_distance, v.level, Voice.modifyVolume(sender, MapUUID.of("radio.block.recorder", sender.uuid(), v.unique), bifs[position], v.volume));
+                                    if (v.state.isInput) Radio.playRadio(sender, v.location, v.total_distance, v.level, Voice.modifyVolume(sender, MapUUID.of("radio.block.recorder", sender.uuid(), v.unique), bifs[position], v.volume, false));
                                 });
                     } catch (Throwable e) {
                         active.set0(false);
