@@ -3,6 +3,8 @@ package org.lime.gp.module;
 import org.lime.core;
 import org.lime.gp.lime;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -20,7 +22,7 @@ public class TimeoutData {
         groupTimeouts.values().forEach(groups -> groups.values().forEach(map -> map.values().removeIf(IRemoveable::isRemove)));
     }
 
-    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<TGroup, ConcurrentHashMap<UUID, ? extends IRemoveable>>> groupTimeouts = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, Map<Long, ConcurrentHashMap<UUID, ? extends IRemoveable>>> groupTimeouts = new ConcurrentHashMap<>();
     public static abstract class IRemoveable {
         private int ticks;
         public IRemoveable(int ticks) { this.ticks = ticks; }
@@ -44,30 +46,29 @@ public class TimeoutData {
 
         public static final TGroup INSTANCE = new SingleGroupKey();
 
-        @Override public boolean equals(Object obj) { return obj instanceof SingleGroupKey; }
-        @Override public int hashCode() { return 0; }
+        @Override public long groupID() { return 0; }
     }
     
     public static interface TGroup {
-
+        long groupID();
     }
     
     @SuppressWarnings("unchecked")
-    private static <T extends IRemoveable>ConcurrentHashMap<UUID, T> ofClass(TGroup group, Class<T> tClass) {
+    private static <T extends IRemoveable>Map<UUID, T> ofClass(TGroup group, Class<T> tClass) {
         return (ConcurrentHashMap<UUID, T>)groupTimeouts
-            .computeIfAbsent(tClass, v -> new ConcurrentHashMap<TGroup, ConcurrentHashMap<UUID, ? extends IRemoveable>>())
-            .computeIfAbsent(group, v -> new ConcurrentHashMap<UUID, T>());
+            .computeIfAbsent(tClass, v -> Collections.synchronizedMap(new Long2ObjectOpenHashMap<ConcurrentHashMap<UUID, ? extends IRemoveable>>()))
+            .computeIfAbsent(group.groupID(), v -> new ConcurrentHashMap<UUID, T>());
     }
     
     @SuppressWarnings("unchecked")
     public static <T extends IRemoveable> Stream<T> allValues(Class<T> tClass) {
-        ConcurrentHashMap<TGroup, ConcurrentHashMap<UUID, ? extends IRemoveable>> data = groupTimeouts.get(tClass);
+        Map<Long, ConcurrentHashMap<UUID, ? extends IRemoveable>> data = groupTimeouts.get(tClass);
         if (data == null) return Stream.empty();
         return data.values().stream().flatMap(v -> v.values().stream()).map(v -> (T)v);
     }
     
     private static <T extends IRemoveable>boolean _put(TGroup group, UUID uuid, Class<T> tClass, T timeout) {
-        ConcurrentHashMap<UUID, T> timeouts = ofClass(group, tClass);
+        Map<UUID, T> timeouts = ofClass(group, tClass);
         return timeout == null
                 ? timeouts.remove(uuid) != null
                 : timeouts.put(uuid, timeout) == null;
@@ -76,8 +77,7 @@ public class TimeoutData {
         return Optional.ofNullable(ofClass(group, tClass).get(uuid));
     }
     private static <T extends IRemoveable>boolean _has(TGroup group, UUID uuid, Class<T> tClass) {
-        ConcurrentHashMap<UUID, T> map = ofClass(group, tClass);
-        return map != null && map.containsKey(uuid);
+        return ofClass(group, tClass).containsKey(uuid);
     }
     private static void _remove(TGroup group, UUID uuid, Class<? extends IRemoveable> tClass) {
         ofClass(group, tClass).remove(uuid);

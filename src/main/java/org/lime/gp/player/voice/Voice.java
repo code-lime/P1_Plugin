@@ -206,7 +206,7 @@ public class Voice implements VoicechatPlugin {
 
     public static int MAX_NOISE = 2500;
     public static int MIN_NOISE = 0;
-    public static float LERP_NOISE = 0.7f;
+    public static float LERP_NOISE = 0.85f;
 
     public static void init() {
         AnyEvent.addEvent("opus.type", AnyEvent.type.owner_console, v -> v.createParam(OpusEncoderMode.values()), (p,v) -> {

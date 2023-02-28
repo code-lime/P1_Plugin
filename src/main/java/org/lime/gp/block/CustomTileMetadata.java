@@ -178,10 +178,12 @@ public class CustomTileMetadata extends TileMetadata {
     }
 
     private boolean isFirst = true;
-    public record ChunkGroup(UUID world, long chunk) implements TimeoutData.TGroup {
-        public ChunkGroup(UUID world, BlockPosition pos) {
-            this(world, ChunkCoordIntPair.asLong(pos));
+    public record ChunkGroup(long chunk) implements TimeoutData.TGroup {
+        public ChunkGroup(BlockPosition pos) {
+            this(ChunkCoordIntPair.asLong(pos));
         }
+
+        @Override public long groupID() { return chunk; }
     }
     public static class ChunkBlockTimeout extends TimeoutData.IGroupTimeout {
         public final UUID worldUUID;
@@ -223,7 +225,7 @@ public class CustomTileMetadata extends TileMetadata {
                         });
                     });
                     ChunkBlockTimeout timeout = new ChunkBlockTimeout(this, position());
-                    boolean firstSync = TimeoutData.put(new ChunkGroup(timeout.worldUUID, ChunkCoordIntPair.asLong(timeout.pos)), key.uuid(), ChunkBlockTimeout.class, timeout);
+                    boolean firstSync = TimeoutData.put(new ChunkGroup(ChunkCoordIntPair.asLong(timeout.pos)), key.uuid(), ChunkBlockTimeout.class, timeout);
                     //if (debug) lime.logOP("Tick debug block!");
                     boolean firstTick = isFirst;
                     if (firstTick) isFirst = false;
@@ -242,9 +244,8 @@ public class CustomTileMetadata extends TileMetadata {
         list(Removeable.class).forEach(v -> v.onRemove(this, event));
         TileEntityLimeSkull skull = event.getSkull();
         BlockPosition pos = skull.getBlockPos();
-        UUID worldUUID = skull.getLevel().getWorld().getUID();
         CacheBlockDisplay.resetCacheBlock(skull);
-        TimeoutData.remove(new ChunkGroup(worldUUID, ChunkCoordIntPair.asLong(pos)), key.uuid(), ChunkBlockTimeout.class);
+        TimeoutData.remove(new ChunkGroup(ChunkCoordIntPair.asLong(pos)), key.uuid(), ChunkBlockTimeout.class);
     }
 
     private final Map<Integer, Integer> interactLocker = new HashMap<>();
