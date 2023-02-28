@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Slot implements Logged.ILoggedDelete {
+public class ActionSlot implements Logged.ILoggedDelete {
     /*public interface PlaySound extends system.Action1<Player> {
         void play(Player player);
         @Override default void invoke(Player player) { play(player); }
@@ -29,7 +29,7 @@ public class Slot implements Logged.ILoggedDelete {
         }
     }*/
 
-    public static final Slot NONE = new Slot(Logged.ILoggedDelete.NONE);
+    public static final ActionSlot NONE = new ActionSlot(Logged.ILoggedDelete.NONE);
 
     @Override public String getLoggedKey() { return base.getLoggedKey(); }
     @Override public boolean isLogged() { return base.isLogged(); }
@@ -37,7 +37,7 @@ public class Slot implements Logged.ILoggedDelete {
     private final Logged.ILoggedDelete base;
     private final Logged.ChildLoggedDeleteHandle deleteHandle;
 
-    private Slot(Logged.ILoggedDelete base) {
+    private ActionSlot(Logged.ILoggedDelete base) {
         this.base = base;
         this.deleteHandle = new Logged.ChildLoggedDeleteHandle(base);
     }
@@ -51,15 +51,15 @@ public class Slot implements Logged.ILoggedDelete {
     public List<system.Toast2<String, String>> pageArgs = new ArrayList<>();
     public boolean close = false;
     public boolean online = false;
-    public List<Slot> offlineActions = new ArrayList<>();
-    public List<Slot> actions = new ArrayList<>();
+    public List<ActionSlot> offlineActions = new ArrayList<>();
+    public List<ActionSlot> actions = new ArrayList<>();
     public List<system.Toast2<String, String>> args = new ArrayList<>();
-    public List<system.Toast2<String, Slot>> checkActions = new ArrayList<>();
+    public List<system.Toast2<String, ActionSlot>> checkActions = new ArrayList<>();
     public List<String> sounds = new ArrayList<>();
     public List<String> globalSounds = new ArrayList<>();
 
-    public static Slot parse(Logged.ILoggedDelete base, JsonObject json) {
-        Slot action = new Slot(base);
+    public static ActionSlot parse(Logged.ILoggedDelete base, JsonObject json) {
+        ActionSlot action = new ActionSlot(base);
         if (json.has("command")) {
             JsonElement cmd = json.get("command");
             if (cmd.isJsonArray()) cmd.getAsJsonArray().forEach(_cmd -> action.commands.add(_cmd.getAsString()));
@@ -74,11 +74,11 @@ public class Slot implements Logged.ILoggedDelete {
         if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> action.args.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
         action.wait = json.has("wait") ? json.get("wait").getAsInt() : 0;
         if (json.has("page_args")) json.get("page_args").getAsJsonObject().entrySet().forEach(kv -> action.pageArgs.add(system.toast(kv.getKey(), kv.getValue().getAsString())));
-        if (json.has("actions")) json.get("actions").getAsJsonArray().forEach(kv -> action.actions.add(Slot.parse(action, kv.getAsJsonObject())));
+        if (json.has("actions")) json.get("actions").getAsJsonArray().forEach(kv -> action.actions.add(ActionSlot.parse(action, kv.getAsJsonObject())));
         if (json.has("sounds")) json.get("sounds").getAsJsonArray().forEach(kv -> action.sounds.add(kv.getAsString()));
         if (json.has("global_sounds")) json.get("global_sounds").getAsJsonArray().forEach(kv -> action.globalSounds.add(kv.getAsString()));
-        if (json.has("offline_actions")) json.get("offline_actions").getAsJsonArray().forEach(kv -> action.offlineActions.add(Slot.parse(action, kv.getAsJsonObject())));
-        if (json.has("check_actions")) json.get("check_actions").getAsJsonObject().entrySet().forEach(kv -> action.checkActions.add(system.toast(kv.getKey(), Slot.parse(action, kv.getValue().getAsJsonObject()))));
+        if (json.has("offline_actions")) json.get("offline_actions").getAsJsonArray().forEach(kv -> action.offlineActions.add(ActionSlot.parse(action, kv.getAsJsonObject())));
+        if (json.has("check_actions")) json.get("check_actions").getAsJsonObject().entrySet().forEach(kv -> action.checkActions.add(system.toast(kv.getKey(), ActionSlot.parse(action, kv.getValue().getAsJsonObject()))));
         return action;
     }
 

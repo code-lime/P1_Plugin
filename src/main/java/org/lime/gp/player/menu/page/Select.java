@@ -8,7 +8,7 @@ import org.lime.gp.database.Rows;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.menu.SelectObject;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.extension.Cooldown;
 
 import java.util.HashMap;
@@ -17,9 +17,9 @@ import java.util.UUID;
 public class Select extends Base {
     public static class InvokeAction implements Logged.ILoggedDelete {
         public static final InvokeAction NONE = new InvokeAction(Logged.ILoggedDelete.NONE, null, null, null);
-        public final Slot owner;
-        public final Slot other;
-        public final Slot call;
+        public final ActionSlot owner;
+        public final ActionSlot other;
+        public final ActionSlot call;
 
         public static InvokeAction parse(Logged.ILoggedDelete base, JsonObject json) {
             return new InvokeAction(
@@ -41,9 +41,9 @@ public class Select extends Base {
         public InvokeAction(Logged.ILoggedDelete base, JsonObject owner, JsonObject other, JsonObject call) {
             this.base = base;
             this.deleteHandle = new Logged.ChildLoggedDeleteHandle(base);
-            this.owner = owner == null ? Slot.NONE : Slot.parse(this.deleteHandle, owner);
-            this.other = other == null ? Slot.NONE : Slot.parse(this.deleteHandle, other);
-            this.call = call == null ? Slot.NONE : Slot.parse(this.deleteHandle, call);
+            this.owner = owner == null ? ActionSlot.NONE : ActionSlot.parse(this.deleteHandle, owner);
+            this.other = other == null ? ActionSlot.NONE : ActionSlot.parse(this.deleteHandle, other);
+            this.call = call == null ? ActionSlot.NONE : ActionSlot.parse(this.deleteHandle, call);
         }
 
         public SelectObject.InvokeAction Apply(Apply apply, SelectObject object) {
@@ -65,8 +65,8 @@ public class Select extends Base {
         if (select.has("result")) select.get("result").getAsJsonObject().entrySet().forEach(kv -> result.put(kv.getKey(), InvokeAction.parse(this, kv.getValue().getAsJsonObject())));
         timeout = select.has("timeout") ? InvokeAction.parse(this, select.get("timeout").getAsJsonObject()) : InvokeAction.NONE;
         leave = select.has("leave") ? InvokeAction.parse(this, select.get("leave").getAsJsonObject()) : InvokeAction.NONE;
-        cooldown = select.has("cooldown") ? Slot.parse(this, select.get("cooldown").getAsJsonObject()) : Slot.NONE;
-        contains = select.has("contains") ? Slot.parse(this, select.get("contains").getAsJsonObject()) : Slot.NONE;
+        cooldown = select.has("cooldown") ? ActionSlot.parse(this, select.get("cooldown").getAsJsonObject()) : ActionSlot.NONE;
+        contains = select.has("contains") ? ActionSlot.parse(this, select.get("contains").getAsJsonObject()) : ActionSlot.NONE;
     }
 
     public boolean dynamic;
@@ -80,8 +80,8 @@ public class Select extends Base {
 
     public InvokeAction timeout;
     public InvokeAction leave;
-    public Slot cooldown;
-    public Slot contains;
+    public ActionSlot cooldown;
+    public ActionSlot contains;
 
     public String getDynamicKey() {
         return getKey() + (dynamic ? UUID.randomUUID().toString() : "");

@@ -8,7 +8,7 @@ import org.lime.Position;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Rows;
 import org.lime.gp.lime;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.selector.*;
 import org.lime.system;
 
@@ -19,12 +19,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Selector extends Base {
-    public List<Slot> output = new ArrayList<>();
+    public List<ActionSlot> output = new ArrayList<>();
     public SelectorType selector;
 
     public Selector(JsonObject json) {
         super(json);
-        if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(Slot.parse(this, kv.getAsJsonObject())));
+        if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(ActionSlot.parse(this, kv.getAsJsonObject())));
         selector = SelectorType.of(json.get("selector").getAsString()).orElseThrow();
     }
 

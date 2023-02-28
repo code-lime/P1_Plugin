@@ -8,19 +8,19 @@ import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
 import org.lime.gp.database.Rows;
 import org.lime.gp.player.menu.Logged;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.system;
 
 import java.util.UUID;
 
 public class SQL extends Base {
     public final String sql;
-    public final Slot called;
+    public final ActionSlot called;
 
     public SQL(JsonObject json) {
         super(json);
         sql = json.get("sql").getAsString();
-        called = Slot.parse(this, json.get("called").getAsJsonObject());
+        called = ActionSlot.parse(this, json.get("called").getAsJsonObject());
     }
 
     @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {

@@ -16,7 +16,7 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.inventory.InterfaceManager;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.system.Func1;
 import org.lime.system;
 
@@ -72,7 +72,7 @@ public class Insert extends Base {
     public String title;
     public Func1<net.minecraft.world.item.ItemStack, Boolean> filter;
     public int rows;
-    public List<Slot> output = new ArrayList<>();
+    public List<ActionSlot> output = new ArrayList<>();
 
     public Insert(JsonObject json) {
         super(json);
@@ -83,7 +83,7 @@ public class Insert extends Base {
             filter = Insert.filter(system.list.<String>of().add(json.get("regex").getAsJsonArray(), v -> v.getAsString()).build());
         }
         rows = json.has("rows") ? json.get("rows").getAsInt() : 3;
-        if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(Slot.parse(this, kv.getAsJsonObject())));
+        if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(ActionSlot.parse(this, kv.getAsJsonObject())));
     }
 
     @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {

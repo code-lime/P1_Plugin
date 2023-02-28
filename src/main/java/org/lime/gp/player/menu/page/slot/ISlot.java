@@ -26,7 +26,7 @@ public interface ISlot extends Logged.ILoggedDelete {
             @Override public void delete() { deleteHandle.delete(); }
 
             @Override public boolean tryIsShow(Apply apply) { return true; }
-            @Override public system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.Slot>>, ItemStack> create(Apply apply) {
+            @Override public system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
                 return system.toast(new HashMap<>(), Items.getItemCreator(ChatHelper.formatText(json.getAsString(), apply)).map(v -> v.createItem(1, apply)).orElseGet(() -> new ItemStack(Material.BARRIER)));
             }
         };
@@ -37,7 +37,7 @@ public interface ISlot extends Logged.ILoggedDelete {
 
     boolean tryIsShow(Apply apply);
 
-    system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.Slot>>, ItemStack> create(Apply apply);
+    system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply);
 
     static Apply createArgs(List<system.Toast2<String, String>> args, Apply apply) {
         Apply _apply = apply.copy();

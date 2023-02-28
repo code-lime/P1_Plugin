@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Rows;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.ui.EditorUI;
 
 import java.util.ArrayList;
@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Book extends Base {
-    public final Slot output;
+    public final ActionSlot output;
     public List<List<String>> pages = new ArrayList<>();
 
     public Book(JsonObject json) {
         super(json);
-        output = json.has("output") ? Slot.parse(this, json.getAsJsonObject("output")) : null;
+        output = json.has("output") ? ActionSlot.parse(this, json.getAsJsonObject("output")) : null;
         json.get("pages").getAsJsonArray().forEach(_json -> pages.add(_json.isJsonArray() ? Streams.stream(_json.getAsJsonArray().iterator()).map(JsonElement::getAsString).collect(Collectors.toList()) : Collections.singletonList(_json.getAsString())));
     }
 

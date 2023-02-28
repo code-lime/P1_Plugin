@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Rows;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.ui.EditorUI;
 
 import java.util.ArrayList;
@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Sign extends Base {
-    public List<Slot> output = new ArrayList<>();
+    public List<ActionSlot> output = new ArrayList<>();
     public List<String> lines = new ArrayList<>();
 
     public Sign(JsonObject json) {
         super(json);
-        if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(Slot.parse(this, kv.getAsJsonObject())));
+        if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(ActionSlot.parse(this, kv.getAsJsonObject())));
         json.get("input").getAsJsonArray().forEach(line -> lines.add(line.getAsString()));
     }
 

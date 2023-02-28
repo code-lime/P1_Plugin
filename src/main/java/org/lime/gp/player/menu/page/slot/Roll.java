@@ -12,7 +12,7 @@ import org.lime.gp.database.Rows;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.Logged;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.system;
 
 import java.util.ArrayList;
@@ -23,9 +23,9 @@ import java.util.stream.IntStream;
 
 public class Roll implements Logged.ILoggedDelete {
     public List<Integer> slots = new ArrayList<>();
-    public Slot generate = Slot.NONE;
-    public Slot tick = Slot.NONE;
-    public Slot end = Slot.NONE;
+    public ActionSlot generate = ActionSlot.NONE;
+    public ActionSlot tick = ActionSlot.NONE;
+    public ActionSlot end = ActionSlot.NONE;
     public String data;
     public ISlot format;
 
@@ -70,14 +70,14 @@ public class Roll implements Logged.ILoggedDelete {
         });
         roll.format = ISlot.parse(roll, json.get("format"));
         roll.data = json.get("data").getAsString();
-        if (json.has("generate")) roll.generate = Slot.parse(roll, json.get("generate").getAsJsonObject());
-        if (json.has("end")) roll.end = Slot.parse(roll, json.get("end").getAsJsonObject());
-        if (json.has("tick")) roll.tick = Slot.parse(roll, json.get("tick").getAsJsonObject());
+        if (json.has("generate")) roll.generate = ActionSlot.parse(roll, json.get("generate").getAsJsonObject());
+        if (json.has("end")) roll.end = ActionSlot.parse(roll, json.get("end").getAsJsonObject());
+        if (json.has("tick")) roll.tick = ActionSlot.parse(roll, json.get("tick").getAsJsonObject());
         if (roll.slots.size() <= 0) throw new IllegalArgumentException("ROLL.SLOTS SIZE ZERO");
         return roll;
     }
 
-    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast2<HashMap<ClickType, List<Slot>>, Rows.DataBaseRow>> onClickEvents) {
+    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast2<HashMap<ClickType, List<ActionSlot>>, Rows.DataBaseRow>> onClickEvents) {
         List<system.Toast2<HashMap<String, String>, Integer>> array = new ArrayList<>();
         system.Toast1<Integer> scale = system.toast(0);
         system.json.parse(JavaScript.getJsString(apply.apply(data)).orElseThrow()).getAsJsonArray().forEach(item -> {

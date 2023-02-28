@@ -12,7 +12,7 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.gp.player.menu.Slot;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.system;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public abstract class Base implements Logged.ILoggedDelete {
     private String key;
 
-    public List<Slot> action = new ArrayList<>();
+    public List<ActionSlot> action = new ArrayList<>();
     public List<Integer> roleWhite = new ArrayList<>();
     public List<system.Toast2<String, String>> args = new ArrayList<>();
     public List<system.Toast2<String, String>> sqlArgs = new ArrayList<>();
@@ -33,7 +33,7 @@ public abstract class Base implements Logged.ILoggedDelete {
     private final system.DeleteHandle deleteHandle = new system.DeleteHandle();
 
     public Base(JsonObject json) {
-        if (json.has("action")) json.get("action").getAsJsonArray().forEach(kv -> action.add(Slot.parse(this, kv.getAsJsonObject())));
+        if (json.has("action")) json.get("action").getAsJsonArray().forEach(kv -> action.add(ActionSlot.parse(this, kv.getAsJsonObject())));
         if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> args.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
         if (json.has("role_white")) json.get("role_white").getAsJsonArray().forEach(arg -> roleWhite.add(arg.getAsInt()));
         if (json.has("sql_args")) json.get("sql_args").getAsJsonObject().entrySet().forEach(arg -> sqlArgs.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
