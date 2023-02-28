@@ -159,7 +159,7 @@ public class RecipesBook implements Listener {
             Perms.ICanData data = Perms.getCanData(uuid);
             EntityPlayer handle = player.getHandle();
             if ((data.unique() + IRecipesBookContainer.generateKey(handle)).equals(playerCans.get(uuid))) return;
-            sendRecipes(handle, data, true);
+            sendRecipes(handle, data);
         });
     }
     public static int syncAddRecipes(Collection<IRecipe<?>> append, Collection<IRecipe<?>> remove, EntityPlayer player, boolean highlight) {
@@ -178,8 +178,30 @@ public class RecipesBook implements Listener {
         return i2;
     }
 
-    public static void sendRecipes(EntityPlayer player, Perms.ICanData data, boolean show) {
-        List<IRecipe<?>> append = new ArrayList<>();
+    public static void sendRecipes(EntityPlayer player, Perms.ICanData data) {
+        List<IRecipe<?>> recipes = new ArrayList<>();
+
+        if (player.containerMenu instanceof IRecipesBookContainer container) {
+            container.getRecipesCustom().forEach(recipe -> {
+                if (recipe instanceof IRecipe<?> _recipe && data.isCanCraft(_recipe.getId().getPath())) 
+                    recipe.getDisplayRecipe().forEach(recipes::add);
+            });
+        } else {
+            Recipes.CRAFTING_MANAGER.byName.forEach((key, recipe) -> {
+                if (recipe.isSpecial() || recipe instanceof IDisplayRecipe abstractRecipe) return;
+                if (recipe instanceof RecipeCooking || data.isCanCraft(key.getPath())) recipes.add(recipe);
+            });
+        }
+
+        RecipeBookServer recipeBook = player.getRecipeBook();
+        recipeBook.copyOverData(new net.minecraft.stats.RecipeBook());
+        Set<MinecraftKey> known = recipeBook.known;
+        recipes.forEach(recipe -> known.add(recipe.getId()));
+
+        Recipes.send(player, recipes);
+        recipeBook.sendInitialRecipeBook(player);
+
+        /*List<IRecipe<?>> append = new ArrayList<>();
         List<IRecipe<?>> remove = new ArrayList<>();
         List<IDisplayRecipe> containerRecipes = new ArrayList<>();
         boolean containerRecipeEmpty;
@@ -216,12 +238,10 @@ public class RecipesBook implements Listener {
             recipeBook.sendInitialRecipeBook(player);
             player.resetRecipes(remove);
         }
-        //lime.logOP(Component.text("Append recipes: " + append.size() + " / " + containerRecipeEmpty + " ? " + player.containerMenu));
-        //lime.logOP(Component.text("Remove recipes: " + remove.size() + " / " + containerRecipeEmpty + " with " + containerRecipes.size()));
-        playerCans.put(player.getUUID(), data.unique() + IRecipesBookContainer.generateKey(player));
+        playerCans.put(player.getUUID(), data.unique() + IRecipesBookContainer.generateKey(player));*/
     }
     @EventHandler public static void on(PlayerJoinEvent e) {
-        if (e.getPlayer() instanceof CraftPlayer player) sendRecipes(player.getHandle(), Perms.getCanData(player.getUniqueId()), false);
+        if (e.getPlayer() instanceof CraftPlayer player) sendRecipes(player.getHandle(), Perms.getCanData(player.getUniqueId()));
     }
     private static boolean skipEvent = false;
     @EventHandler public static void on(PlayerRecipeDiscoverEvent e) {
@@ -230,12 +250,12 @@ public class RecipesBook implements Listener {
     }
     @EventHandler public static void on(InventoryOpenEvent e) {
         if (e.getView() instanceof CraftInventoryView view && view.getHandle() instanceof IRecipesBookContainer && e.getPlayer() instanceof CraftPlayer player)
-            lime.nextTick(() -> sendRecipes(player.getHandle(), Perms.getCanData(player), false));
+            lime.nextTick(() -> sendRecipes(player.getHandle(), Perms.getCanData(player)));
 
     }
     @EventHandler public static void on(InventoryCloseEvent e) {
         if (e.getView() instanceof CraftInventoryView view && view.getHandle() instanceof IRecipesBookContainer && e.getPlayer() instanceof CraftPlayer player)
-            lime.nextTick(() -> sendRecipes(player.getHandle(), Perms.getCanData(player), false));
+            lime.nextTick(() -> sendRecipes(player.getHandle(), Perms.getCanData(player)));
     }
 
     public static class RecipesBookContainerWorkbench extends ContainerWorkbench implements IRecipesBookContainer {
