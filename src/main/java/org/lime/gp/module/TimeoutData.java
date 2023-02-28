@@ -56,7 +56,7 @@ public class TimeoutData {
     @SuppressWarnings("unchecked")
     private static <T extends IRemoveable>Map<UUID, T> ofClass(TGroup group, Class<T> tClass) {
         return (ConcurrentHashMap<UUID, T>)groupTimeouts
-            .computeIfAbsent(tClass, v -> Collections.synchronizedMap(new Long2ObjectOpenHashMap<ConcurrentHashMap<UUID, ? extends IRemoveable>>()))
+            .computeIfAbsent(tClass, v ->  new ConcurrentHashMap<Long, ConcurrentHashMap<UUID, ? extends IRemoveable>>()/*Collections.synchronizedMap(new Long2ObjectOpenHashMap<ConcurrentHashMap<UUID, ? extends IRemoveable>>())*/)
             .computeIfAbsent(group.groupID(), v -> new ConcurrentHashMap<UUID, T>());
     }
     
