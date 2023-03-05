@@ -6,6 +6,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
@@ -46,8 +47,8 @@ public class ConverterRecipe extends AbstractRecipe {
     @Override public boolean canCraftInDimensions(int i, int j) { return i == 1 && j == 1; }
     @Override public ItemStack getResultItem() { return system.rand(output.entrySet()).getKey().nms(); }
 
-    @Override protected Stream<ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
-        List<ShapedRecipes> recipes = new ArrayList<>();
+    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+        List<RecipeCrafting> recipes = new ArrayList<>();
         int index = 0;
         for (Map.Entry<OutputSlot, Optional<String>> kv : output.entrySet()) {
             OutputSlot result = kv.getKey();

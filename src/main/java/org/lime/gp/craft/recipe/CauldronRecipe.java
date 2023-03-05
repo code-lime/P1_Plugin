@@ -5,6 +5,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
@@ -43,7 +44,7 @@ public class CauldronRecipe extends AbstractRecipe {
     @Override public ItemStack getResultItem() { return output.nms(); }
     @Override public Stream<String> getWhitelistKeys() { return input.stream().flatMap(RecipeSlot::getWhitelistKeys).distinct(); }
 
-    @Override protected Stream<ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
         NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
         List<RecipeItemStack> items = input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
         int count = Math.min(items.size(), slots.size());

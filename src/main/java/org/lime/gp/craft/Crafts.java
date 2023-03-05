@@ -292,11 +292,11 @@ public class Crafts {
         @Override public NonNullList<net.minecraft.world.item.ItemStack> getRemainingItems(InventoryCrafting inventory) {
             return Crafts.getRemainingItems(craft(inventory).orElse(null), inventory);
         }
-        private Optional<net.minecraft.world.item.crafting.ShapedRecipes> displayRecipe = null;
-        @Override public Stream<net.minecraft.world.item.crafting.ShapedRecipes> getDisplayRecipe() {
-            return (displayRecipe == null ? (displayRecipe = createDisplayRecipe(new MinecraftKey(getId().getNamespace() + ".g", getId().getPath()), this.getGroup())) : displayRecipe).stream();
+        private Optional<net.minecraft.world.item.crafting.RecipeCrafting> displayRecipe = null;
+        @Override public Stream<net.minecraft.world.item.crafting.RecipeCrafting> getDisplayRecipe() {
+            return (displayRecipe == null ? (displayRecipe = createDisplayRecipe(new MinecraftKey(getId().getNamespace() + ".g", getId().getPath()), this.getGroup()).map(IDisplayRecipe::removeLore)) : displayRecipe).stream();
         }
-        protected abstract Optional<net.minecraft.world.item.crafting.ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
+        protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
     }
     private static abstract class ShapedRecipes extends net.minecraft.world.item.crafting.ShapedRecipes implements VanillaType, IDisplayRecipe {
         public final List<RecipeSlot> recipes;
@@ -350,11 +350,11 @@ public class Crafts {
             return craft(inventory).isPresent();
         }
 
-        private Optional<net.minecraft.world.item.crafting.ShapedRecipes> displayRecipe = null;
-        @Override public Stream<net.minecraft.world.item.crafting.ShapedRecipes> getDisplayRecipe() {
-            return (displayRecipe == null ? (displayRecipe = createDisplayRecipe(new MinecraftKey(getId().getNamespace() + ".g", getId().getPath()), this.getGroup())) : displayRecipe).stream();
+        private Optional<net.minecraft.world.item.crafting.RecipeCrafting> displayRecipe = null;
+        @Override public Stream<net.minecraft.world.item.crafting.RecipeCrafting> getDisplayRecipe() {
+            return (displayRecipe == null ? (displayRecipe = createDisplayRecipe(new MinecraftKey(getId().getNamespace() + ".g", getId().getPath()), this.getGroup()).map(IDisplayRecipe::removeLore)) : displayRecipe).stream();
         }
-        protected abstract Optional<net.minecraft.world.item.crafting.ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
+        protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
     }
 
     public interface VanillaType {
@@ -390,8 +390,8 @@ public class Crafts {
                     @Override public boolean matches(InventoryCrafting inventory, World world) {
                         return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
                     }
-                    @Override protected Optional<net.minecraft.world.item.crafting.ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
-                        return Optional.empty();
+                    @Override protected Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+                        return Optional.of(this);
                     }
                 };
             }
@@ -408,8 +408,8 @@ public class Crafts {
                     @Override public boolean matches(InventoryCrafting inventory, net.minecraft.world.level.World world) {
                         return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
                     }
-                    @Override protected Optional<net.minecraft.world.item.crafting.ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
-                        return Optional.empty();
+                    @Override protected Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+                        return Optional.of(this);
                     }
                 };
             }

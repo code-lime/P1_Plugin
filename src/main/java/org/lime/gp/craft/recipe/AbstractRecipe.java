@@ -30,13 +30,13 @@ public abstract class AbstractRecipe implements IRecipe<IInventory>, IDisplayRec
     @Override public RecipeSerializer<?> getSerializer() { return null; }
     @Override public ItemStack assemble(IInventory inventory) { return getResultItem(); }
     public abstract Stream<String> getWhitelistKeys();
-    private List<ShapedRecipes> displayRecipe = null;
-    @Override public Stream<ShapedRecipes> getDisplayRecipe() {
-        if (displayRecipe == null) displayRecipe = createDisplayRecipe(new MinecraftKey(key.getNamespace() + ".generic", key.getPath()), group).toList();
+    private List<RecipeCrafting> displayRecipe = null;
+    @Override public Stream<RecipeCrafting> getDisplayRecipe() {
+        if (displayRecipe == null) displayRecipe = createDisplayRecipe(new MinecraftKey(key.getNamespace() + ".g", key.getPath()), group).map(IDisplayRecipe::removeLore).toList();
         return displayRecipe.stream();
     }
 
-    protected Stream<ShapedRecipes> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) { return Stream.empty(); }
+    protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) { return Stream.empty(); }
 }
 
 

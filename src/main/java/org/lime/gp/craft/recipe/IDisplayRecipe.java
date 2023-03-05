@@ -2,18 +2,28 @@ package org.lime.gp.craft.recipe;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.network.chat.ChatComponentText;
 import net.minecraft.network.chat.ChatModifier;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeCrafting;
+import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
-import org.lime.gp.chat.ChatHelper;
+import net.minecraft.world.item.crafting.ShapelessRecipes;
 
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.item.Items;
+import org.lime.gp.item.settings.list.LoreCraftSetting;
+
+import java.util.Collections;
 import java.util.stream.Stream;
 
 public interface IDisplayRecipe {
-    Stream<ShapedRecipes> getDisplayRecipe();
+    Stream<RecipeCrafting> getDisplayRecipe();
 
     static ItemStack amountToName(ItemStack item) {
         return nameWithPostfix(item, Component.text(" x"+item.getCount()));
@@ -35,4 +45,40 @@ public interface IDisplayRecipe {
         return item;
     }
 
+    static RecipeCrafting removeLore(RecipeCrafting recipe) {
+        if (recipe instanceof ShapedRecipes shaped) return removeLore(shaped);
+        if (recipe instanceof ShapelessRecipes shapelless) return removeLore(shapelless);
+        return recipe;
+    }
+
+    static ItemStack removeLore(ItemStack item) {
+        item = item.copy();
+        ItemMeta meta = CraftItemStack.getItemMeta(item);
+        if (meta == null || !meta.hasLore() || Items.has(LoreCraftSetting.class, item)) return item;
+        meta.lore(Collections.emptyList());
+        CraftItemStack.setItemMeta(item, meta);
+        return item;
+    }
+    static RecipeItemStack removeLore(RecipeItemStack item) {
+        ItemStack[] oldItems = item.getItems();
+        int lenght = oldItems.length;
+        RecipeItemStack out = new RecipeItemStack(Stream.empty());
+        ItemStack[] items = new ItemStack[lenght];
+        out.itemStacks = items;
+        for (int i = 0; i < lenght; i++) items[i] = removeLore(oldItems[i]);
+        return out;
+    }
+    static NonNullList<RecipeItemStack> removeLore(NonNullList<RecipeItemStack> items) {
+        int lenght = items.size();
+        NonNullList<RecipeItemStack> newItems = NonNullList.create();
+        for (int i = 0; i < lenght; i++) newItems.add(removeLore(items.get(i)));
+        return newItems;
+    }
+
+    static ShapedRecipes removeLore(ShapedRecipes recipe) {
+        return new ShapedRecipes(recipe.getId(), recipe.getGroup(), recipe.getWidth(), recipe.getHeight(), removeLore(recipe.getIngredients()), recipe.getResultItem());
+    }
+    static ShapelessRecipes removeLore(ShapelessRecipes recipe) {
+        return new ShapelessRecipes(recipe.getId(), recipe.getGroup(), recipe.getResultItem(), removeLore(recipe.getIngredients()));
+    }
 }

@@ -19,7 +19,7 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.crafting.IRecipe;
-import net.minecraft.world.item.crafting.RecipeCooking;
+import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R2.event.CraftEventFactory;
@@ -100,7 +100,7 @@ public class RecipesBook implements Listener {
                 .add(PacketPlayInAutoRecipe.class, (packet, e) -> {
                     MinecraftKey generic_recipe_key = packet.getRecipe();
                     String namespace = generic_recipe_key.getNamespace();
-                    int postfixPos = namespace.indexOf(".generic");
+                    int postfixPos = namespace.indexOf(".g");
                     if (postfixPos == -1) return;
                     e.setCancelled(true);
                     MinecraftKey parent_recipe_key = new MinecraftKey(namespace.substring(0, postfixPos), generic_recipe_key.getPath());
@@ -147,6 +147,7 @@ public class RecipesBook implements Listener {
     public static void update() {
         EntityPosition.onlinePlayers.keySet().forEach((uuid) -> Rows.UserRow.getBy(uuid).ifPresent(RecipesBook::editRow));
     }
+
     public static void resend() {
         playerCans.clear();
         update();
@@ -188,57 +189,25 @@ public class RecipesBook implements Listener {
             });
         } else {
             Recipes.CRAFTING_MANAGER.byName.forEach((key, recipe) -> {
-                if (recipe.isSpecial() || recipe instanceof IDisplayRecipe abstractRecipe) return;
-                if (recipe instanceof RecipeCooking || data.isCanCraft(key.getPath())) recipes.add(recipe);
+                if (recipe.isSpecial()) return;
+                if (!data.isCanCraft(key.getPath())) return;
+                if (recipe instanceof IDisplayRecipe abstractRecipe) {
+                    if (recipe instanceof RecipeCrafting) {
+                        abstractRecipe.getDisplayRecipe().forEach(_recipe -> recipes.add(_recipe));
+                    }
+                } else {
+                    recipes.add(recipe);
+                }
             });
         }
-
+        
         RecipeBookServer recipeBook = player.getRecipeBook();
         recipeBook.copyOverData(new net.minecraft.stats.RecipeBook());
         Set<MinecraftKey> known = recipeBook.known;
         recipes.forEach(recipe -> known.add(recipe.getId()));
 
         Recipes.send(player, recipes);
-        recipeBook.sendInitialRecipeBook(player);
-
-        /*List<IRecipe<?>> append = new ArrayList<>();
-        List<IRecipe<?>> remove = new ArrayList<>();
-        List<IDisplayRecipe> containerRecipes = new ArrayList<>();
-        boolean containerRecipeEmpty;
-        if (player.containerMenu instanceof IRecipesBookContainer container) {
-            containerRecipes.addAll(container.getRecipesCustom());
-            containerRecipeEmpty = true;
-        } else {
-            containerRecipeEmpty = false;
-        }
-        Recipes.CRAFTING_MANAGER.byName.forEach((key, recipe) -> {
-            boolean isCanCraft = data.isCanCraft(key.getPath());
-            if (recipe instanceof IDisplayRecipe abstractRecipe)
-                abstractRecipe.getDisplayRecipe().forEach((isCanCraft && containerRecipeEmpty && containerRecipes.contains(abstractRecipe) ? append : remove)::add);
-            if (containerRecipeEmpty) remove.add(recipe);
-            else (recipe instanceof RecipeCooking || isCanCraft ? append : remove).add(recipe);
-        });
-        if (show) {
-            skipEvent = true;
-
-            player.awardRecipes(append);
-            syncAddRecipes(append, remove, player, false);
-            player.resetRecipes(remove);
-
-            skipEvent = false;
-        } else {
-            RecipeBookServer recipeBook = player.getRecipeBook();
-
-            append.forEach(recipeBook::add);
-            remove.forEach(recipeBook::add);
-            append.forEach(recipeBook::addHighlight);
-            remove.forEach(recipeBook::addHighlight);
-
-            Recipes.send(player, append);
-            recipeBook.sendInitialRecipeBook(player);
-            player.resetRecipes(remove);
-        }
-        playerCans.put(player.getUUID(), data.unique() + IRecipesBookContainer.generateKey(player));*/
+        lime.once(() -> recipeBook.sendInitialRecipeBook(player), 0.2);
     }
     @EventHandler public static void on(PlayerJoinEvent e) {
         if (e.getPlayer() instanceof CraftPlayer player) sendRecipes(player.getHandle(), Perms.getCanData(player.getUniqueId()));
