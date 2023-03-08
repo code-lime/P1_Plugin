@@ -20,6 +20,8 @@ public final class RadioComponent extends ComponentDynamic<JsonObject, RadioInst
     public final short def_distance;
     public final RadioData.RadioState state;
 
+    public final boolean noise;
+
     public int rangeLevel(int level) {
         return Math.max(Math.min(level, max_level), min_level);
     }
@@ -46,6 +48,9 @@ public final class RadioComponent extends ComponentDynamic<JsonObject, RadioInst
         min_distance = json.get("min_distance").getAsShort();
         max_distance = json.get("max_distance").getAsShort();
         def_distance = json.get("def_distance").getAsShort();
+        
+        noise = json.has("noise") ? json.get("noise").getAsBoolean() : false;
+        
         state = json.has("state") ? RadioData.RadioState.valueOf(json.get("state").getAsString()) : RadioData.RadioState.all;
     }
 

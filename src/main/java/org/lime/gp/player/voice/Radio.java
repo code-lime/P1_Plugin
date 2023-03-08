@@ -4,6 +4,7 @@ import de.maxhenkel.voicechat.voice.common.GroupSoundPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.core;
 import org.lime.gp.extension.MapUUID;
@@ -11,7 +12,13 @@ import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
 import org.lime.system;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,11 +44,15 @@ public class Radio {
                 @Override public UUID unique() { return uuid; }
                 @Override public boolean isDistance(Location location, double total_distance) { return RadioElement.isDistance(location, pos, total_distance); }
                 @Override public short distance() { return 8; }
-                @Override public void play(SenderInfo info, byte[] data, int level) {
+                @Override public void play(SenderInfo info, byte[] data, int level, double total_distance) {
                     UUID sender = info.uuid();
                     if (uuid.equals(sender)) return;
                     UUID packet_sender = MapUUID.of("radio.self", uuid, sender);
-                    Voice.sendPacket(uuid, new GroupSoundPacket(packet_sender, Voice.modifyVolume(info, packet_sender, data, levels.getOrDefault(level, 100), false), Voice.nextSequence(packet_sender), ""));
+                    double noise = 0;
+                    if (info.noise()) noise = info.local().distance(pos.toVector()) / total_distance;
+                    if (noise > 1) noise = 1;
+                    else if (noise < 0) noise = 0;
+                    Voice.sendPacket(uuid, new GroupSoundPacket(packet_sender, Voice.modifyVolume(info, packet_sender, data, levels.getOrDefault(level, 100), noise), Voice.nextSequence(packet_sender), ""));
                 }
             };
         }).filter(Objects::nonNull));
@@ -74,7 +85,7 @@ public class Radio {
         UUID unique();
         boolean isDistance(Location location, double total_distance);
         short distance();
-        void play(SenderInfo info, byte[] data, int level);
+        void play(SenderInfo info, byte[] data, int level, double total_distance);
 
         static boolean isDistance(Location location1, Location location2, double total_distance) {
             return location1.getWorld() == location2.getWorld() && location1.distanceSquared(location2) <= total_distance * total_distance;
@@ -87,11 +98,15 @@ public class Radio {
 
     public interface SenderInfo {
         UUID uuid();
+        Vector local();
+        boolean noise();
         String prefix();
 
-        static SenderInfo player(UUID uuid) {
+        static SenderInfo player(UUID uuid, Vector local, boolean noise) {
             return new SenderInfo() {
                 @Override public UUID uuid() { return uuid; }
+                @Override public boolean noise() { return noise; }
+                @Override public Vector local() { return local; }
                 @Override public String prefix() { return uuid + ""; }
             };
         }
@@ -101,6 +116,8 @@ public class Radio {
         static SenderInfo block(UUID uuid, int x, int y, int z) {
             return new SenderInfo() {
                 @Override public UUID uuid() { return uuid; }
+                @Override public boolean noise() { return false; }
+                @Override public Vector local() { return new Vector(x+0.5,y+0.5,z+0.5); }
                 @Override public String prefix() { return uuid + ":" + x + "," + y + "," + z; }
             };
         }
@@ -115,7 +132,7 @@ public class Radio {
         bufferElements.values().stream()
                 .filter(v -> v.hasLevel(level))
                 .filter(v -> v.isDistance(location, total_distance))
-                .forEach(v -> v.play(info, data, level));
+                .forEach(v -> v.play(info, data, level, total_distance));
                 //.forEach(element -> Voice.playWithDistance(location.getWorld(), new LocationalSoundPacketImpl(new LocationSoundPacket(element.playUUID(), location, data, nextSequence())), element.distance()));
     }
 }

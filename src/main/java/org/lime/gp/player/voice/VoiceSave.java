@@ -147,7 +147,7 @@ public class VoiceSave implements RadioElement {
     @Override public boolean isDistance(Location location, double total_distance) { return true; }
     @Override public short distance() { return 0; }
 
-    @Override public void play(SenderInfo info, byte[] data, int level) {
+    @Override public void play(SenderInfo info, byte[] data, int level, double total_distance) {
         lime.logOP("P.0: " + level);
         ConcurrentLinkedQueue<VoiceFrame> queue = saveQueue.get(level);
         if (queue == null) return;

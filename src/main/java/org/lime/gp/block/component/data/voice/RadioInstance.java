@@ -53,8 +53,9 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
         public final UUID unique;
         public final RadioData.RadioState state;
         public final double total_distance;
+        public final RadioComponent component;
 
-        public RadioVoiceData(UUID unique, Location location, org.lime.gp.player.voice.RadioData radioData, DistanceData distanceData) {
+        public RadioVoiceData(UUID unique, Location location, org.lime.gp.player.voice.RadioData radioData, DistanceData distanceData, RadioComponent component) {
             super(5);
             this.unique = unique;
             this.location = location;
@@ -64,6 +65,7 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
             this.state = radioData.state;
             this.total_distance = radioData.total_distance;
             this.volume = radioData.volume;
+            this.component = component;
         }
 
         @Override public boolean hasLevel(int level) {
@@ -74,10 +76,14 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
             return Radio.RadioElement.isDistance(location, this.location, total_distance);
         }
         @Override public short distance() { return distance; }
-        @Override public void play(Radio.SenderInfo sender, byte[] data, int level) {
+        @Override public void play(Radio.SenderInfo sender, byte[] data, int level, double total_distance) {
             Cooldown.setCooldown(unique, "voice.active", 0.25);
             UUID packet_sender = MapUUID.of("radio.block", this.unique, sender.uuid());
-            Voice.sendLocationPacket(location.getWorld(), new LocationSoundPacket(packet_sender, location, Voice.modifyVolume(sender, packet_sender, data, volume, false), Voice.nextSequence(packet_sender), distance, null), true);
+            double noise = 0;
+            if (sender.noise()) noise = sender.local().distance(location.toVector()) / total_distance;
+            if (noise > 1) noise = 1;
+            else if (noise < 0) noise = 0;
+            Voice.sendLocationPacket(location.getWorld(), new LocationSoundPacket(packet_sender, location, Voice.modifyVolume(sender, packet_sender, data, volume, noise), Voice.nextSequence(packet_sender), distance, null), true);
         }
     }
 
@@ -94,7 +100,7 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
                 @Override public double distance() { return distanceData.distance; }
             });
         }
-        TimeoutData.put(unique, RadioVoiceData.class, new RadioVoiceData(unique, location, radioData, distanceData));
+        TimeoutData.put(unique, RadioVoiceData.class, new RadioVoiceData(unique, location, radioData, distanceData, component()));
     }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         if (!(event.player().getBukkitEntity() instanceof Player player)) return EnumInteractionResult.PASS;
