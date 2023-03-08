@@ -47,8 +47,12 @@ public class AutoRestart {
         if (DONE) return;
         double tps = Bukkit.getTPS()[0];
         if (tps >= MIN_TPS) return;
+        DONE = true;
         Discord.sendMessageToChannel(ALERT_CHANNEL, ALERT_MESSAGE
-            .replace("min_tps", system.getDouble(MIN_TPS))
-            .replace("tps", system.getDouble(tps)));
+            .replace("{min_tps}", system.getDouble(MIN_TPS))
+            .replace("{tps}", system.getDouble(tps)));
+        COMMANDS.forEach(cmd -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd
+            .replace("{min_tps}", system.getDouble(MIN_TPS))
+            .replace("{tps}", system.getDouble(tps))));
     }
 }
