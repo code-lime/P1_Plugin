@@ -384,6 +384,7 @@ public class Administrator implements Listener {
                 lime.unSit(player);
             }
 
+            player.getScoreboardTags().remove("leg.broken");
             player.setHealth(20);
             player.setFoodLevel(20);
             player.setSaturation(20);
@@ -500,7 +501,7 @@ public class Administrator implements Listener {
     }
     @EventHandler public static void on(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player player)) return;
-        if (player.getScoreboardTags().contains("immortality")) e.setCancelled(true);
+        if (player.getScoreboardTags().contains("immortality") || inABan(player.getUniqueId())) e.setCancelled(true);
     }
 }
 
