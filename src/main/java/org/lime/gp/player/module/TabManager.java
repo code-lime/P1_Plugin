@@ -241,6 +241,14 @@ public class TabManager implements Listener {
                 Methods.donateStaticID(_list -> {
                     static_ids.putAll(_list);
                     static_ids.entrySet().removeIf(kv -> !_list.containsKey(kv.getKey()));
+                    Bukkit.getOnlinePlayers().forEach(player -> {
+                        Set<String> tags = player.getScoreboardTags();
+                        boolean setHas = static_ids.containsKey(player.getUniqueId());
+                        boolean getHas = tags.contains("vip");
+                        if (setHas == getHas) return;
+                        if (setHas) tags.add("vip");
+                        else tags.remove("vip");
+                    });
                 });
             }, 60);
         });
