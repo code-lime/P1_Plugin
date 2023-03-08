@@ -404,6 +404,11 @@ public class Discord implements Listener {
     @EventHandler public static void onLeave(PlayerQuitEvent e) { updateSingle(e.getPlayer().getUniqueId()); }
 
     private static final HashMap<UUID, system.Toast2<system.Action0, Long>> auth_callback = new HashMap<>();
+
+    public static void sendMessageToChannel(long channelID, String message) {
+        if (!DiscordSRV.getPlugin().isEnabled()) return;
+        DiscordSRV.getPlugin().getJda().getTextChannelById(channelID).sendMessage(message).queue();
+    }
 }
 
 
