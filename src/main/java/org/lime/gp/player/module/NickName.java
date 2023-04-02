@@ -1,6 +1,7 @@
 package org.lime.gp.player.module;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -16,7 +17,6 @@ import org.lime.gp.player.voice.Voice;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class NickName {
@@ -39,64 +39,52 @@ public class NickName {
     }
 
     public static class ShowNickName implements DrawText.IShow {
-        public String getID(int index) {
-            return target.getUniqueId() + ".NickName#" + index;
-        }
-
-        @Override public String getID() { return getID(index); }
+        @Override public String getID() { return target.getUniqueId() + ".NickName"; }
         @Override public boolean filter(Player owner) {
             UUID uuid = owner.getUniqueId();
             boolean isLook = isLookingAt(target, owner);
             if (isLook) Cooldown.setCooldown(new UUID[] { target.getUniqueId(), uuid }, "show.nick.time", 1.0);
             else if (!Cooldown.hasCooldown(new UUID[] { target.getUniqueId(), uuid }, "show.nick.time")) return false;
-            return TabManager.BufferData.of(owner.getUniqueId(), target.getUniqueId()).nick.size() > index;
+            return true;
         }
         @Override public Component text(Player player) {
-            List<Component> components = TabManager.BufferData.of(player.getUniqueId(), target.getUniqueId()).nick;
-            return components.size() > index ? components.get(index) : null;
+            List<Component> lines = TabManager.BufferData.of(player.getUniqueId(), target.getUniqueId()).nick;
+            return Component.join(JoinConfiguration.newlines(), lines);
         }
-        @Override public Optional<Integer> parent() { return index <= 0 ? Optional.of(target.getEntityId()) : DrawText.getEntityID(getID(index - 1)); }
+        @Override public Optional<Integer> parent() { return Optional.of(target.getEntityId()); }
         @Override public Location location() { return location; }
         @Override public double distance() { return 5; }
         @Override public boolean tryRemove() { return false; }
 
         public final Player target;
-        public final int index;
 
         public final Location location;
 
-        public ShowNickName(Player player, int index) {
+        public ShowNickName(Player player) {
             this.target = player;
-            this.index = index;
             this.location = player.getLocation();
         }
     }
     public static class ShowChat implements DrawText.IShow {
-        public String getID(int index) {
-            return target.getUniqueId() + ".Chat#" + index;
-        }
-
-        @Override public String getID() { return getID(index); }
+        @Override public String getID() { return target.getUniqueId() + ".Chat"; }
         @Override public boolean filter(Player owner) {
             if (target.getGameMode() == GameMode.SPECTATOR && owner.getGameMode() != GameMode.SPECTATOR) return false;
             return owner.getEntityId() != target.getEntityId();
         }
         @Override public Component text(Player player) { return chat; }
-        @Override public Optional<Integer> parent() { return index <= 0 ? Optional.of(target.getEntityId()) : DrawText.getEntityID(getID(index - 1)); }
+        @Override public Optional<Integer> parent() { return Optional.of(target.getEntityId()); }
         @Override public Location location() { return location; }
         @Override public double distance() { return 25; }
         @Override public boolean tryRemove() { return false; }
 
         public final Player target;
         public final Location location;
-        public final int index;
 
         public final Component chat;
 
-        public ShowChat(Player player, int index, Component chat) {
-            this.chat = chat;
+        public ShowChat(Player player, List<Component> chatLines) {
+            this.chat = Component.join(JoinConfiguration.newlines(), chatLines);
             this.target = player;
-            this.index = index;
             this.location = player.getLocation();
         }
     }
@@ -133,13 +121,9 @@ public class NickName {
                     case OFFLINE -> Stream.of(new ShowVoice(player, false));
                     default -> Stream.<ShowVoice>empty();
                 },
-                ChatMessages.chatText(player.getUniqueId())
-                        .map(lines -> IntStream.range(0, lines.size())
-                                .mapToObj(i -> (DrawText.IShow)new ShowChat(player, i, lines.get(i)))
-                        )
-                        .orElseGet(() -> IntStream.range(0, 5)
-                                .mapToObj(index -> new ShowNickName(player, index))
-                        )
+                Stream.of(ChatMessages.chatText(player.getUniqueId())
+                        .<DrawText.IShow>map(lines -> new ShowChat(player, lines))
+                        .orElseGet(() -> new ShowNickName(player)))
         );
     }
 

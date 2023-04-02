@@ -4,8 +4,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -35,7 +35,7 @@ public class ItemStackSizeEvent extends Event {
     }
     private ItemStackSizeEvent(net.minecraft.world.item.ItemStack nms_item, boolean isAsync) {
         super(isAsync);
-        NBTTagCompound tag = nms_item.tag;
+        NBTTagCompound tag = nms_item.getTag();
         maxItemStack = nms_item.getItem().getMaxStackSize();
         type = CraftMagicNumbers.getMaterial(nms_item.getItem());
         customModelData = tag != null && tag.contains("CustomModelData") ? tag.getInt("CustomModelData") : null;

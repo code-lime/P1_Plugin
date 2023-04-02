@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;

@@ -3,11 +3,12 @@ package org.lime.gp.module;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
-import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityLiving;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftLivingEntity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -84,7 +85,8 @@ public class MobSaturation implements Listener {
             double saturation = container.getOrDefault(SATURATION_KEY, PersistentDataType.DOUBLE, 1.0);
             saturation = Math.max(0, saturation - step_min);
             if (saturation <= 0) {
-                ((CraftLivingEntity)entity).getHandle().hurt(DamageSource.STARVE, 999999999);
+                EntityLiving living = ((CraftLivingEntity)entity).getHandle();
+                living.hurt(living.damageSources().starve(), 999999999);
                 return;
             }
             container.set(SATURATION_KEY, PersistentDataType.DOUBLE, saturation);

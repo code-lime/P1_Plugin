@@ -45,9 +45,9 @@ public class ItemNMS {
         return setLore(item, lore);
     }
     public static ItemStack addEnchant(ItemStack item, Enchantment enchantment, int level) {
-        item.getOrCreateTag();
-        if (!item.tag.contains(ItemStack.TAG_ENCH, 9)) item.tag.put(ItemStack.TAG_ENCH, new NBTTagList());
-        NBTTagList nbttaglist = item.tag.getList(ItemStack.TAG_ENCH, 10);
+        NBTTagCompound tag = item.getOrCreateTag();
+        if (!tag.contains(ItemStack.TAG_ENCH, 9)) tag.put(ItemStack.TAG_ENCH, new NBTTagList());
+        NBTTagList nbttaglist = tag.getList(ItemStack.TAG_ENCH, 10);
         nbttaglist.add(EnchantmentManager.storeEnchantment(EnchantmentManager.getEnchantmentId(enchantment), (byte)level));
         return item;
     }

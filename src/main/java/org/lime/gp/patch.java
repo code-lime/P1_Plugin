@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.lime.system;
 import org.objectweb.asm.*;

@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.util.Vector;
 import org.lime.system;
 
@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class PathFinder {
     private static BlockPosition toBlock(Vector vector) {
-        return new BlockPosition(vector.getX(), vector.getY(), vector.getZ());
+        return new BlockPosition(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
     @SuppressWarnings("unused")

@@ -3,4 +3,4 @@ version: 1.0
 main: org.lime.gp.lime
 api-version: 1.13
 authors: [Lime]
-depend: [ProtocolLib,GSit,CoreProtect,DiscordSRV,LimeCore,JSEngine,voicechat,CrazyAdvancementsAPI,MyLinker]
+depend: [ProtocolLib,GSit,DiscordSRV,LimeCore,LimeDisplay,JSEngine,voicechat,CrazyAdvancementsAPI,CoreProtect]

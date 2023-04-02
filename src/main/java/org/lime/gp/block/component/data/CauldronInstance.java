@@ -3,7 +3,6 @@ package org.lime.gp.block.component.data;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.Vector3f;
 import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumItemSlot;
@@ -20,7 +19,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -348,7 +347,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
             switch (state) {
                 case RECIPE, COMBINE:
                     if ((iterator = (iterator + 1) % 40) == 0) {
-                        world.getEntitiesOfClass(Entity.class, new AxisAlignedBB(position)).forEach(entity -> entity.hurt(DamageSource.IN_FIRE, 1));
+                        world.getEntitiesOfClass(Entity.class, new AxisAlignedBB(position)).forEach(entity -> entity.hurt(entity.damageSources().onFire(), 1));
                     }
                     break;
                 default:
@@ -378,7 +377,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                                 .filter(v -> v.matches(readonlyInventory, world))
                                 .findFirst()
                                 .ifPresentOrElse(recipe -> {
-                                    this.result = recipe.assemble(readonlyInventory).asBukkitCopy();
+                                    this.result = recipe.assemble(readonlyInventory, world.registryAccess()).asBukkitCopy();
                                     Perms.onRecipeUse(recipe, last_owner, canData);
                                     this.last_owner = null;
 

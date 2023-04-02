@@ -2,7 +2,7 @@ package org.lime.gp.craft.slot;
 
 import com.google.gson.JsonElement;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;

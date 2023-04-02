@@ -167,12 +167,12 @@ public class Drugs implements Listener {
         PacketManager.adapter()
                 .add(PacketPlayOutEntityMetadata.class, (packet, event) -> {
                     int id = event.getPlayer().getEntityId();
-                    if (packet.getId() == id) return;
-                    if (freezeList.containsKey(packet.getId())) {
-                        List<DataWatcher.Item<?>> data = new ArrayList<>(packet.getUnpackedData());
-                        data.removeIf(item -> item.getAccessor().getId() == EditedDataWatcher.DATA_TICKS_FROZEN.getId());
-                        data.add(new DataWatcher.Item<>(EditedDataWatcher.DATA_TICKS_FROZEN, 10000));
-                        packet = new PacketPlayOutEntityMetadata(packet.getId(), new DataWatcher(null) { @Override public List<Item<?>> getAll() { return data; } @Override public void clearDirty() { } }, true);
+                    if (packet.id() == id) return;
+                    if (freezeList.containsKey(packet.id())) {
+                        List<DataWatcher.b<?>> data = new ArrayList<>(packet.packedItems());
+                        data.removeIf(item -> item.id() == EditedDataWatcher.DATA_TICKS_FROZEN.getId());
+                        data.add(new DataWatcher.Item<>(EditedDataWatcher.DATA_TICKS_FROZEN, 10000).value());
+                        packet = new PacketPlayOutEntityMetadata(packet.id(), data);
                         event.setPacket(new PacketContainer(event.getPacketType(), packet));
                     }
                 })

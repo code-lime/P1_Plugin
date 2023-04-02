@@ -1,5 +1,6 @@
 package org.lime.gp.item;
 
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.common.collect.LinkedHashMultimap;
@@ -12,12 +13,14 @@ import net.coreprotect.event.AsyncItemInfoEvent;
 import net.kyori.adventure.text.Component;
 import net.minecraft.ResourceKeyInvalidException;
 import net.minecraft.core.IRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.sounds.SoundCategory;
 import net.minecraft.sounds.SoundEffects;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.effect.MobEffectList;
 import net.minecraft.world.entity.EntityAttackSweepEvent;
@@ -34,11 +37,10 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftCreativeCategory;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -60,7 +62,6 @@ import org.lime.gp.player.menu.page.slot.ISlot;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
-import org.lime.gp.item.settings.IItemSetting;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.item.settings.list.DurabilitySetting;
 import org.lime.gp.item.settings.list.EquipSetting;
@@ -467,7 +468,7 @@ public class Items implements Listener {
 
     private static final HashMap<String, PotionEffectType> potionEffectTypes = new HashMap<>();
     static {
-        for (Map.Entry<ResourceKey<MobEffectList>, MobEffectList> kv : IRegistry.MOB_EFFECT.entrySet()) {
+        for (Map.Entry<ResourceKey<MobEffectList>, MobEffectList> kv : BuiltInRegistries.MOB_EFFECT.entrySet()) {
             String key = kv.getKey().location().getPath();
             PotionEffectType effect = PotionEffectType.getById(MobEffectList.getId(kv.getValue()));
             potionEffectTypes.put(key, effect);
@@ -617,7 +618,7 @@ public class Items implements Listener {
     @SuppressWarnings("all")
     private static Location dropBlockPosition(Location location) {
         World world = location.getWorld();
-        Random random = ((CraftWorld)world).getHandle().random;
+        RandomSource random = ((CraftWorld)world).getHandle().random;
 
         float f = EntityTypes.ITEM.getHeight() / 2.0F;
         double d0 = (double)location.getBlockX() + 0.5D + MathHelper.nextDouble(random, -0.25D, 0.25D);
@@ -661,13 +662,15 @@ public class Items implements Listener {
     }
     public static String getMaterialKey(Material material) { return "Minecraft." + material; }
     public static boolean isMaterialKey(String key) { return key.startsWith("Minecraft."); }
+    /* TODO */
     public static String getCategoryKey(Material material) {
-        return "Category." + Optional.ofNullable(material)
+        /*return "Category." + Optional.ofNullable(material)
             .map(CraftMagicNumbers::getItem)
             .map(Item::getItemCategory)
             .map(CraftCreativeCategory::fromNMS)
             .map(Enum::name)
-            .orElse("OTHER");
+            .orElse("OTHER");*/
+        return "NONE";
     }
 
     public static Optional<String> getGlobalKeyByItem(ItemStack item) {
@@ -835,6 +838,10 @@ public class Items implements Listener {
         getOptional(EquipSetting.class, e.getItemStack())
                 .map(v -> v.slot)
                 .ifPresent(e::setSlot);
+    }
+    @EventHandler public static void on(PlayerArmorChangeEvent e) {
+        if (!(e.getPlayer() instanceof CraftPlayer player)) return;
+        lime.nextTick(player::updateInventory);
     }
 }
 

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeItemStack;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;

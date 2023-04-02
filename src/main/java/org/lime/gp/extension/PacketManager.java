@@ -4,31 +4,17 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import com.google.gson.JsonElement;
-import net.kyori.adventure.text.Component;
-import net.minecraft.SystemUtils;
-import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayOutChat;
 import net.minecraft.server.network.PlayerConnection;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.lime.gp.lime;
 import org.lime.system;
-import org.lime.gp.chat.ChatHelper;
-
 import java.util.*;
 
 public class PacketManager {
-    public static void sendActionMessage(Player player, String text) { sendActionData(player, Component.text(text)); }
-    public static void sendActionJson(Player player, String json) { sendActionJson(player, system.json.parse(json)); }
-    public static void sendActionJson(Player player, JsonElement json) { sendActionData(player, ChatHelper.toNMS(json)); }
-    public static void sendActionData(Player player, Component data) { sendActionData(player, ChatHelper.toNMS(data)); }
-    public static void sendActionData(Player player, IChatBaseComponent data) { PacketManager.sendPacket(player, new PacketPlayOutChat(data, net.minecraft.network.chat.ChatMessageType.GAME_INFO, SystemUtils.NIL_UUID)); }
-    public static void sendChatData(Player player, IChatBaseComponent data) { PacketManager.sendPacket(player, new PacketPlayOutChat(data, net.minecraft.network.chat.ChatMessageType.CHAT, SystemUtils.NIL_UUID)); }
-
     public static void sendPacket(Player player, Packet<?> packet) {
         ((CraftPlayer)player).getHandle().connection.send(packet);
     }

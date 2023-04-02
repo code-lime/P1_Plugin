@@ -2,9 +2,9 @@ package org.lime.gp.craft.recipe;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.NBTTagByte;
-import net.minecraft.network.chat.ChatComponentText;
 import net.minecraft.network.chat.ChatModifier;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +13,7 @@ import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.item.crafting.ShapelessRecipes;
 
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 public interface IDisplayRecipe {
-    Stream<RecipeCrafting> getDisplayRecipe();
+    Stream<RecipeCrafting> getDisplayRecipe(IRegistryCustom custom);
 
     static ItemStack amountToName(ItemStack item) {
         return nameWithPostfix(item, Component.text(" x"+item.getCount()));
@@ -33,8 +33,8 @@ public interface IDisplayRecipe {
     }
     static ItemStack nameWithPostfix(ItemStack item, Component postfix) {
         IChatBaseComponent name = item.getHoverName();
-        if (!item.hasCustomHoverName()) name = new ChatComponentText("").append(item.getHoverName()).setStyle(ChatModifier.EMPTY.withItalic(false));
-        return genericItem(item).setHoverName(new ChatComponentText("")
+        if (!item.hasCustomHoverName()) name = IChatBaseComponent.empty().append(item.getHoverName()).setStyle(ChatModifier.EMPTY.withItalic(false));
+        return genericItem(item).setHoverName(IChatBaseComponent.empty()
                 .append(name)
                 .append(ChatHelper.toNMS(postfix.decoration(TextDecoration.ITALIC) == TextDecoration.State.NOT_SET ? postfix.decoration(TextDecoration.ITALIC, false) : postfix))
         );
@@ -45,9 +45,9 @@ public interface IDisplayRecipe {
         return item;
     }
 
-    static RecipeCrafting removeLore(RecipeCrafting recipe) {
-        if (recipe instanceof ShapedRecipes shaped) return removeLore(shaped);
-        if (recipe instanceof ShapelessRecipes shapelless) return removeLore(shapelless);
+    static RecipeCrafting removeLore(RecipeCrafting recipe, IRegistryCustom custom) {
+        if (recipe instanceof ShapedRecipes shaped) return removeLore(shaped, custom);
+        if (recipe instanceof ShapelessRecipes shapelless) return removeLore(shapelless, custom);
         return recipe;
     }
 
@@ -75,10 +75,10 @@ public interface IDisplayRecipe {
         return newItems;
     }
 
-    static ShapedRecipes removeLore(ShapedRecipes recipe) {
-        return new ShapedRecipes(recipe.getId(), recipe.getGroup(), recipe.getWidth(), recipe.getHeight(), removeLore(recipe.getIngredients()), recipe.getResultItem());
+    static ShapedRecipes removeLore(ShapedRecipes recipe, IRegistryCustom custom) {
+        return new ShapedRecipes(recipe.getId(), recipe.getGroup(), recipe.category(), recipe.getWidth(), recipe.getHeight(), removeLore(recipe.getIngredients()), recipe.getResultItem(custom));
     }
-    static ShapelessRecipes removeLore(ShapelessRecipes recipe) {
-        return new ShapelessRecipes(recipe.getId(), recipe.getGroup(), recipe.getResultItem(), removeLore(recipe.getIngredients()));
+    static ShapelessRecipes removeLore(ShapelessRecipes recipe, IRegistryCustom custom) {
+        return new ShapelessRecipes(recipe.getId(), recipe.getGroup(), recipe.category(), recipe.getResultItem(custom), removeLore(recipe.getIngredients()));
     }
 }

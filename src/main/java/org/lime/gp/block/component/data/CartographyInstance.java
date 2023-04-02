@@ -1,7 +1,6 @@
 package org.lime.gp.block.component.data;
 
 import net.minecraft.core.BlockPosition;
-import net.minecraft.network.chat.ChatMessage;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.stats.StatisticList;
 import net.minecraft.world.EnumInteractionResult;
@@ -19,7 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.map.CraftMapView;
+import org.bukkit.craftbukkit.v1_19_R3.map.CraftMapView;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -98,7 +97,7 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
     @Override public boolean isShow() { return map != null; }
     @Override public Vector offset() { return new Vector(0, 1, 0); }
 
-    private static final IChatBaseComponent CONTAINER_TITLE = new ChatMessage("container.cartography_table");
+    private static final IChatBaseComponent CONTAINER_TITLE = IChatBaseComponent.translatable("container.cartography_table");
     private static ContainerAccess at(final World world, final BlockPosition pos) {
         return new ContainerAccess(){
             @Override public World getWorld() { return world; }

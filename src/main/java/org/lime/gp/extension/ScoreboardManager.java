@@ -1,7 +1,7 @@
 package org.lime.gp.extension;
 
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_18_R2.scoreboard.CraftScoreboard;
+import org.bukkit.craftbukkit.v1_19_R3.scoreboard.CraftScoreboard;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;

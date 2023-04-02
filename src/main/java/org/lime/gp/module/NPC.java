@@ -1,9 +1,9 @@
 package org.lime.gp.module;
 
 import net.minecraft.world.entity.player.PlayerModelPart;
-import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.display.*;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
@@ -262,8 +262,8 @@ public class NPC {
         @Override protected void sendData(Player player, boolean child) {
             PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook relMoveLook = new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(entityID, (short)0, (short)0, (short)0, (byte)0, (byte)0, true);
             PacketPlayOutNamedEntitySpawn ppones = new PacketPlayOutNamedEntitySpawn(entity);
-            PacketPlayOutPlayerInfo ppopi_add = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, entity);
-            PacketPlayOutPlayerInfo ppopi_del = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, entity);
+            ClientboundPlayerInfoUpdatePacket ppopi_add = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.a.ADD_PLAYER, entity);
+            ClientboundPlayerInfoRemovePacket ppopi_del = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(entity.getUUID()));
             PacketPlayOutEntityEquipment ppoee = new PacketPlayOutEntityEquipment(entityID, equipment);
 
             if (npc.single) {
@@ -344,7 +344,7 @@ public class NPC {
         }
         @Override public void hide(Player player) {
             super.hide(player);
-            PacketPlayOutPlayerInfo ppopi = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, entity);
+            ClientboundPlayerInfoRemovePacket ppopi = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(entity.getUUID()));
             PacketManager.sendPackets(player, ppopi);
         }
     }

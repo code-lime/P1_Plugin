@@ -11,7 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.scheduler.BukkitTask;
@@ -141,12 +141,12 @@ public class lime extends core {
     public static void unSit(Player player) {
         GSeat seat = GSitAPI.getSeat(player);
         if (seat == null) return;
-        GSitAPI.removeSeat(seat, GetUpReason.PLUGIN, true);
+        GSitAPI.removeSeat(seat.getEntity(), GetUpReason.PLUGIN, true);
     }
     public static void unLay(Player player) {
         IGPoseSeat seat = GSitAPI.getPose(player);
         if (seat == null) return;
-        GSitAPI.removePose(seat, GetUpReason.PLUGIN, true);
+        GSitAPI.removePose(seat.getPlayer(), GetUpReason.PLUGIN, true);
     }
 
     public static org.lime.autodownload autodownload;

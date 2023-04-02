@@ -6,9 +6,9 @@ import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.util.BlockStateListPopulator;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.util.BlockStateListPopulator;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.lime.gp.lime;
 
 import java.util.*;

@@ -1,7 +1,8 @@
 package org.lime.gp.module;
 
 import com.google.gson.JsonObject;
-import net.minecraft.core.IRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -9,6 +10,9 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumCreatureType;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.BiomeSettingsMobs;
+
+import java.util.Arrays;
+
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
@@ -37,11 +41,10 @@ public class BiomeMobs implements Listener {
         Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.UNIVERSAL_ANGER, true));
         lime.repeat(BiomeMobs::update, 1);
     }
-    @SuppressWarnings("deprecation")
     public static void config(JsonObject json) {
         MinecraftServer.getServer()
                 .registryAccess()
-                .registryOrThrow(IRegistry.BIOME_REGISTRY)
+                .registryOrThrow(Registries.BIOME)
                 .entrySet()
                 .forEach(kv -> {
                     ResourceKey<BiomeBase> resourceKey = kv.getKey();
@@ -88,8 +91,8 @@ public class BiomeMobs implements Listener {
             kv.getValue().getAsJsonArray().forEach(_item -> {
                 JsonObject item = _item.getAsJsonObject();
                 String[] group = item.get("group_size").getAsString().split("-");
-                builder.addSpawn(EnumCreatureType.byName(kv.getKey()), new BiomeSettingsMobs.c(
-                        IRegistry.ENTITY_TYPE.get(new MinecraftKey(item.get("type").getAsString())),
+                builder.addSpawn(Arrays.stream(EnumCreatureType.values()).filter(v -> v.getName().equals(kv.getKey())).findAny().get(), new BiomeSettingsMobs.c(
+                        BuiltInRegistries.ENTITY_TYPE.get(new MinecraftKey(item.get("type").getAsString())),
                         item.get("weight").getAsInt(),
                         Integer.parseInt(group[0]),
                         Integer.parseInt(group[1])
@@ -98,7 +101,7 @@ public class BiomeMobs implements Listener {
         });
         json.getAsJsonObject("spawn_costs").entrySet().forEach(kv -> {
             JsonObject item = kv.getValue().getAsJsonObject();
-            builder.addMobCharge(IRegistry.ENTITY_TYPE.get(new MinecraftKey(kv.getKey())), item.get("charge").getAsDouble(), item.get("energy_budget").getAsDouble());
+            builder.addMobCharge(BuiltInRegistries.ENTITY_TYPE.get(new MinecraftKey(kv.getKey())), item.get("charge").getAsDouble(), item.get("energy_budget").getAsDouble());
         });
         BiomeSettingsMobs buffer = builder.build();
 
@@ -112,16 +115,16 @@ public class BiomeMobs implements Listener {
                 .addObject("spawners", v -> v
                         .add(ReflectionAccess.spawners_BiomeSettingsMobs.get(mobs), EnumCreatureType::getName, _v -> system.json.array()
                                 .add(ReflectionAccess.items_WeightedRandomList.get(_v), item -> system.json.object()
-                                        .add("type", IRegistry.ENTITY_TYPE.getKey(item.type).toString())
+                                        .add("type", BuiltInRegistries.ENTITY_TYPE.getKey(item.type).toString())
                                         .add("weight", item.getWeight().asInt())
                                         .add("group_size", item.minCount + "-" + item.maxCount)
                                 )
                         )
                 )
                 .addObject("spawn_costs", v -> v
-                        .add(ReflectionAccess.mobSpawnCosts_BiomeSettingsMobs.get(mobs), k -> IRegistry.ENTITY_TYPE.getKey(k).toString(), item -> system.json.object()
-                                .add("energy_budget", item.getEnergyBudget())
-                                .add("charge", item.getCharge())
+                        .add(ReflectionAccess.mobSpawnCosts_BiomeSettingsMobs.get(mobs), k -> BuiltInRegistries.ENTITY_TYPE.getKey(k).toString(), item -> system.json.object()
+                                .add("energy_budget", item.energyBudget())
+                                .add("charge", item.charge())
                         )
                 )
                 .build();

@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.minecraft.advancements.CriterionTriggers;
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayInAutoRecipe;
 import net.minecraft.network.protocol.game.PacketPlayOutAutoRecipe;
@@ -21,10 +22,10 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.crafting.IRecipe;
 import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.event.CraftEventFactory;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryView;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftNamespacedKey;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftNamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -113,10 +114,11 @@ public class RecipesBook implements Listener {
                                 && connection.player.containerMenu instanceof ContainerRecipeBook
                                 && (event = new PlayerRecipeBookClickEvent(connection.player.getBukkitEntity(), CraftNamespacedKey.fromMinecraft(parent_recipe_key), packet.isShiftDown())).callEvent()
                         ) {
+                            IRegistryCustom custom = connection.player.level.registryAccess();
                             Recipes.CRAFTING_MANAGER
                                     .byKey(CraftNamespacedKey.toMinecraft(event.getRecipe()))
                                     .stream()
-                                    .flatMap(v -> v instanceof IDisplayRecipe ar ? ar.getDisplayRecipe() : Stream.empty())
+                                    .flatMap(v -> v instanceof IDisplayRecipe ar ? ar.getDisplayRecipe(custom) : Stream.empty())
                                     .filter(v -> v.getId().equals(generic_recipe_key))
                                     .filter(connection.player.getRecipeBook()::contains)
                                     .findFirst()
@@ -182,10 +184,11 @@ public class RecipesBook implements Listener {
     public static void sendRecipes(EntityPlayer player, Perms.ICanData data) {
         List<IRecipe<?>> recipes = new ArrayList<>();
 
+        IRegistryCustom custom = player.level.registryAccess();
         if (player.containerMenu instanceof IRecipesBookContainer container) {
             container.getRecipesCustom().forEach(recipe -> {
                 if (recipe instanceof IRecipe<?> _recipe && data.isCanCraft(_recipe.getId().getPath())) 
-                    recipe.getDisplayRecipe().forEach(recipes::add);
+                    recipe.getDisplayRecipe(custom).forEach(recipes::add);
             });
         } else {
             Recipes.CRAFTING_MANAGER.byName.forEach((key, recipe) -> {
@@ -193,7 +196,7 @@ public class RecipesBook implements Listener {
                 if (!data.isCanCraft(key.getPath())) return;
                 if (recipe instanceof IDisplayRecipe abstractRecipe) {
                     if (recipe instanceof RecipeCrafting) {
-                        abstractRecipe.getDisplayRecipe().forEach(_recipe -> recipes.add(_recipe));
+                        abstractRecipe.getDisplayRecipe(custom).forEach(_recipe -> recipes.add(_recipe));
                     }
                 } else {
                     recipes.add(recipe);

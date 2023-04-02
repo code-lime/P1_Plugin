@@ -24,8 +24,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -350,7 +350,9 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
 
         ReadonlyInventory inventory = ReadonlyInventory.ofNMS(slots);
 
-        event.getWorld().playSound(null, event.getPos(), SoundEffects.GENERIC_BURN, SoundCategory.BLOCKS, 1.0f, 0.2f);
+        World world = event.getWorld();
+
+        world.playSound(null, event.getPos(), SoundEffects.GENERIC_BURN, SoundCategory.BLOCKS, 1.0f, 0.2f);
         Perms.ICanData canData = Perms.getCanData(last_click);
         Recipes.LABORATORY.getAllRecipes(canData)
                 .filter(v -> v.matches(inventory, event.getWorld()))
@@ -362,7 +364,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                                     .location(metadata.location(0.5, 1.2, 0.5))
                                     .spawn();
                             Perms.onRecipeUse(recipe, last_click, canData);
-                            Block.popResource(event.getWorld(), event.getPos().above(), recipe.assemble(inventory));
+                            Block.popResource(event.getWorld(), event.getPos().above(), recipe.assemble(inventory, world.registryAccess()));
                         }, () -> PARTICLE
                                 .color(Color.fromRGB(0x000000), 3)
                                 .count(3)

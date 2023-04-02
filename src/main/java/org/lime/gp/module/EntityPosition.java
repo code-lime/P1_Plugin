@@ -4,7 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.EntityLiving;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
@@ -71,7 +71,6 @@ public class EntityPosition {
         entityList.putAll(list);
         listRemove.forEach(entityList::remove);
     }*/
-    @SuppressWarnings("deprecation")
     public static final MinecraftServer SERVER = MinecraftServer.getServer();
     public static void updateEntities() {
         HashMap<UUID, Location> locations = new HashMap<>();

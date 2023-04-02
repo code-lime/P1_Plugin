@@ -39,6 +39,7 @@ public class TileEntityLimeSkull extends TileEntitySkull {
     public void setMetadata(@Nullable ITickMetadata value) { metadata = value; }
     public void removeMetadata() { metadata = null; }
 
+    @SuppressWarnings("all")
     public void onTick(World world, BlockPosition pos, IBlockData state) {
         try {
             if (metadata != null && metadata.isLoaded()) metadata.onTick(new TileEntitySkullTickInfo(world, pos, state, this));
@@ -48,6 +49,7 @@ public class TileEntityLimeSkull extends TileEntitySkull {
         }
     }
 
+    @SuppressWarnings("all")
     public void onDestroy(BlockSkullDestroyInfo info) {
         try {
             if (metadata != null) metadata.onDestroy(info);
@@ -56,6 +58,7 @@ public class TileEntityLimeSkull extends TileEntitySkull {
         }
     }
 
+    @SuppressWarnings("all")
     public @Nullable EnumInteractionResult onInteract(BlockSkullInteractInfo info) {
         try {
             return metadata == null ? null : metadata.onInteract(info);
@@ -64,6 +67,7 @@ public class TileEntityLimeSkull extends TileEntitySkull {
             return null;
         }
     }
+    @SuppressWarnings("all")
     public @Nullable IBlockData onPlace(BlockSkullPlaceInfo info) {
         try {
             return metadata == null ? null : metadata.onPlace(info);
@@ -72,6 +76,7 @@ public class TileEntityLimeSkull extends TileEntitySkull {
             return null;
         }
     }
+    @SuppressWarnings("all")
     public @Nullable VoxelShape onShape(BlockSkullShapeInfo info) {
         try {
             return metadata == null ? null : metadata.onShape(info);
@@ -80,6 +85,7 @@ public class TileEntityLimeSkull extends TileEntitySkull {
             return null;
         }
     }
+    @SuppressWarnings("all")
     public @Nullable IBlockData onState(BlockSkullStateInfo info) {
         try {
             return metadata == null ? null : metadata.onState(info);

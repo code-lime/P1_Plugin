@@ -23,7 +23,7 @@ plugins {
 group = pluginGroup
 version = pluginVersion
 
-String _version = "1.18.2"
+String _version = "1.19.4"
 boolean _mapped = true
 
 dependencies {
@@ -33,16 +33,15 @@ dependencies {
             files(libPath("Core-1.0.jar")),
             files(libPath("LimeDisplay-1.0.jar")),
             files(libPath("JSEngine-3.0.5.jar")),
-            files(libPath("GSit-1.1.0.jar")),
+            files(libPath("GSit-1.4.1.jar")),
             files(libPath("LimeCoreProtect-1.0.jar")),
             files(libPath("ProtocolLib.jar")),
             files(libPath("DiscordSRV-Build-1.26.1.jar")),
-            files(libPath("voicechat-bukkit-1.18.2-2.3.1.jar")),
+            files(libPath("voicechat-bukkit-1.19.4-2.3.28.jar")),
             files(libPath("byte-buddy-1.11.18.jar")),
             files(libPath("byte-buddy-agent-1.11.18.jar")),
             files(libPath("Physics-1.11.0.jar")),
             files(libPath("ode4j-core-0.4.1.jar")),
-            files(libPath("MyLinker-6.1.jar")),
             files(libPath("mp3spi-1.9.13.jar"))
     )
 }
@@ -68,22 +67,22 @@ static String getFileNameWithoutExt(String fileName) {
     return fileName;
 }
 
-static String yandexDiskMinecraftPath() {
-    return Paths.get(yandex_disk(), "PLUGINS", "Minecraft");
+String githubMinecraftDataPath() {
+    return Paths.get(projectDir.absolutePath, "..");
 }
 
 File decompileGit(String file) {
     String path = Paths.get(projectDir.parent, file, "src", "main", "java").toString();
     return new File(path);
 }
-static String decompilePath(String file) {
-    return Paths.get(yandexDiskMinecraftPath(), ".decompile", file).toString();
+String decompilePath(String file) {
+    return Paths.get(githubMinecraftDataPath(), ".decompile", file).toString();
 }
-static File decompileFile(String file) {
+File decompileFile(String file) {
     return new File(decompilePath(file));
 }
-static String libPath(String file) {
-    return Paths.get(yandexDiskMinecraftPath(), ".libs", file);
+String libPath(String file) {
+    return Paths.get(githubMinecraftDataPath(), ".libs", file);
 }
 
 static List<String> getText(Process process) {
@@ -111,7 +110,7 @@ static void invokeText(Process process, Action1<String> action) {
     }
 }
 String executeJs(int line_index, String js) {
-    String exe = Paths.get(yandexDiskMinecraftPath(), ".utils", "js.exe").toAbsolutePath().toFile().path + " " + Base64.getEncoder().encodeToString(js.getBytes());
+    String exe = Paths.get(githubMinecraftDataPath(), ".utils", "js.exe").toAbsolutePath().toFile().path + " " + Base64.getEncoder().encodeToString(js.getBytes());
     return new String(Base64.getDecoder().decode(String.join("\n", getText(Runtime.runtime.exec(exe)))));
 }
 static Map<String, String> regedit(String... path) {
@@ -122,18 +121,6 @@ static Map<String, String> regedit(String... path) {
         map.put(args[0], args.length >= 3 ? args[2] : "")
     }
     return map
-}
-static String yandex_disk() {
-    HashMap<String, String> list = new HashMap<>();
-    list.put("HKEY_CURRENT_USER\\SOFTWARE\\Yandex\\Yandex.Disk", "RootFodler")
-    list.put("HKEY_CURRENT_USER\\SOFTWARE\\Yandex\\Yandex.Disk.2", "RootFolder")
-    for (Map.Entry<String, String> reg : list) {
-        Map<String, String> map = regedit(reg.getKey());
-        String folder = map.getOrDefault(reg.value, null)
-        if (folder == null) continue
-        return folder
-    }
-    return null
 }
 static List<File> getFiles(File dir, Predicate<File> filter) {
     List<File> files = new ArrayList<>();
@@ -250,8 +237,8 @@ task generator() {
             .bytes = zip(entries);
 }
 
-static java.nio.file.Path java_mapper() {
-    return Paths.get(yandex_disk(), "PLUGINS", "Minecraft", ".libs", "Java.Mapper.exe").toAbsolutePath()
+java.nio.file.Path java_mapper() {
+    return Paths.get(githubMinecraftDataPath(), ".libs", "Java.Mapper.exe").toAbsolutePath()
 }
 task copyToLib() {}
 static String unicode_format(String text) {
@@ -289,8 +276,8 @@ copyToLib.doLast {
     }
 
     for (String path : [
-        Paths.get(yandex_disk(), "Minecraft-Paper", "plugins"),
-        Paths.get(yandex_disk(), "PLUGINS", "Minecraft", ".libs")
+        Paths.get(githubMinecraftDataPath(), ".output"),
+        Paths.get(githubMinecraftDataPath(), ".libs")
     ])
     {
         java.nio.file.Path copied = Paths.get(path, file_name)
@@ -301,6 +288,7 @@ copyToLib.doLast {
         Files.copy(originalPath, copied, StandardCopyOption.REPLACE_EXISTING)
         Files.copy(Paths.get(projectDir.absolutePath, "build", "src", src_name), copied_src, StandardCopyOption.REPLACE_EXISTING)
     }
+    println "End of time: " + java.time.LocalDate.now().toString() + " " + java.time.LocalTime.now().toString()
 }
 
 build {

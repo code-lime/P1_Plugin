@@ -10,6 +10,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.IRegistry;
 import net.minecraft.core.IRegistryCustom;
+import net.minecraft.core.RegistrySynchronization;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.DynamicOpsNBT;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,6 +22,7 @@ import net.minecraft.network.protocol.EnumProtocolDirection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketListenerPlayOut;
 import net.minecraft.network.protocol.game.PacketPlayOutLogin;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.EnumGamemode;
 import net.minecraft.world.level.World;
@@ -63,6 +66,7 @@ public class BiomeModify {
         @Override void close();
     }
 
+    private static final RegistryOps<NBTBase> BUILTIN_CONTEXT_OPS = RegistryOps.create(DynamicOpsNBT.INSTANCE, IRegistryCustom.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     public record CustomPacketPlayOutLogin(
             int playerId,
             boolean hardcore,
@@ -70,7 +74,7 @@ public class BiomeModify {
             EnumGamemode previousGameType,
             Set<ResourceKey<World>> levels,
             IRegistryCustom.Dimension registryHolder,
-            Holder<DimensionManager> dimensionType,
+            ResourceKey<DimensionManager> dimensionType,
             ResourceKey<World> dimension,
             long seed,
             int maxPlayers,
@@ -81,9 +85,9 @@ public class BiomeModify {
             boolean isDebug,
             boolean isFlat
     ) implements Packet<PacketListenerPlayOut> {
-        public CustomPacketPlayOutLogin(PacketDataSerializer buf) {
-            this(buf.readInt(), buf.readBoolean(), EnumGamemode.byId(buf.readByte()), EnumGamemode.byNullableId(buf.readByte()), buf.readCollection(Sets::newHashSetWithExpectedSize, b2 -> ResourceKey.create(IRegistry.DIMENSION_REGISTRY, b2.readResourceLocation())), buf.readWithCodec(IRegistryCustom.NETWORK_CODEC).freeze(), buf.readWithCodec(DimensionManager.CODEC), ResourceKey.create(IRegistry.DIMENSION_REGISTRY, buf.readResourceLocation()), buf.readLong(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean());
-        }
+        /*public CustomPacketPlayOutLogin(PacketDataSerializer buf) {
+            this(buf.readInt(), buf.readBoolean(), EnumGamemode.byId(buf.readByte()), EnumGamemode.byNullableId(buf.readByte()), buf.readCollection(Sets::newHashSetWithExpectedSize, b2 -> ResourceKey.create(IRegistry.DIMENSION_REGISTRY, b2.readResourceLocation())), buf.readWithCodec(BuiltInRegistries.NETWORK_CODEC).freeze(), buf.readWithCodec(DimensionManager.CODEC), ResourceKey.create(IRegistry.DIMENSION_REGISTRY, buf.readResourceLocation()), buf.readLong(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean());
+        }*/
         public CustomPacketPlayOutLogin(PacketPlayOutLogin other) {
             this(other.playerId(),
                     other.hardcore(),
@@ -107,9 +111,9 @@ public class BiomeModify {
             buf.writeBoolean(this.hardcore);
             buf.writeByte(this.gameType.getId());
             buf.writeByte(EnumGamemode.getNullableId(this.previousGameType));
-            buf.writeCollection(this.levels, (b2, dimension) -> b2.writeResourceLocation(dimension.location()));
+            buf.writeCollection(this.levels, PacketDataSerializer::writeResourceKey);
 
-            NBTTagCompound registry = nbt(IRegistryCustom.NETWORK_CODEC, this.registryHolder);
+            NBTTagCompound registry = nbt(RegistrySynchronization.NETWORK_CODEC, this.registryHolder);
             NBTTagList list = registry.getCompound("minecraft:worldgen/biome").getList("value", NBTBase.TAG_COMPOUND);
             List<NBTTagCompound> globalList = new ArrayList<>();
             system.Toast1<Integer> maxID = system.toast(-1);
@@ -136,8 +140,11 @@ public class BiomeModify {
             });
             buf.writeNbt(registry);
 
-            buf.writeWithCodec(DimensionManager.CODEC, this.dimensionType);
-            buf.writeResourceLocation(this.dimension.location());
+            
+
+
+            buf.writeResourceKey(this.dimensionType);
+            buf.writeResourceKey(this.dimension);
             buf.writeLong(this.seed);
             buf.writeVarInt(this.maxPlayers);
             buf.writeVarInt(this.chunkRadius);
@@ -146,6 +153,7 @@ public class BiomeModify {
             buf.writeBoolean(this.showDeathScreen);
             buf.writeBoolean(this.isDebug);
             buf.writeBoolean(this.isFlat);
+            buf.writeOptional(Optional.empty(), PacketDataSerializer::writeGlobalPos);
         }
         @Override public void handle(PacketListenerPlayOut packetListener) { }
         private static <T>NBTTagCompound nbt(Codec<T> codec, T object) {

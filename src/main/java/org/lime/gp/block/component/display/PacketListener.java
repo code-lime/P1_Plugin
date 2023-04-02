@@ -3,7 +3,7 @@ package org.lime.gp.block.component.display;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.system;
 import org.lime.display.invokable.PacketInvokable;

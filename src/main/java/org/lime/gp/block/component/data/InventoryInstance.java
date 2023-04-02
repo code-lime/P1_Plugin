@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.lime.display.Models;
 import org.lime.display.transform.LocalLocation;

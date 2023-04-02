@@ -5,7 +5,7 @@ import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.LimeKey;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.entity.EntityInLevelCallback;
-import org.bukkit.craftbukkit.v1_18_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
 
 import javax.annotation.Nullable;
 import java.util.Map;

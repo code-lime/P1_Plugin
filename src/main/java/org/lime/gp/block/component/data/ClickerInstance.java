@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
@@ -239,7 +239,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             can = true;
             if (recipe.clicks > clicks) continue;
             List<ItemStack> drop = new ArrayList<>();
-            drop.add(CraftItemStack.asBukkitCopy(recipe.assemble(readonlyInventory)));
+            drop.add(CraftItemStack.asBukkitCopy(recipe.assemble(readonlyInventory, world.registryAccess())));
             Perms.onRecipeUse(recipe, player.getUniqueId(), canData);
             recipe.getRemainingItems(readonlyInventory).forEach(_item -> drop.add(CraftItemStack.asBukkitCopy(_item)));
             Items.dropGiveItem(player, drop, true);

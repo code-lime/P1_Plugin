@@ -2,9 +2,8 @@ package org.lime.gp.player.module;
 
 import dev.geco.gsit.GSitMain;
 import dev.geco.gsit.api.GSitAPI;
-import dev.geco.gsit.api.event.PrePlayerGetUpSitEvent;
+import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
 import dev.geco.gsit.api.event.PrePlayerPoseEvent;
-import dev.geco.gsit.api.event.PrePlayerSitEvent;
 import dev.geco.gsit.objects.GSeat;
 import dev.geco.gsit.objects.GetUpReason;
 import org.bukkit.Bukkit;
@@ -52,11 +51,11 @@ public class TargetMove implements Listener {
                     .ifPresent(pose -> {
                         Location targetLocation = targetOf(player, target, true).val0;
                         if (targetLocation == null) return;
-                        GSitAPI.removePose(pose, GetUpReason.PLUGIN);
+                        GSitAPI.removePose(pose.getPlayer(), GetUpReason.PLUGIN);
                         targets.put(playerUUID, system.toast(targetUUID, 10));
                         isSync = true;
                         try {
-                            GSitAPI.createSeat(targetLocation.getBlock(), target, false, targetLocation.getX() % 1 - 0.5, 0, targetLocation.getZ() % 1 - 0.5, targetLocation.getYaw(), true, true);
+                            GSitAPI.createSeat(targetLocation.getBlock(), target, false, targetLocation.getX() % 1 - 0.5, 0, targetLocation.getZ() % 1 - 0.5, targetLocation.getYaw(), true);
                         } finally {
                             isSync = false;
                         }
@@ -81,7 +80,7 @@ public class TargetMove implements Listener {
         if (player == null || player.isInsideVehicle() || Displays.hasVehicle(player.getEntityId())) {
             Optional.ofNullable(Bukkit.getPlayer(targetUUID))
                     .map(GSitAPI::getSeat)
-                    .ifPresent(v -> GSitAPI.removeSeat(v, GetUpReason.PLUGIN));
+                    .ifPresent(v -> GSitAPI.removeSeat(v.getEntity(), GetUpReason.PLUGIN));
             return true;
         }
         Player target = Bukkit.getPlayer(targetUUID);
@@ -140,24 +139,23 @@ public class TargetMove implements Listener {
             //Location l = new Location(location.getWorld(), location.getX(), block.getY() + o - 0.2D, location.getZ());
             Location l = new Location(location.getWorld(), location.getX(), getHeight(block), location.getZ());
 
-            GPM.getSitUtil().removeSeatBlock(seat.getBlock(), seat);
+
+            seat.setBlock(block);
+            seat.setLocation(l);
+            GPM.getEntityUtil().posEntity(seat.getSeatEntity(), seat.getLocation());
+
+            /*GPM.getSitUtil().removeSeatBlock(seat.getBlock(), seat);
             seat.setBlock(block);
             seat.setLocation(l);
             seat.setReturn(l);
             GPM.getSitUtil().setSeatBlock(seat.getBlock(), seat);
             seat.getEntity().setRotation(location.getYaw(), location.getPitch());
-            GPM.getPlayerUtil().pos(seat.getEntity(), seat.getLocation());
+            GPM.getPlayerUtil().pos(seat.getEntity(), seat.getLocation());*/
         });
     }
 
     private static boolean isSync = false;
-    @EventHandler public static void on(PrePlayerGetUpSitEvent e) {
-        Player player = e.getPlayer();
-        UUID uuid = player.getUniqueId();
-        if (isTarget(uuid) && Death.isDamageLay(uuid)) e.setCancelled(true);
-    }
-    @EventHandler public static void on(PrePlayerSitEvent e) {
-        if (isSync) return;
+    @EventHandler public static void on(PrePlayerGetUpPoseEvent e) {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
         if (isTarget(uuid) && Death.isDamageLay(uuid)) e.setCancelled(true);

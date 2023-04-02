@@ -2,11 +2,12 @@ package org.lime.gp.module.holiday;
 
 import com.destroystokyo.paper.util.maplist.IBlockDataList;
 import com.google.gson.JsonObject;
+
 import io.papermc.paper.util.WorldUtil;
 import io.papermc.paper.util.math.ThreadUnsafeRandom;
 import net.minecraft.core.*;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ChunkProviderServer;
 import net.minecraft.server.level.PlayerChunk;
@@ -16,13 +17,14 @@ import net.minecraft.world.level.EnumSkyBlock;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.IWorldReader;
 import net.minecraft.world.level.biome.BiomeBase;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.BlockSnow;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.chunk.ChunkSection;
 import net.minecraft.world.level.levelgen.HeightMap;
-import org.bukkit.craftbukkit.v1_18_R2.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
 import org.bukkit.event.Listener;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
@@ -46,11 +48,11 @@ public class Snowy implements Listener {
     }
 
     
-    @SuppressWarnings("deprecation")
     private final static MinecraftServer server = MinecraftServer.getServer();
-    private final static IRegistryCustom.Dimension dimension = server.registryHolder;
-    private final static RegistryMaterials<BiomeBase> data = (RegistryMaterials<BiomeBase>)dimension.registryOrThrow(IRegistry.BIOME_REGISTRY);
-    private final static Holder<BiomeBase> snowy_taiga = data.getHolder(data.getId(data.get(new MinecraftKey("minecraft", "snowy_taiga")))).orElseThrow();
+    private final static IRegistryCustom.Dimension dimension = server.registryAccess();
+    
+    private final static IRegistry<BiomeBase> data = dimension.registryOrThrow(Registries.BIOME);
+    private final static Holder<BiomeBase> snowy_taiga = data.getHolderOrThrow(Biomes.SNOWY_TAIGA);
     private static boolean ENABLE = false;
     public static void init() {
         lime.repeatTicks(Snowy::tickServer, 5);
@@ -62,15 +64,15 @@ public class Snowy implements Listener {
 
         server.getAllLevels().forEach(world -> {
             if (ENABLE) {
-                world.paperConfig.frostedIceEnabled = false;
-                world.paperConfig.frostedIceDelayMin = 20000;
-                world.paperConfig.frostedIceDelayMax = 40000;
+                world.paperConfig().environment.frostedIce.enabled = false;
+                world.paperConfig().environment.frostedIce.delay.min = 20000;
+                world.paperConfig().environment.frostedIce.delay.max = 40000;
             } else {
-                world.paperConfig.frostedIceEnabled = true;
-                world.paperConfig.frostedIceDelayMin = 2000;
-                world.paperConfig.frostedIceDelayMax = 4000;
+                world.paperConfig().environment.frostedIce.enabled = true;
+                world.paperConfig().environment.frostedIce.delay.min = 2000;
+                world.paperConfig().environment.frostedIce.delay.max = 4000;
             }
-            world.paperConfig.disableIceAndSnow = true;
+            world.paperConfig().environment.disableIceAndSnow = true;
         });
 
         if ((closeable != null) == ENABLE) return;
@@ -89,7 +91,7 @@ public class Snowy implements Listener {
         element.putString("category", "taiga");
     }
     public static void tickServer() {
-        ThreadUnsafeRandom randomTickRandom = new ThreadUnsafeRandom();
+        ThreadUnsafeRandom randomTickRandom = new ThreadUnsafeRandom(1000);
         server.getAllLevels().forEach(world -> {
             ChunkProviderServer chunkProviderServer = world.getChunkSource();
             int randomTickSpeed = world.getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
@@ -154,7 +156,7 @@ public class Snowy implements Listener {
                 });
                 blockposition.setY(downY);
                 IBlockData iblockdata = world.getBlockState(blockposition);
-                BiomeBase.Precipitation biomebase_precipitation = biomebase.getPrecipitation();
+                BiomeBase.Precipitation biomebase_precipitation = biomebase.getPrecipitationAt(blockposition);
                 if (biomebase_precipitation == BiomeBase.Precipitation.RAIN && biomebase.coldEnoughToSnow(blockposition)) {
                     biomebase_precipitation = BiomeBase.Precipitation.SNOW;
                 }

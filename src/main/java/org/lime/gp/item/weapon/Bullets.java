@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.resources.MinecraftKey;
+import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.sounds.SoundEffect;
 import net.minecraft.world.damagesource.DamageSource;
@@ -22,9 +23,9 @@ import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.phys.Vec3D;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftSpectralArrow;
+import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftSpectralArrow;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -36,8 +37,11 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.admin.AnyEvent.type;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BulletSetting;
 import org.lime.gp.lime;
@@ -54,8 +58,19 @@ public class Bullets implements Listener {
                 .withInstance()
                 .withInit(Bullets::init);
     }
-    private static final SoundEffect SOUND_EFFECT_NONE = new SoundEffect(new MinecraftKey("lime", "empty"));
+    private static final SoundEffect SOUND_EFFECT_NONE = SoundEffect.createFixedRangeEvent(new MinecraftKey("lime", "empty"), 0);
+    
+    private static BukkitTask updateTask = null;
+    private static void reRunUpdate(int deltaTicks, double modify) {
+        if (updateTask != null) updateTask.cancel();
+        updateTask = lime.repeatTicks(() -> Bullets.update(deltaTicks, modify), deltaTicks);
+    }
     public static void init() {
+        reRunUpdate(4, 1);
+        /*AnyEvent.addEvent("bullet.delta", type.owner_console, v -> v.createParam(Integer::parseInt, "[delta]").createParam(Double::parseDouble, "1", "[modify]"), (player, delta, modify) -> {
+            reRunUpdate(delta, modify);
+            lime.logOP("Change dalta bullet tick to " + delta + " with modify value " + modify);
+        });*/
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(lime._plugin, PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.NAMED_SOUND_EFFECT) {
             @Override public void onPacketSending(PacketEvent event) {
                 Object _packet = event.getPacket().getHandle();
@@ -69,21 +84,21 @@ public class Bullets implements Listener {
                                             packet.getX(),
                                             packet.getY(),
                                             packet.getZ(),
-                                            packet.getxRot() * 360.0f / 256.0f,
-                                            packet.getyRot() * 360.0f / 256.0f,
+                                            packet.getXRot() * 360.0f / 256.0f,
+                                            packet.getYRot() * 360.0f / 256.0f,
                                             EntityTypes.ARROW,
                                             packet.getData(),
-                                            new Vec3D(packet.getXa(), packet.getYa(), packet.getZa())
+                                            new Vec3D(packet.getXa(), packet.getYa(), packet.getZa()),
+                                            packet.getYHeadRot()
                                     )
                             )
                             .ifPresent(v -> event.setPacket(new PacketContainer(event.getPacketType(), v)));
                 } else if (_packet instanceof PacketPlayOutNamedSoundEffect packet) {
-                    if (!packet.getSound().getLocation().equals(SOUND_EFFECT_NONE.getLocation())) return;
+                    if (!packet.getSound().value().getLocation().equals(SOUND_EFFECT_NONE.getLocation())) return;
                     event.setCancelled(true);
                 }
             }
         });
-        lime.repeatTicks(Bullets::update, 1);
     }
     private static final NamespacedKey TASER_TICKS = new NamespacedKey(lime._plugin, "taser_ticks");
     private static final ImageBuilder BLUR = ImageBuilder.of(0xEff8, 2000);
@@ -94,15 +109,14 @@ public class Bullets implements Listener {
 
     private static final PotionEffect TASER_FREEZE = new PotionEffect(PotionEffectType.SLOW, 5, 5, false, false, false);
     private static final PotionEffect TRAUMATIC_FREEZE = new PotionEffect(PotionEffectType.SLOW, 4*20, 5, false, false, false);
-
-    public static void update() {
+    public static void update(int deltaTicks, double modify) {
         List<GameMode> gmList = List.of(GameMode.CREATIVE, GameMode.SPECTATOR);
         Bukkit.getWorlds().forEach(world -> {
             world.getLivingEntities().forEach(entity -> {
                 PersistentDataContainer container = entity.getPersistentDataContainer();
                 Optional.ofNullable(container.get(TASER_TICKS, PersistentDataType.INTEGER))
                         .filter(ticks -> {
-                            ticks--;
+                            ticks -= deltaTicks;
                             if (ticks <= 0) {
                                 container.remove(TASER_TICKS);
                                 return false;
@@ -118,7 +132,9 @@ public class Bullets implements Listener {
                             if (ticks % 10 == 0 && entity instanceof CraftLivingEntity centity) {
                                 EntityLiving eentity = centity.getHandle();
                                 eentity.level.broadcastEntityEvent(eentity, (byte)2);
-                                ReflectionAccess.playHurtSound_EntityLiving.call(eentity, new Object[] { DamageSource.GENERIC });
+                                if (eentity instanceof EntityPlayer eplayer)
+                                    eplayer.connection.send(new ClientboundHurtAnimationPacket(entity.getEntityId(), system.rand(0, 360)));
+                                ReflectionAccess.playHurtSound_EntityLiving.call(eentity, new Object[] { eentity.damageSources().generic() });
                             }
                         });
             });
@@ -128,6 +144,7 @@ public class Bullets implements Listener {
                 if (tags.remove("bullet:no_ground")) arrow.setGravity(true);
                 PersistentDataContainer container = arrow.getPersistentDataContainer();
                 Optional.ofNullable(container.get(TICK_ROTATION_KEY, PersistentDataType.DOUBLE))
+                        .map(_v -> _v * modify)
                         .filter(system::rand_is)
                         .ifPresent(v -> {
                             tags.add("bullet:no_ground");
@@ -147,7 +164,7 @@ public class Bullets implements Listener {
             if (id != null) container.set(ARROW_ITEM_ID_KEY, PersistentDataType.INTEGER, id);
             projectile.setShooter(owner);
             projectile.setPickupStatus(AbstractArrow.PickupStatus.CREATIVE_ONLY);
-            handle.life = handle.level.paperConfig.creativeArrowDespawnRate - 20 * 20;
+            handle.life = handle.level.spigotConfig.arrowDespawnRate - 20 * 20;
         });
     }
 
@@ -163,9 +180,9 @@ public class Bullets implements Listener {
                         DamageSource damagesource;
                         Entity owner = arrow.getOwner();
                         if (owner == null) {
-                            damagesource = DamageSource.arrow(arrow, arrow);
+                            damagesource = entity.damageSources().arrow(arrow, arrow);
                         } else {
-                            damagesource = DamageSource.arrow(arrow, owner);
+                            damagesource = entity.damageSources().arrow(arrow, owner);
                             if (owner instanceof EntityLiving living) living.setLastHurtMob(entity);
                         }
                         if (arrow.isCritArrow()) damagesource = damagesource.critical();

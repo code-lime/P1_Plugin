@@ -3,8 +3,11 @@ package org.lime.gp.craft.recipe;
 import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import net.minecraft.core.Holder;
 import net.minecraft.core.IRegistry;
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.RegistryMaterials;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.PacketPlayOutRecipeUpdate;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.MinecraftServer;
@@ -17,7 +20,7 @@ import net.minecraft.world.item.crafting.CraftingManager;
 import net.minecraft.world.item.crafting.IRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.World;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Recipe;
@@ -41,9 +44,9 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
     @SuppressWarnings("unused")
     private static class IgnoreRecipe implements IRecipe<IInventory> {
         @Override public boolean matches(IInventory iInventory, World world) { return false; }
-        @Override public ItemStack assemble(IInventory iInventory) { return null; }
+        @Override public ItemStack assemble(IInventory iInventory, IRegistryCustom custom) { return null; }
         @Override public boolean canCraftInDimensions(int i, int j) { return false; }
-        @Override public ItemStack getResultItem() { return null;}
+        @Override public ItemStack getResultItem(IRegistryCustom custom) { return null;}
         @Override public MinecraftKey getId() { return new MinecraftKey("none", "none"); }
         @Override public RecipeSerializer<?> getSerializer() { return null; }
         @Override public net.minecraft.world.item.crafting.Recipes<?> getType() { return null; }
@@ -62,7 +65,7 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
                     Optional.of(event.getPlayer())
                             .map(v -> v instanceof CraftPlayer cp ? cp : null)
                             .map(Entity::getUniqueId)
-                            .map(PLAYER_LIST::getActivePlayer)
+                            .map(PLAYER_LIST::getPlayer)
                             .ifPresentOrElse(player -> {
                                 RecipeBookServer book = player.getRecipeBook();
                                 List<IRecipe<?>> original = packet.getRecipes();
@@ -73,7 +76,7 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
                                 appendQuery.add(append);
                                 for (IRecipe<?> recipe : original) {
                                     if (recipe instanceof IDisplayRecipe abstractRecipe) {
-                                        for (IRecipe<?> displayRecipe : iterable(abstractRecipe.getDisplayRecipe())) {
+                                        for (IRecipe<?> displayRecipe : iterable(abstractRecipe.getDisplayRecipe(player.level.registryAccess()))) {
                                             if (book.contains(displayRecipe.getId())) append.add(displayRecipe);
                                         }
                                     }
@@ -114,15 +117,20 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
     public static Recipes<LaboratoryRecipe> LABORATORY = Recipes.register("laboratory");
     public static Recipes<ConverterRecipe> CONVERTER = Recipes.register("converter");
 
-    @SuppressWarnings("deprecation")
     public static final CraftingManager CRAFTING_MANAGER = MinecraftServer.getServer().getRecipeManager();
-    @SuppressWarnings("deprecation")
     public static final PlayerList PLAYER_LIST = MinecraftServer.getServer().getPlayerList();
 
     static {
-        HashMap<net.minecraft.world.item.crafting.Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipesMap = new HashMap<>(CRAFTING_MANAGER.recipes);
-        for (net.minecraft.world.item.crafting.Recipes<?> recipes : IRegistry.RECIPE_TYPE) recipesMap.computeIfAbsent(recipes, v -> new Object2ObjectLinkedOpenHashMap<>());
-        CRAFTING_MANAGER.recipes = recipesMap.entrySet().stream().collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+        try {
+            /* TODO */
+            HashMap<net.minecraft.world.item.crafting.Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipesMap = new HashMap<>(CRAFTING_MANAGER.recipes);
+            for (net.minecraft.world.item.crafting.Recipes<?> recipes : BuiltInRegistries.RECIPE_TYPE)
+                recipesMap.computeIfAbsent(recipes, v -> new Object2ObjectLinkedOpenHashMap<>());
+            CRAFTING_MANAGER.recipes = recipesMap.entrySet().stream().collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+        } catch (Exception e) {
+            lime.logStackTrace(e);
+            throw null;
+        }
     }
 
     private final String id;
@@ -152,11 +160,17 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
     public Stream<T> getAllRecipes(Perms.ICanData canData) { return getAllRecipes().stream().filter(v -> canData.isCanCraft(v.getId().getPath())); }
 
     public static <T extends AbstractRecipe> Recipes<T> register(final String id) {
-        RegistryMaterials<net.minecraft.world.item.crafting.Recipes<?>> reg = (RegistryMaterials<net.minecraft.world.item.crafting.Recipes<?>>)IRegistry.RECIPE_TYPE;
-        boolean back = ReflectionAccess.frozen_RegistryMaterials.get(reg);
-        ReflectionAccess.frozen_RegistryMaterials.set(reg, false);
-        try { return IRegistry.register(reg, new MinecraftKey("lime." + STATIC_PREFIX, id), new Recipes<>(id)); }
-        finally { ReflectionAccess.frozen_RegistryMaterials.set(reg, back); }
+        try 
+        {
+            RegistryMaterials<net.minecraft.world.item.crafting.Recipes<?>> reg = (RegistryMaterials<net.minecraft.world.item.crafting.Recipes<?>>)BuiltInRegistries.RECIPE_TYPE;
+            boolean back = ReflectionAccess.frozen_RegistryMaterials.get(reg);
+            ReflectionAccess.frozen_RegistryMaterials.set(reg, false);
+            try { return IRegistry.register(reg, new MinecraftKey("lime." + STATIC_PREFIX, id), new Recipes<>(id)); }
+            finally { if (back) reg.freeze(); /*ReflectionAccess.frozen_RegistryMaterials.set(reg, back);*/ }
+        } catch (Exception e) {
+            lime.logStackTrace(e);
+            throw null;
+        }
     }
 }
 

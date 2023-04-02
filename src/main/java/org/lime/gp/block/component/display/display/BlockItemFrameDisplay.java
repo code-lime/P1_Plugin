@@ -2,9 +2,10 @@ package org.lime.gp.block.component.display.display;
 
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.world.entity.decoration.EntityItemFrame;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.display.DisplayManager;
 import org.lime.display.EditedDataWatcher;
@@ -55,7 +56,7 @@ public class BlockItemFrameDisplay extends ObjectDisplay<DisplayInstance.ItemFra
     @Override protected EntityItemFrame createEntity(Location location) {
         EntityItemFrame itemFrame = new EntityItemFrame(
                 ((CraftWorld)location.getWorld()).getHandle(),
-                new BlockPosition(location.getX(), location.getY(), location.getZ()),
+                new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
                 EnumDirection.UP);
         itemFrame.setInvisible(true);
         itemFrame.setInvulnerable(true);

@@ -4,17 +4,19 @@ import com.google.common.collect.ImmutableList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.enchantments.CraftEnchantment;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -34,8 +36,8 @@ public class ClickerRecipe extends AbstractRecipe {
     public final ImmutableList<RecipeSlot> input;
 
     private interface Action {
-        Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup);
-        ItemStack assemble(ClickerRecipe recipe, IInventory inventory);
+        Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category);
+        ItemStack assemble(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom);
         default boolean matches(ClickerRecipe recipe, IInventory inventory, World world) {
             List<ItemStack> items = inventory.getContents().stream().filter(v -> !v.isEmpty()).toList();
             int length = items.size();
@@ -48,21 +50,21 @@ public class ClickerRecipe extends AbstractRecipe {
 
         static Action ofDefault(OutputSlot output) {
             return new Action() {
-                @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup) {
+                @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
                     List<RecipeItemStack> items = recipe.input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
                     int count = Math.min(items.size(), slots.size());
                     for (int i = 0; i < count; i++) slots.set(i, items.get(i));
-                    return Stream.of(new ShapedRecipes(displayKey, displayGroup, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.nms(), Component.text(" +" + recipe.clicks + " кликов").color(NamedTextColor.LIGHT_PURPLE))));
+                    return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.nms(), Component.text(" +" + recipe.clicks + " кликов").color(NamedTextColor.LIGHT_PURPLE))));
                 }
-                @Override public ItemStack assemble(ClickerRecipe recipe, IInventory inventory) {
+                @Override public ItemStack assemble(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom) {
                     return output.nms();
                 }
             };
         }
         static Action ofRepair(system.IRange repair) {
             return new Action() {
-                @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup) {
+                @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     system.Toast1<Integer> index = system.toast(0);
                     return recipe.input.get(0).getWhitelistIngredientsShow().map(firstItem -> {
                         index.val0++;
@@ -73,6 +75,7 @@ public class ClickerRecipe extends AbstractRecipe {
                         return new ShapedRecipes(
                                 new MinecraftKey(displayKey.getNamespace() + "." + index.val0, displayKey.getPath()),
                                 displayGroup,
+                                category,
                                 3, 3,
                                 slots,
                                 ItemNMS.addLore(
@@ -85,7 +88,7 @@ public class ClickerRecipe extends AbstractRecipe {
                         );
                     });
                 }
-                @Override public ItemStack assemble(ClickerRecipe recipe, IInventory inventory) {
+                @Override public ItemStack assemble(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom) {
                     org.bukkit.inventory.ItemStack base_item = CraftItemStack.asBukkitCopy(inventory.getItem(0));
                     if (base_item.getItemMeta() instanceof Damageable damageable) {
                         double maxDamage = Items.getMaxDamage(base_item);
@@ -109,7 +112,7 @@ public class ClickerRecipe extends AbstractRecipe {
         }
         static Action ofCombine(List<Enchantment> enchantments) {
             return new Action() {
-                @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup) {
+                @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     system.Toast1<Integer> index = system.toast(0);
                     List<String> whitelistSecond = recipe.input.get(1).getWhitelistKeys().toList();
                     return Stream.concat(
@@ -142,6 +145,7 @@ public class ClickerRecipe extends AbstractRecipe {
                                         return new ShapedRecipes(
                                                 new MinecraftKey(displayKey.getNamespace() + "." + index.val0, displayKey.getPath()),
                                                 displayGroup,
+                                                category,
                                                 3, 3,
                                                 slots,
                                                 IDisplayRecipe.nameWithPostfix(_out, Component.text(" +" + recipe.clicks + " кликов").color(NamedTextColor.LIGHT_PURPLE))
@@ -160,6 +164,7 @@ public class ClickerRecipe extends AbstractRecipe {
                                         return new ShapedRecipes(
                                                 new MinecraftKey(displayKey.getNamespace() + "." + index.val0, displayKey.getPath()),
                                                 displayGroup,
+                                                category,
                                                 3, 3,
                                                 slots,
                                                 ItemNMS.addLore(
@@ -173,7 +178,7 @@ public class ClickerRecipe extends AbstractRecipe {
                                     })
                     ) ;
                 }
-                @Override public ItemStack assemble(ClickerRecipe recipe, IInventory inventory) {
+                @Override public ItemStack assemble(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom) {
                     if (inventory.getItem(1).isEmpty()) return inventory.getItem(0);
 
                     org.bukkit.inventory.ItemStack base_item = inventory.getItem(0).asBukkitCopy();
@@ -246,18 +251,18 @@ public class ClickerRecipe extends AbstractRecipe {
     public final int clicks;
     public final String clicker_type;
 
-    public static ClickerRecipe ofDefault(MinecraftKey key, String group, List<RecipeSlot> input, OutputSlot output, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, input, Action.ofDefault(output), clicks, clicker_type);
+    public static ClickerRecipe ofDefault(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, OutputSlot output, int clicks, String clicker_type) {
+        return new ClickerRecipe(key, group, category, input, Action.ofDefault(output), clicks, clicker_type);
     }
-    public static ClickerRecipe ofRepair(MinecraftKey key, String group, List<RecipeSlot> input, system.IRange repair, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, input, Action.ofRepair(repair), clicks, clicker_type);
+    public static ClickerRecipe ofRepair(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, system.IRange repair, int clicks, String clicker_type) {
+        return new ClickerRecipe(key, group, category, input, Action.ofRepair(repair), clicks, clicker_type);
     }
-    public static ClickerRecipe ofCombine(MinecraftKey key, String group, List<RecipeSlot> input, List<Enchantment> enchantments, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, input, Action.ofCombine(enchantments), clicks, clicker_type);
+    public static ClickerRecipe ofCombine(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<Enchantment> enchantments, int clicks, String clicker_type) {
+        return new ClickerRecipe(key, group, category, input, Action.ofCombine(enchantments), clicks, clicker_type);
     }
 
-    private ClickerRecipe(MinecraftKey key, String group, List<RecipeSlot> input, Action action, int clicks, String clicker_type) {
-        super(key, group, Recipes.CLICKER);
+    private ClickerRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, Action action, int clicks, String clicker_type) {
+        super(key, group, category, Recipes.CLICKER);
         this.input = ImmutableList.copyOf(input);
         this.action = action;
         this.clicks = clicks;
@@ -267,8 +272,8 @@ public class ClickerRecipe extends AbstractRecipe {
     @Override public boolean matches(IInventory inventory, World world) {
         return this.action.matches(this, inventory, world);
     }
-    @Override public ItemStack assemble(IInventory inventory) {
-        return this.action.assemble(this, inventory);
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) {
+        return this.action.assemble(this, inventory, custom);
     }
 
     @Override public NonNullList<ItemStack> getRemainingItems(IInventory inventory) {
@@ -278,7 +283,7 @@ public class ClickerRecipe extends AbstractRecipe {
     @Override public Stream<String> getWhitelistKeys() { return input.stream().flatMap(RecipeSlot::getWhitelistKeys).distinct(); }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem() { return ItemStack.EMPTY; }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return ItemStack.EMPTY; }
 
     static ItemStack withDurability(ItemStack item, double damage) {
         item = IDisplayRecipe.genericItem(item);
@@ -286,8 +291,8 @@ public class ClickerRecipe extends AbstractRecipe {
         item.setDamageValue((int)Math.min(maxDamage, damage));
         return item;
     }
-    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
-        return action.createDisplayRecipe(this, displayKey, displayGroup);
+    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
+        return action.createDisplayRecipe(this, displayKey, displayGroup, category);
     }
 }
 

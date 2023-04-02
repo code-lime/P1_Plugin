@@ -1,6 +1,7 @@
 package org.lime.gp.sound;
 
 import net.minecraft.core.IRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBase;
 import net.minecraft.world.level.block.state.IBlockData;
@@ -24,7 +25,7 @@ public enum SoundMaterial {
 
     private static final HashMap<org.bukkit.Material, net.minecraft.world.level.material.Material> typeList = system.map.<org.bukkit.Material, net.minecraft.world.level.material.Material>of()
             .add(Arrays.asList(org.bukkit.Material.values()), k -> k, v -> net.minecraft.world.level.material.Material.STONE)
-            .add(IRegistry.BLOCK.stream().map(Block::defaultBlockState).toList(), IBlockData::getBukkitMaterial, BlockBase.BlockData::getMaterial)
+            .add(BuiltInRegistries.BLOCK.stream().map(Block::defaultBlockState).toList(), IBlockData::getBukkitMaterial, BlockBase.BlockData::getMaterial)
             .build();
     private static final HashMap<net.minecraft.world.level.material.Material, SoundMaterial> soundTypes = new HashMap<>();
     static {

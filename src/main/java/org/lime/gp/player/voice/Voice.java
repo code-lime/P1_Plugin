@@ -36,7 +36,7 @@ import net.minecraft.world.level.storage.WorldData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -157,7 +157,6 @@ public class Voice implements VoicechatPlugin {
         boolean RULE_REDUCEDDEBUGINFO = gamerules.getBoolean(GameRules.RULE_REDUCEDDEBUGINFO);
 
         PlayerList playerList = server.getPlayerList();
-
         players.forEach(_player -> {
             if (!(_player instanceof CraftPlayer player)) return;
             for (String channel : outgoingChannels) player.addChannel(channel);
@@ -168,8 +167,8 @@ public class Voice implements VoicechatPlugin {
                     handle.gameMode.getGameModeForPlayer(),
                     handle.gameMode.getPreviousGameModeForPlayer(),
                     server.levelKeys(),
-                    server.registryHolder,
-                    overworld.dimensionTypeRegistration(),
+                    server.registryAccess(),
+                    overworld.dimensionTypeId(),
                     overworld.dimension(),
                     BiomeManager.obfuscateSeed(overworld.getSeed()),
                     server.getMaxPlayers(),
@@ -178,14 +177,15 @@ public class Voice implements VoicechatPlugin {
                     RULE_REDUCEDDEBUGINFO,
                     !RULE_DO_IMMEDIATE_RESPAWN,
                     overworld.isDebug(),
-                    overworld.isFlat())
+                    overworld.isFlat(),
+                    Optional.empty())
             );
             Location loc = player.getLocation().clone();
             lime.nextTick(() -> {
                 player.teleport(loc);
                 WorldServer worldserver = handle.getLevel();
 
-                //worldserver.addNewPlayer();
+                //worldserver.addNewPlayer(handle);
                 player.sendSupportedChannels();
                 PlayerConnection playerconnection = handle.connection;
                 playerconnection.send(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.BRAND, new PacketDataSerializer(Unpooled.buffer()).writeUtf(server.getServerModName())));
@@ -193,7 +193,7 @@ public class Voice implements VoicechatPlugin {
                 playerconnection.send(new PacketPlayOutAbilities(handle.getAbilities()));
                 playerconnection.send(new PacketPlayOutHeldItemSlot(handle.getInventory().selected));
                 playerconnection.send(new PacketPlayOutRecipeUpdate(server.getRecipeManager().getRecipes()));
-                playerconnection.send(new PacketPlayOutTags(TagNetworkSerialization.serializeTagsToNetwork(server.registryHolder)));
+                //playerconnection.send(new PacketPlayOutTags(TagNetworkSerialization.serializeTagsToNetwork(server.registryAccess())));
                 playerList.sendPlayerPermissionLevel(handle);
                 handle.getStats().markAllDirty();
                 handle.getRecipeBook().sendInitialRecipeBook(handle);

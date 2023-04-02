@@ -1,10 +1,13 @@
 package org.lime.gp.craft.recipe;
 
 import com.google.common.collect.ImmutableList;
+
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
@@ -21,8 +24,8 @@ import java.util.stream.Stream;
 public class CauldronRecipe extends AbstractRecipe {
     public final ImmutableList<RecipeSlot> input;
     public final OutputSlot output;
-    public CauldronRecipe(MinecraftKey key, String group, List<RecipeSlot> input, OutputSlot output) {
-        super(key, group, Recipes.CAULDRON);
+    public CauldronRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, OutputSlot output) {
+        super(key, group, category, Recipes.CAULDRON);
         this.input = ImmutableList.copyOf(input);
         this.output = output;
     }
@@ -41,15 +44,15 @@ public class CauldronRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem() { return output.nms(); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
     @Override public Stream<String> getWhitelistKeys() { return input.stream().flatMap(RecipeSlot::getWhitelistKeys).distinct(); }
 
-    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
         NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
         List<RecipeItemStack> items = input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
         int count = Math.min(items.size(), slots.size());
         for (int i = 0; i < count; i++) slots.set(i, items.get(i));
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, 3, 3, slots, output.nms()));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.nms()));
     }
 }
 

@@ -22,7 +22,6 @@ public final class SitComponent extends ComponentStatic<JsonObject> implements C
     public final double rotation;
     public final Vector offset;
     public final boolean sitAtBlock;
-    public final boolean getUpSneak;
 
     public SitComponent(BlockInfo creator, JsonObject json) {
         super(creator, json);
@@ -30,7 +29,6 @@ public final class SitComponent extends ComponentStatic<JsonObject> implements C
         rotation = json.has("rotation") ? json.get("rotation").getAsDouble() : 0;
         offset = json.has("offset") ? system.getVector(json.get("offset").getAsString()) : new Vector();
         sitAtBlock = !json.has("sit_at_block") || json.get("sit_at_block").getAsBoolean();
-        getUpSneak = !json.has("get_up_sneak") || json.get("get_up_sneak").getAsBoolean();
     }
 
     @Override
@@ -46,7 +44,7 @@ public final class SitComponent extends ComponentStatic<JsonObject> implements C
                 .angle / 360.0;
         rotation += this.rotation / 360.0;
         rotation = (rotation % 1) * 360;
-        GSeat seat = GSitAPI.createSeat(metadata.block(), eplayer.getBukkitEntity(), isRotated, offset.getX(), offset.getY(), offset.getZ(), (float) rotation, sitAtBlock, getUpSneak);
+        GSeat seat = GSitAPI.createSeat(metadata.block(), eplayer.getBukkitEntity(), isRotated, offset.getX(), offset.getY(), offset.getZ(), (float) rotation, sitAtBlock);
         return seat == null ? EnumInteractionResult.PASS : EnumInteractionResult.CONSUME;
     }
 }

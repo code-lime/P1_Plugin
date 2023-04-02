@@ -6,23 +6,35 @@ import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
 import org.lime.gp.lime;
+import org.lime.gp.access.ReflectionAccess;
 import org.lime.packetwrapper.WrapperPlayServerPlayerInfo;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.PlayerInfoData;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.mojang.authlib.GameProfile;
+
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.lime.core;
 import org.lime.system;
 import net.kyori.adventure.text.Component;
+import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.level.EnumGamemode;
+
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -34,6 +46,7 @@ import org.lime.gp.chat.ChatHelper;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SuppressWarnings("unused")
 public class TabManager implements Listener {
@@ -167,12 +180,12 @@ public class TabManager implements Listener {
     public static class BufferData {
         public static final BufferData EMPTY = new BufferData(Component.text(" ..."), Collections.singletonList(Component.text("...")), -1);
 
-        public final WrappedChatComponent tab;
+        public final IChatBaseComponent tab;
         public final List<Component> nick;
         public final int id;
 
         public BufferData(Component tab, List<Component> nick, int id) {
-            this.tab = ChatHelper.toWrapped(tab);
+            this.tab = ChatHelper.toNMS(tab);
             this.nick = nick;
             this.id = id;
         }
@@ -209,12 +222,32 @@ public class TabManager implements Listener {
 
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(lime._plugin, PacketType.Play.Server.PLAYER_INFO) {
             @Override public void onPacketSending(PacketEvent event) {
-                WrapperPlayServerPlayerInfo playerInfo = new WrapperPlayServerPlayerInfo(event.getPacket());
+                ClientboundPlayerInfoUpdatePacket packet = (ClientboundPlayerInfoUpdatePacket)event.getPacket().getHandle();
+                EnumSet<ClientboundPlayerInfoUpdatePacket.a> actions = packet.actions();
+                if (actions.contains(ClientboundPlayerInfoUpdatePacket.a.ADD_PLAYER)) {
+                    List<ClientboundPlayerInfoUpdatePacket.b> entries = new ArrayList<>();
+                    packet.entries().forEach(info -> entries
+                        .add(new ClientboundPlayerInfoUpdatePacket.b(
+                            info.profileId(),
+                            info.profile(),
+                            info.listed(),
+                            info.latency(),
+                            info.gameMode(),
+                            IChatBaseComponent.literal(" ..."),
+                            info.chatSession())
+                        )
+                    );
+                    event.setPacket(new PacketContainer(event.getPacketType(), createPacket(actions, entries)));
+                }
+                
+                /*WrapperPlayServerPlayerInfo playerInfo = new WrapperPlayServerPlayerInfo(event.getPacket());
                 if (playerInfo.getAction() == EnumWrappers.PlayerInfoAction.ADD_PLAYER) {
                     List<PlayerInfoData> data = new ArrayList<>();
                     playerInfo.getData().forEach(info -> data.add(new PlayerInfoData(info.getProfile(), info.getLatency(), info.getGameMode(), WrappedChatComponent.fromText(" ..."))));
                     playerInfo.setData(data);
-                }
+                }*/
+
+
                 /*UUID owner = event.getPlayer().getUniqueId();
                 Map<UUID, BufferData> map = bufferTab.getOrDefault(owner, null);
                 if (map == null) return;
@@ -306,8 +339,7 @@ public class TabManager implements Listener {
                     Map<UUID, BufferData> _map = buffer.getOrDefault(owner, null);
                     if (_map == null) _map = new HashMap<>();
                     _map.put(uuid, new BufferData(ChatHelper.formatComponent(tab),
-                            Arrays
-                                    .stream(name.split("\n"))
+                                system.reverse(Arrays.stream(name.split("\n")))
                                     .filter(v -> !v.isEmpty())
                                     .map(ChatHelper::formatComponent)
                                     .collect(Collectors.toList()),
@@ -319,8 +351,22 @@ public class TabManager implements Listener {
                 bufferTab.entrySet().removeIf(kv -> !buffer.containsKey(kv.getKey()));
                 buffer.forEach((owner,tab) -> {
                     Player player = Bukkit.getPlayer(owner);
-                    if (player == null) return;
-                    WrapperPlayServerPlayerInfo wpspi = new WrapperPlayServerPlayerInfo();
+                    if (!(player instanceof CraftPlayer cplayer)) return;
+                    EntityPlayer eplayer = cplayer.getHandle();
+                    List<ClientboundPlayerInfoUpdatePacket.b> entries = new ArrayList<>();
+                    for (Map.Entry<UUID, BufferData> kv : tab.entrySet()) {
+                        entries.add(new ClientboundPlayerInfoUpdatePacket.b(
+                            kv.getKey(),
+                            new GameProfile(kv.getKey(), "1"),
+                            true,
+                            0,
+                            EnumGamemode.SURVIVAL,
+                            kv.getValue().tab,
+                            null
+                        ));
+                    }
+                    eplayer.connection.send(createPacket(EnumSet.of(ClientboundPlayerInfoUpdatePacket.a.UPDATE_LISTED, ClientboundPlayerInfoUpdatePacket.a.UPDATE_DISPLAY_NAME), entries));
+                    /*WrapperPlayServerPlayerInfo wpspi = new WrapperPlayServerPlayerInfo();
                     wpspi.setAction(EnumWrappers.PlayerInfoAction.UPDATE_DISPLAY_NAME);
                     List<PlayerInfoData> list = new ArrayList<>();
                     tab.forEach((uuid, dat) -> list.add(new PlayerInfoData(
@@ -330,7 +376,7 @@ public class TabManager implements Listener {
                             dat.tab
                     )));
                     wpspi.setData(list);
-                    wpspi.sendPacket(player);
+                    wpspi.sendPacket(player);*/
                     TabManager.updatePlayer(player, false);
                 });
             }, () -> {
@@ -378,6 +424,15 @@ public class TabManager implements Listener {
     }
     @EventHandler private static void on(PlayerJoinEvent e) {
         updatePlayer(e.getPlayer(), true);
+    }
+
+    private static ClientboundPlayerInfoUpdatePacket createPacket(EnumSet<ClientboundPlayerInfoUpdatePacket.a> actions, List<ClientboundPlayerInfoUpdatePacket.b> entries) {
+        ClientboundPlayerInfoUpdatePacket packet = new ClientboundPlayerInfoUpdatePacket(EnumSet.noneOf(ClientboundPlayerInfoUpdatePacket.a.class), Collections.emptyList());
+    
+        ReflectionAccess.actions_ClientboundPlayerInfoUpdatePacket.set(packet, actions);
+        ReflectionAccess.entries_ClientboundPlayerInfoUpdatePacket.set(packet, entries);
+
+        return packet;
     }
 }
 

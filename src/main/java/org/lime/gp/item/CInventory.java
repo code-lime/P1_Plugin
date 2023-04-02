@@ -4,7 +4,6 @@ import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.chat.ChatComponentText;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.ITileInventory;
 import net.minecraft.world.TileInventory;
@@ -12,8 +11,8 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
 import net.minecraft.world.inventory.*;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -49,7 +48,7 @@ public class CInventory {
                             .map(kv -> system.toast(kv.getKey(), kv.getValue().stream().map(_v -> _v.val1).toList()))
                             //.filter(ExtMethods.filterLog("CINV.4: {0}"))
                             .collect(Collectors.toList());
-                    player.getHandle().openMenu(getMenuProvider((syncId, inv, player1) -> new ContainerCInventory(syncId, inv, items, NonNullList.withSize(9*6, new ItemStack(Material.AIR))), new ChatComponentText("cinv")));
+                    player.getHandle().openMenu(getMenuProvider((syncId, inv, player1) -> new ContainerCInventory(syncId, inv, items, NonNullList.withSize(9*6, new ItemStack(Material.AIR))), IChatBaseComponent.literal("cinv")));
                     return true;
                 }));
     }

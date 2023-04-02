@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntityBanner;
 import net.minecraft.world.level.gameevent.GameEvent;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.system;
 import org.lime.gp.item.settings.list.DyeColorSetting;
@@ -53,7 +53,7 @@ public interface CauldronBlockInteraction {
         if (!world.isClientSide) {
             if (!cauldron.decreaseLevel()) return EnumInteractionResult.SUCCESS; //CauldronLevelChangeEvent.ChangeReason.SHULKER_WASH
             ItemStack itemstack1 = new ItemStack(Blocks.SHULKER_BOX);
-            if (itemstack.hasTag()) itemstack1.setTag(itemstack.getTag().copy());
+            if (itemstack.hasTag()) itemstack1.setTag(itemstack.getOrCreateTag().copy());
             entityhuman.setItemInHand(enumhand, itemstack1);
             entityhuman.awardStat(StatisticList.CLEAN_SHULKER_BOX);
         }
@@ -68,7 +68,7 @@ public interface CauldronBlockInteraction {
         ) return EnumInteractionResult.PASS;
         if (!world.isClientSide) {
             if (!cauldron.decreaseLevel()) return EnumInteractionResult.SUCCESS; //CauldronLevelChangeEvent.ChangeReason.BANNER_WASH
-            ItemStack itemstack1 = itemstack.cloneItemStack(false);
+            ItemStack itemstack1 = itemstack.copy(false);
             itemstack1.setCount(1);
             TileEntityBanner.removeLastPattern(itemstack1);
             if (!entityhuman.getAbilities().instabuild) itemstack.shrink(1);

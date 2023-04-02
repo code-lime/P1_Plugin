@@ -6,8 +6,8 @@ import net.minecraft.world.entity.decoration.EntityItemFrame;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
@@ -49,7 +49,7 @@ public class MonitorDisplay extends ObjectDisplay<MapMonitor.MonitorData, Entity
         EntityItemFrame frame = new EntityItemFrame(
                 ((CraftWorld)location.getWorld()).getHandle(),
                 new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
-                EnumDirection.byName(BlockFace.UP.name()));
+                EnumDirection.byName(BlockFace.UP.name().toLowerCase()));
         frame.setInvulnerable(true);
         return frame;
     }

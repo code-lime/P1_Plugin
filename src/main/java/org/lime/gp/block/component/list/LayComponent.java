@@ -26,14 +26,12 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
     public final double rotation;
     public final Vector offset;
     public final boolean sitAtBlock;
-    public final boolean getUpSneak;
 
     public LayComponent(BlockInfo creator, JsonObject json) {
         super(creator, json);
         rotation = json.has("rotation") ? json.get("rotation").getAsDouble() : 0;
         offset = json.has("offset") ? system.getVector(json.get("offset").getAsString()) : new Vector();
         sitAtBlock = !json.has("sit_at_block") || json.get("sit_at_block").getAsBoolean();
-        getUpSneak = !json.has("get_up_sneak") || json.get("get_up_sneak").getAsBoolean();
     }
 
     @Override
@@ -56,7 +54,7 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
         if (SingleModules.beds.containsKey(bedLoc)) return EnumInteractionResult.PASS;
         SingleModules.beds.put(bedLoc, bukkitPlayer.getUniqueId());
 
-        IGPoseSeat pose = GSitAPI.createPose(metadata.block(), eplayer.getBukkitEntity(), Pose.SLEEPING, rotated_offset.getX(), rotated_offset.getY(), rotated_offset.getZ(), (float) rotation, sitAtBlock, getUpSneak);
+        IGPoseSeat pose = GSitAPI.createPose(metadata.block(), eplayer.getBukkitEntity(), Pose.SLEEPING, rotated_offset.getX(), rotated_offset.getY(), rotated_offset.getZ(), (float) rotation, sitAtBlock);
         return pose == null ? EnumInteractionResult.PASS : EnumInteractionResult.CONSUME;
     }
 }

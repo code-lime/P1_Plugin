@@ -90,7 +90,7 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
                 JsonObject _item = item.getAsJsonObject();
                 MenuData data = new MenuData(_item);
                 for (String str : _item.get("direction").getAsString().split(","))
-                    this.data.put(EnumDirection.byName(str), data);
+                    this.data.put(EnumDirection.byName(str.toLowerCase()), data);
             });
         }
     }

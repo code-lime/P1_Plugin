@@ -16,7 +16,7 @@ import net.minecraft.world.entity.EntityMarkerEventDestroy;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftMarker;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftMarker;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Marker;
 import org.bukkit.entity.Player;
@@ -80,7 +80,6 @@ public class Entities implements Listener {
                         })
                 );
     }
-    @SuppressWarnings("deprecation")
     private static final MinecraftServer server = MinecraftServer.getServer();
     public static Stream<EntityLimeMarker> all() {
         return Streams.stream(server.getAllLevels().iterator())

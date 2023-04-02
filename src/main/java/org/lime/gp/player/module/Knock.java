@@ -1,6 +1,9 @@
 package org.lime.gp.player.module;
 
 import dev.geco.gsit.api.GSitAPI;
+import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
+import dev.geco.gsit.objects.GetUpReason;
+
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -16,6 +19,7 @@ import org.lime.system;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Pose;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -64,9 +68,12 @@ public class Knock implements Listener {
             if (lime.isSit(player)) return false;
             if (lime.isLay(player)) return false;
             Location location = knock.val1.clone();
-            GSitAPI.createSeat(location.getBlock(), player, true, 0, 0, 0, location.getYaw(), true, false);
+            GSitAPI.createSeat(location.getBlock(), player, true, 0, 0, 0, location.getYaw(), true);
             return false;
         });
+    }
+    @EventHandler public static void on(PrePlayerGetUpPoseEvent e) {
+        if (e.getPoseSeat().getPose() == Pose.SITTING && e.getReason() == GetUpReason.GET_UP && isKnock(e.getPlayer().getUniqueId())) e.setCancelled(true);
     }
 
     @EventHandler public static void on(PlayerDamageByPlayerEvent e) {

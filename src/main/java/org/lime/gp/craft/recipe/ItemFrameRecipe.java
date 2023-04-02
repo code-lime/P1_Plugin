@@ -1,12 +1,14 @@
 package org.lime.gp.craft.recipe;
 
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.World;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -42,7 +44,7 @@ public class ItemFrameRecipe extends AbstractRecipe {
                     if (recipe.matches(inventory, _world)) {
                         int sec = container.getOrDefault(ITEM_FRAME_RECIPE_SEC, PersistentDataType.INTEGER, 0) + 1;
                         if (recipe.seconds <= sec) {
-                            itemFrame.setItem(recipe.assemble(inventory).asBukkitCopy());
+                            itemFrame.setItem(recipe.assemble(inventory, _world.registryAccess()).asBukkitCopy());
                             container.remove(ITEM_FRAME_RECIPE_SEC);
                         } else {
                             container.set(ITEM_FRAME_RECIPE_SEC, PersistentDataType.INTEGER, sec);
@@ -58,7 +60,7 @@ public class ItemFrameRecipe extends AbstractRecipe {
     public final OutputSlot output;
     public final int seconds;
     public ItemFrameRecipe(MinecraftKey key, RecipeSlot input, OutputSlot output, int seconds) {
-        super(key, "", Recipes.ITEM_FRAME);
+        super(key, "", CraftingBookCategory.MISC, Recipes.ITEM_FRAME);
         this.input = input;
         this.output = output;
         this.seconds = seconds;
@@ -72,6 +74,6 @@ public class ItemFrameRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem() { return output.nms(); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
     @Override public Stream<String> getWhitelistKeys() { return input.getWhitelistKeys(); }
 }

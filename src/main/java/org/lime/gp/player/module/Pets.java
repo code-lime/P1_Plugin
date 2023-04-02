@@ -6,6 +6,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Marker;
 import net.minecraft.world.entity.*;
@@ -26,9 +28,10 @@ import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPanda;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftTropicalFish;
+import org.bukkit.NamespacedKey;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPanda;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftTropicalFish;
 import org.bukkit.entity.*;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -146,7 +149,7 @@ public class Pets {
                     //path.getRawNodesMap().forEach((k,v) -> drawPoint(new Vector(v[0],v[1],v[2]),k/size));
                 }
 
-                BlockPosition position = new BlockPosition(start.getX(), start.getY(), start.getZ());
+                BlockPosition position = new BlockPosition(start.getBlockX(), start.getBlockY(), start.getBlockZ());
                 IBlockData block = world.getBlockState(position);
                 VoxelShape shape = block.getCollisionShape(world, position);
                 start.setY(start.getBlockY() + (shape.isEmpty() ? -0.01 : shape.bounds().maxY));
@@ -271,24 +274,25 @@ public class Pets {
                     .build();
         }
 
+        private static MinecraftKey of(NamespacedKey key) {
+            return new MinecraftKey(key.getNamespace(), key.getKey());
+        }
+
         @SuppressWarnings("deprecation")
         private static system.Action1<Entity> variableApply(Class<? extends Entity> type, String variable) {
             system.Action1<Entity> apply = v -> {};
             if (variable == null) return apply;
-            if (Axolotl.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(Axolotl::setVariant, Axolotl.Variant.BY_ID[org.bukkit.entity.Axolotl.Variant.valueOf(variable).ordinal()]));
-            if (EntityCat.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityCat::setCatType, Cat.Type.valueOf(variable).ordinal()));
-            if (EntityFox.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityFox::setFoxType, EntityFox.Type.values()[Fox.Type.valueOf(variable).ordinal()]));
+            if (Axolotl.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(Axolotl::setVariant, Axolotl.Variant.byId(org.bukkit.entity.Axolotl.Variant.valueOf(variable).ordinal())));
+            if (EntityCat.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityCat::setVariant, BuiltInRegistries.CAT_VARIANT.get(of(Cat.Type.valueOf(variable).getKey()))));
+            if (EntityFox.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityFox::setVariant, EntityFox.Type.values()[Fox.Type.valueOf(variable).ordinal()]));
             if (EntityHorse.class.isAssignableFrom(type)) {
                 String[] vars = variable.split("&");
                 apply = apply.andThen(variableApply(EntityHorse::setVariantAndMarkings, HorseColor.byId(Horse.Color.valueOf(vars[1]).ordinal()), HorseStyle.byId(Horse.Style.valueOf(vars[0]).ordinal())));
             }
-            if (EntityLlama.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityLlama::setVariant, Llama.Color.valueOf(variable).ordinal()));
+            if (EntityLlama.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityLlama::setVariant, EntityLlama.Variant.byId(Llama.Color.valueOf(variable).ordinal())));
             if (EntityPanda.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityPanda::setMainGene, CraftPanda.toNms(Panda.Gene.valueOf(variable))));
-            if (EntityParrot.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityParrot::setVariant, Parrot.Variant.valueOf(variable).ordinal()));
-            if (EntityRabbit.class.isAssignableFrom(type)) {
-                Rabbit.Type var = Rabbit.Type.valueOf(variable);
-                apply = apply.andThen(variableApply(EntityRabbit::setRabbitType, var == Rabbit.Type.THE_KILLER_BUNNY ? 99 : var.ordinal()));
-            }
+            if (EntityParrot.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityParrot::setVariant, EntityParrot.Variant.byId(Parrot.Variant.valueOf(variable).ordinal())));
+            if (EntityRabbit.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityRabbit::setVariant, EntityRabbit.Variant.byId(Rabbit.Type.valueOf(variable).ordinal())));
             if (EntitySheep.class.isAssignableFrom(type)) {
                 if ("RANDOM".equals(variable)) variable = DyeColor.WHITE.name();
                 apply = apply.andThen(variableApply(EntitySheep::setColor, EnumColor.byId(DyeColor.valueOf(variable).getWoolData())));
@@ -296,7 +300,7 @@ public class Pets {
             if (EntitySlime.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntitySlime::setSize, Integer.valueOf(variable), false));
             if (EntityTropicalFish.class.isAssignableFrom(type)) {
                 String[] vars = variable.split("&");
-                apply = apply.andThen(variableApply(EntityTropicalFish::setVariant, DyeColor.valueOf(vars[0]).getWoolData() << 24 | DyeColor.valueOf(vars[1]).getWoolData() << 16 | CraftTropicalFish.CraftPattern.values()[TropicalFish.Pattern.valueOf(vars[2]).ordinal()].getDataValue()));
+                apply = apply.andThen(variableApply(EntityTropicalFish::setPackedVariant, DyeColor.valueOf(vars[0]).getWoolData() << 24 | DyeColor.valueOf(vars[1]).getWoolData() << 16 | CraftTropicalFish.CraftPattern.values()[TropicalFish.Pattern.valueOf(vars[2]).ordinal()].getDataValue()));
             }
             if (EntityBee.class.isAssignableFrom(type)) {
                 String[] vars = variable.split("&");
@@ -373,7 +377,7 @@ public class Pets {
     }
 
     private static BlockPosition toBlock(Vector vector) {
-        return new BlockPosition(vector.getX(), vector.getY(), vector.getZ());
+        return new BlockPosition(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
     private static ChunkCache getChunkCache(net.minecraft.world.level.World world, Vector start, Vector target) {
         return new ChunkCache(world,

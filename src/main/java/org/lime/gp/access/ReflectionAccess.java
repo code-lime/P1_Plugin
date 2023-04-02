@@ -7,6 +7,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryMaterials;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.ChunkProviderServer;
@@ -24,17 +25,21 @@ import net.minecraft.world.inventory.ContainerWorkbench;
 import net.minecraft.world.inventory.InventoryCrafting;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkCoordIntPair;
+import net.minecraft.world.level.World;
 import net.minecraft.world.level.biome.BiomeSettingsMobs;
+import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.block.state.BlockBase;
 import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
 import net.minecraft.world.level.storage.loot.LootTableInfo;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftInventoryView;
-import org.bukkit.craftbukkit.v1_18_R2.map.CraftMapView;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
+import org.bukkit.craftbukkit.v1_19_R3.map.CraftMapView;
 import org.lime.reflection;
 import org.lime.system;
 
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -90,7 +95,12 @@ public class ReflectionAccess {
 
     public static final reflection.field<EnumCreatureType> category_EntityTypes = reflection.field.<EnumCreatureType>ofMojang(EntityTypes.class, "category").nonFinal();
 
+    public static final reflection.field<List<TickingBlockEntity>> blockEntityTickers_World = reflection.field.ofMojang(World.class, "blockEntityTickers");
+
     public static final reflection.field<Map<MinecraftKey, LootTableInfo.b>> dynamicDrops_LootTableInfo = reflection.field.ofMojang(LootTableInfo.class, "dynamicDrops");
+
+    public static final reflection.field<EnumSet<ClientboundPlayerInfoUpdatePacket.a>> actions_ClientboundPlayerInfoUpdatePacket = reflection.field.<EnumSet<ClientboundPlayerInfoUpdatePacket.a>>ofMojang(ClientboundPlayerInfoUpdatePacket.class, "actions").nonFinal();
+    public static final reflection.field<List<ClientboundPlayerInfoUpdatePacket.b>> entries_ClientboundPlayerInfoUpdatePacket = reflection.field.<List<ClientboundPlayerInfoUpdatePacket.b>>ofMojang(ClientboundPlayerInfoUpdatePacket.class, "entries").nonFinal();
 }
 
 

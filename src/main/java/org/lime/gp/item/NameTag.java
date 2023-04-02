@@ -2,7 +2,6 @@ package org.lime.gp.item;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.minecraft.network.chat.ChatComponentText;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.ITileInventory;
 import net.minecraft.world.TileInventory;
@@ -13,8 +12,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -71,7 +70,7 @@ public class NameTag implements Listener {
             .build();
 
     private static ITileInventory getInventory() {
-        IChatBaseComponent component = RecipesBook.getCustomWorkbenchName("nametag").orElse(ChatComponentText.EMPTY);
+        IChatBaseComponent component = RecipesBook.getCustomWorkbenchName("nametag").orElse(IChatBaseComponent.empty());
         return new TileInventory((syncId, inventory, player) -> new ContainerAnvil(syncId, inventory) {
             public net.minecraft.world.item.ItemStack OUT = inventory.getSelected().copy();
             @Override protected Slot addSlot(Slot slot) {

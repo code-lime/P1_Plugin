@@ -2,7 +2,7 @@ package org.lime.gp.module;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.lime.core;
 import org.bukkit.*;

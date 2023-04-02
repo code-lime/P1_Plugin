@@ -5,7 +5,7 @@ import net.minecraft.util.UnsafeInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.objectweb.asm.Type;
@@ -24,7 +24,7 @@ public class ItemMaxDamageEvent extends Event {
 
     private ItemMaxDamageEvent(ItemStack nms_item, boolean isAsync) {
         super(isAsync);
-        NBTTagCompound tag = nms_item.tag;
+        NBTTagCompound tag = nms_item.getTag();
         maxDamage = nms_item.getItem().getMaxDamage();
         type = CraftMagicNumbers.getMaterial(nms_item.getItem());
         customModelData = tag != null && tag.contains("CustomModelData") ? tag.getInt("CustomModelData") : null;

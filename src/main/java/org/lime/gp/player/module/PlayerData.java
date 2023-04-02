@@ -17,6 +17,7 @@ import org.lime.gp.lime;
 import org.lime.system;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -144,6 +145,14 @@ public class PlayerData {
         @Override public boolean has(NamespacedKey key) {
             Validate.notNull(key, "The provided key for the custom value was null");
             return this.customDataTags.containsKey(key);
+        }
+        @Override public void readFromBytes(byte[] bytes, boolean clear) throws IOException {
+            if (clear) this.customDataTags.clear();
+            fromJson(system.json.parse(new String(bytes)).getAsJsonObject()).forEach(this::setJson);
+        }
+
+        @Override public byte[] serializeToBytes() throws IOException {
+            return toJson().toString().getBytes();
         }
     }
     private static final class JsonPersistentDataTypeRegistry {

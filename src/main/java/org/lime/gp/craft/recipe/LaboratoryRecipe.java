@@ -1,10 +1,13 @@
 package org.lime.gp.craft.recipe;
 
 import com.google.common.collect.ImmutableList;
+
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
@@ -19,8 +22,8 @@ public class LaboratoryRecipe extends AbstractRecipe {
     public final ImmutableList<RecipeSlot> input_thirst;
     public final ImmutableList<RecipeSlot> input_dust;
     public final OutputSlot output;
-    public LaboratoryRecipe(MinecraftKey key, String group, List<RecipeSlot> input_thirst, List<RecipeSlot> input_dust, OutputSlot output) {
-        super(key, group, Recipes.LABORATORY);
+    public LaboratoryRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input_thirst, List<RecipeSlot> input_dust, OutputSlot output) {
+        super(key, group, category, Recipes.LABORATORY);
         this.input_thirst = ImmutableList.copyOf(input_thirst);
         this.input_dust = ImmutableList.copyOf(input_dust);
         this.output = output;
@@ -60,9 +63,9 @@ public class LaboratoryRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int i, int j) { return true; }
-    @Override public ItemStack getResultItem() { return output.nms(); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
 
-    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+    @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
         NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
 
         {
@@ -76,7 +79,7 @@ public class LaboratoryRecipe extends AbstractRecipe {
             for (int i = 0; i < Math.min(count_dust, 3); i++) slots.set(i + 3, input_dust.get(i));
         }
 
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, 3, 3, slots, output.nms()));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.nms()));
     }
 }
 

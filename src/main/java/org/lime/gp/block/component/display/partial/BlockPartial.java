@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.jetbrains.annotations.Nullable;
 import org.lime.system;
 import org.lime.gp.access.ReflectionAccess;
@@ -21,7 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.minecraft.core.BlockPosition;
-import net.minecraft.core.IRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.GameProfileSerializer;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -68,7 +68,7 @@ public class BlockPartial extends Partial implements CustomTileMetadata.Shapeabl
         }
         this.blockData = blockData;
         this.nbt = json.has("nbt") ? JsonNBT.toDynamicNBT(json.getAsJsonObject("nbt"), List.of("{color}")) : null;
-        this.type = this.nbt == null ? null : IRegistry.BLOCK_ENTITY_TYPE.stream().filter(v -> v.isValid(this.blockData)).findAny().orElse(null);
+        this.type = this.nbt == null ? null : BuiltInRegistries.BLOCK_ENTITY_TYPE.stream().filter(v -> v.isValid(this.blockData)).findAny().orElse(null);
         this.hasCollision = !json.has("has_collision") || json.get("has_collision").getAsBoolean();
     }
 

@@ -5,17 +5,17 @@ import net.minecraft.core.BlockPosition;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockCampfire;
-import net.minecraft.world.level.block.entity.TileEntityCampfire;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_18_R2.event.CraftEventFactory;
-import org.bukkit.craftbukkit.v1_18_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.lime;
+import org.lime.gp.access.ReflectionAccess;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,16 +34,21 @@ public class CampfireSync implements Listener {
     
     @SuppressWarnings("all")
     public static void update() {
+        String campfireType = TileEntityTypes.getKey(TileEntityTypes.CAMPFIRE).toString();
         MinecraftServer.getServer().getAllLevels().forEach(world -> {
             List<BlockPosition> positions = new ArrayList<>();
-            world.getChunkSource().chunkMap.updatingChunks.getVisibleMap().values().forEach(playerChunk -> {
+            ReflectionAccess.blockEntityTickers_World.get(world).forEach(item -> {
+                if (campfireType.equals(item.getType()))
+                    positions.add(item.getPos());
+            });
+            /*world.getChunkSource().chunkMap.updatingChunks.getVisibleMap().values().forEach(playerChunk -> {
                 net.minecraft.world.level.chunk.Chunk chunk = playerChunk.getFullChunkNow();
                 if (chunk == null) return;
                 chunk.blockEntities.forEach((pos, tile) -> {
                     if (tile instanceof TileEntityCampfire)
                         positions.add(pos);
                 });
-            });
+            });*/
             positions.forEach(position -> world.getBlockEntity(position, TileEntityTypes.CAMPFIRE).ifPresent(campfire -> {
                 CraftPersistentDataContainer container = campfire.persistentDataContainer;
                 long ms = System.currentTimeMillis();

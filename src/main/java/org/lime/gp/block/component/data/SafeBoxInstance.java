@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.Position;
 import org.lime.gp.block.BlockComponentInstance;

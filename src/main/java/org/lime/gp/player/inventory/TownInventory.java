@@ -12,8 +12,8 @@ import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -341,7 +341,7 @@ public class TownInventory implements Listener {
             return new EntityItemFrame(
                     ((CraftWorld)location.getWorld()).getHandle(),
                     new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
-                    EnumDirection.byName(showFace.name()));
+                    EnumDirection.byName(showFace.name().toLowerCase()));
         }
 
         private long timeRedraw = 0;

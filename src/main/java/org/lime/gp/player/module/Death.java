@@ -3,7 +3,11 @@ package org.lime.gp.player.module;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
 import dev.geco.gsit.objects.GetUpReason;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffects;
+
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.potion.PotionEffect;
 import org.lime.display.Displays;
 import org.lime.gp.admin.Administrator;
@@ -316,23 +320,33 @@ public class Death implements Listener {
     public static void updateLock() {
         dieCooldown.keySet().forEach(uuid -> Drugs.lockArmsTick(Bukkit.getPlayer(uuid)));
     }
+    private static final HashMap<UUID, Integer> blindnessCache = new HashMap<>();
     public static void update() {
         dieCooldown.entrySet().removeIf(kv -> {
-            if (!(Bukkit.getPlayer(kv.getKey()) instanceof CraftPlayer player)) return true;
+            if (!(Bukkit.getPlayer(kv.getKey()) instanceof CraftPlayer player)) {
+                blindnessCache.remove(kv.getKey());
+                return true;
+            }
             player.setHealth(1);
-            player.addPotionEffect(BLINDNESS);
+            blindnessCache.put(kv.getKey(), 3);
+            player.getHandle().connection.send(new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(MobEffects.BLINDNESS, 40, 1, false, false, false)));
             DieInfo info = kv.getValue();
             info.tryShow(player);
             if (lime.isLay(player)) {
-                player.addPotionEffect(INVISIBILITY);
                 return false;
             }
             if (lime.isSit(player) && TargetMove.isTarget(player.getUniqueId())) return false;
             Location location = info.location.clone();
             location.add(0, 1, 0);
             location.setY(TargetMove.getHeight(location.getBlock()));
-            GSitAPI.createPose(location.getBlock(), player, Pose.SLEEPING, location.getX() % 1, location.getY() % 1 + 0.5, location.getZ() % 1, location.getYaw(), false, false);
+            GSitAPI.createPose(location.getBlock(), player, Pose.SLEEPING, location.getX() % 1, location.getY() % 1 + 0.5, location.getZ() % 1, location.getYaw(), false);
             return false;
+        });
+        blindnessCache.entrySet().removeIf(kv -> {
+            if (!(Bukkit.getPlayer(kv.getKey()) instanceof CraftPlayer player)) return true;
+            if (kv.setValue(kv.getValue() - 1) > 0) return false;
+            player.addPotionEffect(BLINDNESS);
+            return true;
         });
         Bukkit.getOnlinePlayers().forEach(player -> {
             switch (player.getGameMode()) {
@@ -361,7 +375,7 @@ public class Death implements Listener {
     }
 
     @EventHandler public static void on(PrePlayerGetUpPoseEvent e) {
-        if (e.getReason() == GetUpReason.GET_UP && isDamageLay(e.getPlayer().getUniqueId())) e.setCancelled(true);
+        if (e.getPoseSeat().getPose() == Pose.SLEEPING && e.getReason() == GetUpReason.GET_UP && isDamageLay(e.getPlayer().getUniqueId())) e.setCancelled(true);
     }
     @EventHandler public static void on(PlayerQuitEvent e) {
         Player player = e.getPlayer();
