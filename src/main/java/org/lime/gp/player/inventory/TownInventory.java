@@ -346,13 +346,11 @@ public class TownInventory implements Listener {
 
         private long timeRedraw = 0;
         private void updateMap(Rows.HouseRow row) {
-            try (MCTiming _0 = lime.timing("HomeDisplay.UpdateMap").startTiming()) {
-                if (timeRedraw > System.currentTimeMillis()) return;
-                byte[] data = house_list.getOrDefault(row.id, null);
-                if (data != null) mapData = data;
-                invokeAll(this::sendData);
-                timeRedraw = System.currentTimeMillis() + 5 * 1000;
-            }
+            if (timeRedraw > System.currentTimeMillis()) return;
+            byte[] data = house_list.getOrDefault(row.id, null);
+            if (data != null) mapData = data;
+            invokeAll(this::sendData);
+            timeRedraw = System.currentTimeMillis() + 5 * 1000;
         }
         @Override public void update(Rows.HouseRow row, double delta) {
             super.update(row, delta);

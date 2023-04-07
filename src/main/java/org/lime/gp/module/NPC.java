@@ -32,6 +32,8 @@ import net.minecraft.world.phys.Vec3D;
 import org.bukkit.inventory.EquipmentSlot;
 import org.lime.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -202,27 +204,25 @@ public class NPC {
 
     private static class NPCDisplay extends ObjectDisplay<NPCObject, EntityPlayer> {
         public static class ShowNickName implements DrawText.IShow {
-            public String getID(int index) { return display.npc.key + ".NPC.NickName#" + index; }
 
-            @Override public String getID() { return getID(index); }
-            @Override public boolean filter(Player player) { return display.isFilter(player) && display.npc.getNick(player).size() > index; }
+            @Override public String getID() { return display.npc.key + ".NPC.NickName"; }
+            @Override public boolean filter(Player player) { return display.isFilter(player); }
             @Override public Component text(Player player) {
                 List<Component> components = display.npc.getNick(player);
-                return components.size() > index ? components.get(index) : null;
+                Collections.reverse(components);
+                return Component.join(JoinConfiguration.newlines(), components);
             }
-            @Override public Optional<Integer> parent() { return index <= 0 ? Optional.of(display.entityID) : DrawText.getEntityID(getID(index - 1)); }
+            @Override public Optional<Integer> parent() { return Optional.of(display.entityID); }
             @Override public Location location() { return location; }
             @Override public double distance() { return 20; }
             @Override public boolean tryRemove() { return false; }
 
             public final NPCDisplay display;
-            public final int index;
 
             public final Location location;
 
-            public ShowNickName(NPCDisplay display, int index) {
+            public ShowNickName(NPCDisplay display) {
                 this.display = display;
-                this.index = index;
                 this.location = display.lastLocation();
             }
         }
@@ -246,7 +246,7 @@ public class NPC {
         }
 
         public Stream<DrawText.IShow> nickList() {
-            return IntStream.range(0, 4).mapToObj(index -> new ShowNickName(this, index));
+            return Stream.of(new ShowNickName(this));
         }
 
         protected NPCDisplay(NPCObject npc) {

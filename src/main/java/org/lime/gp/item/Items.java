@@ -841,7 +841,7 @@ public class Items implements Listener {
     }
     @EventHandler public static void on(PlayerArmorChangeEvent e) {
         if (!(e.getPlayer() instanceof CraftPlayer player)) return;
-        lime.nextTick(player::updateInventory);
+        lime.once(player::updateInventory, 0.5);
     }
 }
 

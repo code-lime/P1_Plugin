@@ -118,12 +118,6 @@ public class lime extends core {
     public static String readAllConfig(String config, String ext) { return _plugin._readAllConfig(config, ext); }
     public static void writeAllConfig(String config, String ext, String text) { _plugin._writeAllConfig(config, ext, text); }
     public static void deleteConfig(String config, String ext) { _plugin._deleteConfig(config, ext); }
-    public static MCTiming timing(String name) {
-        return _plugin._timing(name);
-    }
-    public static void timing(String name, system.Action0 callback) {
-        _plugin._timing(name, callback);
-    }
     //</editor-fold>
 
     public static CraftWorld MainWorld;

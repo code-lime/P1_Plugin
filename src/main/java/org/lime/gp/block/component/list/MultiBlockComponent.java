@@ -11,11 +11,14 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.block.component.InfoComponent.Rotation.Value;
 import org.lime.gp.block.component.data.MultiBlockInstance;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.system;
+import org.lime.system.Toast3;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,23 +28,34 @@ public final class MultiBlockComponent extends ComponentDynamic<JsonObject, Mult
     public final Map<system.Toast3<Integer, Integer, Integer>, IBlock> blocks = new LinkedHashMap<>();
 
     public interface IBlock {
-        Optional<TileEntityLimeSkull> set(Player player, UUID ownerBlock, String ownerBlockType, Position position, InfoComponent.Rotation.Value rotation, system.Toast3<Integer, Integer, Integer> local);
-
+        Optional<List<TileEntityLimeSkull>> set(Player player, UUID ownerBlock, String ownerBlockType, Position position, InfoComponent.Rotation.Value rotation, system.Toast3<Integer, Integer, Integer> local);
+        boolean isCan(Block block, InfoComponent.Rotation.Value rotation);
         static IBlock create(JsonElement json) {
             String key = json.getAsString();
-            return (player, ownerBlock, ownerBlockType, position, rotation, local) -> Blocks.creator(key).map(block -> block.setBlock(position.offset(rotation.rotate(local)), system.map.<String, JsonObject>of()
-                            .add("other.generic", system.json.object()
-                                    .add("position", position.toSave())
-                                    .add("owner", ownerBlock.toString())
-                                    .add("owner_type", ownerBlockType)
-                                    .build()
-                            )
-                            .add("display", system.json.object().add("rotation", rotation.angle + "").build())
-                            .build()))
-                    .filter(skull -> {
-                        CoreProtectHandle.logSetBlock(skull, player);
-                        return true;
-                    });
+            return new IBlock() {
+                @Override public Optional<List<TileEntityLimeSkull>> set(Player player, UUID ownerBlock, String ownerBlockType, Position position, Value rotation, Toast3<Integer, Integer, Integer> local) {
+                    return Blocks.creator(key).map(block -> block.setMultiBlock(player, position.offset(rotation.rotate(local)), system.map.<String, JsonObject>of()
+                                .add("other.generic", system.json.object()
+                                        .add("position", position.toSave())
+                                        .add("owner", ownerBlock.toString())
+                                        .add("owner_type", ownerBlockType)
+                                        .build()
+                                )
+                                .add("display", system.json.object().add("rotation", rotation.angle + "").build())
+                                .build(), rotation))
+                        .filter(skulls -> {
+                            skulls.forEach(skull -> CoreProtectHandle.logSetBlock(skull, player));
+                            return true;
+                        });
+                }
+                @Override public boolean isCan(Block block, Value rotation) {
+                    return Blocks.creator(key)
+                        .flatMap(v -> v.component(MultiBlockComponent.class))
+                        .map(v -> v.isCan(block, rotation))
+                        .orElse(true);
+                }
+
+            };
         }
     }
 
@@ -52,10 +66,11 @@ public final class MultiBlockComponent extends ComponentDynamic<JsonObject, Mult
     }
 
     public boolean isCan(Block block, InfoComponent.Rotation.Value rotation) {
-        for (system.Toast3<Integer, Integer, Integer> _p : blocks.keySet()) {
-            system.Toast3<Integer, Integer, Integer> p = rotation.rotate(_p);
-            if (!block.getRelative(p.val0, p.val1, p.val2).getType().isAir())
-                return false;
+        for (Map.Entry<system.Toast3<Integer, Integer, Integer>, IBlock> _kv : blocks.entrySet()) {
+            system.Toast3<Integer, Integer, Integer> p = rotation.rotate(_kv.getKey());
+            Block target = block.getRelative(p.val0, p.val1, p.val2);
+            if (!target.getType().isAir()) return false;
+            if (!_kv.getValue().isCan(target, rotation)) return false;
         }
         return true;
     }

@@ -79,16 +79,16 @@ public final class BlockInfo {
                         .collect(Collectors.toList())
                 )
                 .map(v -> {
-                    v.forEach(child -> child.customUUID()
+                    v.forEach(_child -> _child.forEach(child -> child.customUUID()
                             .ifPresent(child_uuid -> Blocks.customOf(skull)
                                     .ifPresent(_v -> _v.list(MultiBlockInstance.class)
                                             .forEach(instance -> instance.child(child_uuid, child.getBlockPos()))
                                     )
                             )
-                    );
+                    ));
                     return v;
                 })
-        ).ifPresent(skulls::addAll);
+        ).ifPresent(v -> v.forEach(_v -> skulls.addAll(_v)));
         return skulls;
     }
 

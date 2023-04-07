@@ -300,7 +300,7 @@ public final class DrawMap {
     public static Color to(byte color) { return Color.fromRGB(MapPalette.getColor(color).getRGB() & 0xFFFFFF); }
     @SuppressWarnings("deprecation")
     public static String toHex(byte color) {
-        return Integer.toHexString(MapPalette.getColor(color).getRGB()).substring(2);
+        return StringUtils.leftPad(Integer.toHexString(MapPalette.getColor(color).getRGB()), 8, '0').substring(2);
     }
     public static byte negative(byte color) {
         Color _color = to(color);

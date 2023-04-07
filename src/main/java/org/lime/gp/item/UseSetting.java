@@ -2,6 +2,8 @@ package org.lime.gp.item;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,6 +19,10 @@ import org.lime.gp.lime;
 import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.HandCuffs;
 import org.lime.gp.player.ui.CustomUI;
+
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.entity.EnumItemSlot;
+
 import org.lime.system;
 
 import java.util.Optional;
@@ -47,16 +53,14 @@ public class UseSetting implements Listener {
             return !Death.isDamageLay(player.getUniqueId())
                     && !HandCuffs.isMove(player.getUniqueId())
                     && Optional.of(player.getInventory().getItem(arm))
+                            .map(v -> (CraftItemStack)v)
                             .flatMap(item -> Items.getOptional(getClass(), item)
                                     .filter(v -> v == this)
                                     .map(setting -> {
                                         int _ticks = ticks == null ? setting.getTime() : ticks;
                                         if (_ticks <= 0) {
                                             timeUse(player, target, item);
-                                            Items.getOptional(NextSetting.class, item)
-                                                    .flatMap(v -> Items.createItem(v.next))
-                                                    .ifPresent(v -> Items.dropGiveItem(player, v, false));
-                                            item.subtract(1);
+                                            modifyUseItem(player, item);
                                             CustomUI.TextUI.hide(player);
                                             return true;
                                         }
@@ -75,7 +79,7 @@ public class UseSetting implements Listener {
                             .orElse(false);
         }
         @Override default boolean use(Player player, Player target, EquipmentSlot arm, boolean shift) {
-            if (!shift) return false;
+            //if (!shift) return false;
             if (Cooldown.hasCooldown(player.getUniqueId(), "use_item")) return false;
             return useTick(player, target, arm, null);
         }
@@ -138,6 +142,33 @@ public class UseSetting implements Listener {
             if (!isDistance(l1, player.getLocation(), distance) || !isDistance(l2, target.getLocation(), distance)) return;
             tickUse(player, target, distance, ticks - 1, check, execute, cancel);
         }, 1);
+    }
+
+    public static void modifyUseItem(Player player, CraftItemStack item) {
+        if (item.handle == null || !(player instanceof CraftPlayer cplayer)) return;
+        modifyUseItem(cplayer.getHandle(), item.handle);
+    }
+    public static void modifyUseItem(EntityPlayer player, net.minecraft.world.item.ItemStack item) {
+        if (player.level.isClientSide || player.getAbilities().instabuild) return;
+        Optional<NextSetting> nextOption = Items.getOptional(NextSetting.class, item);
+        if (item.isDamageableItem()) {
+            item.hurtAndBreak(1, player, e2 -> {
+                nextOption
+                    .flatMap(v -> Items.createItem(v.next))
+                    .ifPresentOrElse(
+                        v -> Items.dropGiveItem(e2.getBukkitEntity(), v, false),
+                        () -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND)
+                    );
+            });
+        } else {
+            item.shrink(1);
+            nextOption
+                .flatMap(v -> Items.createItem(v.next))
+                .ifPresentOrElse(
+                    v -> Items.dropGiveItem(player.getBukkitEntity(), v, false),
+                    () -> player.broadcastBreakEvent(EnumItemSlot.MAINHAND)
+                );
+        }
     }
 }
 

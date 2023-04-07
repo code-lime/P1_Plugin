@@ -37,7 +37,7 @@ dependencies {
             files(libPath("LimeCoreProtect-1.0.jar")),
             files(libPath("ProtocolLib.jar")),
             files(libPath("DiscordSRV-Build-1.26.1.jar")),
-            files(libPath("voicechat-bukkit-1.19.4-2.3.28.jar")),
+            files(libPath("voicechat-bukkit-1.19.4-2.4.2.jar")),
             files(libPath("byte-buddy-1.11.18.jar")),
             files(libPath("byte-buddy-agent-1.11.18.jar")),
             files(libPath("Physics-1.11.0.jar")),

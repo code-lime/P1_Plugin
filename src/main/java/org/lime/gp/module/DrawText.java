@@ -41,7 +41,7 @@ public class DrawText {
     public static void init() {
         Displays.initDisplay(TEXT_MANAGER);
         lime.repeatTicks(() -> shows.values().removeIf(IShow::tryRemove), 1);
-        system.Toast1<Double> a = system.toast(0.0);
+        /*system.Toast1<Double> a = system.toast(0.0);
 
         load(() -> Stream.of(new IShowID("tmp.gen") {
 
@@ -94,7 +94,7 @@ public class DrawText {
                 return false;
             }
             
-        }));
+        }));*/
     }
 
     private static long next = 0;

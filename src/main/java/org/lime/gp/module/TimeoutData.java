@@ -3,8 +3,6 @@ package org.lime.gp.module;
 import org.lime.core;
 import org.lime.gp.lime;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;

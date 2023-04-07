@@ -91,6 +91,11 @@ public class Thirst implements Listener, CustomUI.IUI {
         data.times.put(state.key, 0.0);
         setThirst(player, data);
     }
+    public static void thirstStateByKey(Player player, String stateKey) {
+        ThirstData data = getThirst(player);
+        data.times.put(stateKey, 0.0);
+        setThirst(player, data);
+    }
     public static void thirstStateReset(Player player) {
         ThirstData data = getThirst(player);
         data.times.clear();
