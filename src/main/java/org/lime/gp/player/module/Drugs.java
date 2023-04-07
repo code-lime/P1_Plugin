@@ -22,9 +22,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.display.EditedDataWatcher;
 import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.DrugsSetting;
+import org.lime.gp.item.settings.list.UnDrugsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.inventory.MainPlayerInventory;
@@ -101,19 +103,88 @@ public class Drugs implements Listener {
         }
     }
     public static class GroupEffect {
-        public final List<system.Toast2<ImmutableSet<EffectType>, Integer>> effects = new ArrayList<>();
+        private static class SingleEffect {
+            public int id;
+            public double effect_timer = 0;
+
+            public SingleEffect(int id, JsonObject json) {
+                this(id);
+                this.effect_timer = json.get("effect_timer").getAsDouble();
+            }
+            public JsonObject save() {
+                return system.json.object()
+                    .add("effect_timer", effect_timer)
+                    .build();
+            }
+            public SingleEffect(int id) {
+                this.id = id;
+            }
+            public void applyEffect(Player player, int minecraftTick) {
+                if (Items.creators.get(id) instanceof Items.ItemCreator creator) {
+                    creator.getOptional(DrugsSetting.class).ifPresent(drugs -> {
+                        (effect_timer > drugs.first ? drugs.first_effects : drugs.last_effects).forEach(effect -> {
+                            effect.tick(player, minecraftTick);
+                        });
+                    });
+                }
+            }
+            public boolean tickRemove(Player player, double delta) {
+                effect_timer -= delta;
+                return effect_timer <= 0;
+            }
+        }
+        public double addiction_timer = 0;
+        public boolean addiction_state = false;
+        public double health_timer = 0;
+        public final HashMap<Integer, SingleEffect> effects = new HashMap<>();
+
+        private static final int DATA_VERSION = 1;
 
         public GroupEffect() {
 
         }
         public GroupEffect(JsonObject json) {
+            int version = json.has("v") ? json.get("v").getAsInt() : -1;
+            if (version != DATA_VERSION) return;
             json.entrySet().forEach(kv -> {
-                effects.add(system.toast(Arrays.stream(kv.getKey().split(" ")).map(EffectType::valueOf).collect(ImmutableSet.toImmutableSet()), kv.getValue().getAsInt()));
+                int id = Integer.parseInt(kv.getKey());
+                effects.put(id, new SingleEffect(id, kv.getValue().getAsJsonObject()));
             });
         }
         public JsonObject save() {
-            return system.json.object().add(effects, kv -> kv.val0.stream().map(Enum::name).collect(Collectors.joining(" ")), kv -> kv.val1).build();
+            return system.json.object()
+                .add(effects, k -> k + "", v -> v.save())
+                .build();
         }
+
+        public void addEffect(int id, double addiction, double first, double last) {
+            SingleEffect effect = effects.computeIfAbsent(id, SingleEffect::new);
+            effect.effect_timer = first + last;
+            addiction_timer += addiction + first + last;
+            if (addiction_timer > 120) addiction_timer = 120;
+            setHealthTimer(0);
+        }
+        public void setHealthTimer(double time) {
+            health_timer = time;
+        }
+        
+        public void applyEffect(Player player, int minecraftTick) {
+            effects.values().forEach(type -> type.applyEffect(player, minecraftTick));
+            if (health_timer <= 0 && addiction_timer > 90 || (addiction_timer > 15 && effects.isEmpty())) {
+                if (minecraftTick % 1000 == 0)
+                    player.addPotionEffect(PotionEffectType.WITHER.createEffect(5 * 20, 0).withIcon(false).withParticles(false));
+            } else if (health_timer > 0) {
+                if (minecraftTick % 20 == 0)
+                    Thirst.thirstStateByKey(player, "drugs");
+            }
+        }
+        public boolean tickRemove(Player player, double delta) {
+            double modifyDelta = delta * (health_timer > 0 ? 4 : 1);
+            effects.values().removeIf(type -> type.tickRemove(player, modifyDelta));
+            if (addiction_timer > 0) addiction_timer -= modifyDelta;
+            return addiction_timer <= 0 && effects.isEmpty();
+        }
+/*
 
         public boolean tick(Player player, int tick) {
             if (effects.isEmpty()) return false;
@@ -131,6 +202,13 @@ public class Drugs implements Listener {
         public void modify(ImmutableSet<EffectType> types, int ticks, boolean set) {
             if (set) this.effects.clear();
             this.effects.add(system.toast(types, ticks));
+        }
+*/
+        public void reset() {
+            addiction_timer = 0;
+            addiction_state = false;
+            health_timer = 0;
+            effects.clear();
         }
     }
     public static final HashMap<UUID, GroupEffect> players = new HashMap<>();
@@ -177,39 +255,39 @@ public class Drugs implements Listener {
                     }
                 })
                 .listen();
-        AnyEvent.addEvent("drugs.effect.modify", AnyEvent.type.other, b -> b.createParam("add","set").createParam(EffectType.values()).createParam(Integer::parseUnsignedInt, "[ticks]"), (p, action, effect, ticks) -> {
-            getGroupEffect(p.getUniqueId()).modify(ImmutableSet.of(effect), ticks, switch (action) {
-                case "add" -> false;
-                case "set" -> true;
-                default -> throw new IllegalArgumentException("Action '"+action+"' not supported!");
-            });
+        AnyEvent.addEvent("drugs.effect.reset", AnyEvent.type.other, p -> getGroupEffect(p.getUniqueId()).reset());
+        lastExecute = System.currentTimeMillis();
+        lime.repeatTicks(Drugs::update, 1);
+    }
+    private static long lastExecute;
+    private static void update() {
+        long execute = System.currentTimeMillis();
+        double deltaMin = ((execute - lastExecute) / 1000.0) / 60.0;
+        lastExecute = execute;
+        int tick = MinecraftServer.currentTick;
+        freezeList.entrySet().forEach(kv -> kv.setValue(kv.getValue() - 1));
+        freezeList.entrySet().removeIf(kv -> {
+            if (kv.getValue() > 0) return false;
+            Bukkit.getOnlinePlayers()
+                    .stream()
+                    .filter(v -> v.getEntityId() == kv.getKey())
+                    .findAny()
+                    .ifPresent(player -> player.setFreezeTicks(player.getFreezeTicks() + 1));
+            return true;
         });
-        AnyEvent.addEvent("drugs.effect.reset", AnyEvent.type.other, p -> getGroupEffect(p.getUniqueId()).setup(Collections.emptyList()));
-        lime.repeatTicks(() -> {
-            int tick = MinecraftServer.currentTick;
-            freezeList.entrySet().forEach(kv -> kv.setValue(kv.getValue() - 1));
-            freezeList.entrySet().removeIf(kv -> {
-                if (kv.getValue() > 0) return false;
-                Bukkit.getOnlinePlayers()
-                        .stream()
-                        .filter(v -> v.getEntityId() == kv.getKey())
-                        .findAny()
-                        .ifPresent(player -> player.setFreezeTicks(player.getFreezeTicks() + 1));
+        ConcurrentHashMap<UUID, Player> onlinePlayers = EntityPosition.onlinePlayers;
+        players.entrySet().removeIf(kv -> {
+            UUID uuid = kv.getKey();
+            Player player = onlinePlayers.get(uuid);
+            if (player == null) {
+                PlayerData.getPlayerData(uuid).setJson(DRUGS_EFFECTS, kv.getValue().save());
                 return true;
-            });
-            ConcurrentHashMap<UUID, Player> onlinePlayers = EntityPosition.onlinePlayers;
-            players.entrySet().removeIf(kv -> {
-                UUID uuid = kv.getKey();
-                Player player = onlinePlayers.get(uuid);
-                if (player == null) {
-                    PlayerData.getPlayerData(uuid).setJson(DRUGS_EFFECTS, kv.getValue().save());
-                    return true;
-                }
-                if (kv.getValue().tick(player, tick)) PlayerData.getPlayerData(uuid).setJson(DRUGS_EFFECTS, kv.getValue().save());
-                return false;
-            });
-            onlinePlayers.keySet().forEach(Drugs::getGroupEffect);
-        }, 1);
+            }
+            if (kv.getValue().tickRemove(player, deltaMin)) PlayerData.getPlayerData(uuid).setJson(DRUGS_EFFECTS, kv.getValue().save());
+            else kv.getValue().applyEffect(player, tick);
+            return false;
+        });
+        onlinePlayers.keySet().forEach(Drugs::getGroupEffect);
     }
     public static void uninit() {
         players.entrySet().removeIf(kv -> {
@@ -227,7 +305,10 @@ public class Drugs implements Listener {
     @EventHandler(ignoreCancelled = true) public static void on(PlayerItemConsumeEvent e) {
         Items.getOptional(DrugsSetting.class, e.getItem())
                 .ifPresent(drugs -> getGroupEffect(e.getPlayer().getUniqueId())
-                        .setup(drugs.effects));
+                        .addEffect(drugs.creator().getID(), drugs.addiction, drugs.first, drugs.last));
+        Items.getOptional(UnDrugsSetting.class, e.getItem())
+                .ifPresent(undrugs -> getGroupEffect(e.getPlayer().getUniqueId())
+                        .setHealthTimer(undrugs.time));
     }
 }
 
