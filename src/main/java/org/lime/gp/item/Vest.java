@@ -51,7 +51,7 @@ public class Vest implements Listener {
 
     private static final HashMap<UUID, HashMap<EquipmentSlot, VestInventory>> inventoryVest = new HashMap<>();
     public static void init() {
-        lime.repeatTicks(Vest::tick, 1);
+        lime.repeat(Vest::tick, 1);
     }
     private static List<ItemStack> dieTick(UUID die_uuid) {
         List<ItemStack> die_items = new ArrayList<>();
@@ -195,6 +195,7 @@ public class Vest implements Listener {
     }
 
     private static boolean openFilterInventory(Player player, VestInventory vest, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
+        tick();
         player.closeInventory();
         Map<Integer, Items.Checker> slots = vest.vest_data.slots;
         return InterfaceManager.of(player, vest.inventory)
@@ -263,6 +264,7 @@ public class Vest implements Listener {
     }
 
     public static boolean dropDieItems(Player player, Location location, system.Action1<ItemStack> callback) {
+        tick();
         List<ItemStack> items = dieTick(player.getUniqueId());
         items.removeIf(v -> v.getType().isAir());
         if (items.isEmpty()) return false;
