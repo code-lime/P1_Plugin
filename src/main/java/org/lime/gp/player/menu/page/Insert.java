@@ -13,6 +13,7 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -38,7 +39,7 @@ public class Insert extends Base {
                 .isPresent();
     }
     private static Func1<net.minecraft.world.item.ItemStack, Boolean> filter(List<String> items) {
-        Items.Checker checker = Items.createCheck(items);
+        Checker checker = Checker.createCheck(items);
         return checker::check;
     }
 

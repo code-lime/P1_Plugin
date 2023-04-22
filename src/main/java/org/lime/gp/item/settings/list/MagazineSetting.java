@@ -16,6 +16,7 @@ import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -30,7 +31,7 @@ import com.google.gson.JsonObject;
     public final String sound_load;
     public final String sound_unload;
 
-    public MagazineSetting(Items.ItemCreator creator, JsonObject json) {
+    public MagazineSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         magazine_type = json.has("magazine_type") ? json.get("magazine_type").getAsString() : null;
         bullet_type = json.get("bullet_type").getAsString();
@@ -57,7 +58,7 @@ import com.google.gson.JsonObject;
         magazine.setItemMeta(meta);
 
         Items.getItemCreator(magazine)
-                .map(v -> v instanceof Items.ItemCreator c ? c : null)
+                .map(v -> v instanceof ItemCreator c ? c : null)
                 .ifPresent(v -> v.apply(magazine));
     }
 

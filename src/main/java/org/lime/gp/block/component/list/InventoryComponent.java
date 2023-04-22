@@ -9,7 +9,7 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.InventoryInstance;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.player.menu.page.Menu;
 import org.lime.system;
 
@@ -22,7 +22,7 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
     public final int rows;
     public final String type;
     public final Component title;
-    public final Map<Integer, Items.Checker> slots = new HashMap<>();
+    public final Map<Integer, Checker> slots = new HashMap<>();
     public final Map<Integer, LocalLocation> display = new HashMap<>();
 
     public InventoryComponent(BlockInfo info, JsonObject json) {
@@ -32,7 +32,7 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
         this.rows = json.has("rows") ? json.get("rows").getAsInt() : 1;
         this.title = ChatHelper.formatComponent(json.get("title").getAsString());
         json.getAsJsonObject("slots").entrySet().forEach(kv -> {
-            Items.Checker checker = Items.createCheck(kv.getValue().getAsString());
+            Checker checker = Checker.createCheck(kv.getValue().getAsString());
             Menu.rangeOf(kv.getKey()).forEach(slot -> this.slots.put(slot, checker));
         });
         json.getAsJsonObject("display").entrySet().forEach(kv -> {
@@ -41,7 +41,7 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
         });
     }
 
-    public InventoryComponent(BlockInfo info, @Nullable String type, int rows, Component title, Map<Integer, Items.Checker> slots, Map<Integer, LocalLocation> display) {
+    public InventoryComponent(BlockInfo info, @Nullable String type, int rows, Component title, Map<Integer, Checker> slots, Map<Integer, LocalLocation> display) {
         super(info);
 
         this.type = type;

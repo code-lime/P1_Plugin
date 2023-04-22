@@ -9,6 +9,8 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
+import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -35,7 +37,7 @@ public abstract class RecipeSlot {
         return getWhitelistKeys()
                 .map(Items::getItemCreator)
                 .flatMap(Optional::stream)
-                .filter(system.distinctBy(Items.IItemCreator::getKey))
+                .filter(system.distinctBy(IItemCreator::getKey))
                 .flatMap(c -> system.funcEx(() -> c.createItem(1)).optional().invoke().stream())
                 .map(CraftItemStack::asNMSCopy);
     }
@@ -49,15 +51,15 @@ public abstract class RecipeSlot {
                 JsonObject slot = json.getAsJsonObject();
                 String in = slot.get("input").getAsString();
                 String out = !slot.has("output") || slot.get("output").isJsonNull() ? null : slot.get("output").getAsString();
-                RecipeSlot recipeSlot = out == null ? of(Items.createCheck(in)) : of(Items.createCheck(in), () -> CraftItemStack.asNMSCopy(Items.getItemCreator(out).map(Items.IItemCreator::createItem).orElseGet(Items::empty)));
+                RecipeSlot recipeSlot = out == null ? of(Checker.createCheck(in)) : of(Checker.createCheck(in), () -> CraftItemStack.asNMSCopy(Items.getItemCreator(out).map(IItemCreator::createItem).orElseGet(Items::empty)));
                 return slot.has("count") ? recipeSlot.withAmount(slot.get("count").getAsInt()) : recipeSlot;
             }
             String key = json.getAsString();
             List<String> arr = Arrays.stream(key.split("\\*")).collect(Collectors.toList());
             Integer count = arr.size() > 1 ? ExtMethods.parseUnsignedInt(arr.get(arr.size() - 1)).orElse(null) : null;
-            if (count == null) return of(Items.createCheck(key));
+            if (count == null) return of(Checker.createCheck(key));
             arr.remove(arr.size() - 1);
-            return of(Items.createCheck(String.join("*", arr))).withAmount(count);
+            return of(Checker.createCheck(String.join("*", arr))).withAmount(count);
         }).invoke();
         if (result.getWhitelistKeys().findAny().isEmpty()) lime.logOP("RecipeSlot in '"+log_key+"' '" + json + "' is EMPTY! Maybe error...");
         return result;
@@ -67,14 +69,14 @@ public abstract class RecipeSlot {
         if (json.isJsonPrimitive() && (primitive = json.getAsJsonPrimitive()).isString()) return Arrays.stream(primitive.getAsString().split("[\\t ]+")).map(JsonPrimitive::new).map(v -> RecipeSlot.of(log_key, v));
         return Stream.of(of(log_key, json));
     }
-    public static RecipeSlot of(Items.Checker checker) {
+    public static RecipeSlot of(Checker checker) {
         return new RecipeSlot() {
             @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
             @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
             @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
         };
     }
-    public static RecipeSlot of(Items.Checker checker, system.Func0<net.minecraft.world.item.ItemStack> result) {
+    public static RecipeSlot of(Checker checker, system.Func0<net.minecraft.world.item.ItemStack> result) {
         return new RecipeSlot() {
             @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
             @Override public net.minecraft.world.item.ItemStack result(int count) {

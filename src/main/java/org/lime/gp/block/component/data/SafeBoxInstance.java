@@ -32,6 +32,7 @@ import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -124,7 +125,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
     public static boolean useDeKey(EntityHuman entityhuman, EnumHand hand) {
         ItemStack deKey = entityhuman.getItemInHand(hand);
         if (Items.getItemCreator(deKey)
-                .map(v -> v instanceof Items.ItemCreator c ? c : null)
+                .map(v -> v instanceof ItemCreator c ? c : null)
                 .filter(v -> v.has(DeKeySetting.class))
                 .filter(v -> Perms.getCanData(entityhuman.getUUID()).isCanUse(v.getKey()))
                 .isEmpty()

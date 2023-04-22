@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.lime.system;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.sound.SoundMaterial;
 import org.lime.gp.sound.Sounds;
@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.state.IBlockData;
 
     public final HashMap<SoundMaterial, String> sound_hit = new HashMap<>();
 
-    public BulletSetting(Items.ItemCreator creator, JsonObject json) {
+    public BulletSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         bullet_type = json.get("bullet_type").getAsString();
         count = json.has("count") ? json.get("count").getAsInt() : 1;

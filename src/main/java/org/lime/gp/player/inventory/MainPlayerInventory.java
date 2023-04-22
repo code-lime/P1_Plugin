@@ -20,6 +20,8 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.IItemCreator;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.MenuCreator;
@@ -122,7 +124,7 @@ public final class MainPlayerInventory implements Listener {
     private static int getSlotCounter(ItemStack item) {
         if (item == null) return 0;
         return Items.getItemCreator(item)
-                .map(i -> i instanceof Items.ItemCreator c ? c : null)
+                .map(i -> i instanceof ItemCreator c ? c : null)
                 .map(creator -> creator.getOptional(SlotsSetting.class).map(v -> v.slots).orElse(0))
                 .orElseGet(() -> slotCounter.getOrDefault(item.getType(), 0));
     }
@@ -192,8 +194,8 @@ public final class MainPlayerInventory implements Listener {
         if (inventory.getHeldItemSlot() >= slots) inventory.setHeldItemSlot(0);
     }
 
-    private static Items.IItemCreator barrier_main = null;
-    private static Items.IItemCreator barrier_belt = null;
+    private static IItemCreator barrier_main = null;
+    private static IItemCreator barrier_belt = null;
 
     //private static final ItemStack barrier = ItemManager.Builder;//lime.CreateItem(Material.BARRIER, ChatColor.RED + "НЕДОСТУПНО", 1);
     public static ItemStack createBarrier(boolean is_belt) {
@@ -202,7 +204,7 @@ public final class MainPlayerInventory implements Listener {
         return (is_belt ? barrier_belt : barrier_main).createItem(1);
     }
 
-    private static Items.IItemCreator predonate = null;
+    private static IItemCreator predonate = null;
 
     public static ItemStack createPreDonate() {
         if (predonate == null || predonate.isDestroy) predonate = Items.getItemCreator("Inventory.PreDonate").orElseThrow();

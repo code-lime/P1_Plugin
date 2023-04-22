@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.system;
 
@@ -103,7 +104,7 @@ public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements
         CartographyBucket.modifyData(item, (v) -> { modify.invoke(v); return null; });
     }
     public static <T> Optional<T> modifyData(ItemStack item, system.Func1<CartographyBucket, T> modify) {
-        return Items.getItemCreator(item).map(v -> v instanceof Items.ItemCreator creator ? creator : null).map(creator -> {
+        return Items.getItemCreator(item).map(v -> v instanceof ItemCreator creator ? creator : null).map(creator -> {
             if (!creator.has(BucketSetting.class)) return null;
             ItemMeta meta = item.getItemMeta();
             JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "bucket.data", null);

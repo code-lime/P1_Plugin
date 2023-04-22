@@ -22,7 +22,7 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.list.RemoteExecuteComponent;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Items.ItemCreator;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.RemoteExecuteSetting;
 import org.lime.gp.chat.ChatHelper;
 

@@ -19,6 +19,7 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
@@ -140,7 +141,7 @@ public class HandCuffs implements Listener {
         if (!(e.getRightClicked() instanceof Player other)) return;
         MoveInfo moveInfo = moveList.getOrDefault(other.getUniqueId(), null);
         Items.getItemCreator(e.getPlayer().getInventory().getItemInMainHand())
-                .map(v -> v instanceof Items.ItemCreator _v ? _v : null)
+                .map(v -> v instanceof ItemCreator _v ? _v : null)
                 .ifPresent(creator -> {
                     if (moveInfo != null) {
                         if (!player.getUniqueId().equals(moveInfo.owner)) return;

@@ -13,7 +13,7 @@ import org.lime.reflection;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -22,8 +22,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public abstract class ItemSetting<T extends JsonElement> implements IItemSetting {
-    private final Items.ItemCreator _creator;
-    public Items.ItemCreator creator() { return this._creator; }
+    private final ItemCreator _creator;
+    public ItemCreator creator() { return this._creator; }
 
     private String _name;
     public String name() { return _name; }
@@ -31,7 +31,7 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
     public void apply(ItemStack item, ItemMeta meta, Apply apply) { }
     public void appendArgs(ItemStack item, Apply apply) { }
 
-    private static final Map<String, system.Func2<Items.ItemCreator, JsonElement, ItemSetting<?>>> settings;
+    private static final Map<String, system.Func2<ItemCreator, JsonElement, ItemSetting<?>>> settings;
     private static Optional<Constructor<?>> constructor(Class<?> tClass, Class<?>... args) {
         try { return Optional.of(reflection.access(tClass.getDeclaredConstructor(args))); }
         catch (Exception e) { return Optional.empty(); }
@@ -44,18 +44,18 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
                     .filter(v -> v.startsWith(packageFilter))
                     .map(system.<String, Class<?>>funcEx(Class::forName).throwable())
                     .filter(ItemSetting.class::isAssignableFrom)
-                    .map(v -> constructor(v, Items.ItemCreator.class, JsonElement.class)
-                            .or(() -> constructor(v, Items.ItemCreator.class, JsonArray.class))
-                            .or(() -> constructor(v, Items.ItemCreator.class, JsonObject.class))
-                            .or(() -> constructor(v, Items.ItemCreator.class, JsonPrimitive.class))
-                            .or(() -> constructor(v, Items.ItemCreator.class, JsonNull.class))
-                            .or(() -> constructor(v, Items.ItemCreator.class))
+                    .map(v -> constructor(v, ItemCreator.class, JsonElement.class)
+                            .or(() -> constructor(v, ItemCreator.class, JsonArray.class))
+                            .or(() -> constructor(v, ItemCreator.class, JsonObject.class))
+                            .or(() -> constructor(v, ItemCreator.class, JsonPrimitive.class))
+                            .or(() -> constructor(v, ItemCreator.class, JsonNull.class))
+                            .or(() -> constructor(v, ItemCreator.class))
                             .map(c -> system.toast(v.getAnnotation(Setting.class), c))
                             .orElse(null)
                     )
                     .filter(Objects::nonNull)
                     .filter(kv -> kv.val0 != null)
-                    .collect(Collectors.toMap(kv -> kv.val0.name(), kv -> (system.Func2<Items.ItemCreator, JsonElement, ItemSetting<?>>) (creator, json) -> {
+                    .collect(Collectors.toMap(kv -> kv.val0.name(), kv -> (system.Func2<ItemCreator, JsonElement, ItemSetting<?>>) (creator, json) -> {
                         try {
                             return (ItemSetting<?>)(kv.val1.getParameterCount() == 2 ? kv.val1.newInstance(creator, json) : kv.val1.newInstance(creator));
                         }
@@ -74,10 +74,10 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
         }
         settings.keySet().forEach(k -> lime.logOP("Setting: " + k));
     }
-    public ItemSetting(Items.ItemCreator creator) { this._creator = creator; }
-    public ItemSetting(Items.ItemCreator creator, T json) { this(creator); }
-    public static ItemSetting<?> parse(String key, Items.ItemCreator creator, JsonElement json) {
-        system.Func2<Items.ItemCreator, JsonElement, ItemSetting<?>> func = settings.get(key);
+    public ItemSetting(ItemCreator creator) { this._creator = creator; }
+    public ItemSetting(ItemCreator creator, T json) { this(creator); }
+    public static ItemSetting<?> parse(String key, ItemCreator creator, JsonElement json) {
+        system.Func2<ItemCreator, JsonElement, ItemSetting<?>> func = settings.get(key);
         if (func == null) throw new IllegalArgumentException("Item setting '"+key+"' not founded!");
         ItemSetting<?> setting = func.invoke(creator, json);
         setting._name = key;

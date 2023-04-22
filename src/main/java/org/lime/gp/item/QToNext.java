@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.sound.Sounds;
 
@@ -21,7 +22,7 @@ public class QToNext implements Listener {
                 Items.getOptional(NextSetting.class, item)
                         .ifPresent(_v -> Items.getOptional(QToNextSetting.class, item).ifPresent(qtn -> {
                                     Items.getItemCreator(_v.next)
-                                    .map(v -> v instanceof Items.ItemCreator c ? c : null)
+                                    .map(v -> v instanceof ItemCreator c ? c : null)
                                     .map(next -> next.apply(item))
                                     .ifPresent(v -> {
                                         Sounds.playSound(qtn.sound, e.getWhoClicked().getLocation());

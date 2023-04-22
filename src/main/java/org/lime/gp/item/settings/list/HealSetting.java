@@ -6,8 +6,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.lime.system;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.item.Items;
 import org.lime.gp.item.UseSetting;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Death;
@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
     public final int time;
     public final boolean up;
 
-    public HealSetting(Items.ItemCreator creator, JsonObject json) {
+    public HealSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         this.heal = json.has("heal") ? system.IRange.parse(json.get("heal").getAsString()) : null;
         this.total = json.has("total") ? json.get("total").getAsInt() : null;

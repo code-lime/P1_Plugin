@@ -8,6 +8,7 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -28,7 +29,7 @@ import com.google.gson.JsonObject;
 
     public final String type;
     public final Color color;
-    public ThirstSetting(Items.ItemCreator creator, JsonObject json) {
+    public ThirstSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
 
         type = json.get("type").getAsString();

@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.system;
 import org.lime.gp.extension.ItemNMS;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -100,7 +100,7 @@ import com.google.gson.JsonObject;
                 : Optional.ofNullable(infos.get(system.toast(tableType, type))).or(() -> Optional.ofNullable(infos.get(system.toast(tableType, null))));
     }
 
-    public TableDisplaySetting(Items.ItemCreator creator, JsonObject json) {
+    public TableDisplaySetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         json.entrySet().forEach(kv -> {
             String[] args = kv.getKey().split(":", 2);

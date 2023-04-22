@@ -15,7 +15,7 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.BookPaper;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.common.collect.Streams;
@@ -31,7 +31,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
     public Optional<String> generation;
     public List<List<String>> pages = new ArrayList<>();
 
-    public BookSetting(Items.ItemCreator creator, JsonObject json) {
+    public BookSetting(ItemCreator creator, JsonObject json) {
         super(creator);
         author_id = json.has("author_id") ? Optional.of(json.get("author_id").getAsString()) : Optional.empty();
         title = json.has("title") ? Optional.of(json.get("title").getAsString()) : Optional.empty();

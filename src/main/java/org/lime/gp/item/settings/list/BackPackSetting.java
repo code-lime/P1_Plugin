@@ -7,7 +7,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 
@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
     }
     public HashMap<PoseType, net.minecraft.world.item.ItemStack> data = new HashMap<>();
 
-    public BackPackSetting(Items.ItemCreator creator, JsonObject json) {
+    public BackPackSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         json.entrySet().forEach(kv -> {
             PoseType pose = PoseType.valueOf(kv.getKey());

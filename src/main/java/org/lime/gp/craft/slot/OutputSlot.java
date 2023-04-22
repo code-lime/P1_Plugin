@@ -6,6 +6,8 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.IItemCreator;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.lime;
 
 import java.util.Optional;
@@ -27,7 +29,7 @@ public class OutputSlot {
         return new OutputSlot(args[0], args.length > 1 ? Integer.parseUnsignedInt(args[1]) : 1);
     }
 
-    public Optional<Items.IItemCreator> creator() {
+    public Optional<IItemCreator> creator() {
         return Items.getItemCreator(key);
     }
 
@@ -41,7 +43,7 @@ public class OutputSlot {
     }
     public ItemStack apply(ItemStack item, boolean copy) {
         return Items.getItemCreator(key)
-                .map(v -> Optional.ofNullable(v instanceof Items.ItemCreator c ? c : null).map(i -> i.apply(copy ? item.clone() : item, amount, Apply.of())).orElseGet(() -> v.createItem(amount)))
+                .map(v -> Optional.ofNullable(v instanceof ItemCreator c ? c : null).map(i -> i.apply(copy ? item.clone() : item, amount, Apply.of())).orElseGet(() -> v.createItem(amount)))
                 .orElseGet(() -> {
                     lime.logOP("CRAFT OUTPUT ITEM '" + key + "' NOT FOUNDED!");
                     return new ItemStack(Material.STONE, 0);

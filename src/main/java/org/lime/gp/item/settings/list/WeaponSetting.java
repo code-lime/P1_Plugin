@@ -17,6 +17,7 @@ import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.item.weapon.WeaponData;
 import org.lime.gp.module.JavaScript;
@@ -90,7 +91,7 @@ import net.kyori.adventure.text.format.TextColor;
 
     public final String display;
 
-    public WeaponSetting(Items.ItemCreator creator, JsonObject json) {
+    public WeaponSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         bullet_speed = json.get("bullet_speed").getAsDouble();
         bullet_down = json.get("bullet_down").getAsDouble();
@@ -138,7 +139,7 @@ import net.kyori.adventure.text.format.TextColor;
         weapon.setItemMeta(meta);
 
         Items.getItemCreator(weapon)
-                .map(v -> v instanceof Items.ItemCreator c ? c : null)
+                .map(v -> v instanceof ItemCreator c ? c : null)
                 .ifPresent(v -> v.apply(weapon));
     }
 

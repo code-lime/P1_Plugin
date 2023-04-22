@@ -13,6 +13,7 @@ import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawMap;
@@ -114,7 +115,7 @@ public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements 
         return Optional.of(new CartographyBrush(json == null ? new JsonObject() : json));
     }
     public static void modifyData(ItemStack item, system.Action1<CartographyBrush> modify) {
-        Items.getItemCreator(item).map(v -> v instanceof Items.ItemCreator creator ? creator : null).ifPresent(creator -> {
+        Items.getItemCreator(item).map(v -> v instanceof ItemCreator creator ? creator : null).ifPresent(creator -> {
             if (!creator.has(BrushSetting.class)) return;
             ItemMeta meta = item.getItemMeta();
             JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "brush.data", null);

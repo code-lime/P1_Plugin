@@ -1,7 +1,8 @@
 package org.lime.gp.item.settings.list;
 
 import java.util.HashSet;
-import org.lime.gp.item.Items;
+
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.player.module.Drugs;
 
@@ -15,7 +16,7 @@ import com.google.gson.JsonObject;
     public double first;
     public double last;
 
-    public DrugsSetting(Items.ItemCreator creator, JsonObject json) {
+    public DrugsSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         json.getAsJsonArray("first_effects")
                 .forEach(item -> first_effects.add(Drugs.EffectType.valueOf(item.getAsString())));

@@ -3,8 +3,8 @@ package org.lime.gp.item.settings.list;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.lime.gp.item.Items;
 import org.lime.gp.item.UseSetting;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
     public final int time;
     public final Boolean shift;
     public final EquipmentSlot arm;
-    public UseToNextSetting(Items.ItemCreator creator, JsonObject json) {
+    public UseToNextSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         this.time = json.get("time").getAsInt();
         this.shift = json.get("shift").isJsonNull() ? null : json.get("shift").getAsBoolean();

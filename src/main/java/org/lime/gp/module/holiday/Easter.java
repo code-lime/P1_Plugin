@@ -22,6 +22,7 @@ import org.bukkit.util.Vector;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import com.google.gson.JsonObject;
 
@@ -63,7 +64,7 @@ public class Easter implements Listener {
     private static int TICKS_LIFE = 2400;
     private static int LIMIT_TO_PLAYER = 2;
     private static int RADIUS = 30;
-    private static final List<system.Toast2<Items.Checker, system.IRange>> LOOT = new ArrayList<>();
+    private static final List<system.Toast2<Checker, system.IRange>> LOOT = new ArrayList<>();
 
     /*private static system.Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
 
@@ -81,7 +82,7 @@ public class Easter implements Listener {
             String type = Arrays.stream(key).limit(key.length - 1).collect(Collectors.joining("*"));
 
             int count = kv.getValue().getAsInt();
-            system.Toast2<Items.Checker, system.IRange> element = system.toast(Items.createCheck(type), key.length > 1 ? system.IRange.parse(key[key.length - 1]) : new system.OnceRange(1));
+            system.Toast2<Checker, system.IRange> element = system.toast(Checker.createCheck(type), key.length > 1 ? system.IRange.parse(key[key.length - 1]) : new system.OnceRange(1));
             for (int i = 0; i < count; i++) LOOT.add(element);
         });
 

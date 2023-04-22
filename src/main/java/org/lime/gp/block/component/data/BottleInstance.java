@@ -33,6 +33,7 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.BottleComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.json.JsonElementOptional;
@@ -59,7 +60,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
         static Optional<IFluid> of(ItemStack item) {
             return Items.getOptional(ThirstSetting.class, item)
                     .map(ItemSetting::creator)
-                    .map(Items.ItemCreator::getID)
+                    .map(ItemCreator::getID)
                     .<IFluid>map(CustomFluid::new)
                     .or(() -> PotionFluid.of(item))
                     .or(() -> Optional.ofNullable(item.getItemMeta())
@@ -84,7 +85,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
         }
         @Override public Color waterColor() {
             return Optional.ofNullable(Items.creators.get(id))
-                    .map(v -> v instanceof Items.ItemCreator creator ? creator : null)
+                    .map(v -> v instanceof ItemCreator creator ? creator : null)
                     .flatMap(v -> v.getOptional(ThirstSetting.class))
                     .map(v -> v.color)
                     .orElse(ThirstSetting.DEFAULT_WATER_COLOR);

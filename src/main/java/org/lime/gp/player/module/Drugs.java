@@ -23,6 +23,7 @@ import org.lime.display.EditedDataWatcher;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.DrugsSetting;
 import org.lime.gp.item.settings.list.UnDrugsSetting;
 import org.lime.gp.lime;
@@ -117,7 +118,7 @@ public class Drugs implements Listener {
                 this.id = id;
             }
             public void applyEffect(Player player, int minecraftTick) {
-                if (Items.creators.get(id) instanceof Items.ItemCreator creator) {
+                if (Items.creators.get(id) instanceof ItemCreator creator) {
                     creator.getOptional(DrugsSetting.class).ifPresent(drugs -> {
                         (effect_timer > drugs.first ? drugs.first_effects : drugs.last_effects).forEach(effect -> {
                             effect.tick(player, minecraftTick);

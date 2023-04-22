@@ -5,13 +5,14 @@ import java.util.Optional;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
 
 @Setting(name = "display") public class DisplaySetting extends ItemSetting<JsonObject> {
     public String item;
-    public DisplaySetting(Items.ItemCreator creator, JsonObject json) {
+    public DisplaySetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         item = json.get("item").getAsString();
     }

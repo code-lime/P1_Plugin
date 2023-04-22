@@ -21,7 +21,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
 
@@ -61,11 +61,11 @@ public class MobSaturation implements Listener {
     public static class SaturationData {
         private static final HashMap<EntityType, SaturationData> saturations = new HashMap<>();
         public static class FoodData {
-            public final Items.Checker func;
+            public final Checker func;
             public final double saturation;
 
             public FoodData(String key, JsonElement value) {
-                func = Items.createCheck(key);
+                func = Checker.createCheck(key);
                 saturation = value.getAsDouble();
             }
         }

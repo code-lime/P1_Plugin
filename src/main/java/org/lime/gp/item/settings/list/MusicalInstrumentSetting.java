@@ -8,8 +8,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.lime.system;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.Cooldown;
-import org.lime.gp.item.Items;
 import org.lime.gp.item.UseSetting;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.sound.Sounds;
@@ -24,7 +24,7 @@ import net.kyori.adventure.sound.Sound;
     public final double cooldown;
     public final String menu;
     public final HashMap<String, String> args = new HashMap<>();
-    public MusicalInstrumentSetting(Items.ItemCreator creator, JsonObject json) {
+    public MusicalInstrumentSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         this.pitch = json.has("note") ? new system.Action2<>() {
             final org.bukkit.Sound sound = org.bukkit.Sound.valueOf("BLOCK_NOTE_BLOCK_" + json.get("note").getAsString());

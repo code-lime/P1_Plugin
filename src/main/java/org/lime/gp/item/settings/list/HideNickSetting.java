@@ -6,13 +6,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonPrimitive;
 
 @Setting(name = "hide_nick") public class HideNickSetting extends ItemSetting<JsonPrimitive> {
     public final boolean isHide;
-    public HideNickSetting(Items.ItemCreator creator, JsonPrimitive json) {
+    public HideNickSetting(ItemCreator creator, JsonPrimitive json) {
         super(creator, json);
         isHide = json.getAsBoolean();
     }

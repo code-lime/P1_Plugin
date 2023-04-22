@@ -24,6 +24,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
 import org.lime.gp.lime;
+import org.lime.gp.item.data.Checker;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -89,7 +91,7 @@ public class Vest implements Listener {
             VestData.VEST_KEY_BIMAP.forEach((slot, slot_key) -> {
                 VestData vestData = VestData.read(container, slot);
                 String vest_slot_data = vestData.getSlotItem();
-                String real_data = Items.getOptional(VestSetting.class, inventory.getItem(slot)).map(ItemSetting::creator).map(Items.ItemCreator::getKey).orElse(null);
+                String real_data = Items.getOptional(VestSetting.class, inventory.getItem(slot)).map(ItemSetting::creator).map(ItemCreator::getKey).orElse(null);
                 if (Objects.equals(vest_slot_data, real_data)) return;
                 Optional.ofNullable(inventoryVest.get(uuid)).map(v -> v.get(slot)).map(v -> {
                     vestData.setItems(v.inventory);
@@ -130,7 +132,7 @@ public class Vest implements Listener {
         private Optional<VestInventory> createInventory(Action1<List<ItemStack>> dropItems) {
             return Optional.ofNullable(getSlotItem())
                     .flatMap(slot_item -> Items.getItemCreator(slot_item)
-                            .map(v -> v instanceof Items.ItemCreator c ? c : null)
+                            .map(v -> v instanceof ItemCreator c ? c : null)
                             .flatMap(v -> v.getOptional(VestSetting.class))
                             .map(vest_data -> {
                                 List<ItemStack> items = getItems();
@@ -197,11 +199,11 @@ public class Vest implements Listener {
     private static boolean openFilterInventory(Player player, VestInventory vest, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
         tick();
         player.closeInventory();
-        Map<Integer, Items.Checker> slots = vest.vest_data.slots;
+        Map<Integer, Checker> slots = vest.vest_data.slots;
         return InterfaceManager.of(player, vest.inventory)
                 .slots(slot -> {
                     Slot _slot = slot;
-                    Items.Checker checker = slots.get(slot.index);
+                    Checker checker = slots.get(slot.index);
                     if (checker == null) return InterfaceManager.AbstractSlot.noneSlot(slot);
                     if (!readonly) return InterfaceManager.filterSlot(slot, checker::check);
                     Slot out = new Slot(slot.container, slot.slot, slot.x, slot.y) {

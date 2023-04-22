@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.system;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.player.voice.MegaPhoneData;
 
@@ -17,7 +17,7 @@ import com.google.gson.JsonObject;
     public final short def_distance;// 16
     public final short min_distance;// 0
     public final short max_distance;// 32
-    public MegaPhoneSetting(Items.ItemCreator creator, JsonObject json) {
+    public MegaPhoneSetting(ItemCreator creator, JsonObject json) {
         super(creator);
         def_distance = json.get("def_distance").getAsShort();
         min_distance = json.get("min_distance").getAsShort();

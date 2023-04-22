@@ -5,7 +5,7 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.CustomTileMetadata.Tickable;
 import org.lime.gp.block.component.list.UsestationComponent;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.Items.Checker;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.settings.list.NextSetting;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.module.TimeoutData;
@@ -43,7 +43,7 @@ public class UsestationInstance extends BlockComponentInstance<UsestationCompone
         public boolean hasUse(String uuid, String check) {
             Player player = Bukkit.getPlayer(UUID.fromString(uuid));
             if (player == null) return false;
-            Checker checker = Items.createCheck(check);
+            Checker checker = Checker.createCheck(check);
             PlayerInventory inventory = player.getInventory();
             return Stream.of(inventory.getItem(EquipmentSlot.HAND), inventory.getItem(EquipmentSlot.OFF_HAND))
                 .filter(checker::check)
@@ -54,7 +54,7 @@ public class UsestationInstance extends BlockComponentInstance<UsestationCompone
         public boolean use(String uuid, String check) {
             Player player = Bukkit.getPlayer(UUID.fromString(uuid));
             if (player == null) return false;
-            Checker checker = Items.createCheck(check);
+            Checker checker = Checker.createCheck(check);
             PlayerInventory inventory = player.getInventory();
             return Stream.of(inventory.getItem(EquipmentSlot.HAND), inventory.getItem(EquipmentSlot.OFF_HAND))
                 .filter(checker::check)

@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.system;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.player.voice.RadioData;
 
@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
     public final boolean noise;
     public final boolean is_on;
     public final RadioData.RadioState state;
-    public RadioSetting(Items.ItemCreator creator, JsonObject json) {
+    public RadioSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         min_level = json.get("min_level").getAsInt();
         def_level = json.get("def_level").getAsInt();

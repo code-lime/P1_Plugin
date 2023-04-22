@@ -30,6 +30,7 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Vest;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
@@ -40,14 +41,14 @@ import org.lime.display.lime;
 import java.util.*;
 
 public class Search implements Listener {
-    private static Items.Checker checker = Items.Checker.empty();
+    private static Checker checker = Checker.empty();
     public static core.element create() {
         return core.element.create(Search.class)
                 .withInit(Search::init)
                 .<JsonArray>addConfig("config", v -> v
                         .withParent("weapon.search")
                         .withDefault(new JsonArray())
-                        .withInvoke(_v -> checker = Items.createCheck(Streams.stream(_v.iterator()).map(JsonElement::getAsString).toList()))
+                        .withInvoke(_v -> checker = Checker.createCheck(Streams.stream(_v.iterator()).map(JsonElement::getAsString).toList()))
                 )
                 .withInstance();
     }

@@ -16,7 +16,7 @@ import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.extension.LimePersistentDataType;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -27,7 +27,7 @@ import com.google.gson.JsonPrimitive;
     public final Map<InfoComponent.Rotation.Value, String> rotation = new LinkedHashMap<>();
     public final Map<String, JsonObject> block_args = new HashMap<>();
 
-    public BlockSetting(Items.ItemCreator creator, JsonObject json) {
+    public BlockSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         json.getAsJsonObject("rotation").entrySet().forEach(kv -> {
             String value = kv.getValue().getAsString();

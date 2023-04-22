@@ -29,6 +29,7 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.InventoryComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
@@ -126,7 +127,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         }, syncId, inventory, items_container, component.rows) {
             @Override protected Slot addSlot(Slot slot) {
                 if (slot.container == items_container) {
-                    Items.Checker checker = component.slots.get(this.slots.size());
+                    Checker checker = component.slots.get(this.slots.size());
                     return checker == null
                             ? super.addSlot(InterfaceManager.AbstractSlot.noneSlot(slot))
                             : super.addSlot(InterfaceManager.filterSlot(slot, checker::check));

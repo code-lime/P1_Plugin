@@ -418,6 +418,24 @@ public class Methods {
     public static void addDonateSPCoin(UUID uuid, int count) {
         SQL.Async.rawSql("SELECT DonateSPCoinUUID('"+uuid+"', "+count+")", () -> {});
     }
+    
+    public static void appendDeltaLevel(int user_id, int work, double deltaExp) {
+        SQL.Async.rawSql(
+            String.join(" ",
+                "INSERT INTO level (level.user_id, level.work, level.level, level.exp)",
+                "VALUES (@user_id, @work, IF(@exp >= 1, 1, 0), IF(@exp >= 1, 0, @exp))",
+                "ON DUPLICATE KEY UPDATE",
+                "level.level = IF (level.exp + @exp >= 1, level.level + 1, level.level),",
+                "level.exp = IF (level.exp + @exp >= 1, 0, level.exp + @exp)"
+            ),
+            MySql.args()
+                .add("user_id", user_id)
+                .add("work", work)
+                .add("exp", deltaExp)
+                .build(),
+            () -> {}
+        );
+    }
 }
 
 

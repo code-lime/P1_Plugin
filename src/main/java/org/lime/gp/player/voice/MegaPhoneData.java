@@ -8,6 +8,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.MegaPhoneSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
@@ -28,7 +29,7 @@ public class MegaPhoneData extends DistanceData {
         super(min_distance, max_distance, def_distance);
     }
 
-    public List<Component> createLore(Items.ItemCreator itemCreator) {
+    public List<Component> createLore(ItemCreator itemCreator) {
         return itemCreator.createLore(Apply.of().add(map()));
     }
     public static Optional<MegaPhoneData> getData(ItemStack item) {

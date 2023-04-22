@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.lime.core;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
@@ -79,7 +80,7 @@ public class Knock implements Listener {
     @EventHandler public static void on(PlayerDamageByPlayerEvent e) {
         Items.getItemCreator(e.getItem())
                 .filter(v -> e.getBase().getFinalDamage() != 0)
-                .map(v -> v instanceof Items.ItemCreator _v ? _v : null)
+                .map(v -> v instanceof ItemCreator _v ? _v : null)
                 .filter(v -> v.getOptional(BatonSetting.class).map(_v -> system.rand_is(_v.chance)).orElse(false))
                 .filter(v -> Perms.getCanData(e.getDamageOwner().getUniqueId()).isCanUse(v.getKey()))
                 .ifPresent(v -> Knock.knock(e.getEntity()));

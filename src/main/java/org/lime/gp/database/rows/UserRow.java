@@ -24,7 +24,7 @@ public class UserRow extends BaseRow {
     public Integer cardID = null;
     public Calendar birthdayDate = null;
     public int role;
-    public Integer work = null;
+    public int work;
     public Calendar workTime = null;
     public int phoneRegen = 0;
     public int cardRegen = 0;
@@ -94,7 +94,7 @@ public class UserRow extends BaseRow {
         map.put("card_id", Tables.valueOfInt(cardID));
         map.put("birthday_date", system.formatCalendar(birthdayDate, false));
         map.put("role", String.valueOf(role));
-        map.put("work", Tables.valueOfInt(work));
+        map.put("work", String.valueOf(work));
         map.put("work_time", system.formatCalendar(workTime, true));
         map.put("wanted", String.valueOf(wanted));
         map.put("exp", String.valueOf(exp));

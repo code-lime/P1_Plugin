@@ -12,7 +12,7 @@ import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.ITable;
 import org.lime.gp.database.tables.Tables;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.page.slot.*;
 import org.lime.system;
@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 
 public class Menu extends Base {
     public String title;
-    public Items.ItemCreator background;
+    public ItemCreator background;
     public int size;
     public HashMap<Integer, ISlot> slots = new HashMap<>();
     public HashMap<String, Table> tables = new HashMap<>();

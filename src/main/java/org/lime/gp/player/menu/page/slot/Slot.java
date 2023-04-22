@@ -5,7 +5,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.player.menu.Logged;
 import org.lime.system;
 
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Slot extends Items.ItemCreator implements ISlot {
+public class Slot extends ItemCreator implements ISlot {
     @Override public boolean updateReplace() { return false; }
     public HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>> actions = new HashMap<>();
 

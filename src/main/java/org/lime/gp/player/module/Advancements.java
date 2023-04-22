@@ -18,11 +18,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
-import org.lime.gp.item.Items;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.item.data.ItemCreator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -144,7 +144,7 @@ public class Advancements implements Listener {
             this.key = key;
             this.parent = ofOrDefault(json, "parent", v -> map.get(v.getAsString()), null);
 
-            this.icon = Items.ItemCreator.parse(json.getAsJsonObject("icon")).createItem();
+            this.icon = ItemCreator.parse(json.getAsJsonObject("icon")).createItem();
 
             this.title = ComponentMessage.create(json.get("title").getAsString());
             this.description = ComponentMessage.create(json.get("description").getAsString());

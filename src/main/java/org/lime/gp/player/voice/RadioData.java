@@ -13,6 +13,7 @@ import org.lime.gp.block.component.list.RadioComponent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.RadioSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
@@ -78,7 +79,7 @@ public class RadioData {
                 .add("volume", String.valueOf(volume))
                 .build();
     }
-    public List<Component> createLore(Items.ItemCreator itemCreator) {
+    public List<Component> createLore(ItemCreator itemCreator) {
         return itemCreator.createLore(Apply.of().add(map()));
     }
 

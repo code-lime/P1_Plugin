@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.system;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.system.*;
 public class ExecuteItem implements Listener {
     public static org.lime.core.element create() {
@@ -42,7 +43,7 @@ public class ExecuteItem implements Listener {
         return Items.getIDByItem(item).map(id -> {
             Material mat = Items.creatorMaterials.get(id);
             if (mat == null || mat.equals(item.getType())) return false;
-            if (!(Items.creators.getOrDefault(id, null) instanceof Items.ItemCreator creator) || !creator.updateReplace()) return false;
+            if (!(Items.creators.getOrDefault(id, null) instanceof ItemCreator creator) || !creator.updateReplace()) return false;
             replace(item, creator.createItem(item.getAmount()));
             metaBox.val0 = item.getItemMeta();
             return true;

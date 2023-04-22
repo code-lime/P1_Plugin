@@ -9,6 +9,7 @@ import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.lime;
 import org.lime.gp.town.ChurchManager;
 import org.lime.system;
@@ -187,7 +188,7 @@ public class Thirst implements Listener, CustomUI.IUI {
         }*/
         public static class StateData {
             private static final HashMap<String, StateData> dats = new HashMap<>();
-            public static final List<system.Toast2<Items.Checker, StateData>> includes = new ArrayList<>();
+            public static final List<system.Toast2<Checker, StateData>> includes = new ArrayList<>();
             private static double getDelta(double des, double def, double perc) {
                 return ((des - def) * (1 - perc)) + def;
             }
@@ -269,12 +270,12 @@ public class Thirst implements Listener, CustomUI.IUI {
                 effects.entrySet().forEach(kv -> parse(kv.getKey(), kv.getValue().getAsJsonObject(), colors, null).forEach(dat -> dats.put(dat.key, dat)));
                 if (!dats.containsKey("default")) throw new IllegalArgumentException("StateData.default not founded!");
 
-                List<system.Toast2<Items.Checker, StateData>> includes = new ArrayList<>();
+                List<system.Toast2<Checker, StateData>> includes = new ArrayList<>();
                 json.get("invoke").getAsJsonObject().entrySet().forEach(kv -> {
                     String _data = kv.getValue().getAsString();
                     StateData data = dats.getOrDefault(_data, null);
                     if (data == null) throw new IllegalArgumentException("StateData."+_data+" not founded!");
-                    includes.add(system.toast(Items.createCheck(kv.getKey()), data));
+                    includes.add(system.toast(Checker.createCheck(kv.getKey()), data));
                 });
 
                 StateData.dats.clear();
