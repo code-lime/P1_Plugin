@@ -29,18 +29,19 @@ public class branch {
             return system.json.parse(lime.readAllConfig("branch")).getAsJsonObject().keySet();
         }
         public void applyBranch() {
-            for (String configFile : new String[] { "autodownload", "share" }) {
+            for (String configFile : new String[] { "autodownload", "share", "database" }) {
                 JsonObject config = system.json.parse(lime.readAllConfig(configFile)).getAsJsonObject();
+                if (!config.has("format")) continue;
                 JsonObject format = config.getAsJsonObject("format");
 
                 format.entrySet().forEach(kv -> {
                     String value = kv.getValue().getAsString();
                     for (Map.Entry<String, String> _kv : Data.entrySet()) {
                         value = value.replace("{"+_kv.getKey()+"}", _kv.getValue());
+                        value = value.replace("{"+_kv.getKey()+".lowercase}", _kv.getValue().toLowerCase());
                     }
                     config.addProperty(kv.getKey(), value);
                 });
-
                 lime.writeAllConfig(configFile, system.toFormat(config));
             }
         }
