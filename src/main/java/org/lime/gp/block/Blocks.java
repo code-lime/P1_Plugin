@@ -64,7 +64,7 @@ public class Blocks implements Listener {
                 .addCommand("set.block", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~] [block:key]")
                         .withTab((sender, args) -> switch(args.length) {
-                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlock(5) : null)
+                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
                                     .map(p -> p.getLocation().toVector())
                                     .map(p -> p.getBlockX() + " " + p.getBlockY() + " " + p.getBlockZ())
                                     .orElse("~"));
@@ -100,7 +100,7 @@ public class Blocks implements Listener {
                 .addCommand("variable.block", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~] [block:key]")
                         .withTab((sender, args) -> switch(args.length) {
-                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlock(5) : null)
+                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
                                     .map(p -> p.getLocation().toVector())
                                     .map(p -> p.getBlockX() + " " + p.getBlockY() + " " + p.getBlockZ())
                                     .orElse("~"));

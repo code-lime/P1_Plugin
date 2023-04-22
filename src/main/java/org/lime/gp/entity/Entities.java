@@ -46,7 +46,7 @@ public class Entities implements Listener {
                 .addCommand("spawn.entity", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/spawn.entity [x:double,~] [y:double,~] [z:double,~] [entity:key]")
                         .withTab((sender, args) -> switch(args.length) {
-                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlock(5) : null)
+                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
                                     .map(p -> p.getLocation().toVector())
                                     .map(p -> p.getBlockX() + " " + p.getBlockY() + " " + p.getBlockZ())
                                     .orElse("~"));

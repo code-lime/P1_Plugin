@@ -67,7 +67,6 @@ public class RestartTimed extends CustomUI.GUI {
     public static Double restart_time = null;
     public static ImageBuilder restart_message = null;
     private static boolean color = false;
-    @SuppressWarnings("deprecation")
     public static void init() {
         double delta = 0.5;
         CustomUI.addListener(Instance);

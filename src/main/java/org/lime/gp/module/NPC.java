@@ -43,7 +43,6 @@ import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
 import java.util.List;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class NPC {

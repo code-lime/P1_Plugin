@@ -145,7 +145,7 @@ public class SPCoinDonate {
                 state.invoke(Optional.of(data.getAsInt()));
             });
     }
-    private static void balanceAdd(UUID uuid, String reason, int value, system.Action1<Boolean> state) {
+    /*private static void balanceAdd(UUID uuid, String reason, int value, system.Action1<Boolean> state) {
         web.method.POST.create(apiBuilder(
                 v -> v
                     .addParameter("uuid", uuid.toString())
@@ -166,7 +166,7 @@ public class SPCoinDonate {
                 lime.log("[BalanceADD] OK " + code + ": " + data);
                 state.invoke(data.getAsBoolean());
             });
-    }
+    }*/
     private static void balanceDel(UUID uuid, String reason, int value, system.Action1<Boolean> state) {
         web.method.POST.create(apiBuilder(
                 v -> v

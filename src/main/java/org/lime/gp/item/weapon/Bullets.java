@@ -40,8 +40,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
-import org.lime.gp.admin.AnyEvent;
-import org.lime.gp.admin.AnyEvent.type;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BulletSetting;
 import org.lime.gp.lime;

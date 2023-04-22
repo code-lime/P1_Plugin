@@ -1,17 +1,13 @@
 package org.lime.gp.module.holiday;
 
 import com.comphenix.protocol.events.PacketContainer;
-import com.google.common.collect.Sets;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.netty.handler.codec.EncoderException;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.core.Holder;
-import net.minecraft.core.IRegistry;
 import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.RegistrySynchronization;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.DynamicOpsNBT;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -22,7 +18,6 @@ import net.minecraft.network.protocol.EnumProtocolDirection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketListenerPlayOut;
 import net.minecraft.network.protocol.game.PacketPlayOutLogin;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.EnumGamemode;
 import net.minecraft.world.level.World;
@@ -66,7 +61,7 @@ public class BiomeModify {
         @Override void close();
     }
 
-    private static final RegistryOps<NBTBase> BUILTIN_CONTEXT_OPS = RegistryOps.create(DynamicOpsNBT.INSTANCE, IRegistryCustom.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+    //private static final RegistryOps<NBTBase> BUILTIN_CONTEXT_OPS = RegistryOps.create(DynamicOpsNBT.INSTANCE, IRegistryCustom.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     public record CustomPacketPlayOutLogin(
             int playerId,
             boolean hardcore,

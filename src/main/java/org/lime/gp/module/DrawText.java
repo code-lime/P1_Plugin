@@ -4,7 +4,6 @@ import com.google.common.collect.Streams;
 import com.mojang.math.Transformation;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
@@ -17,13 +16,10 @@ import org.lime.core;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.EditedDataWatcher;
-import org.lime.display.Models;
 import org.lime.display.MoveObjectDisplay;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.player.module.NickName;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -36,8 +32,7 @@ public class DrawText {
                 .withInit(DrawText::init);
     }
     private static final TextManager TEXT_MANAGER = new TextManager();
-    private static final Models.Model TEXT_MODEL = lime.models.builder(EntityTypes.TEXT_DISPLAY)
-        .build();
+    //private static final Models.Model TEXT_MODEL = lime.models.builder(EntityTypes.TEXT_DISPLAY).build();
     public static void init() {
         Displays.initDisplay(TEXT_MANAGER);
         lime.repeatTicks(() -> shows.values().removeIf(IShow::tryRemove), 1);

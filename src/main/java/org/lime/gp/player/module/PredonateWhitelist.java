@@ -74,7 +74,6 @@ public class PredonateWhitelist {
     private static WhiteList getWhitelist() {
         return getPlayerList().getWhiteList();
     }
-    @SuppressWarnings("deprecation")
     private static PlayerList getPlayerList() {
         return MinecraftServer.getServer().getPlayerList();
     }

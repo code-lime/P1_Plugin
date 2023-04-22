@@ -3,7 +3,6 @@ package org.lime.gp.craft.recipe;
 import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import net.minecraft.core.Holder;
 import net.minecraft.core.IRegistry;
 import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.RegistryMaterials;

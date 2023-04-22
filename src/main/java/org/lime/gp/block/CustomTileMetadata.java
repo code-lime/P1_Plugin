@@ -53,7 +53,7 @@ public class CustomTileMetadata extends TileMetadata {
                 .addCommand("tmp.block.debug", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~]")
                         .withTab((sender, args) -> switch(args.length) {
-                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlock(5) : null)
+                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
                                     .map(p -> p.getLocation().toVector())
                                     .map(p -> p.getBlockX() + " " + p.getBlockY() + " " + p.getBlockZ())
                                     .orElse("~"));

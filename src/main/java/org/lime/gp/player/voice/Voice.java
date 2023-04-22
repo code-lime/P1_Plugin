@@ -29,7 +29,6 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.storage.WorldData;
@@ -142,8 +141,6 @@ public class Voice implements VoicechatPlugin {
 
     public static VoicechatApi API;
     //public static Opus OPUS;
-
-    @SuppressWarnings("deprecation")
     private static final MinecraftServer server = MinecraftServer.getServer();
 
     @SuppressWarnings("all")

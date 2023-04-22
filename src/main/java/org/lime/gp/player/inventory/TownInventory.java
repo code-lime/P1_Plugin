@@ -49,7 +49,6 @@ import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.selector.ZoneSelector;
 import org.lime.gp.player.ui.ScoreboardUI;
 import org.lime.system;
-import org.lime.timings.lib.MCTiming;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

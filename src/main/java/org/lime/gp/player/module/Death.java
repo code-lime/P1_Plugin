@@ -315,7 +315,7 @@ public class Death implements Listener {
             .count(10)
             .offset(0.1, 0.1, 0.1);
     private static final PotionEffect BLINDNESS = PotionEffectType.BLINDNESS.createEffect(40, 1).withParticles(false).withAmbient(false).withIcon(false);
-    private static final PotionEffect INVISIBILITY = PotionEffectType.INVISIBILITY.createEffect(20, 1).withParticles(false).withAmbient(false).withIcon(false);
+    //private static final PotionEffect INVISIBILITY = PotionEffectType.INVISIBILITY.createEffect(20, 1).withParticles(false).withAmbient(false).withIcon(false);
 
     public static void updateLock() {
         dieCooldown.keySet().forEach(uuid -> Drugs.lockArmsTick(Bukkit.getPlayer(uuid)));
