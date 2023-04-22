@@ -24,8 +24,9 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.BaseRow;
+import org.lime.gp.database.tables.ITable;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
@@ -455,7 +456,7 @@ public class ChatHelper {
     }
 
     public static String applySqlJs(String table, String check, String filter, String output) {
-        Tables.ITable<? extends BaseRow> _table = Tables.getLoadedTable(table);
+        ITable<? extends BaseRow> _table = Tables.getLoadedTable(table);
         if (_table == null) return null;
         return _table.getBy(row -> filter.equals(row.applyToString(check, '(', ')'))).map(_row -> _row.applyToString(output, '(', ')')).orElse("");
     }

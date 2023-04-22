@@ -14,7 +14,7 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.lime.core;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.system;

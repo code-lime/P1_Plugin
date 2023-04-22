@@ -19,7 +19,7 @@ import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 
 import com.google.gson.JsonObject;
 

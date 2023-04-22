@@ -11,7 +11,7 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.lime.system;
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 
 public class BanListRow extends BaseRow {
     public enum Type {

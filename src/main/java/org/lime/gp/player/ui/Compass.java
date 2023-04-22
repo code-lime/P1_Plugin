@@ -5,8 +5,8 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.gp.database.Tables;
 import org.lime.gp.lime;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.module.EntityPosition;
 
 import java.util.*;

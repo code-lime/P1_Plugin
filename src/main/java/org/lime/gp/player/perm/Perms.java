@@ -31,9 +31,10 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.craft.Crafts;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.UserCraftsRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.database.tables.KeyedTable;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BlockSetting;
@@ -205,7 +206,7 @@ public class Perms implements Listener {
     }
 
     private static final ConcurrentHashMap<Integer, Integer> userCraftUsages = new ConcurrentHashMap<>();
-    public static void onUserCraftUpdate(UserCraftsRow row, Tables.KeyedTable.Event event) {
+    public static void onUserCraftUpdate(UserCraftsRow row, KeyedTable.Event event) {
         if (event.removed || row.useCount == null) {
             userCraftUsages.remove(row.id);
             return;
@@ -234,7 +235,7 @@ public class Perms implements Listener {
                 if (!Crafts.canDataByRegex(craftRow.craftRegex).isCanCraft(recipePath)) return;
                 userCraftUsages.compute(craftRow.id, (id, usage) -> (usage == null ? craftRow.useCount : usage) - 1);
                 use.val0 = true;
-                onUserCraftUpdate(craftRow, Tables.KeyedTable.Event.Updated);
+                onUserCraftUpdate(craftRow, KeyedTable.Event.Updated);
             });
         }));
     }

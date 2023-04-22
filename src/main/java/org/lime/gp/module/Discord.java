@@ -24,8 +24,8 @@ import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.DiscordRow;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.TabManager;
 

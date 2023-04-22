@@ -14,9 +14,10 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.lime.core;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.BanListRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.database.tables.KeyedTable;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -193,7 +194,7 @@ public class BanList implements Listener {
     public static void init() {
         sync();
     }
-    public static void onBanUpdate(BanListRow row, Tables.KeyedTable.Event event) {
+    public static void onBanUpdate(BanListRow row, KeyedTable.Event event) {
         lime.once(BanList::sync, 1);
     }
     public static void sync() {

@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.util.Optional;
 
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 
 import net.kyori.adventure.text.format.TextColor;
 

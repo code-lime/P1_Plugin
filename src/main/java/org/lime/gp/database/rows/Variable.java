@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 
 public class Variable extends BaseRow {
     public double church;

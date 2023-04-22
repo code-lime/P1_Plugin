@@ -14,7 +14,7 @@ import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.coreprotect.CoreProtectHandle;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.entity.component.data.BackPackInstance;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.UseSetting;

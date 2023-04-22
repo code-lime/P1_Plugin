@@ -8,9 +8,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.database.tables.ITable;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.page.slot.*;
@@ -56,7 +57,7 @@ public class Menu extends Base {
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
         List<system.Toast2<String, Table>> _tables = tables.entrySet().stream().map(v -> system.toast(ChatHelper.formatText(v.getKey(), apply), v.getValue())).collect(Collectors.toList());
-        system.waitAllAnyAsyns(_tables, (String table, system.Action1<Tables.ITable<? extends BaseRow>> callback) -> Tables
+        system.waitAllAnyAsyns(_tables, (String table, system.Action1<ITable<? extends BaseRow>> callback) -> Tables
                 .getTable(table, callback)
                 .withSQL((sql) -> Logged.log(player, sql, this)), tableData -> {
             if (isDeleted()) {
@@ -64,7 +65,7 @@ public class Menu extends Base {
                 return;
             }
             if (tableData.size() > 0) {
-                system.Toast3<String, Table, Tables.ITable<? extends BaseRow>> first = tableData.get(0);
+                system.Toast3<String, Table, ITable<? extends BaseRow>> first = tableData.get(0);
                 Table table = first.val1;
                 int count = first.val2.getRows().size() + table.adds.size();
                 apply.add("max_page", String.valueOf(count / table.slots.size()));
@@ -87,7 +88,7 @@ public class Menu extends Base {
                     });
                     system.Toast1<Boolean> isFirst = new system.Toast1<>(true);
                     tableData.forEach((kv) -> {
-                        Tables.ITable<? extends BaseRow> k = kv.val2;
+                        ITable<? extends BaseRow> k = kv.val2;
                         Table v = kv.val1;
                         List<? extends BaseRow> rows = v.getList(k, init_apply);
                         int count = v.slots.size();

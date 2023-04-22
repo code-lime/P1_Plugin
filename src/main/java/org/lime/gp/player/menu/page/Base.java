@@ -6,9 +6,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.database.tables.ITable;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.menu.Logged;
@@ -81,13 +82,13 @@ public abstract class Base implements Logged.ILoggedDelete {
                 sqlArgs.stream()
                 .map(v -> system.toast("!sql " + ChatHelper.formatText(v.val1, send_apply), v.val0))
                 .collect(Collectors.toList()),
-                (String table, system.Action1<Tables.ITable<? extends BaseRow>> callback) -> Tables
+                (String table, system.Action1<ITable<? extends BaseRow>> callback) -> Tables
                 .getTable(table, callback)
                 .withSQL(isLogged ? (sql) -> Logged.log(player, sql, this) : null),
                 argsTableData -> {
                     Apply table_apply = send_apply.copy();
-                    HashMap<String, Tables.ITable<? extends BaseRow>> customTables = new HashMap<>();
-                    for (system.Toast3<String, String, Tables.ITable<? extends BaseRow>> dat : argsTableData) {
+                    HashMap<String, ITable<? extends BaseRow>> customTables = new HashMap<>();
+                    for (system.Toast3<String, String, ITable<? extends BaseRow>> dat : argsTableData) {
                         if (dat.val1.startsWith("!")) customTables.put(dat.val1.substring(1), dat.val2);
                         else dat.val2.getFirstRow().ifPresent(v -> table_apply.add(dat.val1 + ".", v));
                     }

@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Tables;
+import org.lime.gp.database.tables.Tables;
 
 public class FriendRow extends BaseRow {
     public int id;

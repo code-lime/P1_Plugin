@@ -10,8 +10,9 @@ import net.minecraft.server.players.WhiteListEntry;
 import org.apache.commons.lang.StringUtils;
 import org.lime.core;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Tables;
 import org.lime.gp.database.rows.PreDonateRow;
+import org.lime.gp.database.tables.KeyedTable;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.web;
@@ -77,7 +78,7 @@ public class PredonateWhitelist {
     private static PlayerList getPlayerList() {
         return MinecraftServer.getServer().getPlayerList();
     }
-    public static void onUpdate(PreDonateRow row, Tables.KeyedTable.Event event) {
+    public static void onUpdate(PreDonateRow row, KeyedTable.Event event) {
         sync();
     }
     public static void getByNameUUID(String user, system.Action2<UUID, String> callback) {
