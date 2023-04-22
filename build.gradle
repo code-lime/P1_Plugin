@@ -53,7 +53,7 @@ eclipse.classpath.file.whenMerged {
         String entryFile = entry.path;
         if (entryFile.endsWith('.jar')) {
             File folder = new File(entryFile).getParentFile();
-            File srcFile = new File(getFileNameWithoutExt(entryFile) + "-src.zip");
+            File srcFile = new File(getFileNameWithoutExt(entryFile) + "-sources.jar");
             if (srcFile.exists()) {
                 entry.setSourcePath(it.fileReference(srcFile));
             }
@@ -231,7 +231,7 @@ task generator() {
     Paths.get(projectDir.absolutePath,
         "build",
         "src",
-        getFileNameWithoutExt(jar.archiveFile.get().asFile.toPath().fileName.toString()) + '-src.zip')
+        getFileNameWithoutExt(jar.archiveFile.get().asFile.toPath().fileName.toString()) + '-sources.jar')
             .toAbsolutePath()
             .toFile()
             .bytes = zip(entries);
@@ -250,7 +250,7 @@ copyToLib.doLast {
     println "Copy..."
     java.nio.file.Path originalPath = jar.archiveFile.get().asFile.toPath()
     String file_name = originalPath.fileName.toString();
-    String src_name = getFileNameWithoutExt(file_name) + "-src.zip";
+    String src_name = getFileNameWithoutExt(file_name) + "-sources.jar";
     if (_mapped) {
         try {
             println "Unmapping..."
