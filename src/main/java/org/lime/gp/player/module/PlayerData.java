@@ -31,7 +31,7 @@ public class PlayerData {
     public static void init() {
         File folder = lime.getConfigFile("players");
         if (!folder.exists()) folder.mkdir();
-        lime.repeatTicks(PlayerData::tick, 1);
+        lime.repeat(PlayerData::tick, 5);
     }
     public static void tick() {
         cache.forEach((uuid, data) -> {
