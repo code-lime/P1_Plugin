@@ -1,19 +1,23 @@
 package org.lime.gp.module.holiday;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEgg;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftRabbit;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.util.Vector;
 import org.lime.system;
 import org.lime.gp.lime;
@@ -21,8 +25,7 @@ import org.lime.gp.item.Items;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import com.google.gson.JsonObject;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.chat.ChatHexColor;
+import net.kyori.adventure.text.Component;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
 
@@ -35,22 +38,20 @@ public class Easter implements Listener {
                         .withParent("easter")
                         .withDefault(system.json.object()
                                 .add("enable", false)
-                                .addObject("biome", _v -> _v
+                                /*.addObject("biome", _v -> _v
                                         .add("sky", "200000")
                                         .add("water", "600000")
                                         .add("water_fog", "600000")
                                         .add("fog", "600000")
                                         .add("grass", "605000")
                                         .add("foliage", "600000")
-                                )
+                                )*/
                                 .addObject("rabbit", _v -> _v
                                         .add("life_ticks", 2400)
                                         .add("limit_to_player", 1)
                                         .add("radius", 30)
                                         .addObject("loot", __v -> __v
-                                                .add("STONE*1:3", 10)
-                                                .add("DIRT*1:3", 10)
-                                                .add("GRASS_BLOCK*1:3", 10)
+                                                .add("Eat.pasha_egg.(.*)*1", 10)
                                         )
                                 )
                                 .build())
@@ -62,11 +63,11 @@ public class Easter implements Listener {
     private static int TICKS_LIFE = 2400;
     private static int LIMIT_TO_PLAYER = 2;
     private static int RADIUS = 30;
-    private static final List<system.Toast2<String, system.IRange>> LOOT = new ArrayList<>();
+    private static final List<system.Toast2<Items.Checker, system.IRange>> LOOT = new ArrayList<>();
 
-    private static system.Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
+    /*private static system.Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
 
-    private static BiomeModify.ModifyActionCloseable closeable = null;
+    private static BiomeModify.ModifyActionCloseable closeable = null;*/
     public static void config(JsonObject json) {
         ENABLE = json.get("enable").getAsBoolean();
         JsonObject rabbit = json.getAsJsonObject("rabbit");
@@ -75,13 +76,16 @@ public class Easter implements Listener {
         RADIUS = rabbit.get("radius").getAsInt();
         LOOT.clear();
         rabbit.getAsJsonObject("loot").entrySet().forEach(kv -> {
-            String[] key = kv.getKey().split("\\*", 2);
+            String[] key = kv.getKey().split("\\*");
+
+            String type = Arrays.stream(key).limit(key.length - 1).collect(Collectors.joining("*"));
+
             int count = kv.getValue().getAsInt();
-            system.Toast2<String, system.IRange> element = system.toast(key[0], key.length > 1 ? system.IRange.parse(key[1]) : new system.OnceRange(1));
+            system.Toast2<Items.Checker, system.IRange> element = system.toast(Items.createCheck(type), key.length > 1 ? system.IRange.parse(key[key.length - 1]) : new system.OnceRange(1));
             for (int i = 0; i < count; i++) LOOT.add(element);
         });
 
-        JsonObject biome = json.getAsJsonObject("biome");
+        /*JsonObject biome = json.getAsJsonObject("biome");
         int sky = ChatHexColor.parseColor("#"+biome.get("sky").getAsString()).getValue();
         int water = ChatHexColor.parseColor("#"+biome.get("water").getAsString()).getValue();
         int water_fog = ChatHexColor.parseColor("#"+biome.get("water_fog").getAsString()).getValue();
@@ -107,12 +111,12 @@ public class Easter implements Listener {
         } else {
             closeable.close();
             closeable = null;
-        }
+        }*/
     }
-    public static void modify(int id, String name, NBTTagCompound element) {
+    /*public static void modify(int id, String name, NBTTagCompound element) {
         NBTTagCompound effects = appendEffects.invoke(element.contains("effects") ? element.getCompound("effects") : new NBTTagCompound());
         element.put("effects", effects);
-    }
+    }*/
     public static void init() {
         lime.repeat(Easter::update, 1);
     }
@@ -129,38 +133,45 @@ public class Easter implements Listener {
         if (ENABLE) {
             for (int i = 0; i < add_count.val0; i++) {
                 Player player = system.rand(players);
-                Location location = player.getLocation().add(Vector.getRandom().multiply(RADIUS));
+                Location location = player.getLocation().add(Vector.getRandom().add(new Vector(-0.5, -0.5, -0.5)).multiply(RADIUS * 2));
                 Block top = location.getWorld().getHighestBlockAt(location);
                 Block bottom;
                 if (top.isEmpty()) {
                     bottom = top.getRelative(BlockFace.DOWN);
+                    //lime.logOP("Check if top - empty: " + top.getType() + " with bottom: " + bottom.getType());
                 } else {
                     if (!(top = top.getRelative(BlockFace.UP)).isEmpty()) continue;
-                    bottom = top;
+                    bottom = top.getRelative(BlockFace.DOWN);
+                    //lime.logOP("Check if top: " + top.getType() + " with bottom: " + bottom.getType());
                 }
                 switch (bottom.getType()) {
                     case GRASS_BLOCK: 
                     case DIRT: 
                     case DIRT_PATH: 
                     case FARMLAND:
-                        lime.logOP("Spawn in " + system.getString(top.getLocation().toVector()));
+                        //lime.logOP("Spawn in " + system.getString(top.getLocation().toVector()));
                         break;
                     default:
-                        lime.logOP("Error spawn in " + system.getString(top.getLocation().toVector()) + ". Top: " + bottom.getType());
+                        //lime.logOP("Error spawn in " + system.getString(top.getLocation().toVector()) + ". Bottom: " + bottom.getType());
                         continue;
                 }
-                location.getWorld().spawn(top.getLocation(), CraftRabbit.class, rabbit -> {
-                    rabbit.getHandle().setItemSlot(EnumItemSlot.MAINHAND, ItemStack.EMPTY);
-                    rabbit.getScoreboardTags().add("easter");
-                });
+                spawnRabbit(top.getLocation().add(0.5, 0.5, 0.5));
             }
         }
+    }
+    private static void spawnRabbit(Location location) {
+        location.getWorld().spawn(location, CraftRabbit.class, rabbit -> {
+            rabbit.setRabbitType(Rabbit.Type.THE_KILLER_BUNNY);
+            rabbit.customName(Component.text("Пасхальный кролик"));
+            rabbit.getHandle().setItemSlot(EnumItemSlot.MAINHAND, ItemStack.EMPTY);
+            rabbit.getScoreboardTags().add("easter");
+        });
     }
     @EventHandler public static void on(EntityDamageByPlayerEvent event) {
         if (event.getEntity() instanceof CraftRabbit rabbit && rabbit.getScoreboardTags().contains("easter")) {
             event.setCancelled(true);
             rabbit.getHandle().kill();
-            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(item_key, v -> v.setCount((int)count.getValue(64)))
+            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(system.rand(item_key.getWhitelistKeys().toList()), v -> v.setCount((int)count.getValue(64)))
                     .ifPresent(item -> Items.dropGiveItem(event.getDamageOwner(), item, true))
             );
         }
@@ -168,6 +179,12 @@ public class Easter implements Listener {
     @EventHandler public static void on(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof CraftRabbit rabbit && rabbit.getScoreboardTags().contains("easter")) {
             event.setCancelled(true);
+        }
+    }
+    @EventHandler public static void on(ProjectileHitEvent e) {
+        if (e.getEntity() instanceof CraftEgg egg && LOOT.stream().anyMatch(v -> v.val0.check(egg.getItem()))) {
+            if (system.rand_is(0.01))
+            spawnRabbit(e.getEntity().getLocation());
         }
     }
     /*@EventHandler public static void on(EntityTargetLivingEntityEvent e) {
