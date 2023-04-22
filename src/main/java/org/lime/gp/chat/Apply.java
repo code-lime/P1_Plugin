@@ -1,7 +1,7 @@
 package org.lime.gp.chat;
 
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.BaseRow;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public class Apply {
     private final Map<String, String> args;
-    private final Map<String, Tables.ITable<? extends Rows.DataBaseRow>> tables;
+    private final Map<String, Tables.ITable<? extends BaseRow>> tables;
 
-    private Apply(Map<String, String> args, Map<String, Tables.ITable<? extends Rows.DataBaseRow>> tables) {
+    private Apply(Map<String, String> args, Map<String, Tables.ITable<? extends BaseRow>> tables) {
         this.args = args;
         this.tables = tables;
     }
@@ -20,7 +20,7 @@ public class Apply {
     }
 
     public static Apply of() { return new Apply(); }
-    public Optional<Tables.ITable<? extends Rows.DataBaseRow>> getTable(String table) { return Optional.ofNullable(tables.get(table)); }
+    public Optional<Tables.ITable<? extends BaseRow>> getTable(String table) { return Optional.ofNullable(tables.get(table)); }
 
     public Apply add(String key, String value) {
         this.args.put(key, value);
@@ -38,18 +38,18 @@ public class Apply {
         args.forEach((k,v) -> this.args.put(prefix+k, v));
         return this;
     }
-    public Apply add(Rows.DataBaseRow row) {
+    public Apply add(BaseRow row) {
         return row == null ? this : add(row.appendToReplace(new HashMap<>()));
     }
-    public Apply add(String prefix, Rows.DataBaseRow row) {
+    public Apply add(String prefix, BaseRow row) {
         return row == null ? this : add(prefix, row.appendToReplace(new HashMap<>()));
     }
 
-    public Apply with(String key, Tables.ITable<? extends Rows.DataBaseRow> table) {
+    public Apply with(String key, Tables.ITable<? extends BaseRow> table) {
         this.tables.put(key, table);
         return this;
     }
-    public Apply with(Map<String, Tables.ITable<? extends Rows.DataBaseRow>> tables) {
+    public Apply with(Map<String, Tables.ITable<? extends BaseRow>> tables) {
         this.tables.putAll(tables);
         return this;
     }

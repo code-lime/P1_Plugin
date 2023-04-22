@@ -10,7 +10,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.ui.EditorUI;
 
@@ -30,7 +30,7 @@ public class Book extends Base {
         json.get("pages").getAsJsonArray().forEach(_json -> pages.add(_json.isJsonArray() ? Streams.stream(_json.getAsJsonArray().iterator()).map(JsonElement::getAsString).collect(Collectors.toList()) : Collections.singletonList(_json.getAsString())));
     }
 
-    @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {
+    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
         List<Component> _pages = pages.stream()
             .map(v -> v.stream()

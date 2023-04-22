@@ -22,7 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -132,7 +132,7 @@ public class BiomeMobs implements Listener {
 
     @EventHandler public static void on(CreatureSpawnEvent e) {
         if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL) {
-            if (!Rows.HouseRow.getInHouse(e.getLocation()).isEmpty()) {
+            if (!HouseRow.getInHouse(e.getLocation()).isEmpty()) {
                 e.setCancelled(true);
                 return;
             }

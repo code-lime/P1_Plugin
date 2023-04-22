@@ -9,7 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserFlagsRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.Entities;
 import org.lime.gp.entity.EntityInstance;
@@ -122,7 +123,7 @@ public class BackPackInstance extends EntityInstance implements CustomEntityMeta
 
     public static void dropItems(Player player, Location location, List<ItemStack> items) {
         UUID uuid = player.getUniqueId();
-        Optional<Integer> backPackID = Rows.UserFlagsRow.backPackID(uuid);
+        Optional<Integer> backPackID = UserFlagsRow.backPackID(uuid);
         Entities.creator("backpack")
                 .map(v -> v.spawn(location))
                 .flatMap(Entities::customOf)
@@ -132,7 +133,7 @@ public class BackPackInstance extends EntityInstance implements CustomEntityMeta
                 })
                 .flatMap(v -> v.list(BackPackInstance.class).findAny())
                 .ifPresentOrElse(
-                        v -> v.setup(Rows.UserRow.getBy(player).map(user -> user.id).orElse(-1), uuid, items),
+                        v -> v.setup(UserRow.getBy(player).map(user -> user.id).orElse(-1), uuid, items),
                         () -> Items.dropItem(location, items)
                 );
     }

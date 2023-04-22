@@ -30,8 +30,8 @@ import org.bukkit.util.Vector;
 import org.lime.core;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.system;
@@ -184,7 +184,7 @@ public class Login implements Listener {
             return true;
         });
         Bukkit.getOnlinePlayers().forEach(player -> {
-            boolean isInit = Rows.UserRow.getBy(player.getUniqueId()).isPresent() && !player.getScoreboardTags().contains("can_in_login");
+            boolean isInit = UserRow.getBy(player.getUniqueId()).isPresent() && !player.getScoreboardTags().contains("can_in_login");
             if (player.getWorld() == lime.LoginWorld) {
                 if (player.getGameMode() == GameMode.SURVIVAL) player.setGameMode(GameMode.ADVENTURE);
                 if (isInit) {

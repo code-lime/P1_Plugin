@@ -28,9 +28,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
-import org.lime.gp.database.Rows.UserRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.extension.JManager;
@@ -142,7 +141,7 @@ public class BookPaper implements Listener {
         if (curr.length() != 0) lines.add(curr.toString());
         return lines;
     }
-    private static ItemStack createPaper(Component page, Rows.UserRow sign) {
+    private static ItemStack createPaper(Component page, UserRow sign) {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         JManager.set(meta.getPersistentDataContainer(), "page", ChatHelper.toJson(page));
@@ -203,7 +202,7 @@ public class BookPaper implements Listener {
                 String author = meta.getAuthor().replaceAll("&.", "");
                 author_id = Optional.ofNullable(Bukkit.getOfflinePlayer(author))
                     .map(OfflinePlayer::getUniqueId)
-                    .flatMap(Rows.UserRow::getBy)
+                    .flatMap(UserRow::getBy)
                     .or(() -> Tables.USER_TABLE.getBy(v -> v.firstName.equals(author)))
                     .map(v -> v.id)
                     .orElse(-1);
@@ -322,7 +321,7 @@ public class BookPaper implements Listener {
         item.setItemMeta(meta);
         if (pages <= 0) item.subtract(1);
         else setPageCount(item, pages);
-        ItemStack paper = createPaper(_page, sign ? Rows.UserRow.getBy(player.getUniqueId()).orElse(null) : null);
+        ItemStack paper = createPaper(_page, sign ? UserRow.getBy(player.getUniqueId()).orElse(null) : null);
         Items.dropGiveItem(player, paper, true);
     }
 

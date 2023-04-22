@@ -40,8 +40,8 @@ import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.PetsRow;
 import org.lime.gp.extension.PathFinder;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
@@ -73,13 +73,13 @@ public class Pets {
     public static final ConcurrentHashMap<String, AbstractPet> pets = new ConcurrentHashMap<>();
     public static final PetDisplayManager MANAGER = new PetDisplayManager();
 
-    private static class PetDisplay extends ObjectDisplay<Rows.PetsRow, Marker> {
+    private static class PetDisplay extends ObjectDisplay<PetsRow, Marker> {
         @Override public double getDistance() { return 30; }
 
-        private Rows.PetsRow row;
+        private PetsRow row;
 
         private final AbstractPet pet;
-        private final Models.Model.ChildDisplay<Rows.PetsRow> model;
+        private final Models.Model.ChildDisplay<PetsRow> model;
         private final Map<String, Object> data = new HashMap<>();
         private int step;
         private final double speed;
@@ -165,7 +165,7 @@ public class Pets {
             }
         }
 
-        protected PetDisplay(AbstractPet pet, Rows.PetsRow row) {
+        protected PetDisplay(AbstractPet pet, PetsRow row) {
             this.row = row;
             this.pet = pet;
             this.speed = pet.speed + system.rand(0, pet.speed * 0.05) * (system.rand() ? 1 : -1);
@@ -175,7 +175,7 @@ public class Pets {
             postInit();
         }
 
-        @Override public void update(Rows.PetsRow row, double delta) {
+        @Override public void update(PetsRow row, double delta) {
             step += 1;
             step %= max_step;
             this.row = row;
@@ -206,11 +206,11 @@ public class Pets {
             return new net.minecraft.world.entity.Marker(EntityTypes.MARKER, ((CraftWorld)location.getWorld()).getHandle());
         }
     }
-    private static class PetDisplayManager extends DisplayManager<Integer, Rows.PetsRow, PetDisplay> {
+    private static class PetDisplayManager extends DisplayManager<Integer, PetsRow, PetDisplay> {
         @Override public boolean isFast() { return true; }
         @Override public boolean isAsync() { return true; }
 
-        @Override public Map<Integer, Rows.PetsRow> getData() {
+        @Override public Map<Integer, PetsRow> getData() {
             return Tables.PETS_TABLE.getMapBy(v -> {
                 if (v == null) return false;
                 Player player = EntityPosition.onlinePlayers.getOrDefault(v.uuid, null);
@@ -224,7 +224,7 @@ public class Pets {
                 return true;
             }, v -> v.id);
         }
-        @Override public PetDisplay create(Integer integer, Rows.PetsRow row) { return new PetDisplay(pets.get(row.pet), row); }
+        @Override public PetDisplay create(Integer integer, PetsRow row) { return new PetDisplay(pets.get(row.pet), row); }
     }
 
     public static abstract class AbstractPet {

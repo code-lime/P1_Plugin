@@ -26,8 +26,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.*;
@@ -134,7 +134,7 @@ public class Administrator implements Listener {
                             }
                             Integer time = "null".equals(args[1]) ? null : system.formattedTime(args[1]);
                             String reason = Arrays.stream(args).skip(2).collect(Collectors.joining(" "));
-                            String userDisplay = Rows.UserRow.getBy(uuid)
+                            String userDisplay = UserRow.getBy(uuid)
                                     .map(row -> row.firstName + " " + row.lastName + " (" + row.userName + ")")
                                     .orElseGet(uuid::toString);
                             Methods.aBanAdd(uuid, reason, time, s instanceof Player sp ? sp.getUniqueId() : null,
@@ -208,7 +208,7 @@ public class Administrator implements Listener {
                             }
                             Integer time = "null".equals(args[1]) ? null : system.formattedTime(args[1]);
                             String reason = Arrays.stream(args).skip(2).collect(Collectors.joining(" "));
-                            String userDisplay = Rows.UserRow.getBy(uuid)
+                            String userDisplay = UserRow.getBy(uuid)
                                     .map(row -> row.firstName + " " + row.lastName + " (" + row.userName + ")")
                                     .orElseGet(uuid::toString);
                             Methods.aMuteAdd(uuid, reason, time, s instanceof Player sp ? sp.getUniqueId() : null,

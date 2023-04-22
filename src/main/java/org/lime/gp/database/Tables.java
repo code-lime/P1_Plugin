@@ -5,6 +5,26 @@ import com.google.common.collect.ImmutableMap;
 import org.lime.core;
 import org.lime.gp.admin.BanList;
 import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.database.rows.AAnyRow;
+import org.lime.gp.database.rows.AnyRow;
+import org.lime.gp.database.rows.BanListRow;
+import org.lime.gp.database.rows.BaseRow;
+import org.lime.gp.database.rows.CompassTargetRow;
+import org.lime.gp.database.rows.DiscordRow;
+import org.lime.gp.database.rows.FriendRow;
+import org.lime.gp.database.rows.HouseRow;
+import org.lime.gp.database.rows.HouseSubsRow;
+import org.lime.gp.database.rows.PermissionRow;
+import org.lime.gp.database.rows.PetsRow;
+import org.lime.gp.database.rows.PreDonateItemsRow;
+import org.lime.gp.database.rows.PreDonateRow;
+import org.lime.gp.database.rows.PrisonRow;
+import org.lime.gp.database.rows.RolesRow;
+import org.lime.gp.database.rows.SmsPresetRow;
+import org.lime.gp.database.rows.UserCraftsRow;
+import org.lime.gp.database.rows.UserFlagsRow;
+import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.database.rows.Variable;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PredonateWhitelist;
 import org.lime.gp.player.perm.Perms;
@@ -16,6 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class Tables {
+    public static String valueOfInt(Integer v) {
+        return v == null ? "" : String.valueOf(v);
+    }
     public static core.element create() {
         return core.element.create(Tables.class)
                 .withInit(Tables::init);
@@ -27,61 +50,61 @@ public class Tables {
         KeyedTable.updateAll();
     }
 
-    public static MySql.debug getTable(String table, system.Action1<Tables.ITable<? extends Rows.DataBaseRow>> callback) {
-        if (table.startsWith("!sql ")) return Methods.SQL.Async.rawSqlQuery(table.substring(5), Rows.AnyRow::new, rows -> callback.invoke(new Tables.StaticTable<>(rows)));
+    public static MySql.debug getTable(String table, system.Action1<Tables.ITable<? extends BaseRow>> callback) {
+        if (table.startsWith("!sql ")) return Methods.SQL.Async.rawSqlQuery(table.substring(5), AnyRow::new, rows -> callback.invoke(new Tables.StaticTable<>(rows)));
         callback.invoke(Tables.KeyedTable.tables.get(table));
         return new MySql.debug();
     }
-    public static Tables.KeyedTable<? extends Rows.DataBaseRow> getLoadedTable(String table) {
+    public static Tables.KeyedTable<? extends BaseRow> getLoadedTable(String table) {
         return Tables.KeyedTable.tables.getOrDefault(table, null);
     }
-    public static List<system.Toast2<String, String>> getListRow(String prefix, Rows.DataBaseRow row) {
+    public static List<system.Toast2<String, String>> getListRow(String prefix, BaseRow row) {
         return row.appendToReplace(new HashMap<>()).entrySet().stream().map(kv -> system.toast(prefix + kv.getKey(), kv.getValue())).collect(Collectors.toList());
     }
 
-    public static final KeyedTable<Rows.AAnyRow> ABAN_TABLE = KeyedTable.of("aban", Rows.AAnyRow::new).keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.AAnyRow> AMUTE_TABLE = KeyedTable.of("amute", Rows.AAnyRow::new).keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.RolesRow> ROLES_TABLE = KeyedTable.of("roles", Rows.RolesRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<AAnyRow> ABAN_TABLE = KeyedTable.of("aban", AAnyRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<AAnyRow> AMUTE_TABLE = KeyedTable.of("amute", AAnyRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<RolesRow> ROLES_TABLE = KeyedTable.of("roles", RolesRow::new).keyed("id", v -> v.id + "").build();
     //public static final KeyedTable<MaterialContainerRow> MATERIAL_CONTAINER_TABLE = KeyedTable.of("material_container", MaterialContainerRow::new).keyed("id", v -> v.ID + "").build();
-    public static final KeyedTable<Rows.UserRow> USER_TABLE = KeyedTable.of("users", Rows.UserRow::new)
+    public static final KeyedTable<UserRow> USER_TABLE = KeyedTable.of("users", UserRow::new)
             .keyed("id", v -> v.id + "")
             .other("uuid", v -> v.uuid.toString())
             .event(KeyedTable.Event.Removed, RecipesBook::editRow)
             .event(KeyedTable.Event.Updated, RecipesBook::editRow)
             .build();
-    public static final KeyedTable<Rows.HouseRow> HOUSE_TABLE = KeyedTable.of("house", Rows.HouseRow::new).keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.HouseSubsRow> HOUSE_SUBS_TABLE = KeyedTable.of("house_subs", Rows.HouseSubsRow::new).keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.FriendRow> FRIEND_TABLE = KeyedTable.of("friends", Rows.FriendRow::new).where("friends.friend_name IS NOT NULL").keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<HouseRow> HOUSE_TABLE = KeyedTable.of("house", HouseRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<HouseSubsRow> HOUSE_SUBS_TABLE = KeyedTable.of("house_subs", HouseSubsRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<FriendRow> FRIEND_TABLE = KeyedTable.of("friends", FriendRow::new).where("friends.friend_name IS NOT NULL").keyed("id", v -> v.id + "").build();
 
-    public static final KeyedTable<Rows.PrisonRow> PRISON_TABLE = KeyedTable.of("prison", Rows.PrisonRow::new).where("prison.is_log = 0").keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.Variable> VARIABLE_TABLE = KeyedTable.of("variable", Rows.Variable::new).keyed("tmp", v -> "0").build();
-    public static final KeyedTable<Rows.DiscordRow> DISCORD_TABLE = KeyedTable.of("discord", Rows.DiscordRow::new).keyed("discord_id", v -> v.discordID + "").build();
-    public static final KeyedTable<Rows.CompassTargetRow> COMPASS_TARGET_TABLE = KeyedTable.of("compass_target", Rows.CompassTargetRow::new).keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.PetsRow> PETS_TABLE = KeyedTable.of("pets", Rows.PetsRow::new).keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.PermissionRow> PERMISSIONS_TABLE = KeyedTable.of("permissions", Rows.PermissionRow::new).keyed("uuid", v -> v.uuid.toString()).event(KeyedTable.Event.Removed, Rows.PermissionRow::removed).build();
-    public static final KeyedTable<Rows.UserFlagsRow> USERFLAGS_TABLE = KeyedTable.of("user_flags", Rows.UserFlagsRow::new).where("user_flags.backpack_id > 0").keyed("id", v -> v.id + "").other("uuid", v -> v.uuid.toString()).build();
-    public static final KeyedTable<Rows.UserCraftsRow> USERCRAFTS_TABLE = KeyedTable.of("user_crafts", Rows.UserCraftsRow::new)
+    public static final KeyedTable<PrisonRow> PRISON_TABLE = KeyedTable.of("prison", PrisonRow::new).where("prison.is_log = 0").keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<Variable> VARIABLE_TABLE = KeyedTable.of("variable", Variable::new).keyed("tmp", v -> "0").build();
+    public static final KeyedTable<DiscordRow> DISCORD_TABLE = KeyedTable.of("discord", DiscordRow::new).keyed("discord_id", v -> v.discordID + "").build();
+    public static final KeyedTable<CompassTargetRow> COMPASS_TARGET_TABLE = KeyedTable.of("compass_target", CompassTargetRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<PetsRow> PETS_TABLE = KeyedTable.of("pets", PetsRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<PermissionRow> PERMISSIONS_TABLE = KeyedTable.of("permissions", PermissionRow::new).keyed("uuid", v -> v.uuid.toString()).event(KeyedTable.Event.Removed, PermissionRow::removed).build();
+    public static final KeyedTable<UserFlagsRow> USERFLAGS_TABLE = KeyedTable.of("user_flags", UserFlagsRow::new).where("user_flags.backpack_id > 0").keyed("id", v -> v.id + "").other("uuid", v -> v.uuid.toString()).build();
+    public static final KeyedTable<UserCraftsRow> USERCRAFTS_TABLE = KeyedTable.of("user_crafts", UserCraftsRow::new)
             .keyed("id", v -> v.id + "")
-            .event(KeyedTable.Event.Removed, row -> Rows.UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
-            .event(KeyedTable.Event.Updated, row -> Rows.UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
+            .event(KeyedTable.Event.Removed, row -> UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
+            .event(KeyedTable.Event.Updated, row -> UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
             .event(KeyedTable.Event.Removed, Perms::onUserCraftUpdate)
             .event(KeyedTable.Event.Updated, Perms::onUserCraftUpdate)
             .build();
-    public static final KeyedTable<Rows.BanListRow> BANLIST_TABLE = KeyedTable.of("ban_list", Rows.BanListRow::new)
+    public static final KeyedTable<BanListRow> BANLIST_TABLE = KeyedTable.of("ban_list", BanListRow::new)
             .keyed("id", v -> v.id + "")
             .other("user", v -> v.user)
             .event(KeyedTable.Event.Removed, BanList::onBanUpdate)
             .event(KeyedTable.Event.Updated, BanList::onBanUpdate)
             .build();
-    public static final KeyedTable<Rows.PreDonateRow> PREDONATE_TABLE = KeyedTable.of("predonate", Rows.PreDonateRow::new)
+    public static final KeyedTable<PreDonateRow> PREDONATE_TABLE = KeyedTable.of("predonate", PreDonateRow::new)
             .keyed("id", v -> v.id + "")
             .event(KeyedTable.Event.Removed, PredonateWhitelist::onUpdate)
             .event(KeyedTable.Event.Updated, PredonateWhitelist::onUpdate)
             .build();
-    public static final KeyedTable<Rows.PreDonateItemsRow> PREDONATE_ITEMS_TABLE = KeyedTable.of("predonate_items", Rows.PreDonateItemsRow::new).where("predonate_items.amount > 0").keyed("id", v -> v.id + "").build();
-    public static final KeyedTable<Rows.SmsPresetRow> SMSPRESET_TABLE = KeyedTable.of("sms_preset", Rows.SmsPresetRow::new).keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<PreDonateItemsRow> PREDONATE_ITEMS_TABLE = KeyedTable.of("predonate_items", PreDonateItemsRow::new).where("predonate_items.amount > 0").keyed("id", v -> v.id + "").build();
+    public static final KeyedTable<SmsPresetRow> SMSPRESET_TABLE = KeyedTable.of("sms_preset", SmsPresetRow::new).keyed("id", v -> v.id + "").build();
 
-    public static abstract class ITable<V extends Rows.DataBaseRow> {
+    public static abstract class ITable<V extends BaseRow> {
         public abstract List<V> getRows();
         public abstract void forEach(system.Action1<V> callback);
         public Optional<V> getBy(system.Func1<V, Boolean> func) {
@@ -125,13 +148,13 @@ public class Tables {
         }
     }
 
-    public static class StaticTable<V extends Rows.DataBaseRow> extends ITable<V> {
+    public static class StaticTable<V extends BaseRow> extends ITable<V> {
         private final ImmutableList<V> data;
         public StaticTable(List<V> data) {this.data = ImmutableList.copyOf(data); }
         @Override public List<V> getRows() { return data; }
         @Override public void forEach(system.Action1<V> callback) { data.forEach(callback); }
     }
-    public static class KeyedTable<V extends Rows.DataBaseRow> extends ITable<V> {
+    public static class KeyedTable<V extends BaseRow> extends ITable<V> {
         public static final ConcurrentHashMap<String, KeyedTable<?>> tables = new ConcurrentHashMap<>();
 
         private Calendar last_update = system.getZeroTime();
@@ -272,7 +295,7 @@ public class Tables {
             }
         }
 
-        public static class Builder<V extends Rows.DataBaseRow> {
+        public static class Builder<V extends BaseRow> {
             private final String _index;
             private final String _table;
             private final String _where;
@@ -310,7 +333,7 @@ public class Tables {
             public KeyedTable<V> build() { return new KeyedTable<>(_index, _table, _where, _key, _fKey, _fValue, _other, _events); }
         }
 
-        public static <V extends Rows.DataBaseRow>Builder<V> of(String table, system.Func1<ResultSet, V> value) { return new Builder<>(table, table, null, null, null, value, ImmutableMap.of(), ImmutableList.of()); }
+        public static <V extends BaseRow>Builder<V> of(String table, system.Func1<ResultSet, V> value) { return new Builder<>(table, table, null, null, null, value, ImmutableMap.of(), ImmutableList.of()); }
     }
 }
 

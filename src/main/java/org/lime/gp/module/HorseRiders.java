@@ -16,8 +16,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.JManager;
-import org.lime.gp.database.Rows;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
@@ -78,7 +78,7 @@ public class HorseRiders implements Listener {
             Entity entity = Bukkit.getEntity(animal_uuid);
             if (!(entity instanceof Tameable tameable)) return;
             if (!player.getUniqueId().equals(tameable.getOwnerUniqueId())) return;
-            Rows.UserRow.getBy(owner_id)
+            UserRow.getBy(owner_id)
                     .ifPresent(user -> {
                         UUID uuid = user.uuid;
                         tameable.setOwner(new AnimalTamer() {
@@ -92,7 +92,7 @@ public class HorseRiders implements Listener {
             Entity entity = Bukkit.getEntity(animal_uuid);
             if (!(entity instanceof Tameable tameable)) return;
             if (!player.getUniqueId().equals(tameable.getOwnerUniqueId())) return;
-            Rows.UserRow.getBy(sub_id).ifPresent(sub -> {
+            UserRow.getBy(sub_id).ifPresent(sub -> {
                 UUID sub_uuid = sub.uuid;
                 Set<UUID> subs = new HashSet<>();
                 JManager.get(JsonArray.class, tameable.getPersistentDataContainer(), "sub_owners", new JsonArray())
@@ -140,7 +140,7 @@ public class HorseRiders implements Listener {
     }
 
     public static boolean isCanInteractEntity(UUID uuid, Entity entity) {
-        return Rows.UserRow.getBy(uuid)
+        return UserRow.getBy(uuid)
                 .map(row -> {
                     if (row.role == 9) return true;
                     if (!(entity instanceof Tameable tameable) || !tameable.isTamed()) return true;

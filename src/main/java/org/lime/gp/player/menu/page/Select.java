@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.menu.SelectObject;
@@ -87,7 +87,7 @@ public class Select extends Base {
         return getKey() + (dynamic ? UUID.randomUUID().toString() : "");
     }
 
-    @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {
+    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         UUID other_uuid;
         try {
             other_uuid = UUID.fromString(apply.getOrDefault("other_uuid", null));

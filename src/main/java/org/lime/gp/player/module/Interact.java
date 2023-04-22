@@ -7,7 +7,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.MenuCreator;
 
 import java.util.UUID;
@@ -23,7 +23,7 @@ public class Interact implements Listener {
         Player player = event.getPlayer();
         if (!player.isSneaking()) return;
         UUID other_uuid = clicked.getUniqueId();
-        Rows.UserRow.getBy(other_uuid).ifPresent(other_row -> {
+        UserRow.getBy(other_uuid).ifPresent(other_row -> {
             event.setCancelled(true);
             MenuCreator.show(
                     event.getPlayer(),

@@ -54,7 +54,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.TextSplitRenderer;
-import org.lime.gp.database.Rows;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.page.slot.ISlot;
 import org.lime.system;
@@ -68,6 +67,7 @@ import org.lime.gp.item.settings.list.SweepSetting;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.coreprotect.CoreProtectHandle;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.inventory.WalletInventory;
 
 import java.lang.reflect.Field;
@@ -138,10 +138,10 @@ public class Items implements Listener {
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()), (player, _creators) -> {
             _creators.getWhitelistKeys()
                 .map(Items.creatorIDs::get)
-                .forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(Rows.UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
+                .forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
         });
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Items::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> system.json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
-            _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(Rows.UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));
+            _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));
         });
         AnyEvent.addEvent("drop.item", AnyEvent.type.owner_console, builder -> builder
             .createParam(Double::parseDouble, "[x]")

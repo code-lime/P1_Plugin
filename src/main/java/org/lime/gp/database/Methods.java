@@ -14,6 +14,8 @@ import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.database.rows.BanListRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.web;
@@ -137,8 +139,8 @@ public class Methods {
             return toLine(Component.text(prefix));
         }
         public Component toLine(Component prefix) {
-            Optional<Rows.UserRow> user = Optional.ofNullable(this.uuid).flatMap(Rows.UserRow::getBy);
-            Optional<Rows.UserRow> owner = Optional.ofNullable(this.owner).flatMap(Rows.UserRow::getBy);
+            Optional<UserRow> user = Optional.ofNullable(this.uuid).flatMap(UserRow::getBy);
+            Optional<UserRow> owner = Optional.ofNullable(this.owner).flatMap(UserRow::getBy);
             String time = system.formatCalendar(this.time, true);
             Component display = Component.empty()
                     .append(Component.text("Дата выдачи: ").append(Component.text(time).color(NamedTextColor.GRAY)).append(Component.newline()))
@@ -359,7 +361,7 @@ public class Methods {
         SQL.Async.rawSql("UPDATE user_crafts SET use_count = "+useCount+" WHERE id = " + craftID, () -> {});
     }
 
-    private static void banUser(Rows.BanListRow.Type type, String user, String reason, String owner, system.Action0 callback) {
+    private static void banUser(BanListRow.Type type, String user, String reason, String owner, system.Action0 callback) {
         SQL.Async.rawSql("INSERT INTO ban_list (ban_list.`type`, ban_list.user, ban_list.reason, ban_list.owner) VALUES (@type, @user, @reason, @owner)",
                 MySql.args()
                         .add("type", type.name())
@@ -370,13 +372,13 @@ public class Methods {
                 callback);
     }
     public static void banUser(UUID uuid, String reason, String owner, system.Action0 callback) {
-        banUser(Rows.BanListRow.Type.UUID, uuid.toString(), reason, owner, callback);
+        banUser(BanListRow.Type.UUID, uuid.toString(), reason, owner, callback);
     }
     public static void banUser(InetAddress ip, String reason, String owner, system.Action0 callback) {
-        banUser(Rows.BanListRow.Type.IP, ip.getHostAddress(), reason, owner, callback);
+        banUser(BanListRow.Type.IP, ip.getHostAddress(), reason, owner, callback);
     }
 
-    private static void pardonUser(Rows.BanListRow.Type type, String user, system.Action0 callback) {
+    private static void pardonUser(BanListRow.Type type, String user, system.Action0 callback) {
         SQL.Async.rawSql("DELETE FROM ban_list WHERE ban_list.`type` = @type AND ban_list.user = @user",
                 MySql.args()
                         .add("type", type.name())
@@ -385,10 +387,10 @@ public class Methods {
                 callback);
     }
     public static void pardonUser(UUID uuid, system.Action0 callback) {
-        pardonUser(Rows.BanListRow.Type.UUID, uuid.toString(), callback);
+        pardonUser(BanListRow.Type.UUID, uuid.toString(), callback);
     }
     public static void pardonUser(InetAddress ip, system.Action0 callback) {
-        pardonUser(Rows.BanListRow.Type.IP, ip.getHostAddress(), callback);
+        pardonUser(BanListRow.Type.IP, ip.getHostAddress(), callback);
     }
 
     public static void ipListByUUIDs(Collection<UUID> uuids, system.Action1<Set<InetAddress>> ips) {

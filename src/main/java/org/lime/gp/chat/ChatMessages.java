@@ -21,8 +21,9 @@ import org.lime.core;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.FriendRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.module.JavaScript;
@@ -44,7 +45,7 @@ public class ChatMessages implements Listener {
                         .withTab((sender, args) -> {
                             Player player = (Player) sender;
                             if (args.length > 1) return getSmsPresets(args[0]);
-                            List<String> list = Rows.FriendRow.getFriendsByUUID(player.getUniqueId()).stream().map(f -> f.friendName).filter(Objects::nonNull).collect(Collectors.toList());
+                            List<String> list = FriendRow.getFriendsByUUID(player.getUniqueId()).stream().map(f -> f.friendName).filter(Objects::nonNull).collect(Collectors.toList());
                             list.add("101");
                             list.add("103");
                             return list;
@@ -203,7 +204,7 @@ public class ChatMessages implements Listener {
         sendList.put(uuid, new SendData(message));
     }
 
-    public static void smsFast(Player player, Rows.UserRow user, int phone, Methods.CallType type, String message) {
+    public static void smsFast(Player player, UserRow user, int phone, Methods.CallType type, String message) {
         UUID uuid = player.getUniqueId();
         String key = "sms." + phone;
         if (!type.check(player.getWorld())) {
@@ -237,7 +238,7 @@ public class ChatMessages implements Listener {
             return true;
         }
         UUID uuid = player.getUniqueId();
-        Rows.UserRow.getBy(uuid).ifPresentOrElse(user -> {
+        UserRow.getBy(uuid).ifPresentOrElse(user -> {
             system.Action1<Integer> sms = (phone) -> {
                 if (Death.isDamageLay(uuid) && phone != 103) {
                     LangMessages.Message.Sms_Error_Die.sendMessage(player);
@@ -272,8 +273,8 @@ public class ChatMessages implements Listener {
                     });
                 }, () -> LangMessages.Message.Sms_Error_PhoneNotFounded.sendMessage(player));
             };
-            Rows.FriendRow.getFriendByUUIDandName(player.getUniqueId(), args[0])
-                    .flatMap(Rows.FriendRow::getFriendPhone)
+            FriendRow.getFriendByUUIDandName(player.getUniqueId(), args[0])
+                    .flatMap(FriendRow::getFriendPhone)
                     .ifPresentOrElse(sms, () -> ExtMethods.parseUnsignedInt(args[0]).ifPresentOrElse(sms, () -> LangMessages.Message.Sms_Error_PhoneNotFounded.sendMessage(player)));
         }, () -> LangMessages.Message.Sms_Error_NotHavePhone.sendMessage(player));
         return true;

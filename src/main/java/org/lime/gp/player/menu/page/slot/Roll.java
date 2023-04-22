@@ -8,7 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.Logged;
@@ -77,7 +77,7 @@ public class Roll implements Logged.ILoggedDelete {
         return roll;
     }
 
-    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast2<HashMap<ClickType, List<ActionSlot>>, Rows.DataBaseRow>> onClickEvents) {
+    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast2<HashMap<ClickType, List<ActionSlot>>, BaseRow>> onClickEvents) {
         List<system.Toast2<HashMap<String, String>, Integer>> array = new ArrayList<>();
         system.Toast1<Integer> scale = system.toast(0);
         system.json.parse(JavaScript.getJsString(apply.apply(data)).orElseThrow()).getAsJsonArray().forEach(item -> {

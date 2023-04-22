@@ -40,8 +40,10 @@ import org.lime.display.ObjectDisplay;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.AnyRow;
+import org.lime.gp.database.rows.HouseRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.extension.Zone;
 import org.lime.gp.module.DrawMap;
@@ -80,7 +82,7 @@ public class TownInventory implements Listener {
         }
 
         public void generate(system.Action1<HashMap<Integer, String>> callback) {
-            Methods.SQL.Async.rawSqlQuery(sql, Rows.AnyRow::of, list -> lime.invokeAsync(() -> {
+            Methods.SQL.Async.rawSqlQuery(sql, AnyRow::of, list -> lime.invokeAsync(() -> {
                 HashMap<Integer, String> map = new HashMap<>();
                 list.forEach(v -> {
                     int house_id = Integer.parseInt(v.columns.get("house_id"));
@@ -178,17 +180,17 @@ public class TownInventory implements Listener {
     public enum HtmlType {
         HOME("home", row -> true);
 
-        private final system.Func1<Rows.HouseRow, Boolean> isUse;
+        private final system.Func1<HouseRow, Boolean> isUse;
         public final String key;
-        HtmlType(String key, system.Func1<Rows.HouseRow, Boolean> isUse) {
+        HtmlType(String key, system.Func1<HouseRow, Boolean> isUse) {
             this.isUse = isUse;
             this.key = key;
         }
-        public boolean IsUse(Rows.HouseRow row) {
+        public boolean IsUse(HouseRow row) {
             return isUse.invoke(row);
         }
 
-        public static HtmlType getPageType(Rows.HouseRow row) {
+        public static HtmlType getPageType(HouseRow row) {
             for (HtmlType type : HtmlType.values()) {
                 if (type.IsUse(row))
                     return type;
@@ -248,7 +250,7 @@ public class TownInventory implements Listener {
             players.forEach(player -> {
                 Location loc = player.getLocation();
                 List<String> map = new ArrayList<>();
-                Rows.UserRow.getBy(player.getUniqueId()).ifPresent(user -> {
+                UserRow.getBy(player.getUniqueId()).ifPresent(user -> {
                     Boolean state = null;
                     for (HomePerm home : homes) {
                         system.Toast2<List<String>, Boolean> _state = home.display(PrivatePattern.patternBreaks.get(Material.CHEST.name()), loc, user, true);
@@ -286,7 +288,7 @@ public class TownInventory implements Listener {
         patterns.values().forEach(PrivatePattern::addToPatterns);
     }
 
-    private static class HomeDisplay extends ObjectDisplay<Rows.HouseRow, EntityItemFrame> {
+    private static class HomeDisplay extends ObjectDisplay<HouseRow, EntityItemFrame> {
         private static final ConcurrentHashMap<Integer, byte[]> house_list = new ConcurrentHashMap<>();
 
         @Override public double getDistance() {
@@ -317,7 +319,7 @@ public class TownInventory implements Listener {
 
         
         @SuppressWarnings("deprecation")
-        protected HomeDisplay(Rows.HouseRow row) {
+        protected HomeDisplay(HouseRow row) {
             super(row.posMain.getLocation(row.posFace.getDirection()));
             pos1 = row.posMin;
             pos2 = row.posMax;
@@ -344,14 +346,14 @@ public class TownInventory implements Listener {
         }
 
         private long timeRedraw = 0;
-        private void updateMap(Rows.HouseRow row) {
+        private void updateMap(HouseRow row) {
             if (timeRedraw > System.currentTimeMillis()) return;
             byte[] data = house_list.getOrDefault(row.id, null);
             if (data != null) mapData = data;
             invokeAll(this::sendData);
             timeRedraw = System.currentTimeMillis() + 5 * 1000;
         }
-        @Override public void update(Rows.HouseRow row, double delta) {
+        @Override public void update(HouseRow row, double delta) {
             super.update(row, delta);
             displayPreview.removeIf(p -> {
                 if (!p.isOnline()) return true;
@@ -364,13 +366,13 @@ public class TownInventory implements Listener {
             Tables.HOUSE_TABLE.get(houseRowID + "").ifPresent(row -> MenuCreator.show(player, "town.house.open", Apply.of().add("house_", row).add("is_shift", isShift ? "true" : "false")));
         }
 
-        public static HomeDisplay create(Integer integer, Rows.HouseRow houseRow) {
+        public static HomeDisplay create(Integer integer, HouseRow houseRow) {
             return new HomeDisplay(houseRow);
         }
     }
-    private static class HomeManager extends DisplayManager<Integer, Rows.HouseRow, HomeDisplay> {
-        @Override public HashMap<Integer, Rows.HouseRow> getData() { return Tables.HOUSE_TABLE.getMap(v -> v.id); }
-        @Override public HomeDisplay create(Integer integer, Rows.HouseRow houseRow) { return HomeDisplay.create(integer, houseRow); }
+    private static class HomeManager extends DisplayManager<Integer, HouseRow, HomeDisplay> {
+        @Override public HashMap<Integer, HouseRow> getData() { return Tables.HOUSE_TABLE.getMap(v -> v.id); }
+        @Override public HomeDisplay create(Integer integer, HouseRow houseRow) { return HomeDisplay.create(integer, houseRow); }
     }
 
     private static HomeDisplay getClick(int entityID) {
@@ -397,14 +399,14 @@ public class TownInventory implements Listener {
     }
 
     private static class HomePerm {
-        private final Rows.HouseRow row;
+        private final HouseRow row;
         private final List<HomePerm> perms = new ArrayList<>();
-        private HomePerm(Rows.HouseRow row) { this.row = row; }
+        private HomePerm(HouseRow row) { this.row = row; }
         private void child(HomePerm room) { perms.add(room); }
-        public Boolean isCan(PrivatePattern privateType, Location pos, Rows.UserRow user) {
+        public Boolean isCan(PrivatePattern privateType, Location pos, UserRow user) {
             return display(privateType, pos, user, false).val1;
         }
-        public system.Toast2<List<String>, Boolean> display(PrivatePattern privateType, Location pos, Rows.UserRow user, boolean createList) {
+        public system.Toast2<List<String>, Boolean> display(PrivatePattern privateType, Location pos, UserRow user, boolean createList) {
             String prefix = StringUtils.leftPad(String.valueOf(row.id), 2, '0');
             List<String> list = createList ? new ArrayList<>() : null;
             Boolean state = null;
@@ -433,7 +435,7 @@ public class TownInventory implements Listener {
             return system.toast(list, state);
         }
         public static List<HomePerm> getAll() {
-            HashMap<Integer, Rows.HouseRow> rows = system.map.<Integer, Rows.HouseRow>of()
+            HashMap<Integer, HouseRow> rows = system.map.<Integer, HouseRow>of()
                     .add(Tables.HOUSE_TABLE.getRows(), kv -> kv.id, kv -> kv)
                     .build();
 
@@ -451,7 +453,7 @@ public class TownInventory implements Listener {
             });
             return new ArrayList<>(map.values());
         }
-        public static boolean isCanAll(PrivatePattern privateType, Location pos, Rows.UserRow user) {
+        public static boolean isCanAll(PrivatePattern privateType, Location pos, UserRow user) {
             List<HomePerm> homes = HomePerm.getAll();
             Boolean state = null;
             for (HomePerm home : homes) {
@@ -464,7 +466,7 @@ public class TownInventory implements Listener {
     }
 
     private static boolean isCant(PrivatePattern privateType, Location pos, Player player) {
-        return Rows.UserRow.getBy(player.getUniqueId()).map(user -> !user.isOwner() && !HomePerm.isCanAll(privateType, pos, user)).orElse(true);
+        return UserRow.getBy(player.getUniqueId()).map(user -> !user.isOwner() && !HomePerm.isCanAll(privateType, pos, user)).orElse(true);
     }
     private static Player getOwner(Entity damager) {
         if (damager instanceof Player) return (Player)damager;

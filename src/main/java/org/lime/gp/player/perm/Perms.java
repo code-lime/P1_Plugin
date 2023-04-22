@@ -31,8 +31,9 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.craft.Crafts;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.UserCraftsRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BlockSetting;
@@ -175,7 +176,7 @@ public class Perms implements Listener {
     }
     public static ICanData getCanData(UUID uuid) {
         if (uuid == null) return ICanData.getNothing();
-        Optional<Rows.UserRow> row = Rows.UserRow.getBy(uuid);
+        Optional<UserRow> row = UserRow.getBy(uuid);
 
         int role = row.map(v -> v.role).orElse(0);
         Optional<Integer> work = row.map(v -> v.work);
@@ -204,7 +205,7 @@ public class Perms implements Listener {
     }
 
     private static final ConcurrentHashMap<Integer, Integer> userCraftUsages = new ConcurrentHashMap<>();
-    public static void onUserCraftUpdate(Rows.UserCraftsRow row, Tables.KeyedTable.Event event) {
+    public static void onUserCraftUpdate(UserCraftsRow row, Tables.KeyedTable.Event event) {
         if (event.removed || row.useCount == null) {
             userCraftUsages.remove(row.id);
             return;
@@ -225,7 +226,7 @@ public class Perms implements Listener {
     private static void onRecipeUse(String recipePath, UUID uuid, ICanData data) {
         if (uuid == null) return;
         system.Toast1<Boolean> use = system.toast(false);
-        data.work().ifPresent(work -> Rows.UserRow.getBy(uuid).ifPresent(user -> {
+        data.work().ifPresent(work -> UserRow.getBy(uuid).ifPresent(user -> {
             UUID _uuid = user.uuid;
             Tables.USERCRAFTS_TABLE.forEach(craftRow -> {
                 if (use.val0 || !craftRow.uuid.equals(_uuid) || craftRow.useCount == null) return;

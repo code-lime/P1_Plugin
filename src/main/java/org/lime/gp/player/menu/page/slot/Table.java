@@ -3,8 +3,8 @@ package org.lime.gp.player.menu.page.slot;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.player.menu.Logged;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class Table implements Logged.ILoggedDelete {
         return table;
     }
 
-    public List<? extends Rows.DataBaseRow> getList(Tables.ITable<? extends Rows.DataBaseRow> table, Apply apply) {
+    public List<? extends BaseRow> getList(Tables.ITable<? extends BaseRow> table, Apply apply) {
         return table.getRows();
     }
 }

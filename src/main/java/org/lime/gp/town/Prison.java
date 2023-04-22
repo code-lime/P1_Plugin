@@ -7,8 +7,9 @@ import org.bukkit.event.Listener;
 import org.lime.core;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.HouseRow;
+import org.lime.gp.database.rows.PrisonRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.system;
@@ -46,7 +47,7 @@ public class Prison implements Listener {
         });*/
         lime.repeat(Prison::update, 1);
     }
-    private static Location getOutPos(Rows.PrisonRow prison, Rows.HouseRow house) {
+    private static Location getOutPos(PrisonRow prison, HouseRow house) {
         try {
             JsonObject data = house.data;
             if (data != null && data.has("out")) return system.getLocation(prison.outPos.world, data.get("out").getAsString());
@@ -66,7 +67,7 @@ public class Prison implements Listener {
         return prison.outPos.getLocation();
     }
     public static void update() {
-        for (Rows.PrisonRow row : Tables.PRISON_TABLE.getRows()) {
+        for (PrisonRow row : Tables.PRISON_TABLE.getRows()) {
             if (row.isLog) continue;
             Tables.HOUSE_TABLE.get(row.houseID + "").ifPresent(house -> Tables.USER_TABLE.get(row.userID + "").ifPresent(user -> {
                 Player player = EntityPosition.onlinePlayers.getOrDefault(user.uuid, null);

@@ -30,8 +30,8 @@ import org.lime.core;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.PlayerDamageByPlayerEvent;
 import org.lime.gp.player.voice.Voice;
@@ -68,7 +68,7 @@ public class SingleModules implements Listener {
                 if (!beds.containsValue(player.getUniqueId())) return;
                 if (location.getWorld() != lime.MainWorld) return;
                 int maxHealth = 6;
-                for (Rows.HouseRow house : Tables.HOUSE_TABLE.getRows()) {
+                for (HouseRow house : Tables.HOUSE_TABLE.getRows()) {
                     if (house.inZone(location) && house.type != null) {
                         switch (house.type) {
                             case HOSPITAL:

@@ -6,7 +6,8 @@ import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.MySql;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.AnyRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.system;
@@ -23,8 +24,8 @@ public class SQL extends Base {
         called = ActionSlot.parse(this, json.get("called").getAsJsonObject());
     }
 
-    @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {
-        Methods.SQL.Async.rawSqlQuery(apply.apply(sql), (set) -> system.toast(UUID.fromString(MySql.readObject(set, "uuid", String.class)), Rows.AnyRow.of(set)), (list) -> list.forEach(kv -> {
+    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
+        Methods.SQL.Async.rawSqlQuery(apply.apply(sql), (set) -> system.toast(UUID.fromString(MySql.readObject(set, "uuid", String.class)), AnyRow.of(set)), (list) -> list.forEach(kv -> {
             Player to = Bukkit.getPlayer(kv.val0);
             if (to == null) return;
             called.invoke(to, apply.add(kv.val1), false);

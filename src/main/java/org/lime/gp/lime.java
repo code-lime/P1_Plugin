@@ -31,7 +31,6 @@ import org.lime.gp.craft.Crafts;
 import org.lime.gp.craft.Locked;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.ReadonlySync;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
 import org.lime.gp.item.*;
 import org.lime.gp.item.weapon.Bullets;
@@ -187,7 +186,6 @@ public class lime extends core {
         add(InvisibleItemFrame.create());
 
         add(ReadonlySync.create());
-        add(Rows.create());
         add(Tables.create());
 
         add(MapMonitor.create());

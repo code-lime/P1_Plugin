@@ -16,8 +16,8 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
@@ -113,8 +113,8 @@ public class HandCuffs implements Listener {
     }
     private static boolean inPolice(Location location) {
         if (location.getWorld() != lime.MainWorld) return false;
-        for (Rows.HouseRow row : Tables.HOUSE_TABLE.getRows()) {
-            if (row.inZone(location) && row.type == Rows.HouseRow.HouseType.PRISON) {
+        for (HouseRow row : Tables.HOUSE_TABLE.getRows()) {
+            if (row.inZone(location) && row.type == HouseRow.HouseType.PRISON) {
                 return true;
             }
         }

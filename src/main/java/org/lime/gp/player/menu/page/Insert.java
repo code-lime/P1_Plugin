@@ -11,7 +11,7 @@ import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
@@ -86,7 +86,7 @@ public class Insert extends Base {
         if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(ActionSlot.parse(this, kv.getAsJsonObject())));
     }
 
-    @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {
+    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
         open(player, ChatHelper.formatComponent(title, apply), rows, (cash) -> {
             apply.add("weight", cash + "");

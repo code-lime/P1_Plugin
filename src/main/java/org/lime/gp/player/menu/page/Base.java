@@ -6,8 +6,9 @@ import org.bukkit.inventory.PlayerInventory;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.BaseRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.menu.Logged;
@@ -54,7 +55,7 @@ public abstract class Base implements Logged.ILoggedDelete {
             return false;
         }
         Apply send_apply = Apply.of();
-        Rows.UserRow row;
+        UserRow row;
         if (player != null) {
             PlayerInventory playerInventory = player.getInventory();
 
@@ -67,7 +68,7 @@ public abstract class Base implements Logged.ILoggedDelete {
                 return false;
             }
 
-            row = Rows.UserRow.getBy(player).orElse(null);
+            row = UserRow.getBy(player).orElse(null);
             if (roleWhite.size() > 0 && (row == null || !roleWhite.contains(row.role))) return false;
             if (row != null) send_apply.add(row);
             else send_apply.add("uuid", player.getUniqueId().toString()).add("user_name", player.getName());
@@ -80,13 +81,13 @@ public abstract class Base implements Logged.ILoggedDelete {
                 sqlArgs.stream()
                 .map(v -> system.toast("!sql " + ChatHelper.formatText(v.val1, send_apply), v.val0))
                 .collect(Collectors.toList()),
-                (String table, system.Action1<Tables.ITable<? extends Rows.DataBaseRow>> callback) -> Tables
+                (String table, system.Action1<Tables.ITable<? extends BaseRow>> callback) -> Tables
                 .getTable(table, callback)
                 .withSQL(isLogged ? (sql) -> Logged.log(player, sql, this) : null),
                 argsTableData -> {
                     Apply table_apply = send_apply.copy();
-                    HashMap<String, Tables.ITable<? extends Rows.DataBaseRow>> customTables = new HashMap<>();
-                    for (system.Toast3<String, String, Tables.ITable<? extends Rows.DataBaseRow>> dat : argsTableData) {
+                    HashMap<String, Tables.ITable<? extends BaseRow>> customTables = new HashMap<>();
+                    for (system.Toast3<String, String, Tables.ITable<? extends BaseRow>> dat : argsTableData) {
                         if (dat.val1.startsWith("!")) customTables.put(dat.val1.substring(1), dat.val2);
                         else dat.val2.getFirstRow().ifPresent(v -> table_apply.add(dat.val1 + ".", v));
                     }
@@ -96,7 +97,7 @@ public abstract class Base implements Logged.ILoggedDelete {
         return true;
     }
 
-    protected abstract void showGenerate(Rows.UserRow row, Player player, int page, Apply apply);
+    protected abstract void showGenerate(UserRow row, Player player, int page, Apply apply);
 
     public static Base parse(String key, JsonObject json) {
         Base menu;

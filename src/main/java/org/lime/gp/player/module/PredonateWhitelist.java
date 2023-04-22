@@ -10,8 +10,8 @@ import net.minecraft.server.players.WhiteListEntry;
 import org.apache.commons.lang.StringUtils;
 import org.lime.core;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.PreDonateRow;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.web;
@@ -36,7 +36,7 @@ public class PredonateWhitelist {
         if (!sync) return;
         Map<String, Boolean> sets = Tables.PREDONATE_TABLE.getRows()
                 .stream()
-                .filter(v -> v.whitelist == Rows.PreDonateRow.State.NONE)
+                .filter(v -> v.whitelist == PreDonateRow.State.NONE)
                 .filter(system.distinctBy(v -> v.name))
                 .collect(Collectors.toMap(v -> v.name, v -> switch (v.type) {
                     case QIWI, TRADEMC -> Arrays.asList(300.0, 700.0, 1500.0, 4000.0, 10000.0).contains(v.amount);
@@ -77,7 +77,7 @@ public class PredonateWhitelist {
     private static PlayerList getPlayerList() {
         return MinecraftServer.getServer().getPlayerList();
     }
-    public static void onUpdate(Rows.PreDonateRow row, Tables.KeyedTable.Event event) {
+    public static void onUpdate(PreDonateRow row, Tables.KeyedTable.Event event) {
         sync();
     }
     public static void getByNameUUID(String user, system.Action2<UUID, String> callback) {

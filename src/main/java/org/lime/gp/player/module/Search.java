@@ -26,7 +26,7 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.coreprotect.CoreProtectHandle;
-import org.lime.gp.database.Rows.UserRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Vest;

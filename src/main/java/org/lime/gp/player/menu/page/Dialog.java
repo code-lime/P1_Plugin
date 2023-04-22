@@ -3,7 +3,7 @@ package org.lime.gp.player.menu.page;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.ActionSlot;
 
@@ -18,7 +18,7 @@ public class Dialog extends Base {
         json.get("dialog").getAsJsonArray().forEach(kv -> dialog.add(ActionSlot.parse(this, kv.getAsJsonObject())));
     }
 
-    @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {
+    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
         int waitTime = 0;
         for (ActionSlot action : dialog) {

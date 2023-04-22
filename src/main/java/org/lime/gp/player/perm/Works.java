@@ -2,8 +2,8 @@ package org.lime.gp.player.perm;
 
 import com.google.gson.JsonObject;
 import org.lime.core;
-import org.lime.gp.database.Rows;
 import org.lime.gp.lime;
+import org.lime.gp.database.rows.UserRow;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -33,7 +33,7 @@ public class Works {
         }
     }
     public static Optional<WorkData> getWorkData(UUID uuid) {
-        return Rows.UserRow.getBy(uuid).map(v -> v.work).map(works::get);
+        return UserRow.getBy(uuid).map(v -> v.work).map(works::get);
     }
 
     public static void config(JsonObject json) {

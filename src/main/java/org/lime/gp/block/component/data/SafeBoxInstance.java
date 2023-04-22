@@ -27,8 +27,8 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.SafeBoxComponent;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
@@ -102,7 +102,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
     public void open() {
         if (!component().small) return;
         Location location = metadata().location();
-        List<Rows.HouseRow> houseList = Tables.HOUSE_TABLE.getRowsBy(v -> v.inZone(location));
+        List<HouseRow> houseList = Tables.HOUSE_TABLE.getRowsBy(v -> v.inZone(location));
         int count = (int)TimeoutData.map(SafeBoxCounter.class)
                 .values()
                 .stream()
@@ -134,9 +134,9 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         return true;
     }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
-        List<Rows.HouseRow> houseRows = Rows.HouseRow.getInHouse(metadata.location());
-        if (houseRows.stream().noneMatch(v -> v.type == Rows.HouseRow.HouseType.BANK_VAULT)) return EnumInteractionResult.PASS;
-        if (Rows.HouseRow.useType(houseRows, event.player().getUUID()) != Rows.HouseRow.UseType.Deny) return EnumInteractionResult.PASS;
+        List<HouseRow> houseRows = HouseRow.getInHouse(metadata.location());
+        if (houseRows.stream().noneMatch(v -> v.type == HouseRow.HouseType.BANK_VAULT)) return EnumInteractionResult.PASS;
+        if (HouseRow.useType(houseRows, event.player().getUUID()) != HouseRow.UseType.Deny) return EnumInteractionResult.PASS;
         UUID block_uuid = metadata.key.uuid();
         UUID unique_key = unique();
         ContainerAccess context = ContainerAccess.create(metadata.skull.getLevel(), metadata.skull.getBlockPos());

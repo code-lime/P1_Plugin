@@ -2,8 +2,9 @@ package org.lime.gp.player.perm;
 
 import com.google.gson.JsonObject;
 import org.lime.core;
-import org.lime.gp.database.Rows;
 import org.lime.gp.lime;
+import org.lime.gp.database.rows.RolesRow;
+import org.lime.gp.database.rows.UserRow;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -34,9 +35,9 @@ public class Grants {
             if (json.has("works")) json.get("works").getAsJsonObject().entrySet().forEach(kv -> worksCans.put(Integer.parseInt(kv.getKey()), new Perms.CanData(kv.getValue().getAsJsonObject())));
         }
     }
-    public static Optional<GrantData> getGrantData(UUID uuid) { return Rows.UserRow.getBy(uuid).flatMap(Grants::getGrantData); }
-    public static Optional<GrantData> getGrantData(int id) { return Rows.UserRow.getBy(id).flatMap(Grants::getGrantData); }
-    public static Optional<GrantData> getGrantData(Rows.UserRow user) { return Optional.ofNullable(user).flatMap(v -> Rows.RolesRow.getBy(user.role)).map(v -> grants.get(v.permissions)); }
+    public static Optional<GrantData> getGrantData(UUID uuid) { return UserRow.getBy(uuid).flatMap(Grants::getGrantData); }
+    public static Optional<GrantData> getGrantData(int id) { return UserRow.getBy(id).flatMap(Grants::getGrantData); }
+    public static Optional<GrantData> getGrantData(UserRow user) { return Optional.ofNullable(user).flatMap(v -> RolesRow.getBy(user.role)).map(v -> grants.get(v.permissions)); }
 
     public static void config(JsonObject json) {
         HashMap<Integer, GrantData> _grants = new HashMap<>();

@@ -14,8 +14,9 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.lime.core;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.BanListRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -100,9 +101,9 @@ public class BanList implements Listener {
                         .withTab((sender, args) -> switch (args.length) {
                             case 1 -> Tables.BANLIST_TABLE.getRows()
                                     .stream()
-                                    .filter(_v -> _v.type == Rows.BanListRow.Type.UUID)
+                                    .filter(_v -> _v.type == BanListRow.Type.UUID)
                                     .map(row -> UUID.fromString(row.user))
-                                    .flatMap(uuid -> Stream.concat(Stream.of(uuid.toString()), Rows.UserRow.getBy(uuid).map(_v -> _v.userName).stream()))
+                                    .flatMap(uuid -> Stream.concat(Stream.of(uuid.toString()), UserRow.getBy(uuid).map(_v -> _v.userName).stream()))
                                     .toList();
                             default -> Collections.emptyList();
                         })
@@ -124,7 +125,7 @@ public class BanList implements Listener {
                         .withTab((sender, args) -> switch (args.length) {
                             case 1 -> Tables.BANLIST_TABLE.getRows()
                                     .stream()
-                                    .filter(_v -> _v.type == Rows.BanListRow.Type.IP)
+                                    .filter(_v -> _v.type == BanListRow.Type.IP)
                                     .map(row -> row.user)
                                     .toList();
                             default -> Collections.emptyList();
@@ -192,15 +193,15 @@ public class BanList implements Listener {
     public static void init() {
         sync();
     }
-    public static void onBanUpdate(Rows.BanListRow row, Tables.KeyedTable.Event event) {
+    public static void onBanUpdate(BanListRow row, Tables.KeyedTable.Event event) {
         lime.once(BanList::sync, 1);
     }
     public static void sync() {
-        Bukkit.getOnlinePlayers().forEach(player -> Rows.BanListRow.getBy(player).ifPresent(ban -> player.kick(Component.text(ban.reason), PlayerKickEvent.Cause.BANNED)));
+        Bukkit.getOnlinePlayers().forEach(player -> BanListRow.getBy(player).ifPresent(ban -> player.kick(Component.text(ban.reason), PlayerKickEvent.Cause.BANNED)));
     }
     @EventHandler public static void on(PlayerLoginEvent e) {
         Player player = e.getPlayer();
-        Rows.BanListRow.getBy(player)
+        BanListRow.getBy(player)
                 .ifPresent(ban -> e.disallow(PlayerLoginEvent.Result.KICK_BANNED, Component.text(ban.reason)));
     }
 }

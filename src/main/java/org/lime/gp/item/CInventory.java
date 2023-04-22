@@ -19,7 +19,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.lime;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -33,7 +33,7 @@ public class CInventory {
         return core.element.create(CInventory.class)
                 .addCommand("cinv", v -> v.withTab().withCheck(ServerOperator::isOp).withExecutor(sender -> {
                     if (!(sender instanceof CraftPlayer player)) return false;
-                    Apply apply = Rows.UserRow.getBy(player.getUniqueId()).map(_v -> Apply.of().add(_v)).orElseGet(Apply::of);
+                    Apply apply = UserRow.getBy(player.getUniqueId()).map(_v -> Apply.of().add(_v)).orElseGet(Apply::of);
                     List<system.Toast2<String, List<ItemStack>>> items = Items.creators.values()
                             .stream()
                             //.filter(ExtMethods.filterLog("CINV.0: {0}"))

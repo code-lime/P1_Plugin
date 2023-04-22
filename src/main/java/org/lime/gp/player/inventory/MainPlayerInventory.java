@@ -17,8 +17,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
@@ -47,14 +47,14 @@ public final class MainPlayerInventory implements Listener {
         clickData.put(22, new ClickSlot(null, player -> {
             if (isCooldown(player)) return;
             lime.nextTick(() -> {
-                if (!Rows.UserRow.hasBy(player.getUniqueId()) || Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isEmpty()) return;
+                if (!UserRow.hasBy(player.getUniqueId()) || Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isEmpty()) return;
                 player.closeInventory();
                 MenuCreator.show(player, "phone.predonate");
             });
         }) {
             private static ItemStack PRE_DONATE = null;
             @Override public ItemStack create(Player player) {
-                return Rows.UserRow.hasBy(player.getUniqueId()) && Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isPresent()
+                return UserRow.hasBy(player.getUniqueId()) && Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isPresent()
                         ? PRE_DONATE == null ? (PRE_DONATE = MainPlayerInventory.createPreDonate()) : PRE_DONATE
                         : MainPlayerInventory.createBarrier(false);
             }
@@ -152,7 +152,7 @@ public final class MainPlayerInventory implements Listener {
         ILockSlot lock_slot = (slot, item, isBarrier, player, slots) -> {
             if (slot == 24) return player.isOp() ? clickData.get(slot).create(player) : (isBarrier ? null : MainPlayerInventory.createBarrier(false));
             ClickSlot _slot = clickData.getOrDefault(slot, null);
-            if (_slot == null || !Rows.UserRow.hasBy(player.getUniqueId())) {
+            if (_slot == null || !UserRow.hasBy(player.getUniqueId())) {
                 return isBarrier ? null : MainPlayerInventory.createBarrier(false);
             }
             return _slot.create(player);

@@ -3,7 +3,7 @@ package org.lime.gp.player.menu.node.execute;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.connect.IInput;
 import org.lime.gp.player.menu.node.connect.IOutput;
@@ -44,7 +44,7 @@ public class PlayerInfoNode extends BaseNode {
 
     @Override protected void invokeNodeGenerate(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable, Map<Integer, Map<String, Object>> data, Map<IInput, Object> inputExecute) {
         if (!Boolean.TRUE.equals(inputExecute.get(inputAction))) return;
-        int id = Rows.UserRow.getBy(player).map(v -> v.id).orElse(-1);
+        int id = UserRow.getBy(player).map(v -> v.id).orElse(-1);
 
         outputID.setNext(data, id);
         outputUUID.setNext(data, player.getUniqueId().toString());

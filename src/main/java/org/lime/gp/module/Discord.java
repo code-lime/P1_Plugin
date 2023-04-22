@@ -24,8 +24,8 @@ import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.Rows;
 import org.lime.gp.database.Tables;
+import org.lime.gp.database.rows.DiscordRow;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.TabManager;
 
@@ -44,7 +44,7 @@ public class Discord implements Listener {
 
         @Override public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent e) {
             if (e.getAuthor().isBot()) return;
-            Rows.DiscordRow row = Tables.DISCORD_TABLE.get(e.getChannel().getUser().getIdLong() + "").orElse(null);
+            DiscordRow row = Tables.DISCORD_TABLE.get(e.getChannel().getUser().getIdLong() + "").orElse(null);
             if (row == null) return;
             Message message = e.getMessage();
             Message ref = message.getReferencedMessage();

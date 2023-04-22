@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.selector.*;
@@ -28,7 +28,7 @@ public class Selector extends Base {
         selector = SelectorType.of(json.get("selector").getAsString()).orElseThrow();
     }
 
-    @Override protected void showGenerate(Rows.UserRow row, Player player, int page, Apply apply) {
+    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
         switch (selector) {
             case Main:

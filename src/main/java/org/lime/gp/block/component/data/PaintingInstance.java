@@ -13,7 +13,7 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.item.CartographyBrush;
 import org.lime.gp.item.CartographyBucket;
 import org.lime.gp.module.DrawMap;
@@ -32,7 +32,7 @@ public class PaintingInstance extends BlockInstance implements CustomTileMetadat
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         EntityHuman human = event.player();
         UUID uuid = human.getUUID();
-        if (Rows.HouseRow.useType(Rows.HouseRow.getInHouse(metadata.location()), uuid) == Rows.HouseRow.UseType.Deny) return EnumInteractionResult.PASS;
+        if (HouseRow.useType(HouseRow.getInHouse(metadata.location()), uuid) == HouseRow.UseType.Deny) return EnumInteractionResult.PASS;
         if (human.getBukkitEntity() instanceof Player player) return CartographyBrush.getData(uuid).flatMap(brush -> metadata.list(DisplayInstance.class).findFirst().map(display -> {
             Color display_color = Color.fromRGB(metadata.list(DisplayInstance.class)
                     .findFirst()

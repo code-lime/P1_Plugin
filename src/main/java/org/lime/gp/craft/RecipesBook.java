@@ -39,7 +39,7 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
 import org.lime.gp.craft.recipe.Recipes;
-import org.lime.gp.database.Rows;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
@@ -147,14 +147,14 @@ public class RecipesBook implements Listener {
         RecipesBook.resend();
     }
     public static void update() {
-        EntityPosition.onlinePlayers.keySet().forEach((uuid) -> Rows.UserRow.getBy(uuid).ifPresent(RecipesBook::editRow));
+        EntityPosition.onlinePlayers.keySet().forEach((uuid) -> UserRow.getBy(uuid).ifPresent(RecipesBook::editRow));
     }
 
     public static void resend() {
         playerCans.clear();
         update();
     }
-    public static void editRow(Rows.UserRow row) {
+    public static void editRow(UserRow row) {
         if (row == null) return;
         lime.nextTick(() -> {
             if (!(row.getOnline() instanceof CraftPlayer player)) return;
