@@ -23,7 +23,6 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.system;
-import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.DyeColorSetting;
 
 import java.util.Map;
