@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 
 public class FriendRow extends BaseRow {

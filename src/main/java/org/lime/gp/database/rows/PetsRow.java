@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 
 public class PetsRow extends BaseRow {
     public int id;

@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 import org.lime.system;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 
 public class PreDonateRow extends BaseRow {
     public enum State {

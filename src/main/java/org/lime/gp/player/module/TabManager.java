@@ -4,7 +4,7 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.lime;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.packetwrapper.WrapperPlayServerPlayerInfo;

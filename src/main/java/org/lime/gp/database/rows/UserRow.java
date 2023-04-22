@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 import org.lime.system;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.TabManager;

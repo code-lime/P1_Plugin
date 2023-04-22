@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 
 public class DiscordRow extends BaseRow {
     public long discordID;

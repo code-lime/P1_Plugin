@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.extension.ExtMethods;
 
 import com.google.common.collect.ImmutableSet;

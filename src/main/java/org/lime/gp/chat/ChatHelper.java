@@ -23,7 +23,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.database.tables.ITable;
 import org.lime.gp.database.tables.Tables;

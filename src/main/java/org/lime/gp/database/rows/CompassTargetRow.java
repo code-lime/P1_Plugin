@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.lime.system;
 import org.lime.gp.lime;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.module.EntityPosition;
 
 public class CompassTargetRow extends BaseRow {

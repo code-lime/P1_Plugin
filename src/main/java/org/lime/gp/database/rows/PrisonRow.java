@@ -8,7 +8,7 @@ import org.lime.Position;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 
 public class PrisonRow extends BaseRow {
     public int id;

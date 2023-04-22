@@ -5,7 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.AnyRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.Logged;

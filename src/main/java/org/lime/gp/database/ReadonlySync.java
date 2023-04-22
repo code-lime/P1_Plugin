@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.lime.core;
 import org.lime.gp.admin.Administrator;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.Skins;

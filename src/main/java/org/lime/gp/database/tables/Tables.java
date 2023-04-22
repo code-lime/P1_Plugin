@@ -4,7 +4,7 @@ import org.lime.core;
 import org.lime.gp.admin.BanList;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.debug;
 import org.lime.gp.database.rows.AAnyRow;
 import org.lime.gp.database.rows.AnyRow;
 import org.lime.gp.database.rows.BanListRow;
@@ -48,10 +48,10 @@ public class Tables {
         KeyedTable.updateAll();
     }
 
-    public static MySql.debug getTable(String table, system.Action1<ITable<? extends BaseRow>> callback) {
+    public static debug getTable(String table, system.Action1<ITable<? extends BaseRow>> callback) {
         if (table.startsWith("!sql ")) return Methods.SQL.Async.rawSqlQuery(table.substring(5), AnyRow::new, rows -> callback.invoke(new StaticTable<>(rows)));
         callback.invoke(KeyedTable.tables.get(table));
-        return new MySql.debug();
+        return new debug();
     }
     public static KeyedTable<? extends BaseRow> getLoadedTable(String table) {
         return KeyedTable.tables.getOrDefault(table, null);

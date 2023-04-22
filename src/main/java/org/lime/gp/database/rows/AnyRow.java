@@ -5,7 +5,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
 
 public class AnyRow extends BaseRow {
     public HashMap<String, String> columns = new HashMap<>();

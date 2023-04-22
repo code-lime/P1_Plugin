@@ -8,7 +8,8 @@ import org.lime.core;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.MySql;
+import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlAsync;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.MenuCreator;
@@ -75,7 +76,7 @@ public class JavaScript {
         public List<String> targets_npc(String uuid) { return Collections.emptyList(); }
 
         public List<String> getPlayers() { return Bukkit.getOnlinePlayers().stream().map(OfflinePlayer::getUniqueId).map(UUID::toString).collect(Collectors.toList()); }
-        public MySql._async getSQL() { return Methods.SQL.Async; }
+        public MySqlAsync getSQL() { return Methods.SQL.Async; }
         public Class<?> findType(String type2) {
             try { return Class.forName(type2); } catch (ClassNotFoundException e) { return null; }
         }
