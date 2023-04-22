@@ -30,7 +30,7 @@ import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.craft.Crafts;
 import org.lime.gp.craft.Locked;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.ReadonlySync;
+import org.lime.gp.database.readonly.ReadonlySync;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.*;
 import org.lime.gp.item.weapon.Bullets;
