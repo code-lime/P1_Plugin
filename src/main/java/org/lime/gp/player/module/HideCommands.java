@@ -3,8 +3,8 @@ package org.lime.gp.player.module;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,6 +33,7 @@ public class HideCommands implements Listener {
         JsonArray remove = json.get("remove").getAsJsonArray();
 
         Map<String, Command> commands = Bukkit.getCommandMap().getKnownCommands();
+        Map<String, String[]> aliases = Bukkit.getServer().getCommandAliases();
         Map<String, Command> replace_command = Stream.of("me", "ban", "ban-ip", "pardon", "pardon-ip", "banlist").collect(Collectors.toMap(cmd -> cmd, cmd -> commands.get("lime:" + cmd)));
         hides.clear();
         commands.entrySet()
@@ -48,14 +49,17 @@ public class HideCommands implements Listener {
 
                     if (remove.contains(new JsonPrimitive(command))) {
                         hides.add(command);
-                        commands.remove(command);
+                        cmd.unregister(Bukkit.getCommandMap());
+                        aliases.remove(command);
                     }
                 });
         lime.writeAllConfig("commands", system.toFormat(json));
 
-        lime.logOP(Bukkit.getServer().reloadCommandAliases()
+        //MinecraftServer.getServer().vanillaCommandDispatcher.getDispatcher()
+        /*lime.logOP(Bukkit.getServer().reloadCommandAliases()
                 ? (ChatColor.GREEN + "Command aliases successfully reloaded.")
-                : (ChatColor.RED + "An error occurred while trying to reload command aliases."));
+                : (ChatColor.RED + "An error occurred while trying to reload command aliases."));*/
+
     }
 
     @EventHandler public static void onCommand(PlayerCommandSendEvent e) {
