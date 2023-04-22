@@ -1,7 +1,6 @@
 package org.lime.gp.player.module;
 
 import com.comphenix.protocol.events.PacketContainer;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
@@ -22,7 +21,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.display.EditedDataWatcher;
 import org.lime.gp.admin.AnyEvent;
-import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.DrugsSetting;
@@ -35,7 +33,6 @@ import org.lime.system;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class Drugs implements Listener {
     public enum EffectType {
@@ -169,10 +166,12 @@ public class Drugs implements Listener {
         }
         
         public void applyEffect(Player player, int minecraftTick) {
-            effects.values().forEach(type -> type.applyEffect(player, minecraftTick));
+            if (health_timer <= 0) effects.values().forEach(type -> type.applyEffect(player, minecraftTick));
             if (health_timer <= 0 && addiction_timer > 90 || (addiction_timer > 15 && effects.isEmpty())) {
                 if (minecraftTick % 1000 == 0)
                     player.addPotionEffect(PotionEffectType.WITHER.createEffect(5 * 20, 0).withIcon(false).withParticles(false));
+                if (minecraftTick % 20 == 0)
+                    player.addPotionEffect(PotionEffectType.DARKNESS.createEffect(2 * 20, 0).withIcon(false).withParticles(false));
             } else if (health_timer > 0) {
                 if (minecraftTick % 20 == 0)
                     Thirst.thirstStateByKey(player, "drugs");
