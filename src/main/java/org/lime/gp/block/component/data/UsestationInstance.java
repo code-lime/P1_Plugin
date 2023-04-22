@@ -72,7 +72,7 @@ public class UsestationInstance extends BlockComponentInstance<UsestationCompone
     
     public static void init() {
         JavaScript.js.instances.put("usestation", new UsestationJS());
-        JavaScript.js.reinstance();
+        JavaScript.js.reinstance(false);
     }
 
     public UsestationInstance(UsestationComponent component, CustomTileMetadata metadata) {
