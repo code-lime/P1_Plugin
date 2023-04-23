@@ -1,23 +1,54 @@
 package org.lime.gp.player.level;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.bukkit.inventory.ItemStack;
+import org.lime.system;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.item.loot.ILoot;
+import org.lime.gp.module.PopulateLootEvent;
 
 import com.google.gson.JsonObject;
 
 public class LevelStep {
+    public enum LootModifyAction {
+        NONE("n"),
+        APPEND("a"),
+        REPLACE("r"),
+        APPEND_IF_NOT_EMPTY("ane"),
+        REPLACE_IF_NOT_EMPTY("rne");
+
+        public final String fastPrefix;
+
+        LootModifyAction(String fp) {
+            this.fastPrefix = fp;
+        }
+
+        private boolean isPostfix(String postfix) {
+            return postfix.equalsIgnoreCase(fastPrefix) ||
+                postfix.equalsIgnoreCase(name());
+        }
+
+        public static LootModifyAction byPostfix(String postfix) {
+            for (LootModifyAction action : values()) {
+                if (action.isPostfix(postfix))
+                    return action;
+            }
+            return LootModifyAction.NONE;
+        }
+    }
+
     public final int level;
     public final LevelData data;
     public final double total;
 
     public final HashMap<ExperienceAction<?, ?>, HashMap<?, Double>> variable = new HashMap<>();
-    public final List<system.Toast3<Material, CraftManager.RecipeSlot, ItemManager.ILoot>> breakLootTable;
-    public final List<system.Toast2<Material, ItemManager.ILoot>> anyBreakLootTable;
+    public final HashMap<String, system.Toast2<ILoot, LootModifyAction>> modifyLootTable = new HashMap<>();
 
     public LevelStep(int level, LevelData data, JsonObject json) {
         this.level = level;
@@ -27,8 +58,30 @@ public class LevelStep {
             ExperienceAction<?, ?> action = ExperienceAction.getByName(kv.getKey());
             this.variable.put(action, createVariable(action, kv.getValue().getAsJsonObject()));
         });
+        json.get("loot").getAsJsonObject().entrySet().forEach(kv -> {
+            String key = kv.getKey();
+            String[] keys = key.split("#", 2);
+            this.modifyLootTable.put(keys[0], system.toast(ILoot.parse(kv.getValue()), LootModifyAction.byPostfix(keys[1])));
+        });
     }
 
+
+    public void tryModifyLoot(PopulateLootEvent e) {
+        system.Toast2<ILoot, LootModifyAction> loot = modifyLootTable.get(e.getKey().getPath());
+        if (loot == null) return;
+        List<ItemStack> items = loot.val0.generateFilter(e);
+        switch (loot.val1) {
+            case APPEND -> e.addItems(items);
+            case APPEND_IF_NOT_EMPTY -> {
+                if (!items.isEmpty()) e.addItems(items);
+            }
+            case REPLACE -> e.setItems(items);
+            case REPLACE_IF_NOT_EMPTY -> {
+                if (!items.isEmpty()) e.setItems(items);
+            }
+            default -> {}
+        }
+    }
 
     private static <TValue, TCompare>HashMap<TCompare, Double> createVariable(ExperienceAction<TValue, TCompare> action, JsonObject values) {
         HashMap<TCompare, Double> list = new HashMap<>();
@@ -49,7 +102,7 @@ public class LevelStep {
 
     public <TValue, TCompare>void appendExp(UUID uuid, ExperienceAction<TValue, TCompare> type, TValue value) {
         getExpValue(type, value).ifPresent(exp -> UserRow.getBy(uuid).ifPresent(user -> {
-            Methods.appendDeltaLevel(user.id, data.work, exp);
+            Methods.appendDeltaLevel(user.id, data.work, exp / total);
         }));
     }
 

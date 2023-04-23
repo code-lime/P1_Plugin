@@ -34,11 +34,11 @@ public class ExperienceAction<TValue, TCompare> {
     }
 
     public static ExperienceAction<?, ?> getByName(String name) {
-        return switch (name) {
-            case "KILL" -> KILL;
-            case "BREAK" -> BREAK;
-            case "CRAFT" -> CRAFT;
-            case "FARM" -> FARM;
+        return switch (name.toLowerCase()) {
+            case "kill" -> KILL;
+            case "break" -> BREAK;
+            case "craft" -> CRAFT;
+            case "farm" -> FARM;
             default -> throw new IllegalArgumentException("Type '"+name+"' not supported!");
         };
     }

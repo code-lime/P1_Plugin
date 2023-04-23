@@ -34,6 +34,6 @@ public class LevelRow extends BaseRow {
         return UserRow.getBy(uuid).flatMap(v -> getBy(v.id, v.work));
     }
     public static Optional<LevelRow> getBy(int user_id, int work) {
-        return Tables.LEVELS_TABLE.getOther("work", user_id + "^" + work);
+        return Tables.LEVEL_TABLE.getOther("work", user_id + "^" + work);
     }
 }

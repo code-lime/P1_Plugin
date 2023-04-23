@@ -147,7 +147,7 @@ public class Tables {
     public static final KeyedTable<SmsPresetRow> SMSPRESET_TABLE = KeyedTable.of("sms_preset", SmsPresetRow::new)
             .keyed("id", v -> v.id + "")
             .build();
-    public static final KeyedTable<LevelRow> LEVELS_TABLE = KeyedTable.of("levels", LevelRow::new)
+    public static final KeyedTable<LevelRow> LEVEL_TABLE = KeyedTable.of("level", LevelRow::new)
             .keyed("id", v -> v.id + "")
             .other("work", v -> v.user_id + "^" + v.work)
             .build();
