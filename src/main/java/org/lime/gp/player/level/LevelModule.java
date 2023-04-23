@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.lime.display.lime;
 import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.module.PopulateLootEvent;
@@ -34,6 +35,7 @@ public class LevelModule implements Listener {
     private static final HashMap<Integer, LevelData> workData = new HashMap<>();
 
     private static void config(JsonObject json) {
+        json = lime.combineParent(json, true, false);
         HashMap<Integer, LevelData> workData = new HashMap<>();
         json.entrySet().forEach(kv -> {
             int work = Integer.parseInt(kv.getKey());
@@ -82,16 +84,6 @@ public class LevelModule implements Listener {
         getLevelStep(uuid).ifPresent(step -> step.appendExp(uuid, ExperienceAction.CRAFT, e.getCurrentItem()));
     }
     
-    public static void onDie(Player player) {
-        /*Player player = e.getEntity();
-        TeamData teamData = TeamManager.GetTeamData(player);
-        if (teamData == null) return;
-        ExperienceData.ExpData expData = teamData.expData;
-        if (expData == null) return;
-        double expMod = 1 - (teamData.HasKey("die_exp") ? teamData.GetDouble("die_exp") : 0.1);
-        TeamData.ExperienceData.SetExp(player, expData.type, v -> v * expMod);*/
-    }
-
     @EventHandler private static void onLoot(PopulateLootEvent e) {
         e.getOptional(PopulateLootEvent.Parameters.ThisEntity)
             .map(v -> v.getBukkitEntity() instanceof CraftPlayer cp ? cp : null)
