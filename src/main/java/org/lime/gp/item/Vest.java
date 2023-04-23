@@ -52,8 +52,10 @@ public class Vest implements Listener {
     }
 
     private static final HashMap<UUID, HashMap<EquipmentSlot, VestInventory>> inventoryVest = new HashMap<>();
+    private static int dirtyCount = 0;
+    private static int callIndex = 0;
     public static void init() {
-        lime.repeat(Vest::tick, 1);
+        lime.repeatTicks(Vest::tick, 1);
     }
     private static List<ItemStack> dieTick(UUID die_uuid) {
         List<ItemStack> die_items = new ArrayList<>();
@@ -83,6 +85,11 @@ public class Vest implements Listener {
         return die_items;
     }
     private static void tick() {
+        callIndex++;
+        if (callIndex > 10 || dirtyCount > 0) {
+            dirtyCount--;
+            callIndex = 0;
+        } else return;
         dieTick(null);
         Bukkit.getOnlinePlayers().forEach(player -> {
             UUID uuid = player.getUniqueId();
@@ -197,7 +204,8 @@ public class Vest implements Listener {
     }
 
     private static boolean openFilterInventory(Player player, VestInventory vest, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
-        tick();
+        //tick();
+        dirtyCount = 4;
         player.closeInventory();
         Map<Integer, Checker> slots = vest.vest_data.slots;
         return InterfaceManager.of(player, vest.inventory)
@@ -266,7 +274,8 @@ public class Vest implements Listener {
     }
 
     public static boolean dropDieItems(Player player, Location location, system.Action1<ItemStack> callback) {
-        tick();
+        //tick();
+        dirtyCount = 4;
         List<ItemStack> items = dieTick(player.getUniqueId());
         items.removeIf(v -> v.getType().isAir());
         if (items.isEmpty()) return false;
