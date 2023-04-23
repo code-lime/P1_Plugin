@@ -31,7 +31,7 @@ public class DebugLootFilter implements ILootFilter {
 
     public boolean isFilter(PopulateLootEvent e) {
         List<String> params = new ArrayList<>();
-        params.add("List of loot filter:");
+        params.add("List '"+prefix+"' of loot filter:");
         addParam(params, e, "this", LootContextParameters.THIS_ENTITY, v -> v.getBukkitEntity().getType().name());
         addParam(params, e, "direct.killer", LootContextParameters.DIRECT_KILLER_ENTITY, v -> v.getBukkitEntity().getType().name());
         addParam(params, e, "killer", LootContextParameters.KILLER_ENTITY, v -> v.getBukkitEntity().getType().name());
