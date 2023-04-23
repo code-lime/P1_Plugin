@@ -148,6 +148,7 @@ public class PopulateLootEvent extends Event implements Cancellable {
 
     public boolean has(LootContextParameter<?> parameter) { return context.hasParam(parameter); }
     public <T>T get(LootContextParameter<T> parameter) { return context.getParam(parameter); }
+    public <T>Optional<T> getOptional(LootContextParameter<T> parameter) { return Optional.ofNullable(context.getParamOrNull(parameter)); }
     public <T>T getOrDefault(LootContextParameter<T> parameter, T def) { return has(parameter) ? get(parameter) : def; }
     private static final reflection.field<Map<LootContextParameter<?>, Object>> params_LootTableInfo = reflection.field
             .ofMojang(LootTableInfo.class, "params");

@@ -1,35 +1,22 @@
 package org.lime.gp.item.loot;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import org.bukkit.inventory.ItemStack;
-import org.lime.system;
-import org.lime.gp.item.data.Checker;
+import org.lime.gp.module.PopulateLootEvent;
 
 import com.google.gson.JsonElement;
 
 public abstract class ILoot {
     public abstract List<ItemStack> generate();
-
-    private static system.Toast2<Checker, system.IRange> parseElement(String value) {
-        String[] key = value.split("\\*");
-        String type = Arrays.stream(key).limit(key.length - 1).collect(Collectors.joining("*"));
-
-        return system.toast(Checker.createCheck(type), key.length > 1 ? system.IRange.parse(key[key.length - 1]) : new system.OnceRange(1));
+    public List<ItemStack> generateFilter(PopulateLootEvent loot) {
+        return generate();
     }
 
-    public static ILoot parse(String parent, JsonElement json) {
-        if (json.isJsonPrimitive()) {
-            return parseElement(json.getAsString()).invokeGet(SingleLoot::new);
-        } else if (json.isJsonArray()) {
-            MultiLoot loot = new MultiLoot();
-            json.getAsJsonArray().forEach(kv -> loot.loot.add(parse(parent, kv)));
-            return loot;
-        } else if (json.isJsonNull())  {
-            return new EmptyLoot();
-        }
+    public static ILoot parse(JsonElement json) {
+        if (json.isJsonPrimitive()) return new SingleLoot(json.getAsJsonPrimitive());
+        else if (json.isJsonArray()) return new MultiLoot(json.getAsJsonArray());
+        else if (json.isJsonNull()) return new EmptyLoot();
+        else if (json.isJsonObject()) return new FilterLoot(json.getAsJsonObject());
         throw new IllegalArgumentException("[LOOT] Error parse LootTable");
     }
 
