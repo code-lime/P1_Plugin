@@ -121,7 +121,6 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
 
     static {
         try {
-            /* TODO */
             HashMap<net.minecraft.world.item.crafting.Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipesMap = new HashMap<>(CRAFTING_MANAGER.recipes);
             for (net.minecraft.world.item.crafting.Recipes<?> recipes : BuiltInRegistries.RECIPE_TYPE)
                 recipesMap.computeIfAbsent(recipes, v -> new Object2ObjectLinkedOpenHashMap<>());

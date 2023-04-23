@@ -189,8 +189,6 @@ public class SPCoinDonate {
                 state.invoke(data.getAsBoolean());
             });
     }
-
-    /* TODO - проверить */
 }
 
 

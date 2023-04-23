@@ -323,16 +323,14 @@ public class Items implements Listener {
     }
     public static String getMaterialKey(Material material) { return "Minecraft." + material; }
     public static boolean isMaterialKey(String key) { return key.startsWith("Minecraft."); }
-    /* TODO */
-    public static String getCategoryKey(Material material) {
-        /*return "Category." + Optional.ofNullable(material)
+    /*public static String getCategoryKey(Material material) {
+        return "Category." + Optional.ofNullable(material)
             .map(CraftMagicNumbers::getItem)
             .map(Item::getItemCategory)
             .map(CraftCreativeCategory::fromNMS)
             .map(Enum::name)
-            .orElse("OTHER");*/
-        return "NONE";
-    }
+            .orElse("OTHER");
+    }*/
 
     public static Optional<String> getGlobalKeyByItem(ItemStack item) {
         if (item == null) return Optional.empty();
