@@ -286,7 +286,7 @@ public class Discord implements Listener {
         boolean hasConfirm = rolesIds.contains(confirmed_role);
 
         boolean isOnline = Bukkit.getPlayer(uuid) != null;
-        boolean isGift = TabManager.hasDonateID(uuid);
+        boolean isGift = TabManager.hasDonate(uuid);
 
         HashMap<Long, Boolean> user_roles = new HashMap<>();
 

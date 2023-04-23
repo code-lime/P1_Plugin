@@ -248,7 +248,7 @@ public class Login implements Listener {
         Player player = e.getPlayer();
         if (e.getResult() == PlayerLoginEvent.Result.KICK_FULL) {
             if (player.isOp()
-                    || TabManager.static_ids.containsKey(player.getUniqueId())
+                    || TabManager.donates.containsKey(player.getUniqueId())
                     || Administrator.Permissions.IGNORE_FULL.check(player)
                     || Administrator.Permissions.IGNORE_FULL.checkOffline(player.getUniqueId())
             ) e.setResult(PlayerLoginEvent.Result.ALLOWED);

@@ -81,9 +81,21 @@ public class TabManager implements Listener {
                 }));
     }
 
-    public static ConcurrentHashMap<UUID, Integer> static_ids = new ConcurrentHashMap<>();
-    public static boolean hasDonateID(UUID uuid) {
-        return static_ids.containsKey(uuid);
+    public static class DonateInfo {
+        public DonateInfo(Optional<Integer> static_id) {
+            this.static_id = static_id;
+        }
+
+        private final Optional<Integer> static_id;
+
+        public Optional<Integer> staticId() {
+            return static_id;
+        }
+    }
+
+    public static ConcurrentHashMap<UUID, DonateInfo> donates = new ConcurrentHashMap<>();
+    public static boolean hasDonate(UUID uuid) {
+        return donates.containsKey(uuid);
     }
 
     public static Integer getPayerIDorNull(UUID uuid) {
@@ -125,11 +137,31 @@ public class TabManager implements Listener {
     }
 
     private static int getNewIndex(UUID uuid) {
-        Integer static_id = static_ids.getOrDefault(uuid, null);
+        return Optional.ofNullable(donates.get(uuid))
+            .flatMap(v -> v.staticId())
+            .filter(v -> !PlayerData.isExistIndex(v))
+            .orElseGet(() -> {
+                int index = 0;
+                while (true) {
+                    index++;
+                    if (PlayerData.isExistIndex(index)) continue;
+                    boolean equals = false;
+                    for (DonateInfo info : donates.values()) {
+                        Integer id = info.staticId().orElse(null);
+                        if (id != null && id == index) {
+                            equals = true;
+                            break;
+                        }
+                    }
+                    if (equals) continue;
+                    return index;
+                }
+            });
+        /*Integer static_id = Optional.ofNullable(donates.get(uuid)).flatMap(v -> v.staticId());
         if (static_id != null && !PlayerData.isExistIndex(static_id)) return static_id;
         int index = 1;
         while (PlayerData.isExistIndex(index) || static_ids.containsValue(index)) index++;
-        return index;
+        return index;*/
     }
     public static class PlayerData {
         private final static ConcurrentHashMap<UUID, PlayerData> displayIndexing = new ConcurrentHashMap<>();
@@ -264,19 +296,21 @@ public class TabManager implements Listener {
                 playerInfo.setData(data);*/
             }
         });
-        static_ids.clear();
-        Methods.donateStaticID(list -> {
-            static_ids.putAll(list);
+        
+
+        donates.clear();
+        Methods.donateVip(list -> {
+            donates.putAll(list);
             lime.once(TabManager::regen, 5);
             update();
             lime.repeat(() -> {
                 bufferTab.entrySet().removeIf(kv -> Bukkit.getPlayer(kv.getKey()) == null);
-                Methods.donateStaticID(_list -> {
-                    static_ids.putAll(_list);
-                    static_ids.entrySet().removeIf(kv -> !_list.containsKey(kv.getKey()));
+                Methods.donateVip(_list -> {
+                    donates.putAll(_list);
+                    donates.entrySet().removeIf(kv -> !_list.containsKey(kv.getKey()));
                     Bukkit.getOnlinePlayers().forEach(player -> {
                         Set<String> tags = player.getScoreboardTags();
-                        boolean setHas = static_ids.containsKey(player.getUniqueId());
+                        boolean setHas = donates.containsKey(player.getUniqueId());
                         boolean getHas = tags.contains("vip");
                         if (setHas == getHas) return;
                         if (setHas) tags.add("vip");
@@ -314,8 +348,9 @@ public class TabManager implements Listener {
         header = LangMessages.Message.Tab_Header.getSingleMessage(Apply.of().add(args));
         footer = LangMessages.Message.Tab_Footer.getSingleMessage(Apply.of().add(args));
 
-        static_ids.forEach((uuid, static_id) -> {
-            if (PlayerData.isExistIndex(static_id) || PlayerData.displayIndexing.remove(uuid) == null) return;
+        donates.forEach((uuid, info) -> {
+            Integer id = info.staticId().orElse(null);
+            if (id == null || PlayerData.isExistIndex(id) || PlayerData.displayIndexing.remove(uuid) == null) return;
             PlayerData.getPlayerData(uuid);
         });
 

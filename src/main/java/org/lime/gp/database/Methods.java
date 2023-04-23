@@ -17,6 +17,7 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.BanListRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.player.module.TabManager;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.web;
@@ -345,12 +346,12 @@ public class Methods {
         );
     }
 
-    private static final String DonateStaticID_SQL = "SELECT donate_list.uuid AS 'uuid', CONVERT(donate_list.info, UNSIGNED INTEGER) AS 'timed_id' FROM donate_list WHERE donate_list.`type` = 'STATIC_ID' AND TIMESTAMPDIFF(SECOND, MoscowDateTime(), DATE_ADD(donate_list.date, INTERVAL donate_list.time SECOND)) > 0";
-    public static void donateStaticID(system.Action1<HashMap<UUID, Integer>> callback) {
+    private static final String DonateVIP_SQL = "SELECT * FROM donate_vip";
+    public static void donateVip(system.Action1<HashMap<UUID, TabManager.DonateInfo>> callback) {
         SQL.Async.rawSqlQuery(
-                DonateStaticID_SQL,
-                set -> system.toast(UUID.fromString(MySql.readObject(set, "uuid", String.class)), MySql.readObject(set, "timed_id", Integer.class)),
-                list -> callback.invoke(system.map.<UUID, Integer>of().add(list, kv -> kv.val0, kv -> kv.val1).build())
+                DonateVIP_SQL,
+                set -> system.toast(UUID.fromString(MySql.readObject(set, "uuid", String.class)), MySql.readObject(set, "static_id", Integer.class)),
+                list -> callback.invoke(system.map.<UUID, TabManager.DonateInfo>of().add(list, kv -> kv.val0, kv -> new TabManager.DonateInfo(Optional.ofNullable(kv.val1))).build())
         );
     }
 
