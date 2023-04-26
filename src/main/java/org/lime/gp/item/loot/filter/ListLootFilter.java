@@ -2,6 +2,7 @@ package org.lime.gp.item.loot.filter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.lime.system;
 import org.lime.gp.item.data.Checker;
@@ -25,9 +26,9 @@ public abstract class ListLootFilter implements ILootFilter {
         public static final LootContextParameter<Integer> LootingMod = LootContextParameters.LOOTING_MOD;
     */
     public ListLootFilter(String argLine) {
-        String[] argArray = argLine.split(";");
+        String[] argArray = argLine.split(Pattern.quote(";"));
         for (String argItem : argArray) {
-            String[] kv = argItem.split("=", 2);
+            String[] kv = argItem.split(Pattern.quote("="), 2);
             String key = kv[0];
             String value = kv.length > 1 ? kv[1] : "";
             switch (key) {

@@ -41,7 +41,7 @@ public class DebugLootFilter implements ILootFilter {
         addParam(params, e, "tool", LootContextParameters.TOOL, v -> Items.getGlobalKeyByItem(v).orElse("NULL"));
         addParam(params, e, "explosion", LootContextParameters.EXPLOSION_RADIUS, v -> system.getDouble(v));
         addParam(params, e, "looting", LootContextParameters.LOOTING_MOD, v -> system.getDouble(v));
-        lime.logOP(String.join("\n - "));
+        lime.logOP(String.join("\n - ", params));
         return true;
     }
 }

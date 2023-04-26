@@ -85,7 +85,8 @@ public class LevelModule implements Listener {
     }
     
     @EventHandler private static void onLoot(PopulateLootEvent e) {
-        e.getOptional(PopulateLootEvent.Parameters.ThisEntity)
+        e.getOptional(PopulateLootEvent.Parameters.KillerEntity)
+            .or(() -> e.getOptional(PopulateLootEvent.Parameters.ThisEntity))
             .map(v -> v.getBukkitEntity() instanceof CraftPlayer cp ? cp : null)
             .flatMap(player -> getLevelStep(player.getUniqueId()))
             .ifPresent(step -> step.tryModifyLoot(e));

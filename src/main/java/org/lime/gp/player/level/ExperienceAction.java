@@ -1,18 +1,20 @@
 package org.lime.gp.player.level;
 
-import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.lime.system;
 import org.lime.gp.item.data.Checker;
+import org.lime.gp.item.loot.filter.BlockLootFilter;
+
+import net.minecraft.world.level.block.state.IBlockData;
 
 public class ExperienceAction<TValue, TCompare> {
-    public static final ExperienceAction<Entity, EntityType> KILL = of((e1, e2) -> e1.getType() == e2, v -> EntityType.valueOf(v));
-    public static final ExperienceAction<Block, Material> BREAK = of((e1, e2) -> e1.getType() == e2, v -> Material.valueOf(v));
+    public static final ExperienceAction<Entity, EntityCompare> KILL = of((e1, e2) -> e2.isCompare(e1), v -> EntityCompare.create(v));
+    public static final ExperienceAction<Block, system.Func1<IBlockData, Boolean>> BREAK = of((e1, e2) -> e1 instanceof CraftBlock b && e2.invoke(b.getNMS()), v -> BlockLootFilter.createBlockTest("block="+v));
     public static final ExperienceAction<ItemStack, Checker> CRAFT = of((e1, e2) -> e2.check(e1), v -> Checker.createCheck(v));
-    public static final ExperienceAction<Entity, EntityType> FARM = of((e1, e2) -> e1.getType() == e2, v -> EntityType.valueOf(v));
+    public static final ExperienceAction<Entity, EntityCompare> FARM = of((e1, e2) -> e2.isCompare(e1), v -> EntityCompare.create(v));
 
     private final system.Func2<TValue, TCompare, Boolean> action;
     private final system.Func1<String, TCompare> parse;
