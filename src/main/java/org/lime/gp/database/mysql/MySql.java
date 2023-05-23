@@ -217,6 +217,18 @@ public final class MySql implements Closeable {
             throw new IllegalArgumentException("ReadObject", ex);
         }
     }
+    public static <T>Optional<T> readObjectOptional(ResultSet set, String column, Class<T> tClass) {
+        try {
+            ResultSetMetaData meta = set.getMetaData();
+            int columns = meta.getColumnCount();
+            for (int x = 1; x <= columns; x++)
+                if (column.equals(meta.getColumnName(x)))
+                    return Optional.ofNullable(set.getObject(x, tClass));
+            return Optional.empty();
+        } catch (SQLException ex) {
+            throw new IllegalArgumentException("ReadObject", ex);
+        }
+    }
     public static boolean hasColumn(ResultSet set, String column) {
         try {
             ResultSetMetaData meta = set.getMetaData();
