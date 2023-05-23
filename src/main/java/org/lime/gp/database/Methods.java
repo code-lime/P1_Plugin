@@ -437,6 +437,23 @@ public class Methods {
             () -> {}
         );
     }
+    public static void removeDeltaLevel(int user_id, int work, double deltaExp) {
+        SQL.Async.rawSql(
+            String.join(" ",
+                "INSERT INTO level (level.user_id, level.work, level.level, level.exp)",
+                "VALUES (@user_id, @work, 0, 0)",
+                "ON DUPLICATE KEY UPDATE",
+                "level.level = GREATEST(0, FLOOR(level.level + level.exp - @exp)),",
+                "level.exp = GREATEST(0, level.level + level.exp - @exp - FLOOR(level.level + level.exp - @exp))"
+            ),
+            MySql.args()
+                .add("user_id", user_id)
+                .add("work", work)
+                .add("exp", deltaExp)
+                .build(),
+            () -> {}
+        );
+    }
 }
 
 
