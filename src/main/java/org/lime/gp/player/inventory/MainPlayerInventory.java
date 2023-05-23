@@ -25,6 +25,7 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.gp.player.module.Ghost;
 import org.lime.gp.extension.Cooldown;
 
 import java.util.HashMap;
@@ -152,6 +153,8 @@ public final class MainPlayerInventory implements Listener {
         };
         ISlot def_offset_slot = (slot, item, isBarrier, player, slots) -> def_slot.invoke(slot - 18, item, isBarrier, player, slots);
         ILockSlot lock_slot = (slot, item, isBarrier, player, slots) -> {
+            if (Ghost.isGhost(player)) return isBarrier ? null : MainPlayerInventory.createBarrier(false);
+
             if (slot == 24) return player.isOp() ? clickData.get(slot).create(player) : (isBarrier ? null : MainPlayerInventory.createBarrier(false));
             ClickSlot _slot = clickData.getOrDefault(slot, null);
             if (_slot == null || !UserRow.hasBy(player.getUniqueId())) {
