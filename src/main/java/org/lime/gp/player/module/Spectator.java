@@ -19,7 +19,15 @@ public class Spectator {
             Entity target = player.getSpectatorTarget();
             if (target == null) return;
             Location location = target.getLocation();
-            ((CraftPlayer)player).getHandle().connection.teleport(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(), PlayerTeleportEvent.TeleportCause.SPECTATE);
+            if (location.getWorld() != player.getWorld()) {
+                for (int i = 0; i < 10; i++) {
+                    lime.onceTicks(() -> player.setSpectatorTarget(target), i * 2);
+                }
+                player.teleport(location, PlayerTeleportEvent.TeleportCause.SPECTATE);
+                player.setSpectatorTarget(target);
+            } else {
+                ((CraftPlayer)player).getHandle().connection.teleport(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(), PlayerTeleportEvent.TeleportCause.SPECTATE);
+            }
         }), 1);
         lime.repeat(() -> Bukkit.getOnlinePlayers().forEach(owner -> {
             if (owner.getWorld() == lime.LoginWorld) {
@@ -29,7 +37,7 @@ public class Spectator {
                 });
                 return;
             }
-            boolean seeSpectator = owner.isOp() || owner.getGameMode() == GameMode.SPECTATOR;
+            boolean seeSpectator = owner.isOp() || (owner.getGameMode() == GameMode.SPECTATOR && !Ghost.isGhost(owner));
             Bukkit.getOnlinePlayers().forEach(target -> {
                 if (owner.equals(target)) return;
                 boolean canSee = owner.canSee(target);
