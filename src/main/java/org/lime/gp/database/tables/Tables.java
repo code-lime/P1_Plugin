@@ -26,6 +26,7 @@ import org.lime.gp.database.rows.UserCraftsRow;
 import org.lime.gp.database.rows.UserFlagsRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.rows.Variable;
+import org.lime.gp.module.JavaScript;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PredonateWhitelist;
 import org.lime.gp.player.perm.Perms;
@@ -56,6 +57,22 @@ public class Tables {
         if (table.startsWith("!sql "))
             return Methods.SQL.Async.rawSqlQuery(table.substring(5), AnyRow::new,
                     rows -> callback.invoke(new StaticTable<>(rows)));
+        if (table.startsWith("!json ")) {
+            JavaScript.getJsString(table.substring(6))
+                .map(system.json::parse)
+                .ifPresent(json -> {
+                    List<AnyRow> rows = new ArrayList<>();
+                    json.getAsJsonArray().forEach(item -> {
+                        HashMap<String, String> columns = new HashMap<>();
+                        item.getAsJsonObject().asMap().forEach((key, value) -> {
+                            columns.put(key, value.getAsString());
+                        });
+                        rows.add(new AnyRow(columns));
+                    });
+                    callback.invoke(new StaticTable<>(rows));
+                });
+            return new debug();
+        }
         callback.invoke(KeyedTable.tables.get(table));
         return new debug();
     }
