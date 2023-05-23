@@ -75,6 +75,10 @@ public class JavaScript {
         public void untarget_npc(String uuid, String npc) {}
         public List<String> targets_npc(String uuid) { return Collections.emptyList(); }
 
+        public String gameTime() {
+            return MySql.calendarToString(DayManager.now());
+        }
+
         public List<String> getPlayers() { return Bukkit.getOnlinePlayers().stream().map(OfflinePlayer::getUniqueId).map(UUID::toString).collect(Collectors.toList()); }
         public MySqlAsync getSQL() { return Methods.SQL.Async; }
         public Class<?> findType(String type2) {
