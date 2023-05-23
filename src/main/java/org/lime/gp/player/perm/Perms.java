@@ -42,6 +42,7 @@ import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.chat.LangMessages;
+import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.module.HandCuffs;
@@ -186,6 +187,7 @@ public class Perms implements Listener {
         canData.add(ICanData.of(role, work.orElse(0)));
 
         work.map(Works.works::get).map(v -> v.canData).ifPresent(canData::add);
+        work.flatMap(workID -> row.flatMap(v -> LevelModule.getLevelStep(v.id, workID))).map(v -> v.canData).ifPresent(canData::add);
         if (role != 0) row.flatMap(Grants::getGrantData).ifPresent(grantData -> {
             canData.add(grantData.canData);
             work.map(grantData.worksCans::get).ifPresent(canData::add);
