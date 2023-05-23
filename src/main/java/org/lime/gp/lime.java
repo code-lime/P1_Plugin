@@ -175,7 +175,6 @@ public class lime extends core {
         add(HorseRiders.create());
         add(InputEvent.create());
         add(Nether.create());
-        add(NPC.create());
         add(PacketLogger.create());
         add(PopulateLootEvent.create());
         add(SingleModules.create());
@@ -254,6 +253,7 @@ public class lime extends core {
 
         add(ChurchManager.create());
         add(Prison.create());
+        add(NPC.create());
 
         addOther().forEach(loadedElement -> lime.once(() -> loadedElement.element()
                 .ifPresentOrElse(
