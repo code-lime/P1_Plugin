@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.lime.system;
-import org.lime.display.lime;
+import org.lime.gp.lime;
 import org.lime.gp.module.PopulateLootEvent;
 
 import net.minecraft.world.level.block.Block;
