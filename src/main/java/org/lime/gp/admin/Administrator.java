@@ -410,6 +410,7 @@ public class Administrator implements Listener {
                 if (player.getGameMode() != GameMode.SURVIVAL || (!player.isOp() && !Permissions.AGM.check(player))) tags.remove("immortality");
                 else {
                     tags.remove("leg.broken");
+                    SleepSaturation.reset(player);
                     CustomUI.TextUI.show(player, "[Бессмертие]", 15);
                     player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                     ProxyFoodMetaData.ofPlayer(player)
