@@ -121,8 +121,8 @@ public class ActionSlot implements Logged.ILoggedDelete {
                 }
             }
 
-            if (_args.length == 1) MenuCreator.show(player, _args[0], Apply.of().add(localArgs));
-            else MenuCreator.show(player, _args[0], _args[1], Apply.of().add(localArgs));
+            if (_args.length == 1) MenuCreator.showOwner(player, _args[0], this, Apply.of().add(localArgs));
+            else MenuCreator.showOwner(player, _args[0], _args[1], this, Apply.of().add(localArgs));
         }
         actions.forEach(action -> action.invoke(player, apply, true));
         sounds.forEach(sound -> Sounds.playSound(ChatHelper.formatText(sound, apply), player));

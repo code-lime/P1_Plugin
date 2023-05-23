@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 public abstract class Base implements Logged.ILoggedDelete {
     private String key;
 
@@ -50,7 +52,7 @@ public abstract class Base implements Logged.ILoggedDelete {
     @Override public boolean isDeleted() { return deleteHandle.isDeleted(); }
     @Override public void delete() { deleteHandle.delete(); }
 
-    public boolean show(Player player, int page, Apply apply) {
+    public boolean show(Player player, int page, @Nullable Logged.ILoggedDelete caller, Apply apply) {
         if (isDeleted()) {
             if (player != null) player.closeInventory();
             return false;
@@ -75,6 +77,10 @@ public abstract class Base implements Logged.ILoggedDelete {
             else send_apply.add("uuid", player.getUniqueId().toString()).add("user_name", player.getName());
             send_apply.add("page", String.valueOf(page));
         } else row = null;
+        
+        if (caller != null) send_apply.add("page_path_caller", caller.getLoggedKey());
+        send_apply.add("page_path_current", getLoggedKey());
+
         send_apply.join(apply);
         for (system.Toast2<String, String> arg : this.args) send_apply.add(arg.val0, ChatHelper.formatText(arg.val1, send_apply));
 

@@ -68,7 +68,14 @@ public class Menu extends Base {
                 system.Toast3<String, Table, ITable<? extends BaseRow>> first = tableData.get(0);
                 Table table = first.val1;
                 int count = first.val2.getRows().size() + table.adds.size();
-                apply.add("max_page", String.valueOf(count / table.slots.size()));
+                if (count == 0) {
+                    apply.add("max_page", "0");
+                } else {
+                    int pageSize = table.slots.size();
+                    int maxPage = count / pageSize;
+                    if (count % pageSize == 0) maxPage--;
+                    apply.add("max_page", String.valueOf(maxPage));
+                }
             }
             List<system.Action0> onClose = new ArrayList<>();
             HashMap<Integer, system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, BaseRow>> onClickEvents = new HashMap<>();

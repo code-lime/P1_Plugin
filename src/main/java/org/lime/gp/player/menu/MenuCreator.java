@@ -16,6 +16,8 @@ import org.lime.system;
 
 import java.util.*;
 
+import javax.annotation.Nullable;
+
 public class MenuCreator {
     public static core.element create() {
         return core.element.create(MenuCreator.class)
@@ -73,6 +75,9 @@ public class MenuCreator {
         return show(player, menu, 0, apply);
     }
     public static boolean show(Player player, String menu, int page, Apply apply) {
+        return showOwner(player, menu, page, null, apply);
+    }
+    public static boolean showOwner(Player player, String menu, int page, @Nullable Logged.ILoggedDelete caller, Apply apply) {
         if (menu == null || menu.isEmpty()) return false;
         Base _menu = menuList.getOrDefault(menu, null);
         if (_menu == null) {
@@ -85,7 +90,7 @@ public class MenuCreator {
                 String args_json = system.toFormat(system.json.object().add(apply.list()).build());
                 lime.logOP(Component.text("MENU." + menu + "[" + page + "] ").append(Component.text("[args]").hoverEvent(HoverEvent.showText(Component.text("Click to copy:\n\n").append(Component.text(args_json)))).clickEvent(ClickEvent.copyToClipboard(args_json))));
             }
-            return _menu.show(player, page, apply);
+            return _menu.show(player, page, caller, apply);
         } catch (Exception e) {
             lime.logStackTrace(e);
             return false;
@@ -93,6 +98,12 @@ public class MenuCreator {
     }
     public static boolean show(Player player, String menu, String page, Apply apply) {
         return show(player, menu, JavaScript.getJsInt(page).orElse(0), apply);
+    }
+    public static boolean showOwner(Player player, String menu, String page, @Nullable Logged.ILoggedDelete caller, Apply apply) {
+        return showOwner(player, menu, JavaScript.getJsInt(page).orElse(0), caller, apply);
+    }
+    public static boolean showOwner(Player player, String menu, @Nullable Logged.ILoggedDelete caller, Apply apply) {
+        return showOwner(player, menu, 0, caller, apply);
     }
 
     public static boolean show(String menu) {
@@ -110,7 +121,7 @@ public class MenuCreator {
                 String args_json = system.toFormat(system.json.object().add(apply.list()).build());
                 lime.logOP(Component.text("MENU." + menu + "[" + page + "] ").append(Component.text("[args]").hoverEvent(HoverEvent.showText(Component.text("Click to copy:\n\n").append(Component.text(args_json)))).clickEvent(ClickEvent.copyToClipboard(args_json))));
             }
-            return _menu.show(null, page, apply);
+            return _menu.show(null, page, null, apply);
         } catch (Exception e) {
             lime.logStackTrace(e);
             return false;
