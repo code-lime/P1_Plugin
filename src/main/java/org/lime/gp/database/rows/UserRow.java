@@ -30,6 +30,8 @@ public class UserRow extends BaseRow {
     public int cardRegen = 0;
     public int wanted = 0;
     public int exp = 0;
+    
+    public Optional<Calendar> dieDate = Optional.empty();
 
     public Calendar CreateDate = null;
     public Calendar ConnectDate = null;
@@ -72,6 +74,9 @@ public class UserRow extends BaseRow {
         exp = MySql.readObject(set, "exp", Integer.class);
         phoneRegen = MySql.readObject(set, "phone_regen", Integer.class);
         cardRegen = MySql.readObject(set, "card_regen", Integer.class);
+
+        dieDate = MySql.readObjectOptional(set, "die_date", Calendar.class);
+
         CreateDate = MySql.readObject(set, "create_date", Calendar.class);
         ConnectDate = MySql.readObject(set, "connect_date", Calendar.class);
     }
