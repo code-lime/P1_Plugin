@@ -1,6 +1,9 @@
 package org.lime.gp.module;
 
 import com.google.gson.JsonObject;
+
+import java.util.Calendar;
+
 import org.bukkit.GameRule;
 import org.lime.core;
 import org.lime.gp.lime;
@@ -53,5 +56,12 @@ public class DayManager {
         if (!DDC) lime.MainWorld.setFullTime(lime.MainWorld.getFullTime() + 1L);
         lime.LoginWorld.setFullTime(lime.MainWorld.getFullTime());
         lime.once(DayManager::next, timeSlownessMultiplier / 20.0);
+    }
+
+    public static Calendar now() {
+        double hours = (lime.MainWorld.getFullTime() + 6000) / 1000.0;
+        Calendar calendar = new Calendar.Builder().setDate(1183, 1, 1).build();
+        calendar.add(Calendar.SECOND, (int)(hours * 60 * 60));
+        return calendar;
     }
 }
