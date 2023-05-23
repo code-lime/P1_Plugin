@@ -29,6 +29,7 @@ import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Death;
+import org.lime.gp.player.module.Ghost;
 import org.lime.gp.player.voice.RadioData;
 import org.lime.gp.player.voice.Voice;
 
@@ -41,7 +42,7 @@ public class ChatMessages implements Listener {
                 .withInit(ChatMessages::init)
                 .addCommand("sms", v -> v
                         .withExecutor(ChatMessages::sms)
-                        .withCheck(_v -> _v instanceof Player)
+                        .withCheck(_v -> _v instanceof Player player && !Ghost.isGhost(player))
                         .withTab((sender, args) -> {
                             Player player = (Player) sender;
                             if (args.length > 1) return getSmsPresets(args[0]);

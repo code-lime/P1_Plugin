@@ -20,6 +20,7 @@ import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.selector.UserSelector;
 import org.lime.gp.player.module.TabManager;
 import org.lime.gp.player.module.Death;
+import org.lime.gp.player.module.Ghost;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +41,7 @@ public class ReadonlySync {
 
     private static final ReadonlyTable<String> ONLINE_READONLY = ReadonlyTable.Builder.<String>of("online", "uuid")
             .withKey(String.class)
-            .withKeys("uuid","x","y","z","world","timed_id","data_icon","data_name","is_op","zone_selector","die","gpose","hide","skin_url")
+            .withKeys("uuid","x","y","z","world","timed_id","data_icon","data_name","is_op","zone_selector","die","gpose","hide","skin_url","ghost")
             .withData(() -> EntityPosition.onlinePlayers.entrySet().stream().collect(Collectors.toMap(kv -> kv.getKey().toString(), kv -> {
                 UUID uuid = kv.getKey();
                 Player player = kv.getValue();
@@ -63,7 +64,8 @@ public class ReadonlySync {
                         Death.isDamageLay(uuid),
                         lime.isLay(player) ? "LAY" : lime.isSit(player) ? "SIT" : "NONE",
                         HideNickSetting.isHide(player) ? 1 : 0,
-                        Skins.getSkinURL(player)
+                        Skins.getSkinURL(player),
+                        Ghost.getGhostTarget(player).orElse(null)
                 );
             })))
             .build();
