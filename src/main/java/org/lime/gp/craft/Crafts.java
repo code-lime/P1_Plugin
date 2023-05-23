@@ -469,7 +469,14 @@ public class Crafts {
                 String clicker_type = json.get("clicker_type").getAsString();
                 if (json.has("repair")) return ClickerRecipe.ofRepair(key, group, category, input, system.IRange.parse(json.get("repair").getAsString()), clicks, clicker_type);
                 else if (json.has("enchantments")) return ClickerRecipe.ofCombine(key, group, category, input, Streams.stream(json.get("enchantments").getAsJsonArray()).map(JsonElement::getAsString).map(NamespacedKey::minecraft).map(Enchantment::getByKey).toList(), clicks, clicker_type);
-                else return ClickerRecipe.ofDefault(key, group, category, input, OutputSlot.of(json.get("output").getAsString()), clicks, clicker_type);
+                else {
+                    if (json.get("output").isJsonArray()) {
+                        return ClickerRecipe.ofDefault(key, group, category, input, Streams.stream(json.get("output").getAsJsonArray().iterator()).map(v -> v.getAsString()).map(OutputSlot::of).toList(), clicks, clicker_type);
+                    } else {
+                        return ClickerRecipe.ofDefault(key, group, category, input, List.of(OutputSlot.of(json.get("output").getAsString())), clicks, clicker_type);
+                    }
+                    
+                }
             }
             case "item_frame": return new ItemFrameRecipe(key, RecipeSlot.of(key.toString(), json.get("input")), OutputSlot.of(json.get("output").getAsString()), json.get("seconds").getAsInt());
         }
