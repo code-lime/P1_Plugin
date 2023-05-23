@@ -86,8 +86,8 @@ public final class MySql implements Closeable {
         callMySQL(index, debug, sql, func.toData(), error, _finally);
     }
 
-    private static String fromCalendar(Calendar calendar) {
-        return "'" + String.valueOf(calendar.get(Calendar.YEAR)) +
+    public static String calendarToString(Calendar calendar) {
+        return String.valueOf(calendar.get(Calendar.YEAR)) +
                 '-' +
                 (calendar.get(Calendar.MONTH) + 1) +
                 '-' +
@@ -97,7 +97,11 @@ public final class MySql implements Closeable {
                 ':' +
                 calendar.get(Calendar.MINUTE) +
                 ':' +
-                calendar.get(Calendar.SECOND) + "'";
+                calendar.get(Calendar.SECOND);
+    }
+
+    private static String fromCalendar(Calendar calendar) {
+        return "'" + calendarToString(calendar) + "'";
     }
     private static Stream<Object> toList(Array array) {
         int length = Array.getLength(array);
