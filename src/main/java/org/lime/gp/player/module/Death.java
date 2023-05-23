@@ -25,6 +25,7 @@ import org.lime.gp.module.EntityPosition;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
+import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.player.ui.Infection;
@@ -293,6 +294,7 @@ public class Death implements Listener {
         player.getActivePotionEffects().forEach(v -> player.removePotionEffect(v.getType()));
         Thirst.thirstValue(player, 6*2);
         Thirst.thirstStateReset(player);
+        LevelModule.dieAction(player);
         JavaScript.invoke("player_die('"+player.getUniqueId()+"')");
         Infection.clear_kill(player);
         player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
