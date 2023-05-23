@@ -6,7 +6,11 @@ import java.util.regex.Pattern;
 
 import org.lime.system;
 import org.lime.gp.item.data.Checker;
+import org.lime.gp.module.ArrowBow;
 
+import net.minecraft.world.EnumHand;
+import net.minecraft.world.entity.EntityLiving;
+import net.minecraft.world.entity.projectile.IProjectile;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameters;
 
 public abstract class ListLootFilter implements ILootFilter {
@@ -45,6 +49,18 @@ public abstract class ListLootFilter implements ILootFilter {
                     .orElse(false)
                 );
                 case "damage.player" -> filters.add(e -> e.getOptional(LootContextParameters.LAST_DAMAGE_PLAYER).isPresent());
+                case "killer.hand" -> filters.add(e -> {
+                    Checker checker = Checker.createCheck(value);
+                    return e.getOptional(LootContextParameters.KILLER_ENTITY).map(v -> {
+                        if (v instanceof IProjectile projectile) {
+                            return ArrowBow.getBowItem(projectile);
+                        }
+                        else if (v instanceof EntityLiving player) {
+                            return player.getItemInHand(EnumHand.MAIN_HAND);
+                        }
+                        return null;
+                    }).map(checker::check).orElse(false);
+                });
                 case "damage" -> filters.add(e -> e.getOptional(LootContextParameters.DAMAGE_SOURCE).map(v -> v.type().msgId().equalsIgnoreCase(value)).orElse(false));
                 case "block" -> filters.add(e -> e.getOptional(LootContextParameters.BLOCK_STATE).map(v -> v.toString().equalsIgnoreCase(value)).orElse(false));
                 case "tool" -> {
