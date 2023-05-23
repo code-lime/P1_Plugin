@@ -22,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
+import org.lime.gp.lime;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
@@ -36,7 +37,6 @@ import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.system;
-import org.lime.display.lime;
 
 import java.util.*;
 
