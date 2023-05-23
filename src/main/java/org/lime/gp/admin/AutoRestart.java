@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.lime.system;
-import org.lime.display.lime;
+import org.lime.gp.lime;
 import org.lime.gp.module.Discord;
 
 import com.google.gson.JsonObject;
