@@ -100,6 +100,10 @@ public class SingleModules implements Listener {
 
     public static final HashMap<String, UUID> beds = new HashMap<>();
 
+    public static boolean isInBed(UUID uuid) {
+        return beds.containsValue(uuid);
+    }
+
     @EventHandler public static void on(ProjectileHitEvent e) {
         Projectile projectile = e.getEntity();
         if (e.getEntity().getType() == EntityType.ARROW) {
