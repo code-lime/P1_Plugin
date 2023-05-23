@@ -1,19 +1,26 @@
 package org.lime.gp.player.level;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.lime.system;
+import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
+import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.player.perm.Perms.CanData;
+import org.lime.gp.player.perm.Perms.ICanData;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 public class LevelStep {
     public enum LootModifyAction {
@@ -47,27 +54,40 @@ public class LevelStep {
     public final LevelData data;
     public final double total;
 
-    public final HashMap<ExperienceAction<?, ?>, HashMap<?, Double>> variable = new HashMap<>();
-    public final HashMap<String, system.Toast2<ILoot, LootModifyAction>> modifyLootTable = new HashMap<>();
+    public final HashMap<ExperienceAction<?, ?>, HashMap<?, system.IRange>> variable = new HashMap<>();
+    public final LinkedHashMap<String, system.Toast2<ILoot, LootModifyAction>> modifyLootTable = new LinkedHashMap<>();
+    public final ICanData canData;
 
     public LevelStep(int level, LevelData data, JsonObject json) {
         this.level = level;
         this.data = data;
         this.total = json.get("total").getAsDouble();
-        json.get("actions").getAsJsonObject().entrySet().forEach(kv -> {
+        if (json.has("actions")) json.get("actions").getAsJsonObject().entrySet().forEach(kv -> {
             ExperienceAction<?, ?> action = ExperienceAction.getByName(kv.getKey());
-            this.variable.put(action, createVariable(action, kv.getValue().getAsJsonObject()));
+            if (kv.getValue().isJsonObject()) {
+                this.variable.put(action, createVariable(action, kv.getValue().getAsJsonObject()));
+            } else {
+                this.variable.put(action, createVariable(action, kv.getValue().getAsJsonPrimitive()));
+            }
         });
-        json.get("loot").getAsJsonObject().entrySet().forEach(kv -> {
+        if (json.has("loot")) json.get("loot").getAsJsonObject().entrySet().forEach(kv -> {
             String key = kv.getKey();
             String[] keys = key.split("#", 2);
             this.modifyLootTable.put(keys[0], system.toast(ILoot.parse(kv.getValue()), LootModifyAction.byPostfix(keys[1])));
         });
+        if (json.has("perm")) canData = new CanData(json.get("perm").getAsJsonObject());
+        else canData = ICanData.getNothing();
     }
 
 
     public void tryModifyLoot(PopulateLootEvent e) {
-        system.Toast2<ILoot, LootModifyAction> loot = modifyLootTable.get(e.getKey().getPath());
+        String key = e.getKey().getPath();
+        system.Toast2<ILoot, LootModifyAction> loot = null;
+        for (var kv : modifyLootTable.entrySet()) {
+            if (!system.compareRegex(key, kv.getKey())) continue;
+            loot = kv.getValue();
+            break;
+        }
         if (loot == null) return;
         List<ItemStack> items = loot.val0.generateFilter(e);
         switch (loot.val1) {
@@ -83,26 +103,38 @@ public class LevelStep {
         }
     }
 
-    private static <TValue, TCompare>HashMap<TCompare, Double> createVariable(ExperienceAction<TValue, TCompare> action, JsonObject values) {
-        HashMap<TCompare, Double> list = new HashMap<>();
-        values.entrySet().forEach(kv -> list.put(action.parse(kv.getKey()), kv.getValue().getAsDouble()));
+    private static <TValue, TCompare>HashMap<TCompare, system.IRange> createVariable(ExperienceAction<TValue, TCompare> action, JsonObject values) {
+        HashMap<TCompare, system.IRange> list = new HashMap<>();
+        values.entrySet().forEach(kv -> list.put(action.parse(kv.getKey()), system.IRange.parse(kv.getValue().getAsString())));
+        return list;
+    }
+    private static <TValue, TCompare>HashMap<TCompare, system.IRange> createVariable(ExperienceAction<TValue, TCompare> action, JsonPrimitive value) {
+        HashMap<TCompare, system.IRange> list = new HashMap<>();
+        list.put(action.parse(null), system.IRange.parse(value.getAsString()));
         return list;
     }
     
     @SuppressWarnings("unchecked")
     public <TValue, TCompare>Optional<Double> getExpValue(ExperienceAction<TValue, TCompare> type, TValue value) {
-        HashMap<?, Double> list = variable.getOrDefault(type, null);
+        HashMap<?, system.IRange> list = variable.getOrDefault(type, null);
         if (list == null) return Optional.empty();
-        for (Map.Entry<TCompare, Double> item : ((HashMap<TCompare, Double>)list).entrySet()) {
+        for (Map.Entry<TCompare, system.IRange> item : ((HashMap<TCompare, system.IRange>)list).entrySet()) {
             if (type.compare(value, item.getKey()))
-                return Optional.of(item.getValue());
+                return Optional.of(item.getValue().getValue(total));
         }
         return Optional.empty();
     }
 
-    public <TValue, TCompare>void appendExp(UUID uuid, ExperienceAction<TValue, TCompare> type, TValue value) {
+    public <TValue, TCompare>void deltaExp(UUID uuid, ExperienceAction<TValue, TCompare> type, TValue value) {
         getExpValue(type, value).ifPresent(exp -> UserRow.getBy(uuid).ifPresent(user -> {
-            Methods.appendDeltaLevel(user.id, data.work, exp / total);
+            if (LevelModule.DEBUG) {
+                String current = LevelRow.getBy(user.id, data.work).map(v -> (v.exp * total) + "["+v.level+"]").orElse("0[0]");
+                lime.logOP("Exp " + Optional.ofNullable(Bukkit.getPlayer(uuid)).map(v -> v.getName()).orElse(uuid.toString()) + ": " + current + " / " + total + " (" + (exp >= 0 ? "+" : "-") + Math.abs(exp) + ")");
+            }
+            double delta = exp / total;
+            if (delta >= 0) Methods.appendDeltaLevel(user.id, data.work, delta);
+            else Methods.removeDeltaLevel(user.id, data.work, -delta);
+            
         }));
     }
 

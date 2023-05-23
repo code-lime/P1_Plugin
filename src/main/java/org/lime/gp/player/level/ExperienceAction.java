@@ -15,7 +15,8 @@ public class ExperienceAction<TValue, TCompare> {
     public static final ExperienceAction<Block, system.Func1<IBlockData, Boolean>> BREAK = of((e1, e2) -> e1 instanceof CraftBlock b && e2.invoke(b.getNMS()), v -> BlockLootFilter.createBlockTest("block="+v));
     public static final ExperienceAction<ItemStack, Checker> CRAFT = of((e1, e2) -> e2.check(e1), v -> Checker.createCheck(v));
     public static final ExperienceAction<Entity, EntityCompare> FARM = of((e1, e2) -> e2.isCompare(e1), v -> EntityCompare.create(v));
-
+    public static final ExperienceAction<Object, Object> DIE = ofEmpty();
+    
     private final system.Func2<TValue, TCompare, Boolean> action;
     private final system.Func1<String, TCompare> parse;
 
@@ -34,9 +35,13 @@ public class ExperienceAction<TValue, TCompare> {
     private static <TValue, TCompare>ExperienceAction<TValue, TCompare> of(system.Func2<TValue, TCompare, Boolean> action, system.Func1<String, TCompare> parse) {
         return new ExperienceAction<>(action, parse);
     }
+    private static ExperienceAction<Object, Object> ofEmpty() {
+        return new ExperienceAction<>((a,b) -> true, (c) -> null);
+    }
 
     public static ExperienceAction<?, ?> getByName(String name) {
         return switch (name.toLowerCase()) {
+            case "die" -> DIE;
             case "kill" -> KILL;
             case "break" -> BREAK;
             case "craft" -> CRAFT;
