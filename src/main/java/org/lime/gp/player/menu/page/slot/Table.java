@@ -39,7 +39,7 @@ public class Table implements Logged.ILoggedDelete {
                 table.slots.add(kv.getAsInt());
             }
         });
-        table.format = ISlot.parse(table, json.get("format").getAsJsonObject());
+        table.format = ISlot.parse(table, json.get("format"));
         //table.compare = json.has("compare") ? Compare.parse(json.get("compare").getAsJsonObject()) : null;
         if (json.has("adds"))
             json.get("adds").getAsJsonArray().forEach(slot -> table.adds.add(ISlot.parse(table, slot.getAsJsonObject())));
