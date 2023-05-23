@@ -207,7 +207,7 @@ public class TabManager implements Listener {
     }
 
     private static Scoreboard scoreboard;
-    public static Team NoCollision;
+    public static Team hideNickName;
 
     public static class BufferData {
         public static final BufferData EMPTY = new BufferData(Component.text(" ..."), Collections.singletonList(Component.text("...")), -1);
@@ -244,13 +244,13 @@ public class TabManager implements Listener {
 
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard scoreboard = manager.getMainScoreboard();
-        NoCollision = scoreboard.getTeam("hide");
-        if (NoCollision != null) NoCollision.unregister();
-        NoCollision = scoreboard.registerNewTeam("hide");
-        NoCollision.addEntry("");
-        NoCollision.addEntry(".");
-        NoCollision.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-        NoCollision.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        hideNickName = scoreboard.getTeam("hide");
+        if (hideNickName != null) hideNickName.unregister();
+        hideNickName = scoreboard.registerNewTeam("hide");
+        hideNickName.addEntry("");
+        hideNickName.addEntry(".");
+        hideNickName.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        //hideNickName.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(lime._plugin, PacketType.Play.Server.PLAYER_INFO) {
             @Override public void onPacketSending(PacketEvent event) {
@@ -323,7 +323,7 @@ public class TabManager implements Listener {
     private static void regen() {
         scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         scoreboard.getTeams().forEach(team -> {
-            if (team.equals(NoCollision)) return;
+            if (team.getName().equals(hideNickName.getName())) return;
             team.unregister();
         });
         bufferTab.clear();

@@ -26,6 +26,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumHand;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.phys.Vec3D;
@@ -37,8 +38,6 @@ import net.kyori.adventure.text.JoinConfiguration;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.*;
@@ -85,7 +84,6 @@ public class NPC {
         public final boolean single;
         public final List<Component> name = new ArrayList<>();
         public final boolean hide;
-        @SuppressWarnings("unused")
         public final boolean sit;
         public final String shift_menu;
         public final HashMap<EnumItemSlot, ItemStack> equipment = new HashMap<>();
@@ -117,7 +115,7 @@ public class NPC {
                 else advancements.add(json.get("advancements").getAsString());
             }
             shift_menu = json.has("shift_menu") ? json.get("shift_menu").getAsString() : null;
-            if (json.has("equipment")) json.get("equipment").getAsJsonObject().entrySet().forEach(kv -> equipment.put(EnumItemSlot.valueOf(kv.getKey()), Items.createItem(kv.getValue().getAsString()).orElseThrow()));
+            if (json.has("equipment")) json.get("equipment").getAsJsonObject().entrySet().forEach(kv -> equipment.put(EnumItemSlot.byName(kv.getKey()), Items.createItem(kv.getValue().getAsString()).orElseThrow()));
         }
 
         public boolean isShow(UUID uuid) {
@@ -186,13 +184,6 @@ public class NPC {
         lime.combineParent(json, true, true).entrySet().forEach(kv -> npc_list.put(kv.getKey(), new NPCObject(kv.getKey(), kv.getValue().getAsJsonObject())));
         npc_list.forEach((k,v) -> skins.add(v.skin));
         Skins.addSkins(skins, () -> {
-            Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-
-            Team defaultTeam = scoreboard.getTeam("");
-            if (defaultTeam == null) defaultTeam = scoreboard.registerNewTeam("");
-            defaultTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
-            defaultTeam.addEntry("");
-
             NPC.npc_list.clear();
             NPC.npc_list.putAll(npc_list);
 
@@ -208,6 +199,7 @@ public class NPC {
             @Override public boolean filter(Player player) { return display.isFilter(player); }
             @Override public Component text(Player player) {
                 List<Component> components = display.npc.getNick(player);
+                if (components.isEmpty()) return null;
                 Collections.reverse(components);
                 return Component.join(JoinConfiguration.newlines(), components);
             }
@@ -221,6 +213,26 @@ public class NPC {
             public final Location location;
 
             public ShowNickName(NPCDisplay display) {
+                this.display = display;
+                this.location = display.lastLocation();
+            }
+        }
+        
+        public static class ShowNone implements DrawText.IShow {
+
+            @Override public String getID() { return display.npc.key + ".NPC.None"; }
+            @Override public boolean filter(Player player) { return display.isFilter(player); }
+            @Override public Component text(Player player) { return Component.empty(); }
+            @Override public Optional<Integer> parent() { return Optional.of(display.entityID); }
+            @Override public Location location() { return location; }
+            @Override public double distance() { return display.getDistance(); }
+            @Override public boolean tryRemove() { return false; }
+
+            public final NPCDisplay display;
+
+            public final Location location;
+
+            public ShowNone(NPCDisplay display) {
                 this.display = display;
                 this.location = display.lastLocation();
             }
@@ -245,18 +257,18 @@ public class NPC {
         }
 
         public Stream<DrawText.IShow> nickList() {
-            return Stream.of(new ShowNickName(this));
+            return Stream.of(new ShowNickName(this), new ShowNone(this));
         }
 
         protected NPCDisplay(NPCObject npc) {
             super(npc.location);
             this.npc = npc;
             this.equipment = Models.Model.ChildDisplay.toPacketData(npc.createEquipment());
-            //Models.Model.ChildDisplay<NPCObject> sitParent;
-            //if (npc.sit) sitParent = lime.models.get("zombie").map(v -> v.display(this)).map(this::preInitDisplay).orElse(null);
-            //else sitParent = null;
+            Models.Model.ChildDisplay<NPCObject> sitParent;
+            if (npc.sit) sitParent = preInitDisplay(lime.models.builder(EntityTypes.BLOCK_DISPLAY).build().display(this));
+            else sitParent = null;
             postInit();
-            //if (sitParent != null) Displays.addPassengerID(sitParent.entityID, this.entityID);
+            if (sitParent != null) Displays.addPassengerID(sitParent.entityID, this.entityID);
         }
         @Override protected void sendData(Player player, boolean child) {
             PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook relMoveLook = new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(entityID, (short)0, (short)0, (short)0, (byte)0, (byte)0, true);
@@ -271,9 +283,9 @@ public class NPC {
                 lime.nextTick(() -> PacketManager.sendPackets(player, movePacket, headPacket));
             }
 
-            PacketManager.sendPackets(player, ppopi_add, ppones, relMoveLook, ppoee);
+            PacketManager.sendPackets(player, ppopi_add, ppones, relMoveLook);
             PacketPlayOutEntityMetadata packet = getDataWatcherPacket(player).orElse(null);
-            lime.once(() -> PacketManager.sendPackets(player, ppopi_add, packet), 0.5);
+            lime.once(() -> PacketManager.sendPackets(player, ppopi_add, packet, ppoee), 0.5);
             lime.once(() -> PacketManager.sendPackets(player, ppopi_del, packet), 5);
             super.sendData(player, child);
         }

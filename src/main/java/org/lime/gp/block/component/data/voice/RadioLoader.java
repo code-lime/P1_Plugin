@@ -59,7 +59,7 @@ public class RadioLoader implements Listener {
         });
         AnyEvent.addEvent("megaphone.get", AnyEvent.type.other, RadioLoader::openMegaPhoneMenu);
 
-        lime.once(() -> TabManager.NoCollision.addEntry("."), 1);
+        lime.once(() -> TabManager.hideNickName.addEntry("."), 1);
     }
 
     private static boolean openRadioMenu(Player player) {
