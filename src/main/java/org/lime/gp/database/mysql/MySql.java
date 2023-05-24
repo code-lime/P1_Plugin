@@ -57,8 +57,11 @@ public final class MySql implements Closeable {
     }
 
     public int getCalls() { return calls.size(); }
-    public List<String> getDumpCalls() { return calls.values().stream().map(v -> v.val0 + " | " + v.val1).collect(Collectors.toList()); }
+    public List<String> getDumpCalls() {
+        return calls.values().stream().map(v -> v.val0 + " | " + v.val1).collect(Collectors.toList());
+    }
     public boolean switchDebug() { return Async.debug.edit0(v -> !v); }
+    public double filterDebug(double value) { return Async.debug.edit1(v -> value); }
 
     @Override public void close() {
         try {

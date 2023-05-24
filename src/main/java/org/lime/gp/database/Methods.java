@@ -67,6 +67,7 @@ public class Methods {
     }
     public static void init() {
         AnyEvent.addEvent("mysql.debug", AnyEvent.type.owner_console, (player) -> lime.logOP("Debug: " + (SQL.switchDebug() ? "ENABLE" : "DISABLE")));
+        AnyEvent.addEvent("mysql.debug.filter", AnyEvent.type.owner_console, b -> b.createParam(Double::parseDouble, "[time:double]"), (player, time) -> lime.logOP("Debug filter: " + SQL.filterDebug(time)));
         AnyEvent.addEvent("mysql.calls", AnyEvent.type.owner_console, (player) -> lime.logOP("Calls: " + SQL.getCalls()));
         AnyEvent.addEvent("mysql.dump", AnyEvent.type.owner_console, (player) -> {
             List<String> dump = SQL.getDumpCalls();

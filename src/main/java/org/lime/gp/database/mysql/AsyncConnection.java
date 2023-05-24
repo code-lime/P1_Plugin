@@ -2,8 +2,12 @@ package org.lime.gp.database.mysql;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-
+import org.bukkit.Bukkit;
 import org.lime.system;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 public final class AsyncConnection<T> {
     public final int index;
@@ -37,6 +41,9 @@ public final class AsyncConnection<T> {
 
     public boolean invoke(MySql sql) {
         Exception exception = null;
+
+        long startMs = System.currentTimeMillis();
+
         log("C");
         try (Connection connection = sql.connection_func.invoke()) {
             log("P");
@@ -51,6 +58,24 @@ public final class AsyncConnection<T> {
             log("E");
             exception = e;
         }
+
+        long stopMs = System.currentTimeMillis();
+
+        double time = (stopMs - startMs) / 1000.0;
+
+        if (sql.Async.isDebug() && sql.Async.isFilterDebug(time)) {
+            Component component = Component
+                    .text("[" + system.formatCalendar(system.getMoscowNow(), true) + "] SQL QUERY: ")
+                    .color(NamedTextColor.GOLD)
+                    .hoverEvent(HoverEvent.showText(Component.text(this.sql.sql.val0)))
+                    .clickEvent(ClickEvent.copyToClipboard(this.sql.sql.val0))
+                    .append(Component.text(time + "s"));
+            Bukkit.getOnlinePlayers().forEach(p -> {
+                if (!p.isOp()) return;
+                p.sendMessage(component);
+            });
+        }
+
         if (exception == null) {
             log("F");
             onFinally.invoke();
@@ -62,6 +87,7 @@ public final class AsyncConnection<T> {
         log("F");
         onFinally.invoke();
         log("DONE!");
+
         return false;
     }
 }

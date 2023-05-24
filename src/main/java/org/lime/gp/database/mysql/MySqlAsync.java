@@ -14,7 +14,10 @@ public class MySqlAsync {
         this.instance = instance;
     }
 
-    final system.LockToast1<Boolean> debug = system.toast(false).lock();
+    final system.LockToast2<Boolean, Double> debug = system.toast(false, 0.0).lock();
+
+    public boolean isDebug() { return debug.get0(); }
+    public boolean isFilterDebug(double time) { return time >= debug.get1(); }
     /*private boolean isMenu() {
         if (!debug.get0()) return false;
         boolean is_menu = false;
