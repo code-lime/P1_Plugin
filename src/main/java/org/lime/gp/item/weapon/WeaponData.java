@@ -161,10 +161,10 @@ public class WeaponData {
 
         if (WEAPON_SIT_LOCK && (player.isInsideVehicle() || Displays.hasVehicle(player.getEntityId()))) {
             waitInitTime = System.currentTimeMillis() + (int)(weapon.init_sec * 1000);
-            images.add(ImageBuilder.of("Невозможно стрелять сидя"));
+            images.add(ImageBuilder.of(player, "Невозможно стрелять сидя"));
         } else {
             long delta = waitInitTime - System.currentTimeMillis();
-            if (delta > 0) images.add(ImageBuilder.of(timerMs(delta)));
+            if (delta > 0) images.add(ImageBuilder.of(player, timerMs(delta)));
         }
 
         return images;

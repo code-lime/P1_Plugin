@@ -1,6 +1,7 @@
 package org.lime.gp.module;
 
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,7 +20,8 @@ public class RestartTimed extends CustomUI.GUI {
     private static final RestartTimed Instance = new RestartTimed();
     private RestartTimed() { super(CustomUI.IType.ACTIONBAR); }
     @Override public Collection<ImageBuilder> getUI(Player player) {
-        return restart_time == null || restart_message == null ? Collections.emptyList() : Collections.singleton(restart_message);
+        if (restart_time == null || restart_message == null) return Collections.emptyList();
+        return Collections.singleton(ImageBuilder.of(player, restart_message.val0).withColor(restart_message.val1));
     }
 
     public static core.element create() {
@@ -65,7 +67,7 @@ public class RestartTimed extends CustomUI.GUI {
                 );
     }
     public static Double restart_time = null;
-    public static ImageBuilder restart_message = null;
+    public static system.Toast2<String, TextColor> restart_message = null;
     private static boolean color = false;
     public static void init() {
         double delta = 0.5;
@@ -90,11 +92,18 @@ public class RestartTimed extends CustomUI.GUI {
             total /= 60;
             int hour = total;
 
-            restart_message = ImageBuilder.of("Рестарт через: " +
+            restart_message = system.toast("Рестарт через: " +
+                org.apache.commons.lang.StringUtils.leftPad(String.valueOf(hour), 2, '0') + ":" +
+                org.apache.commons.lang.StringUtils.leftPad(String.valueOf(min), 2, '0') + ":" +
+                org.apache.commons.lang.StringUtils.leftPad(String.valueOf(sec), 2, '0'),
+                color ? NamedTextColor.GOLD : NamedTextColor.YELLOW);
+            /*
+            ImageBuilder.of(player, "Рестарт через: " +
                     org.apache.commons.lang.StringUtils.leftPad(String.valueOf(hour), 2, '0') + ":" +
                     org.apache.commons.lang.StringUtils.leftPad(String.valueOf(min), 2, '0') + ":" +
                     org.apache.commons.lang.StringUtils.leftPad(String.valueOf(sec), 2, '0')
             ).withColor(color ? NamedTextColor.GOLD : NamedTextColor.YELLOW);
+            */
         }, delta);
     }
 }

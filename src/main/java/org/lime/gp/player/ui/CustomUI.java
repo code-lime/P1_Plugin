@@ -241,7 +241,7 @@ public class CustomUI implements Listener {
             }
             return showTexts == null ?
                     Collections.emptyList() :
-                    Collections.singleton(ImageBuilder.of(showTexts.val0).withColor(showTexts.val2));
+                    Collections.singleton(ImageBuilder.of(player, showTexts.val0).withColor(showTexts.val2));
         }
     }
     public static class TextUI extends GUI {
@@ -265,7 +265,7 @@ public class CustomUI implements Listener {
             if (uses == null) return Collections.emptyList();
             uses.val1--;
             if (uses.val1 <= 0) showTexts.remove(uuid);
-            return Collections.singleton(ImageBuilder.of(uses.val0));
+            return Collections.singleton(ImageBuilder.of(player, uses.val0));
         }
     }
     public static class TitleUI extends GUI {
@@ -289,7 +289,7 @@ public class CustomUI implements Listener {
             if (uses == null) return Collections.emptyList();
             uses.val1--;
             if (uses.val1 <= 0) showTexts.remove(uuid);
-            return Collections.singleton(ImageBuilder.of(uses.val0));
+            return Collections.singleton(ImageBuilder.of(player, uses.val0));
         }
     }
 

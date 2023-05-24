@@ -3,6 +3,9 @@ package org.lime.gp.player.ui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.TextColor;
+
+import org.bukkit.entity.Player;
+
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.ArrayList;
@@ -22,8 +25,8 @@ public class ImageBuilder {
         this.absolute = absolute;
     }
 
-    public static ImageBuilder of(String text) {
-        return of(text, ChatHelper.getTextSize(text));
+    public static ImageBuilder of(Player player, String text) {
+        return of(text, ChatHelper.getTextSize(player, text));
     }
 
     public static ImageBuilder of(String image, int size) {

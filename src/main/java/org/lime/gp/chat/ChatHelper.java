@@ -23,6 +23,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.BaseRow;
 import org.lime.gp.database.tables.ITable;
@@ -551,16 +552,19 @@ public class ChatHelper {
         return builder.build();
     }
 
-    public static int getSymbolSize(char ch, int def) { return CharLib.sizeMap.getOrDefault(ch, def); }
-    public static String getSpaceSize(int def) { return CharLib.spaceSize.getOrDefault(def, ""); }
-    public static int getTextSize(String text) {
+    public static int getSymbolSize(Player player, char ch, int def) { return CharLib.getCharLib(player).sizeMap.getOrDefault(ch, def); }
+    public static String getSpaceSize(int size) { return CharLib.getCharLib(null).spaceSize.getOrDefault(size, ""); }
+    public static int getTextSize(Player player, String text) {
+        return getTextSize(CharLib.getCharLib(player), text);
+    }
+    private static int getTextSize(CharLib charLib, String text) {
         int size = text.length();
         if (size > 0) size--;
         for (char ch : text.toCharArray()) {
-            int length = CharLib.sizeMap.getOrDefault(ch, -1);
+            int length = charLib.sizeMap.getOrDefault(ch, -1);
             if (length == -1) {
                 length = 5;
-                CharLib.sizeMap.put(ch, length);
+                charLib.sizeMap.put(ch, length);
                 lime.logOP("SYMBOL SIZE '" + ch + "' NFND");
                 lime.logToFile("symbol", "[{time}] Symbol size '" + ch + "' not founded");
             }
@@ -568,21 +572,23 @@ public class ChatHelper {
         }
         return size;
     }
-    public static int getTextSize(Component text) {
+    public static int getTextSize(Player player, Component text) {
         system.Toast1<String> onlyText = system.toast("");
         ComponentFlattener.textOnly().flatten(text, txt -> onlyText.val0 += txt);
-        return getTextSize(onlyText.val0);
+        return getTextSize(player, onlyText.val0);
     }
 
-    public static String padLeft(int pixels, String text) {
-        pixels = pixels - getTextSize(text);
+    public static String padLeft(Player player, int pixels, String text) {
+        CharLib charLib = CharLib.getCharLib(player);
+        pixels = pixels - getTextSize(charLib, text);
         if (pixels <= 0) return text;
-        return CharLib.spaceSize.get(pixels) + text;
+        return charLib.spaceSize.get(pixels) + text;
     }
-    public static String padLeft(int pixels, char symbol) {
-        pixels = pixels - CharLib.sizeMap.getOrDefault(symbol, 5);
+    public static String padLeft(Player player, int pixels, char symbol) {
+        CharLib charLib = CharLib.getCharLib(player);
+        pixels = pixels - charLib.sizeMap.getOrDefault(symbol, 5);
         if (pixels <= 0) return symbol + "";
-        return CharLib.spaceSize.get(pixels) + symbol;
+        return charLib.spaceSize.get(pixels) + symbol;
     }
 }
 
