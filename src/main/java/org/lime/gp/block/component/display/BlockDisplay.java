@@ -14,6 +14,7 @@ import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.block.IModelBlock;
+import org.lime.gp.block.component.display.display.BlockItemDisplay;
 import org.lime.gp.block.component.display.display.BlockItemFrameDisplay;
 import org.lime.gp.block.component.display.display.BlockModelDisplay;
 import org.lime.gp.block.component.display.event.BlockMarkerEventInteract;
@@ -38,9 +39,11 @@ public class BlockDisplay implements Listener {
     };
     public static final BlockModelDisplay.EntityModelManager MODEL_MANAGER = BlockModelDisplay.manager();
     public static final BlockItemFrameDisplay.BlockItemFrameManager ITEM_FRAME_MANAGER = BlockItemFrameDisplay.manager();
+    public static final BlockItemDisplay.BlockItemManager ITEM_MANAGER = BlockItemDisplay.manager();
     public static void init() {
         Displays.initDisplay(MODEL_MANAGER);
         Displays.initDisplay(ITEM_FRAME_MANAGER);
+        Displays.initDisplay(ITEM_MANAGER);
         PacketManager.adapter()
                 .add(PacketPlayOutBlockChange.class, PacketListener::onPacket)
                 .add(PacketPlayOutMultiBlockChange.class, PacketListener::onPacket)

@@ -7,6 +7,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.lime.gp.block.component.display.partial.list.BlockPartial;
+import org.lime.gp.block.component.display.partial.list.FramePartial;
+import org.lime.gp.block.component.display.partial.list.ModelPartial;
+import org.lime.gp.block.component.display.partial.list.NonePartial;
+import org.lime.gp.block.component.display.partial.list.ViewPartial;
+
 import com.google.gson.JsonObject;
 
 public abstract class Partial {
@@ -48,6 +54,7 @@ public abstract class Partial {
 
     public static Partial parse(int distanceChunk, JsonObject json) {
         if (json.has("model")) return new ModelPartial(distanceChunk, json);
+        else if (json.has("view")) return new ViewPartial(distanceChunk, json);
         else if (json.has("item")) return new FramePartial(distanceChunk, json);
         else if (json.has("material")) return new BlockPartial(distanceChunk, json);
         else return new NonePartial(distanceChunk, json);

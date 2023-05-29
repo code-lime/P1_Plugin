@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.display.BlockDisplay;
+import org.lime.gp.block.component.display.partial.list.NonePartial;
 import org.lime.gp.lime;
 import org.lime.system;
 

@@ -9,7 +9,8 @@ import org.bukkit.entity.Player;
 import org.lime.display.DisplayManager;
 import org.lime.display.EditedDataWatcher;
 import org.lime.display.ObjectDisplay;
-import org.lime.gp.block.component.display.instance.DisplayInstance;
+import org.lime.gp.block.component.display.instance.DisplayMap;
+import org.lime.gp.block.component.display.instance.list.ItemFrameDisplayObject;
 import org.lime.gp.module.TimeoutData;
 import org.lime.system;
 
@@ -17,18 +18,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class BlockItemFrameDisplay extends ObjectDisplay<DisplayInstance.ItemFrameDisplayObject, EntityItemFrame> {
+public class BlockItemFrameDisplay extends ObjectDisplay<ItemFrameDisplayObject, EntityItemFrame> {
     @Override public double getDistance() { return Double.POSITIVE_INFINITY; }
     @Override public Location location() { return data.location(); }
 
     public final UUID block_uuid;
     public final UUID player_uuid;
 
-    public DisplayInstance.ItemFrameDisplayObject data;
+    public ItemFrameDisplayObject data;
 
     @Override public boolean isFilter(Player player) { return player_uuid.equals(player.getUniqueId()); }
 
-    private BlockItemFrameDisplay(UUID block_uuid, UUID player_uuid, DisplayInstance.ItemFrameDisplayObject data) {
+    private BlockItemFrameDisplay(UUID block_uuid, UUID player_uuid, ItemFrameDisplayObject data) {
         super(data.location());
 
         this.block_uuid = block_uuid;
@@ -37,7 +38,7 @@ public class BlockItemFrameDisplay extends ObjectDisplay<DisplayInstance.ItemFra
         postInit();
     }
 
-    @Override public void update(DisplayInstance.ItemFrameDisplayObject data, double delta) {
+    @Override public void update(ItemFrameDisplayObject data, double delta) {
         super.update(data, delta);
         if (this.data.index().equals(data.index())) {
             this.data = data;
@@ -62,33 +63,17 @@ public class BlockItemFrameDisplay extends ObjectDisplay<DisplayInstance.ItemFra
         return itemFrame;
     }
 
-    public static class BlockItemFrameManager extends DisplayManager<system.Toast2<UUID, UUID>, DisplayInstance.ItemFrameDisplayObject, BlockItemFrameDisplay> {
+    public static class BlockItemFrameManager extends DisplayManager<system.Toast2<UUID, UUID>, ItemFrameDisplayObject, BlockItemFrameDisplay> {
         @Override public boolean isAsync() { return true; }
         @Override public boolean isFast() { return true; }
 
-        @Override public Map<system.Toast2<UUID, UUID>, DisplayInstance.ItemFrameDisplayObject> getData() {
-            return TimeoutData.stream(DisplayInstance.DisplayMap.class)
+        @Override public Map<system.Toast2<UUID, UUID>, ItemFrameDisplayObject> getData() {
+            return TimeoutData.stream(DisplayMap.class)
                     .flatMap(kv -> kv.getValue().frameMap.entrySet().stream().map(v -> system.toast(kv.getKey(), v.getKey(), v.getValue())))
                     .collect(Collectors.toMap(kv -> system.toast(kv.val0, kv.val1), kv -> kv.val2));
         }
-        @Override public BlockItemFrameDisplay create(system.Toast2<UUID, UUID> uuid, DisplayInstance.ItemFrameDisplayObject display) { return new BlockItemFrameDisplay(uuid.val0, uuid.val1, display); }
+        @Override public BlockItemFrameDisplay create(system.Toast2<UUID, UUID> uuid, ItemFrameDisplayObject display) { return new BlockItemFrameDisplay(uuid.val0, uuid.val1, display); }
     }
 
     public static BlockItemFrameManager manager() { return new BlockItemFrameManager(); }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

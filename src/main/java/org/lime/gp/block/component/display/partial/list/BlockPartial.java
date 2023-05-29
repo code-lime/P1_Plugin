@@ -1,4 +1,4 @@
-package org.lime.gp.block.component.display.partial;
+package org.lime.gp.block.component.display.partial.list;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +15,8 @@ import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.block.ITileBlock;
+import org.lime.gp.block.component.display.partial.Partial;
+import org.lime.gp.block.component.display.partial.PartialEnum;
 import org.lime.gp.extension.JsonNBT;
 
 import com.google.gson.JsonElement;

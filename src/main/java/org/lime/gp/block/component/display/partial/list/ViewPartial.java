@@ -1,4 +1,4 @@
-package org.lime.gp.block.component.display.partial;
+package org.lime.gp.block.component.display.partial.list;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,6 +8,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.block.component.display.partial.PartialEnum;
 import org.lime.gp.extension.ItemNMS;
 
 import com.google.gson.JsonElement;
@@ -15,16 +16,16 @@ import com.google.gson.JsonObject;
 
 import net.kyori.adventure.text.format.TextColor;
 
-public class FramePartial extends BlockPartial {
+public class ViewPartial extends BlockPartial {
     private final ItemStack item;
     private final net.minecraft.world.item.ItemStack nms_item;
     public final InfoComponent.Rotation.Value rotation;
     public final boolean show;
 
-    public FramePartial(int distanceChunk, JsonObject json) {
+    public ViewPartial(int distanceChunk, JsonObject json) {
         super(distanceChunk, json);
-        if (json.has("item")) {
-            JsonElement item = json.get("item");
+        if (json.has("test")) {
+            JsonElement item = json.get("test");
             if (item.isJsonPrimitive()) {
                 String[] args = item.getAsString().split("\\^");
                 this.item = new ItemStack(Material.valueOf(args[0]));

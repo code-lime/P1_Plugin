@@ -4,7 +4,6 @@ import com.google.gson.JsonPrimitive;
 
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BlockSkullShapeInfo;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
@@ -19,7 +18,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 import org.lime.Position;
 import org.lime.core;
-import org.lime.display.Models;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.InfoComponent;
@@ -29,12 +27,16 @@ import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.display.BlockModelDisplay;
 import org.lime.gp.block.component.display.event.ChunkCoordCache;
+import org.lime.gp.block.component.display.instance.list.ItemDisplayObject;
+import org.lime.gp.block.component.display.instance.list.ItemFrameDisplayObject;
+import org.lime.gp.block.component.display.instance.list.ModelDisplayObject;
 import org.lime.gp.block.component.display.invokable.BlockDirtyInvokable;
 import org.lime.gp.block.component.display.invokable.BlockUpdateInvokable;
-import org.lime.gp.block.component.display.partial.BlockPartial;
-import org.lime.gp.block.component.display.partial.FramePartial;
-import org.lime.gp.block.component.display.partial.ModelPartial;
 import org.lime.gp.block.component.display.partial.Partial;
+import org.lime.gp.block.component.display.partial.list.BlockPartial;
+import org.lime.gp.block.component.display.partial.list.FramePartial;
+import org.lime.gp.block.component.display.partial.list.ModelPartial;
+import org.lime.gp.block.component.display.partial.list.ViewPartial;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.ProxyMap;
@@ -49,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class DisplayInstance extends BlockInstance implements CustomTileMetadata.Shapeable, CustomTileMetadata.Tickable, CustomTileMetadata.AsyncTickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable {
-    private static int TIMEOUT_TICKS = 20;
+    static int TIMEOUT_TICKS = 20;
     public static core.element create() {
         return core.element.create(DisplayInstance.class)
                 .<JsonPrimitive>addConfig("config", v -> v
@@ -101,28 +103,6 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
     public Optional<Partial> getPartial(int distanceChunk, Map<String, String> variables) {
         return Optional.ofNullable(component().partials.get(distanceChunk)).map(v -> v.partial(variables));
-    }
-
-    public static final class DisplayMap extends TimeoutData.ITimeout {
-        public final Map<UUID, ItemFrameDisplayObject> frameMap = new HashMap<>();
-        public final Map<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
-        public DisplayMap(Map<UUID, ItemFrameDisplayObject> itemFrame, Map<BlockModelDisplay.BlockModelKey, ModelDisplayObject> models) {
-            super(TIMEOUT_TICKS);
-            this.frameMap.putAll(itemFrame);
-            this.modelMap.putAll(models);
-        }
-    }
-
-    public record ItemFrameDisplayObject(Location location, ItemStack item, InfoComponent.Rotation.Value rotation, UUID index) {
-        public static ItemFrameDisplayObject of(Location location, ItemStack item, InfoComponent.Rotation.Value rotation, UUID index) {
-            return new ItemFrameDisplayObject(location, item, rotation, index);
-        }
-    }
-    public record ModelDisplayObject(Location location, Set<UUID> viewers, Models.Model model, Map<String, Object> data) {
-        public boolean hasViewer(UUID uuid) { return viewers.contains(uuid); }
-        public static ModelDisplayObject of(Location location, Models.Model model, Map<String, Object> data) {
-            return new ModelDisplayObject(location, ConcurrentHashMap.newKeySet(), model, data);
-        }
     }
 
     @Override public void read(JsonObjectOptional json) {
@@ -187,6 +167,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
     private static long lastTickID = -1;
     private final HashMap<UUID, ItemFrameDisplayObject> frameMap = new HashMap<>();
+    private final HashMap<UUID, ItemDisplayObject> viewMap = new HashMap<>();
     private final HashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
     @Override public void onAsyncTick(CustomTileMetadata metadata, long tick) {
         if (lastTickID != tick) {
@@ -203,9 +184,10 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
         Set<UUID> onlineUUIDs = EntityPosition.onlinePlayers.keySet();
         frameMap.keySet().removeIf(uuid -> !onlineUUIDs.contains(uuid));
+        viewMap.keySet().removeIf(uuid -> !onlineUUIDs.contains(uuid));
         modelMap.values().removeIf(data -> {
-            data.viewers.removeIf(uuid -> !onlineUUIDs.contains(uuid));
-            return data.viewers.isEmpty();
+            data.removeViewersIf(uuid -> !onlineUUIDs.contains(uuid));
+            return data.isViewersEmpty();
         });
         partials.keySet().removeIf(uuid -> !onlineUUIDs.contains(uuid));
         tickTimeInfo.filter_ns += tickTimeInfo.nextTime();
@@ -216,19 +198,21 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
             lastUpdateDirtyIndex = currUpdateDirtyIndex;
             modelMap.clear();
             frameMap.clear();
+            viewMap.clear();
         } else {
             users = cachedDirtyQueue;
             if (!users.isEmpty()) {
                 frameMap.keySet().removeIf(uuid -> users.contains(uuid));
+                viewMap.keySet().removeIf(uuid -> users.contains(uuid));
                 modelMap.values().removeIf(data -> {
-                    data.viewers.removeIf(uuid -> users.contains(uuid));
-                    return data.viewers.isEmpty();
+                    data.removeViewersIf(uuid -> users.contains(uuid));
+                    return data.isViewersEmpty();
                 });
             }
         }
         if (users.isEmpty()) {
-            if (frameMap.size() == 0 && modelMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
-            else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(frameMap, modelMap));
+            if (frameMap.size() == 0 && modelMap.size() == 0 && viewMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
+            else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(frameMap, modelMap, viewMap));
             tickTimeInfo.users_ns += tickTimeInfo.nextTime();
             return;
         }
@@ -271,10 +255,11 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                             : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v == null ? null : v);
                         if (partial == null) return null;
                         if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
+                        if (partial instanceof ViewPartial view && view.show) viewMap.put(uuid, ItemDisplayObject.of(pos.toLocation(world), view.nms(variables), view.rotation, view.uuid));
                         if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
                                 new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
                                 _k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
-                        ).viewers.add(uuid));
+                        ).addViewer(uuid));
                         shows.put(player, distanceChunk);
                         return partial;
                     });
@@ -301,13 +286,13 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                         .ifPresent(_model -> modelMap.computeIfAbsent(
                                 new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, displayable.unique()),
                                 k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
-                        ).viewers.add(player.getUniqueId()))
+                        ).addViewer(player.getUniqueId()))
                 ));
         
         tickTimeInfo.metadata_ns += tickTimeInfo.nextTime();
 
-        if (frameMap.size() == 0 && modelMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
-        else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(frameMap, modelMap));
+        if (frameMap.size() == 0 && modelMap.size() == 0 && viewMap.size() == 0) TimeoutData.remove(unique(), DisplayMap.class);
+        else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(frameMap, modelMap, viewMap));
 
         tickTimeInfo.apply_ns += tickTimeInfo.nextTime();
     }
@@ -338,6 +323,12 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                     if (block_uuid.equals(display.block_uuid))
                         display.hideAll();
                 });
+        BlockDisplay.ITEM_MANAGER.getDisplays()
+                .values()
+                .forEach(display -> {
+                    if (block_uuid.equals(display.block_uuid))
+                        display.hideAll();
+                });
         markDirtyBlock(skull.getLevel(), skull.getBlockPos());
     }
     @Override public @Nullable VoxelShape onShape(CustomTileMetadata metadata, BlockSkullShapeInfo event) {
@@ -350,30 +341,3 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         cacheDisplay.clear();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

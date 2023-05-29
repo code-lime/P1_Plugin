@@ -1,9 +1,10 @@
-package org.lime.gp.block.component.display.partial;
+package org.lime.gp.block.component.display.partial.list;
 
 import java.util.Optional;
 
 import org.lime.display.Models;
 import org.lime.gp.lime;
+import org.lime.gp.block.component.display.partial.PartialEnum;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

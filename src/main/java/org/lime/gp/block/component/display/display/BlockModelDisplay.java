@@ -10,7 +10,7 @@ import org.lime.display.DisplayManager;
 import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
 import org.lime.gp.block.component.display.BlockDisplay;
-import org.lime.gp.block.component.display.instance.DisplayInstance;
+import org.lime.gp.block.component.display.instance.list.ModelDisplayObject;
 import org.lime.gp.module.TimeoutData;
 
 import java.util.Map;
@@ -18,26 +18,26 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class BlockModelDisplay extends ObjectDisplay<DisplayInstance.ModelDisplayObject, Marker> {
+public class BlockModelDisplay extends ObjectDisplay<ModelDisplayObject, Marker> {
     @Override public double getDistance() { return Double.POSITIVE_INFINITY; }
     @Override public Location location() { return data.location(); }
 
     public final BlockModelKey key;
 
-    public DisplayInstance.ModelDisplayObject data;
-    public Models.Model.ChildDisplay<DisplayInstance.ModelDisplayObject> model;
+    public ModelDisplayObject data;
+    public Models.Model.ChildDisplay<ModelDisplayObject> model;
 
     @Override public boolean isFilter(Player player) {
         return data.hasViewer(player.getUniqueId());
     }
 
-    private BlockModelDisplay(BlockModelKey key, DisplayInstance.ModelDisplayObject data) {
+    private BlockModelDisplay(BlockModelKey key, ModelDisplayObject data) {
         this.key = key;
         this.data = data;
         model = preInitDisplay(data.model().display(this));
         postInit();
     }
-    @Override public void update(DisplayInstance.ModelDisplayObject data, double delta) {
+    @Override public void update(ModelDisplayObject data, double delta) {
         this.data = data;
         super.update(data, delta);
         data.model().animation.apply(model.js, data.data());
@@ -49,16 +49,16 @@ public class BlockModelDisplay extends ObjectDisplay<DisplayInstance.ModelDispla
     }
 
     public record BlockModelKey(UUID block_uuid, Position block_position, UUID model_uuid, UUID element_uuid) { }
-    public static class EntityModelManager extends DisplayManager<BlockModelKey, DisplayInstance.ModelDisplayObject, BlockModelDisplay> {
+    public static class EntityModelManager extends DisplayManager<BlockModelKey, ModelDisplayObject, BlockModelDisplay> {
         @Override public boolean isAsync() { return true; }
         @Override public boolean isFast() { return true; }
 
-        @Override public Map<BlockModelKey, DisplayInstance.ModelDisplayObject> getData() {
-            return TimeoutData.values(org.lime.gp.block.component.display.instance.DisplayInstance.DisplayMap.class)
+        @Override public Map<BlockModelKey, ModelDisplayObject> getData() {
+            return TimeoutData.values(org.lime.gp.block.component.display.instance.DisplayMap.class)
                     .flatMap(kv -> kv.modelMap.entrySet().stream())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
-        @Override public BlockModelDisplay create(BlockModelKey key, DisplayInstance.ModelDisplayObject meta) { return new BlockModelDisplay(key, meta); }
+        @Override public BlockModelDisplay create(BlockModelKey key, ModelDisplayObject meta) { return new BlockModelDisplay(key, meta); }
     }
     public static EntityModelManager manager() { return new EntityModelManager(); }
 
@@ -66,22 +66,3 @@ public class BlockModelDisplay extends ObjectDisplay<DisplayInstance.ModelDispla
         return Optional.ofNullable(BlockDisplay.MODEL_MANAGER.getDisplays().get(key));
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
