@@ -1,6 +1,7 @@
 package org.lime.gp.database.tables;
 
 import org.lime.core;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.admin.BanList;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.database.Methods;
@@ -46,6 +47,10 @@ public class Tables {
     }
 
     public static void init() {
+        AnyEvent.addEvent("tables.resync", AnyEvent.type.owner_console, player -> {
+            KeyedTable.resyncAll();
+            lime.logOP("All tables resynced!");
+        });
         lime.repeat(Tables::update, 1);
     }
 

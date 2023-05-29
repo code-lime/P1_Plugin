@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 public class KeyedTable<V extends BaseRow> extends ITable<V> {
-        public static final ConcurrentHashMap<String, KeyedTable<?>> tables = new ConcurrentHashMap<>();
+    public static void resyncAll() {
+        tables.values().forEach(v -> v.last_update = system.getZeroTime());
+    }
 
         private Calendar last_update = system.getZeroTime();
 
