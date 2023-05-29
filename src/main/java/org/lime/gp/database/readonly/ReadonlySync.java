@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.lime.core;
 import org.lime.gp.admin.Administrator;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.Skins;
@@ -32,8 +33,15 @@ public class ReadonlySync {
         return core.element.create(ReadonlySync.class)
                 .withInit(ReadonlySync::init);
     }
+    private static boolean ONLINE_POSITIONS_READONLY_ENABLE = false;
     public static void init() {
         lime.repeat(ReadonlySync::update, 1);
+        ONLINE_POSITIONS_READONLY_ENABLE = lime.existConfig("__online_position") && lime.readAllConfig("__online_position").equals("true");
+        AnyEvent.addEvent("use_online_positions", AnyEvent.type.owner_console, p -> {
+            ONLINE_POSITIONS_READONLY_ENABLE = !ONLINE_POSITIONS_READONLY_ENABLE;
+            lime.logOP("Use table online_positions: " + (ONLINE_POSITIONS_READONLY_ENABLE ? "enable" : "disable"));
+            lime.writeAllConfig("__online_position", ONLINE_POSITIONS_READONLY_ENABLE ? "true" : "false");
+        });
     }
     public static void update() {
         ReadonlyTable.sync();
@@ -52,9 +60,9 @@ public class ReadonlySync {
 
                 return Arrays.asList(
                         uuid,
-                        system.round(location.getX(), 3),
-                        system.round(location.getY(), 3),
-                        system.round(location.getZ(), 3),
+                        ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockX(), //system.round(location.getX(), 3),
+                        ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockY(), //system.round(location.getY(), 3),
+                        ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockZ(), //system.round(location.getZ(), 3),
                         world,
                         TabManager.getPayerIDorNull(uuid),
                         data.map(v -> v.icon).orElse(null),
@@ -66,6 +74,24 @@ public class ReadonlySync {
                         HideNickSetting.isHide(player) ? 1 : 0,
                         Skins.getSkinURL(player),
                         Ghost.getGhostTarget(player).orElse(null)
+                );
+            })))
+            .build();
+    private static final ReadonlyTable<String> ONLINE_POSITIONS_READONLY = ReadonlyTable.Builder.<String>of("online_positions", "uuid")
+            .withKey(String.class)
+            .withKeys("uuid","x","y","z","world")
+            .withData(() -> EntityPosition.onlinePlayers.entrySet().stream().collect(Collectors.toMap(kv -> kv.getKey().toString(), kv -> {
+                UUID uuid = kv.getKey();
+                Player player = kv.getValue();
+                Location location = player.getLocation();
+                int world = Bukkit.getWorlds().indexOf(location.getWorld());
+
+                return Arrays.asList(
+                        uuid,
+                        (int)location.getBlockX(),//system.round(location.getX(), 3),
+                        (int)location.getBlockY(),//system.round(location.getY(), 3),
+                        (int)location.getBlockZ(),//system.round(location.getZ(), 3),
+                        world
                 );
             })))
             .build();
@@ -106,9 +132,9 @@ public class ReadonlySync {
                 Location location = tameable.getLocation();
                 return Arrays.asList(
                         kv.getKey(),
-                        system.round(location.getX(), 3),
-                        system.round(location.getY(), 3),
-                        system.round(location.getZ(), 3),
+                        (int)location.getBlockX(),//system.round(location.getX(), 3),
+                        (int)location.getBlockY(),//system.round(location.getY(), 3),
+                        (int)location.getBlockZ(),//system.round(location.getZ(), 3),
                         tameable.getCustomName(),
                         tameable.getOwnerUniqueId(),
                         tameable.getType().name()
