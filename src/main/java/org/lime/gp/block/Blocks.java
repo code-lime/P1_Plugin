@@ -97,6 +97,76 @@ public class Blocks implements Listener {
                             return true;
                         })
                 )
+                .addCommand("fill.block", v -> v.withCheck(ServerOperator::isOp)
+                        .withUsage("/fill.block [x1:int,~] [y1:int,~] [z1:int,~] [x2:int,~] [y2:int,~] [z2:int,~] [block:key]")
+                        .withTab((sender, args) -> switch(args.length) {
+                            case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
+                                    .map(p -> p.getLocation().toVector())
+                                    .map(p -> p.getBlockX() + " " + p.getBlockY() + " " + p.getBlockZ())
+                                    .orElse("~"));
+                            case 4,5,6 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
+                                    .map(p -> p.getLocation().toVector())
+                                    .map(p -> p.getBlockX() + " " + p.getBlockY() + " " + p.getBlockZ())
+                                    .orElse("~"));
+                            case 7 -> creators.keySet();
+                            default -> Collections.emptyList();
+                        })
+                        .withExecutor((sender, args) -> {
+                            if (args.length < 4) return false;
+                            Optional<Location> player_location = Optional.ofNullable(sender instanceof Player p ? p : null).map(Entity::getLocation);
+                            
+                            Integer x1 = ExtMethods.parseInt(args[0]).or(() -> player_location.map(Location::getBlockX)).orElse(null);
+                            if (x1 == null) {
+                                sender.sendMessage("Value '"+args[0]+"' of argument 'x1' is not supported!");
+                                return true;
+                            }
+                            Integer y1 = ExtMethods.parseInt(args[1]).or(() -> player_location.map(Location::getBlockY)).orElse(null);
+                            if (y1 == null) {
+                                sender.sendMessage("Value '"+args[1]+"' of argument 'y1' is not supported!");
+                                return true;
+                            }
+                            Integer z1 = ExtMethods.parseInt(args[2]).or(() -> player_location.map(Location::getBlockZ)).orElse(null);
+                            if (z1 == null) {
+                                sender.sendMessage("Value '"+args[2]+"' of argument 'z1' is not supported!");
+                                return true;
+                            }
+
+                            Integer x2 = ExtMethods.parseInt(args[3]).or(() -> player_location.map(Location::getBlockX)).orElse(null);
+                            if (x2 == null) {
+                                sender.sendMessage("Value '"+args[3]+"' of argument 'x2' is not supported!");
+                                return true;
+                            }
+                            Integer y2 = ExtMethods.parseInt(args[4]).or(() -> player_location.map(Location::getBlockY)).orElse(null);
+                            if (y2 == null) {
+                                sender.sendMessage("Value '"+args[4]+"' of argument 'y2' is not supported!");
+                                return true;
+                            }
+                            Integer z2 = ExtMethods.parseInt(args[5]).or(() -> player_location.map(Location::getBlockZ)).orElse(null);
+                            if (z2 == null) {
+                                sender.sendMessage("Value '"+args[5]+"' of argument 'z2' is not supported!");
+                                return true;
+                            }
+
+                            creator(args[6]).ifPresentOrElse(info -> {
+                                World world = player_location.map(Location::getWorld).orElse(lime.MainWorld);
+                                
+                                int minX = Math.min(x1, x2);
+                                int minY = Math.min(y1, y2);
+                                int minZ = Math.min(z1, z2);
+
+                                int maxX = Math.max(x1, x2);
+                                int maxY = Math.max(y1, y2);
+                                int maxZ = Math.max(z1, z2);
+
+                                for (int x = minX; x <= maxX; x++)
+                                    for (int y = minY; y <= maxY; y++)
+                                        for (int z = minZ; z <= maxZ; z++)
+                                        setBlock(new Position(world, x, y, z), info);
+                                sender.sendMessage("Blocks '"+info.getKey()+"' fill from "+x1+" "+y1+" "+z1 + " to " + x2 + " " + y2 + " " + z2);
+                            }, () -> sender.sendMessage("Block '"+args[6]+"' not founded!"));
+                            return true;
+                        })
+                )
                 .addCommand("variable.block", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~] [block:key]")
                         .withTab((sender, args) -> switch(args.length) {
