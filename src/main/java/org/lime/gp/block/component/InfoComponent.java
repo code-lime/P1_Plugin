@@ -5,15 +5,22 @@ import org.bukkit.util.Vector;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.item.settings.Setting;
 import org.lime.system;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.*;
 
 public class InfoComponent {
     @Retention(RetentionPolicy.RUNTIME)
+    @Repeatable(Component.Any.class)
     public @interface Component {
+        @Retention(RetentionPolicy.RUNTIME) @interface Any {
+            Component[] value();
+        }
+
         String name();
     }
 

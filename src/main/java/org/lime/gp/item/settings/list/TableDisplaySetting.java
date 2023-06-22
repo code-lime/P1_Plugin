@@ -18,12 +18,13 @@ import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
 
-@Setting(name = "table_dispaly") public class TableDisplaySetting extends ItemSetting<JsonObject> {
+@Setting(name = "table_dispaly") @Setting(name = "table_display") public class TableDisplaySetting extends ItemSetting<JsonObject> {
     public enum TableType {
         inventory,
         converter,
         laboratory,
         clicker,
+        crops,
         all;
 
         public static Stream<TableDisplaySetting.TableType> all() {

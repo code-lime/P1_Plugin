@@ -94,6 +94,10 @@ public class RecipesBook implements Listener {
             this.id = id;
             this.title = ChatHelper.toNMS(adventure$title = ChatHelper.formatComponent(json.get("title").getAsString()));
         }
+        public RecipesBookData(String id, Component component) {
+            this.id = id;
+            this.title = ChatHelper.toNMS(adventure$title = component);
+        }
     }
 
     public static void init() {
@@ -131,10 +135,15 @@ public class RecipesBook implements Listener {
         RecipesBook.update();
         lime.repeat(RecipesBook::update, 5*60);
     }
+    private static final HashMap<String, RecipesBookData> defaultBooks = new HashMap<>();
+    public static void addDefaultBook(String key, Component title) {
+        defaultBooks.put(key, new RecipesBookData(key, title));
+    }
     public static void config(JsonObject json) {
         HashMap<String, RecipesBookData> recipesBooks = new HashMap<>();
         json.entrySet().forEach(kv -> recipesBooks.put(kv.getKey(), new RecipesBookData(kv.getKey(), kv.getValue().getAsJsonObject())));
         RecipesBook.recipesBooks.clear();
+        RecipesBook.recipesBooks.putAll(defaultBooks);
         RecipesBook.recipesBooks.putAll(recipesBooks);
     }
     @SuppressWarnings("all")

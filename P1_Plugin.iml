@@ -1,10 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="JAVA_MODULE" version="4">
+<module version="4">
+  <component name="EclipseModuleManager">
+    <libelement value="jar://$MODULE_DIR$/../.libs/paper-unmapped-1.19.4.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/CrazyAdvancementsAPI.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/Core-1.0.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/LimeDisplay-1.0.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/JSEngine-3.0.5.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/GSit-1.4.1.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/LimeCoreProtect-1.0.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/ProtocolLib.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/DiscordSRV-Build-1.26.1.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/voicechat-bukkit-1.19.4-2.4.2.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/byte-buddy-1.11.18.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/byte-buddy-agent-1.11.18.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/Physics-1.11.0.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/ode4j-core-0.4.1.jar!/" />
+    <libelement value="jar://$MODULE_DIR$/../.libs/mp3spi-1.9.13.jar!/" />
+    <src_description expected_position="0">
+      <src_folder value="file://$MODULE_DIR$/src/main/java" expected_position="0" />
+      <src_folder value="file://$MODULE_DIR$/src/main/resources" expected_position="1" />
+      <src_folder value="file://$MODULE_DIR$/src/test/java" expected_position="2" />
+      <src_folder value="file://$MODULE_DIR$/src/test/resources" expected_position="3" />
+    </src_description>
+  </component>
   <component name="FacetManager">
     <facet type="minecraft" name="Minecraft">
       <configuration>
         <autoDetectTypes>
           <platformType>PAPER</platformType>
+          <platformType>MCP</platformType>
         </autoDetectTypes>
       </configuration>
     </facet>

@@ -115,7 +115,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                     .build());
             LaboratoryInstance.this.metadata()
                 .list(DisplayInstance.class)
-                .forEach(display -> display.variableDirty());
+                .forEach(DisplayInstance::variableDirty);
             return this;
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {

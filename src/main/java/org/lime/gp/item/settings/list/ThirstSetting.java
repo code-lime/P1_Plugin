@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 
 @Setting(name = "thirst") public class ThirstSetting extends ItemSetting<JsonObject> {
     public static final Color DEFAULT_WATER_COLOR = Color.fromRGB(0x3F76E4);
+    public static final String DEFAULT_WATER_COLOR_HEX = "#3F76E4";
 
     public static ItemStack createWaterBottle() {
         ItemStack item = new ItemStack(Material.POTION);

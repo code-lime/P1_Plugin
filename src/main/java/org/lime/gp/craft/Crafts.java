@@ -27,7 +27,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftNamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
 import org.lime.gp.craft.recipe.*;
@@ -110,6 +109,15 @@ public class Crafts {
 
     public static void uninit() { removeCrafts(new ArrayList<>()); }
     private static int index = 0;
+
+    private final static List<IRecipe<?>> hardcodeCrafts = new ArrayList<>();
+    public static void addDefaultCraft(IRecipe<?> recipe) {
+        hardcodeCrafts.add(recipe);
+    }
+    public static void addDefaultCraft(String key, JsonObject recipe) {
+        hardcodeCrafts.add(create(key, recipe));
+    }
+
     public static void config(JsonObject json) {
         List<String> regexList = new ArrayList<>();
         if (json.has("remove")) {
@@ -117,7 +125,7 @@ public class Crafts {
             json.remove("remove");
         }
 
-        List<IRecipe<?>> craftList = new ArrayList<>();
+        List<IRecipe<?>> craftList = new ArrayList<>(hardcodeCrafts);
         lime.combineParent(json, true, false).entrySet().forEach(kv -> craftList.add(create(kv.getKey(), kv.getValue().getAsJsonObject())));
         //craftList.add(ClickerRecipe.ANVIL_DEFAULT);
 
@@ -128,20 +136,20 @@ public class Crafts {
         craftList.forEach(Recipes.CRAFTING_MANAGER::addRecipe);
         lime.once(RecipesBook::reload, 1);
     }
+
     public static final HashMap<String, List<String>> removeCraftList = new HashMap<>();
     public static void removeCrafts(List<String> regexList) {
-        Iterator<Recipe> recipes = Bukkit.recipeIterator();
+        Iterator<IRecipe<?>> recipes = new RecipeIteratorNMS();
         HashMap<String, List<String>> removeCraftList = new HashMap<>();
         regexList.forEach(regex -> removeCraftList.put(regex, new ArrayList<>()));
         while (recipes.hasNext()) {
-            Recipe recipe = recipes.next();
-            if (!(recipe instanceof Keyed keyed)) continue;
-            NamespacedKey key = keyed.getKey();
+            IRecipe<?> recipe = recipes.next();
+            MinecraftKey key = recipe.getId();
             //if (keyed.key().toString().contains("armor_dye")) lime.logOP("ARMOR_DYE_COLOR");
-            String namespace = keyed.getKey().namespace();
+            String namespace = key.getNamespace();
             switch (namespace) {
                 case "minecraft": {
-                    String value = key.value();
+                    String value = key.getPath();
                     boolean remove = false;
                     for (String regex : regexList) {
                         if (system.compareRegex(value, regex)) {
@@ -440,6 +448,16 @@ public class Crafts {
                         json.has("category") ? json.get("category").getAsString() : null,
                         CraftingBookCategory.MISC),
                     create(key.toString(), json.get("input").getAsJsonArray()), OutputSlot.of(json.get("output").getAsString()));
+            case "waiting": return new WaitingRecipe(key, group, getByName(
+                        CraftingBookCategory.values(),
+                        json.has("category") ? json.get("category").getAsString() : null,
+                        CraftingBookCategory.MISC),
+                    RecipeSlot.of(key.toString(), json.get("input")),
+                    create(key.toString(), json.get("fuel").getAsJsonArray()),
+                    create(key.toString(), json.get("catalyse").getAsJsonArray()),
+                    OutputSlot.of(json.get("output").getAsString()),
+                    json.get("total_sec").getAsInt(),
+                    json.get("waiting_type").getAsString());
             case "laboratory": return new LaboratoryRecipe(key, group, getByName(
                         CraftingBookCategory.values(),
                         json.has("category") ? json.get("category").getAsString() : null,

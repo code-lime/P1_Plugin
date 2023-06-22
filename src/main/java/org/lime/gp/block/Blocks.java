@@ -437,6 +437,7 @@ public class Blocks implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true) public static void piston(BlockPistonRetractEvent e) {
         piston(e, e.getBlocks().stream().map(Position::new));
     }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true) public static void place(BlockPlaceEvent e) {
         if (!e.canBuild()) return;
         Block block = e.getBlock();
@@ -451,6 +452,7 @@ public class Blocks implements Listener {
                             .ifPresentOrElse(list -> {}, () -> e.setBuild(false));
                 });
     }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true) public static void physics(BlockPhysicsEvent e) {
         if (!replaceBlocks.containsKey(e.getChangedType())) return;
         Location location = e.getBlock().getLocation();

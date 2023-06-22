@@ -114,7 +114,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             model.set0(null);
             metadata()
                 .list(DisplayInstance.class)
-                .forEach(display -> display.variableDirty());
+                .forEach(DisplayInstance::variableDirty);
             return;
         }
         Models.Builder builder = lime.models.builder();
@@ -126,7 +126,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         model.set0(builder.build());
         metadata()
             .list(DisplayInstance.class)
-            .forEach(display -> display.variableDirty());
+            .forEach(DisplayInstance::variableDirty);
     }
 
     private static int hurt(ItemStack damageItem) {
@@ -273,7 +273,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
 
     private void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
-            display.set("clicker_damage", damage + "");
+            display.set("clicker_damage", String.valueOf(damage));
         });
     }
 }

@@ -1,5 +1,7 @@
 package org.lime.gp;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
@@ -7,6 +9,9 @@ import dev.geco.gsit.objects.GSeat;
 import dev.geco.gsit.objects.GetUpReason;
 import dev.geco.gsit.objects.IGPoseSeat;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.WorldCreator;
@@ -59,6 +64,10 @@ import org.lime.invokable.IInvokable;
 import org.lime.system;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class lime extends core {
     public static lime _plugin;
@@ -163,6 +172,8 @@ public class lime extends core {
         //library("ode4j-core-0.4.1.jar");
         //add(Physics.create());
 
+        add(test.create());
+
         add(EntityDamageByPlayerEvent.create());
         add(WorldGenModify.create());
         add(CommandLogger.create());
@@ -255,11 +266,72 @@ public class lime extends core {
         add(Prison.create());
         add(NPC.create());
 
-        addOther().forEach(loadedElement -> lime.once(() -> loadedElement.element()
+        List<Component> shows = new ArrayList<>();
+
+        system.Toast3<Integer, Integer, Integer> showIndex = system.toast(0, 0, 0);
+
+        addOther().forEach(loadedElement -> lime.once(() -> {
+            showIndex.val0++;
+            Component text = loadedElement.element()
+                    .map(element -> {
+                        lime.log("Element '"+element.name+"' of class '"+element.tClass.toString()+"' is loaded other.");
+                        showIndex.val1++;
+                        return Component.text(element.name + " : " + element.tClass.toString() + " ").append(Component.text("[+]").color(NamedTextColor.GREEN));
+                    })
+                    .orElseGet(() -> {
+                        lime.log("Element '"+loadedElement.name()+"' of class '"+loadedElement.type().toString()+"' is disabled.");
+                        showIndex.val2++;
+                        return Component.text(loadedElement.name() + " : " + loadedElement.type().toString() + " ").append(Component.text("[-]").color(NamedTextColor.GRAY));
+                    });
+            shows.add(text);
+            if (shows.size() >= 20) {
+                Component sendMessage = Component.text("Elements " + (showIndex.val0 - shows.size() + 1) + "..." + showIndex.val0 + " loaded status ")
+                        .append(Component.empty()
+                                .append(Component.text(showIndex.val1).color(NamedTextColor.GREEN))
+                                .append(Component.text(" / "))
+                                .append(Component.text(showIndex.val2).color(NamedTextColor.GRAY))
+                        )
+                        .append(Component.text(": "))
+                        .append(Component.text("[...]")
+                                .hoverEvent(Component.join(JoinConfiguration.newlines(), shows))
+                        );
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                    if (!p.isOp()) return;
+                    p.sendMessage(Component.text("["+getLogPrefix()+"] ").color(NamedTextColor.YELLOW).append(Component.empty().append(sendMessage).color(NamedTextColor.WHITE)));
+                });
+                shows.clear();
+                showIndex.val1 = 0;
+                showIndex.val2 = 0;
+            }
+        }, 1));
+        lime.once(() -> {
+            if (shows.size() > 0) {
+                Component sendMessage = Component.text("Elements " + (showIndex.val0 - shows.size() + 1) + "..." + showIndex.val0 + " loaded status ")
+                        .append(Component.empty()
+                                .append(Component.text(showIndex.val1).color(NamedTextColor.GREEN))
+                                .append(Component.text(" / "))
+                                .append(Component.text(showIndex.val2).color(NamedTextColor.GRAY))
+                        )
+                        .append(Component.text(": "))
+                        .append(Component.text("[...]")
+                                .hoverEvent(Component.join(JoinConfiguration.newlines(), shows))
+                        );
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                    if (!p.isOp()) return;
+                    p.sendMessage(Component.text("["+getLogPrefix()+"] ").color(NamedTextColor.YELLOW).append(Component.empty().append(sendMessage).color(NamedTextColor.WHITE)));
+                });
+
+                shows.clear();
+                showIndex.val1 = 0;
+                showIndex.val2 = 0;
+            }
+        }, 1);
+
+        /*addOther().forEach(loadedElement -> lime.once(() -> loadedElement.element()
                 .ifPresentOrElse(
                         element -> lime.logOP("Element '"+element.name+"' of class '"+element.tClass.toString()+"' is loaded other."),
                         () -> lime.logOP("Element '"+loadedElement.name()+"' of class '"+loadedElement.type().toString()+"' is disabled.")
-                ), 1));
+                ), 1));*/
         add(PlayerData.create());
     }
 }

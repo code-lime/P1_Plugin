@@ -16,6 +16,7 @@ import org.lime.system;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class BlockInfo {
     public final LinkedHashMap<String, ComponentStatic<?>> components = new LinkedHashMap<>();
@@ -49,6 +50,9 @@ public final class BlockInfo {
                 return Optional.of((T) component);
         }
         return Optional.empty();
+    }
+    public <T extends ComponentStatic<?>> Stream<T> components(Class<T> tClass) {
+        return components.values().stream().filter(tClass::isInstance).map(tClass::cast);
     }
 
     public TileEntityLimeSkull setBlock(Position position) {

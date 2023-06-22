@@ -7,11 +7,20 @@ import org.lime.gp.entity.EntityInstance;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 public class InfoComponent {
-    @Retention(RetentionPolicy.RUNTIME) public @interface Component { String name(); }
+    @Retention(RetentionPolicy.RUNTIME)
+    @Repeatable(Component.Any.class)
+    public @interface Component {
+        @Retention(RetentionPolicy.RUNTIME) @interface Any {
+            Component[] value();
+        }
+
+        String name();
+    }
     public static final class GenericDynamicComponent<T extends EntityInstance> extends ComponentDynamic<JsonObject, T> {
         private final system.Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance;
         private final String name;

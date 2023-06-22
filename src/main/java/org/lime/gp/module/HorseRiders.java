@@ -194,12 +194,13 @@ public class HorseRiders implements Listener {
         Location vehicleLocation = vehicle.getLocation();
         stand.setRotation(vehicleLocation.getYaw(), vehicleLocation.getPitch());
     }
+
     @EventHandler private static void on(EntityDamageByEntityEvent event) {
         Entity victim = event.getEntity();
-        if (ExtMethods.damagerPlayer(event).map(v -> !isCanInteractEntity(v.getUniqueId(), victim)).orElse(false)) {
+        /*if (ExtMethods.damagerPlayer(event).map(v -> !isCanInteractEntity(v.getUniqueId(), victim)).orElse(false)) {
             event.setCancelled(true);
             return;
-        }
+        }*/
         if (victim.getType() == EntityType.PLAYER) {
             Entity damagerVehicle = event.getDamager().getVehicle();
             if (damagerVehicle == null) return;
@@ -214,6 +215,7 @@ public class HorseRiders implements Listener {
             if (standPassenger.equals(event.getDamager())) event.setCancelled(true);
         }
     }
+
     @EventHandler private static void on(PlayerQuitEvent event) {
         Entity vehicle = event.getPlayer().getVehicle();
         if (vehicle == null) return;

@@ -1,7 +1,6 @@
 package org.lime.gp.block.component.display.instance;
 
 import com.google.gson.JsonPrimitive;
-
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.level.block.BlockSkullShapeInfo;
@@ -68,7 +67,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
 
     @Override public DisplayComponent component() { return (DisplayComponent)super.component(); }
 
-    private system.LockToast1<InfoComponent.Rotation.Value> rotationCache = system.<InfoComponent.Rotation.Value>toast(null).lock();
+    private final system.LockToast1<InfoComponent.Rotation.Value> rotationCache = system.<InfoComponent.Rotation.Value>toast(null).lock();
 
     public void variableDirty() {
         variableIndex.edit0(v -> v + 1);
@@ -170,6 +169,10 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     private final HashMap<UUID, ItemDisplayObject> viewMap = new HashMap<>();
     private final HashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
     @Override public void onAsyncTick(CustomTileMetadata metadata, long tick) {
+        /*
+        boolean isDebug = new ChunkCoordIntPair(metadata.skull.getBlockPos()).longKey == new ChunkCoordIntPair(360, -187).longKey;
+        system.Action1<String> log = isDebug ? lime::logOP : a -> {};
+         */
         if (lastTickID != tick) {
             lastTickID = tick;
             UUID uuid;
@@ -202,10 +205,10 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         } else {
             users = cachedDirtyQueue;
             if (!users.isEmpty()) {
-                frameMap.keySet().removeIf(uuid -> users.contains(uuid));
-                viewMap.keySet().removeIf(uuid -> users.contains(uuid));
+                frameMap.keySet().removeIf(users::contains);
+                viewMap.keySet().removeIf(users::contains);
                 modelMap.values().removeIf(data -> {
-                    data.removeViewersIf(uuid -> users.contains(uuid));
+                    data.removeViewersIf(users::contains);
                     return data.isViewersEmpty();
                 });
             }
@@ -251,8 +254,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                     int distanceChunk = cache.distance(blockCoord);
                     partials.compute(uuid, (k, v) -> {
                         Partial partial = cache.world() != world
-                            ? orSync(metadata, uuid, player, variables, null, v == null ? null : v)
-                            : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v == null ? null : v);
+                            ? orSync(metadata, uuid, player, variables, null, v)
+                            : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v);
                         if (partial == null) return null;
                         if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
                         if (partial instanceof ViewPartial view && view.show) viewMap.put(uuid, ItemDisplayObject.of(pos.toLocation(world), view.nms(variables), view.rotation, view.uuid));
@@ -265,8 +268,6 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                     });
                 }, () -> partials.remove(uuid));
             });
-            tickTimeInfo.check_ns += tickTimeInfo.nextTime();
-            tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
         }
         else {
             users.forEach(uuid -> {
@@ -275,9 +276,9 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                 ChunkCoordCache.getCoord(uuid)
                     .ifPresent(cache -> shows.put(player, cache.distance(blockCoord)));
             });
-            tickTimeInfo.check_ns += tickTimeInfo.nextTime();
-            tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
         }
+        tickTimeInfo.check_ns += tickTimeInfo.nextTime();
+        tickTimeInfo.partial_ns += tickTimeInfo.nextTime();
 
         metadata.list(BlockDisplay.Displayable.class)
                 .forEach(displayable -> shows.forEach((player, distanceChunk) -> displayable.onDisplayAsync(player, handle_world, block_position, state)

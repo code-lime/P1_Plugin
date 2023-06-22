@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 public abstract class RecipeSlot {
     public static final RecipeSlot none = new RecipeSlot() {
         @Override public boolean test(net.minecraft.world.item.ItemStack item) { return item != null && item.isEmpty(); }
+        @Override public Optional<Integer> split(ItemStack item) { return Optional.empty(); }
         @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
         @Override public Stream<String> getWhitelistKeys() { return Stream.empty(); }
     };
@@ -30,9 +31,11 @@ public abstract class RecipeSlot {
     protected RecipeSlot() { }
 
     public abstract boolean test(net.minecraft.world.item.ItemStack item);
+    public abstract Optional<Integer> split(net.minecraft.world.item.ItemStack item);
     public abstract net.minecraft.world.item.ItemStack result(int count);
     public abstract Stream<String> getWhitelistKeys();
     public RecipeItemStack getRecipeSlotNMS() { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(IDisplayRecipe::genericItem)); }
+    public RecipeItemStack getRecipeSlotNMS(system.Func1<ItemStack, ItemStack> map) { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(map)); }
     public Stream<ItemStack> getWhitelistIngredientsShow() {
         return getWhitelistKeys()
                 .map(Items::getItemCreator)
@@ -72,6 +75,11 @@ public abstract class RecipeSlot {
     public static RecipeSlot of(Checker checker) {
         return new RecipeSlot() {
             @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
+            @Override public Optional<Integer> split(ItemStack item) {
+                if (!test(item)) return Optional.empty();
+                int count = item.getCount();
+                return count > 0 ? Optional.of(count) : Optional.empty();
+            }
             @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
             @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
         };
@@ -79,6 +87,11 @@ public abstract class RecipeSlot {
     public static RecipeSlot of(Checker checker, system.Func0<net.minecraft.world.item.ItemStack> result) {
         return new RecipeSlot() {
             @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
+            @Override public Optional<Integer> split(ItemStack item) {
+                if (!test(item)) return Optional.empty();
+                int count = item.getCount();
+                return count > 0 ? Optional.of(count) : Optional.empty();
+            }
             @Override public net.minecraft.world.item.ItemStack result(int count) {
                 net.minecraft.world.item.ItemStack item = result.invoke();
                 item.setCount(count);

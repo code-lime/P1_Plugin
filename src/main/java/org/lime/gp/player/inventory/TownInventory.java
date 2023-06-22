@@ -23,6 +23,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -60,6 +61,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -265,6 +267,12 @@ public class TownInventory implements Listener {
                 });
             });
         }, 1);
+        lime.repeat(() -> {
+            openList.values().removeIf(uuid -> {
+                Player player = Bukkit.getPlayer(uuid);
+                return player == null || player.getOpenInventory().getTopInventory().getType() != InventoryType.CHEST;
+            });
+        }, 0.5);
         lime.repeat(() -> DisplayHtml.generateAllMap(HomeDisplay.house_list::putAll), 5);
     }
     @EventHandler public static void on(PlayerUseUnknownEntityEvent e) {
@@ -362,7 +370,12 @@ public class TownInventory implements Listener {
             });
             updateMap(row);
         }
+
         public void onClick(Player player, boolean isShift) {
+            if (openList.containsKey(houseRowID)) return;
+            UUID uuid = player.getUniqueId();
+            openList.values().remove(uuid);
+            openList.put(houseRowID, uuid);
             Tables.HOUSE_TABLE.get(houseRowID + "").ifPresent(row -> MenuCreator.show(player, "town.house.open", Apply.of().add("house_", row).add("is_shift", isShift ? "true" : "false")));
         }
 
@@ -370,6 +383,9 @@ public class TownInventory implements Listener {
             return new HomeDisplay(houseRow);
         }
     }
+
+    private final static ConcurrentHashMap<Integer, UUID> openList = new ConcurrentHashMap<>();
+
     private static class HomeManager extends DisplayManager<Integer, HouseRow, HomeDisplay> {
         @Override public HashMap<Integer, HouseRow> getData() { return Tables.HOUSE_TABLE.getMap(v -> v.id); }
         @Override public HomeDisplay create(Integer integer, HouseRow houseRow) { return HomeDisplay.create(integer, houseRow); }

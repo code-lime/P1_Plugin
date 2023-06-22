@@ -2,8 +2,8 @@ package org.lime.gp.item.settings;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,17 +44,15 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
                     .filter(v -> v.startsWith(packageFilter))
                     .map(system.<String, Class<?>>funcEx(Class::forName).throwable())
                     .filter(ItemSetting.class::isAssignableFrom)
-                    .map(v -> constructor(v, ItemCreator.class, JsonElement.class)
+                    .flatMap(v -> constructor(v, ItemCreator.class, JsonElement.class)
                             .or(() -> constructor(v, ItemCreator.class, JsonArray.class))
                             .or(() -> constructor(v, ItemCreator.class, JsonObject.class))
                             .or(() -> constructor(v, ItemCreator.class, JsonPrimitive.class))
                             .or(() -> constructor(v, ItemCreator.class, JsonNull.class))
                             .or(() -> constructor(v, ItemCreator.class))
-                            .map(c -> system.toast(v.getAnnotation(Setting.class), c))
-                            .orElse(null)
+                            .stream()
+                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(Setting.class)).map(_c -> system.toast(_c, c)))
                     )
-                    .filter(Objects::nonNull)
-                    .filter(kv -> kv.val0 != null)
                     .collect(Collectors.toMap(kv -> kv.val0.name(), kv -> (system.Func2<ItemCreator, JsonElement, ItemSetting<?>>) (creator, json) -> {
                         try {
                             return (ItemSetting<?>)(kv.val1.getParameterCount() == 2 ? kv.val1.newInstance(creator, json) : kv.val1.newInstance(creator));

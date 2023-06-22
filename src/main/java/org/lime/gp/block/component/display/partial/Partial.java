@@ -22,7 +22,7 @@ public abstract class Partial {
 
     public Partial(int distanceChunk, JsonObject json) {
         this.uuid = UUID.randomUUID();
-        this.distanceChunk = distanceChunk > 0 ? distanceChunk : 0;
+        this.distanceChunk = Math.max(distanceChunk, 0);
 
         if (json.has("variable")) json.getAsJsonArray("variable").forEach(variable -> {
             JsonObject owner = json.deepCopy();
@@ -40,6 +40,10 @@ public abstract class Partial {
         partials.add(this);
         variables.forEach(variable -> partials.addAll(variable.partial.partials()));
         return partials;
+    }
+    public Partial addVariable(Variable variable) {
+        variables.add(variable);
+        return this;
     }
     public Partial partial(Map<String, String> values) {
         for (Variable variable : variables) {

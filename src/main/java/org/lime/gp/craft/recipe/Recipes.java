@@ -115,6 +115,7 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
     public static Recipes<ItemFrameRecipe> ITEM_FRAME = Recipes.register("item_frame");
     public static Recipes<LaboratoryRecipe> LABORATORY = Recipes.register("laboratory");
     public static Recipes<ConverterRecipe> CONVERTER = Recipes.register("converter");
+    public static Recipes<WaitingRecipe> WAITING = Recipes.register("waiting");
 
     public static final CraftingManager CRAFTING_MANAGER = MinecraftServer.getServer().getRecipeManager();
     public static final PlayerList PLAYER_LIST = MinecraftServer.getServer().getPlayerList();

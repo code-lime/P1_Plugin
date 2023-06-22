@@ -140,7 +140,7 @@ public class CustomTileMetadata extends TileMetadata {
                 }));
     }
 
-    private static Stream<Element> childsAndThis(Childable childable) {
+    public static Stream<Element> childsAndThis(Childable childable) {
         return Stream.concat(Stream.of(childable), childable.childs().flatMap(v -> v instanceof Childable c ? childsAndThis(c) : Stream.of(v)));
     }
     private final ConcurrentHashMap<Class<?>, List<?>> list_buffer = new ConcurrentHashMap<>();

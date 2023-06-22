@@ -26,6 +26,13 @@ public final class Variable {
         this.partial = partial;
         this.values.addAll(variable);
     }
+    public Variable(Partial partial) {
+        this.partial = partial;
+    }
+    public Variable add(String key, String value) {
+        this.values.add(system.toast(key, new ArrayList<>(List.of(value))));
+        return this;
+    }
     public boolean is(Map<String, String> values) {
         for (system.Toast2<String, List<String>> kv : this.values) {
             String str = values.getOrDefault(kv.val0, null);

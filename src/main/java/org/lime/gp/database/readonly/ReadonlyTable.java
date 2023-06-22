@@ -24,6 +24,7 @@ public class ReadonlyTable<T> {
     private final system.Func1<Object, T> from;
     private final List<String> keys;
     private final system.Func0<Map<T, List<Object>>> data;
+    private final system.Action1<String> debug;
 
     private final ConcurrentHashMap<Object, Integer> cooldowns = new ConcurrentHashMap<>();
 
@@ -34,15 +35,18 @@ public class ReadonlyTable<T> {
         this.from = builder.from;
         this.keys = builder.keys;
         this.data = builder.data;
+        this.debug = builder.debug;
 
         tables.add(this);
     }
 
-    private static boolean compare(List<String> line1, List<String> line2) {
+    private static boolean compare(List<String> line1, List<String> line2, system.Action1<String> debug) {
         int length = line1.size();
         if (length != line2.size()) return false;
         for (int i = 0; i < length; i++) {
             if (Objects.equals(line1.get(i), line2.get(i))) continue;
+            if (debug != null)
+                debug.invoke("NotEquals[" + i + "]: " + line1.get(i) + " / " + line2.get(i));
             return false;
         }
         return true;
@@ -72,7 +76,7 @@ public class ReadonlyTable<T> {
                 if (data.containsKey(_key.val0)) {
                     List<Object> _args = data.getOrDefault(_key.val0, null);
                     if (_args == null) return;
-                    if (compare(_key.val1, _args.stream().map(MySql::toSqlObject).collect(Collectors.toList()))) ignore.add(_key.val0);
+                    if (compare(_key.val1, _args.stream().map(MySql::toSqlObject).collect(Collectors.toList()), debug)) ignore.add(_key.val0);
                     return;
                 }
                 remove.add(MySql.toSqlObject(_key.val0));
@@ -84,6 +88,8 @@ public class ReadonlyTable<T> {
                 updateKeys.add(_key);
                 update.add(args.stream().map(MySql::toSqlObject).collect(Collectors.joining(",")));
             });
+            if (debug != null)
+                debug.invoke("Update count: " + update.size());
             if (update.size() != 0)
                 Methods.SQL.Async.rawSql(
                         "INSERT INTO "+table+" ("+ String.join(",", keys) +") VALUES ("
@@ -104,26 +110,29 @@ public class ReadonlyTable<T> {
         private final system.Func1<Object, T> from;
         private final List<String> keys;
         private final system.Func0<Map<T, List<Object>>> data;
+        private final system.Action1<String> debug;
 
-        private Builder(String table, String key, Class<?> tKeyClass, system.Func1<Object, T> from, List<String> keys, system.Func0<Map<T, List<Object>>> data) {
+        private Builder(String table, String key, Class<?> tKeyClass, system.Func1<Object, T> from, List<String> keys, system.Func0<Map<T, List<Object>>> data, system.Action1<String> debug) {
             this.table = table;
             this.key = key;
             this.tKeyClass = tKeyClass;
             this.from = from;
             this.keys = keys;
             this.data = data;
+            this.debug = debug;
         }
 
-        public static <T>ReadonlyTable.Builder<T> of(String table, String key) { return new ReadonlyTable.Builder<>(table, key, null, null, null, null); }
+        public static <T>ReadonlyTable.Builder<T> of(String table, String key) { return new ReadonlyTable.Builder<>(table, key, null, null, null, null, null); }
 
         @SuppressWarnings("unchecked")
         public <TKey>ReadonlyTable.Builder<T> withKey(Class<TKey> tKeyClass, system.Func1<TKey, T> from) {
-            return new ReadonlyTable.Builder<T>(table, key, tKeyClass, v -> from.invoke((TKey)v), keys, data);
+            return new ReadonlyTable.Builder<T>(table, key, tKeyClass, v -> from.invoke((TKey)v), keys, data, debug);
         }
         public ReadonlyTable.Builder<T> withKey(Class<T> tKeyClass) { return withKey(tKeyClass, v -> v); }
-        public ReadonlyTable.Builder<T> withKeys(List<String> keys) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data); }
+        public ReadonlyTable.Builder<T> withKeys(List<String> keys) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
         public ReadonlyTable.Builder<T> withKeys(String... keys) { return withKeys(Arrays.asList(keys)); }
-        public ReadonlyTable.Builder<T> withData(system.Func0<Map<T, List<Object>>> data) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data); }
+        public ReadonlyTable.Builder<T> withData(system.Func0<Map<T, List<Object>>> data) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
+        public ReadonlyTable.Builder<T> withDebug(system.Action1<String> debug) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
 
         public ReadonlyTable<T> build() { return new ReadonlyTable<>(this); }
     }

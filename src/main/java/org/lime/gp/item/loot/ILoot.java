@@ -15,7 +15,7 @@ public abstract class ILoot {
     public static ILoot parse(JsonElement json) {
         if (json.isJsonPrimitive()) return new SingleLoot(json.getAsJsonPrimitive());
         else if (json.isJsonArray()) return new MultiLoot(json.getAsJsonArray());
-        else if (json.isJsonNull()) return new EmptyLoot();
+        else if (json.isJsonNull()) return EmptyLoot.Instance;
         else if (json.isJsonObject()) return new FilterLoot(json.getAsJsonObject());
         throw new IllegalArgumentException("[LOOT] Error parse LootTable");
     }

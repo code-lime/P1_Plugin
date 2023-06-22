@@ -7,10 +7,7 @@ import org.lime.system;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public abstract class ComponentStatic<T extends JsonElement> {
@@ -34,16 +31,15 @@ public abstract class ComponentStatic<T extends JsonElement> {
             components = new HashMap<>();
             Stream.of(Components.class.getDeclaredClasses())
                     .filter(ComponentStatic.class::isAssignableFrom)
-                    .map(v -> constructor(v, EntityInfo.class, JsonElement.class)
+                    .flatMap(v -> constructor(v, EntityInfo.class, JsonElement.class)
                             .or(() -> constructor(v, EntityInfo.class, JsonArray.class))
                             .or(() -> constructor(v, EntityInfo.class, JsonObject.class))
                             .or(() -> constructor(v, EntityInfo.class, JsonPrimitive.class))
                             .or(() -> constructor(v, EntityInfo.class, JsonNull.class))
                             .or(() -> constructor(v, EntityInfo.class))
-                            .map(c -> system.toast(v.getAnnotation(InfoComponent.Component.class), c))
-                            .orElse(null))
-                    .filter(Objects::nonNull)
-                    .filter(kv -> kv.val0 != null)
+                            .stream()
+                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(InfoComponent.Component.class)).map(_c -> system.toast(_c, c)))
+                    )
                     .forEach(kv -> {
                         components.put(kv.val0.name(), (creator, json) -> {
                             try {

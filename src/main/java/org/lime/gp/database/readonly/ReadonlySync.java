@@ -49,7 +49,12 @@ public class ReadonlySync {
 
     private static final ReadonlyTable<String> ONLINE_READONLY = ReadonlyTable.Builder.<String>of("online", "uuid")
             .withKey(String.class)
-            .withKeys("uuid","x","y","z","world","timed_id","data_icon","data_name","is_op","zone_selector","die","gpose","hide","skin_url","ghost")
+            .withKeys("uuid",
+                    "x","y","z", "world",
+                    "timed_id",
+                    "data_icon","data_name",
+                    "is_op", "zone_selector","die",
+                    "gpose","hide","skin_url","ghost")
             .withData(() -> EntityPosition.onlinePlayers.entrySet().stream().collect(Collectors.toMap(kv -> kv.getKey().toString(), kv -> {
                 UUID uuid = kv.getKey();
                 Player player = kv.getValue();
@@ -60,22 +65,26 @@ public class ReadonlySync {
 
                 return Arrays.asList(
                         uuid,
+
                         ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockX(), //system.round(location.getX(), 3),
                         ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockY(), //system.round(location.getY(), 3),
                         ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockZ(), //system.round(location.getZ(), 3),
                         world,
+
                         TabManager.getPayerIDorNull(uuid),
+
                         data.map(v -> v.icon).orElse(null),
                         data.map(v -> v.name).orElse(null),
-                        player.isOp(),
-                        selector_name,
-                        Death.isDamageLay(uuid),
+
+                        player.isOp(), selector_name, Death.isDamageLay(uuid),
+
                         lime.isLay(player) ? "LAY" : lime.isSit(player) ? "SIT" : "NONE",
                         HideNickSetting.isHide(player) ? 1 : 0,
                         Skins.getSkinURL(player),
                         Ghost.getGhostTarget(player).orElse(null)
                 );
             })))
+            //.withDebug(text -> lime.logOP("[SQL] " + text))
             .build();
     private static final ReadonlyTable<String> ONLINE_POSITIONS_READONLY = ReadonlyTable.Builder.<String>of("online_positions", "uuid")
             .withKey(String.class)
