@@ -32,7 +32,7 @@ public class ProxyFoodMetaData extends FoodMetaData {
         Bukkit.getOnlinePlayers().forEach(player -> {
             EntityPlayer eplayer = ((CraftPlayer)player).getHandle();
             ProxyFoodMetaData metaData = getProxyFood(eplayer);
-            if (ChurchManager.hasEffect(player, ChurchManager.EffectType.SATURATION)) {
+            if (ChurchManager.hasAnyEffect(player, ChurchManager.EffectType.SATURATION)) {
                 metaData.saturationStep = 0.5f;
                 metaData.foodStep = 0.5f;
             } else {
