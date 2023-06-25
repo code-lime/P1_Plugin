@@ -198,19 +198,25 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         ClickerComponent component = component();
         String clicker_type = component.type;
         if (player.getAttackCooldown() <= 0.9) return;
-        if (clicker.getType().isAir()) return;
-        if (Items.getOptional(ClickerSetting.class, clicker).map(v -> v.type).filter(v -> v.equals(clicker_type)).isEmpty()) {
-            DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
-            return;
-        }
-        ItemMeta meta = clicker.getItemMeta();
-        Damageable damageable = (Damageable)meta;
-        int value = damageable.getDamage() + hurt(clicker);
-        if (value >= Items.getMaxDamage(clicker)) {
-            clicker.setAmount(0);
+        boolean isHand = clicker.getType().isAir();
+        boolean isCanHand = component.hand_click;
+        if (isHand) {
+            if (!isCanHand) return;
         } else {
-            damageable.setDamage(value);
-            clicker.setItemMeta(meta);
+            if (Items.getOptional(ClickerSetting.class, clicker).map(v -> v.type).filter(v -> v.equals(clicker_type)).isEmpty()) {
+                DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
+                return;
+            }
+            ItemMeta meta = clicker.getItemMeta();
+            if (meta instanceof Damageable damageable) {
+                int value = damageable.getDamage() + hurt(clicker);
+                if (value >= Items.getMaxDamage(clicker)) {
+                    clicker.setAmount(0);
+                } else {
+                    damageable.setDamage(value);
+                    clicker.setItemMeta(meta);
+                }
+            }
         }
         Perms.ICanData canData = Perms.getCanData(player);
         List<ClickerRecipe> recipes = Recipes.CLICKER.getAllRecipes(canData).filter(v -> v.clicker_type.equals(clicker_type)).toList();

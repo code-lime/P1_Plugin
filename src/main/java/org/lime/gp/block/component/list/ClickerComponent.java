@@ -29,6 +29,7 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
     public final Replace replace;
     public final LocalLocation show;
     public final Material particle;
+    public final boolean hand_click;
 
     public interface Replace {
         void invoke(Position position, InfoComponent.Rotation.Value rotation);
@@ -115,6 +116,7 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
         this.replace = json.has("replace") ? Replace.of(json.getAsJsonObject("replace")) : Replace.none;
         this.show = json.has("show") ? new LocalLocation(system.getVector(json.get("show").getAsString())) : LocalLocation.ZERO;
         this.particle = json.has("particle") ? Material.valueOf(json.get("particle").getAsString()) : null;
+        this.hand_click = json.has("hand_click") && json.get("hand_click").getAsBoolean();
     }
 
     @Override
