@@ -16,6 +16,7 @@ import org.lime.gp.lime;
 import org.lime.system;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class ExtMethods {
@@ -47,6 +48,10 @@ public class ExtMethods {
     }
     public static Optional<Integer> parseInt(String text) {
         try { return Optional.of(Integer.parseInt(text)); }
+        catch (Exception e) { return Optional.empty(); }
+    }
+    public static Optional<UUID> parseUUID(String text) {
+        try { return Optional.of(UUID.fromString(text)); }
         catch (Exception e) { return Optional.empty(); }
     }
     public static Optional<Double> parseDouble(String text) {

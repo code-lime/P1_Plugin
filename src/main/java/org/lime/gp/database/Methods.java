@@ -22,6 +22,7 @@ import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.web;
 
+import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.util.*;
@@ -454,6 +455,37 @@ public class Methods {
                 .build(),
             () -> {}
         );
+    }
+
+    public static void rejoinCreate(String name, @Nullable UUID owner, system.Action0 callback) {
+        SQL.Async.rawSql(
+                "INSERT INTO rejoin (name, owner) VALUES (@name, @owner)",
+                MySql.args().add("name", name).add("owner", owner).build(),
+                callback);
+    }
+    public static void rejoinDelete(String identifier, system.Action0 callback) {
+        SQL.Async.rawSql(
+                "DELETE FROM rejoin WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
+                MySql.args().add("identifier", identifier).build(),
+                callback);
+    }
+    public static void rejoinSet(String identifier, @Nullable UUID owner, system.Action0 callback) {
+        SQL.Async.rawSql(
+                "UPDATE rejoin SET rejoin.owner = @owner WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
+                MySql.args().add("identifier", identifier).add("owner", owner).build(),
+                callback);
+    }
+    public static void rejoinRename(String identifier, String name, system.Action0 callback) {
+        SQL.Async.rawSql(
+                "UPDATE rejoin SET rejoin.name = @name WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
+                MySql.args().add("identifier", identifier).add("name", name).build(),
+                callback);
+    }
+    public static void rejoinSelect(UUID owner, @Nullable String identifier, system.Action0 callback) {
+        SQL.Async.rawSql(
+                "UPDATE rejoin SET rejoin.select = IF(CONCAT(rejoin.name,':',rejoin.index) = @identifier,1,0) WHERE rejoin.owner = @owner",
+                MySql.args().add("identifier", identifier).add("owner", owner).build(),
+                callback);
     }
 }
 

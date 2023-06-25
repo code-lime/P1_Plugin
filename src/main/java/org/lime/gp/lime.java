@@ -174,6 +174,7 @@ public class lime extends core {
 
         add(test.create());
 
+        add(ReJoin.create());
         add(EntityDamageByPlayerEvent.create());
         add(WorldGenModify.create());
         add(CommandLogger.create());

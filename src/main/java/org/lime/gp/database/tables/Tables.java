@@ -6,27 +6,7 @@ import org.lime.gp.admin.BanList;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.debug;
-import org.lime.gp.database.rows.AAnyRow;
-import org.lime.gp.database.rows.AnyRow;
-import org.lime.gp.database.rows.BanListRow;
-import org.lime.gp.database.rows.BaseRow;
-import org.lime.gp.database.rows.CompassTargetRow;
-import org.lime.gp.database.rows.DiscordRow;
-import org.lime.gp.database.rows.FriendRow;
-import org.lime.gp.database.rows.HouseRow;
-import org.lime.gp.database.rows.HouseSubsRow;
-import org.lime.gp.database.rows.LevelRow;
-import org.lime.gp.database.rows.PermissionRow;
-import org.lime.gp.database.rows.PetsRow;
-import org.lime.gp.database.rows.PreDonateItemsRow;
-import org.lime.gp.database.rows.PreDonateRow;
-import org.lime.gp.database.rows.PrisonRow;
-import org.lime.gp.database.rows.RolesRow;
-import org.lime.gp.database.rows.SmsPresetRow;
-import org.lime.gp.database.rows.UserCraftsRow;
-import org.lime.gp.database.rows.UserFlagsRow;
-import org.lime.gp.database.rows.UserRow;
-import org.lime.gp.database.rows.Variable;
+import org.lime.gp.database.rows.*;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PredonateWhitelist;
@@ -92,47 +72,47 @@ public class Tables {
     }
 
     public static final KeyedTable<AAnyRow> ABAN_TABLE = KeyedTable.of("aban", AAnyRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<AAnyRow> AMUTE_TABLE = KeyedTable.of("amute", AAnyRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<RolesRow> ROLES_TABLE = KeyedTable.of("roles", RolesRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<UserRow> USER_TABLE = KeyedTable.of("users", UserRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .other("uuid", v -> v.uuid.toString())
             .event(KeyedTable.Event.Removed, RecipesBook::editRow)
             .event(KeyedTable.Event.Updated, RecipesBook::editRow)
             .build();
     public static final KeyedTable<HouseRow> HOUSE_TABLE = KeyedTable.of("house", HouseRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<HouseSubsRow> HOUSE_SUBS_TABLE = KeyedTable.of("house_subs", HouseSubsRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<FriendRow> FRIEND_TABLE = KeyedTable.of("friends", FriendRow::new)
             .where("friends.friend_name IS NOT NULL")
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
 
     public static final KeyedTable<PrisonRow> PRISON_TABLE = KeyedTable.of("prison", PrisonRow::new)
             .where("prison.is_log = 0")
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<Variable> VARIABLE_TABLE = KeyedTable.of("variable", Variable::new)
             .keyed("tmp", v -> "0")
             .build();
     public static final KeyedTable<DiscordRow> DISCORD_TABLE = KeyedTable.of("discord", DiscordRow::new)
-            .keyed("discord_id", v -> v.discordID + "")
+            .keyed("discord_id", v -> String.valueOf(v.discordID))
             .build();
     public static final KeyedTable<CompassTargetRow> COMPASS_TARGET_TABLE = KeyedTable
             .of("compass_target", CompassTargetRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<PetsRow> PETS_TABLE = KeyedTable.of("pets", PetsRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<PermissionRow> PERMISSIONS_TABLE = KeyedTable.of("permissions", PermissionRow::new)
             .keyed("uuid", v -> v.uuid.toString())
@@ -140,37 +120,40 @@ public class Tables {
             .build();
     public static final KeyedTable<UserFlagsRow> USERFLAGS_TABLE = KeyedTable.of("user_flags", UserFlagsRow::new)
             .where("user_flags.backpack_id > 0")
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .other("uuid", v -> v.uuid.toString())
             .build();
     public static final KeyedTable<UserCraftsRow> USERCRAFTS_TABLE = KeyedTable.of("user_crafts", UserCraftsRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .event(KeyedTable.Event.Removed, row -> UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
             .event(KeyedTable.Event.Updated, row -> UserRow.getBy(row.uuid).ifPresent(RecipesBook::editRow))
             .event(KeyedTable.Event.Removed, Perms::onUserCraftUpdate)
             .event(KeyedTable.Event.Updated, Perms::onUserCraftUpdate)
             .build();
     public static final KeyedTable<BanListRow> BANLIST_TABLE = KeyedTable.of("ban_list", BanListRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .other("user", v -> v.user)
             .event(KeyedTable.Event.Removed, BanList::onBanUpdate)
             .event(KeyedTable.Event.Updated, BanList::onBanUpdate)
             .build();
     public static final KeyedTable<PreDonateRow> PREDONATE_TABLE = KeyedTable.of("predonate", PreDonateRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .event(KeyedTable.Event.Removed, PredonateWhitelist::onUpdate)
             .event(KeyedTable.Event.Updated, PredonateWhitelist::onUpdate)
             .build();
     public static final KeyedTable<PreDonateItemsRow> PREDONATE_ITEMS_TABLE = KeyedTable
             .of("predonate_items", PreDonateItemsRow::new)
             .where("predonate_items.amount > 0")
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<SmsPresetRow> SMSPRESET_TABLE = KeyedTable.of("sms_preset", SmsPresetRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<LevelRow> LEVEL_TABLE = KeyedTable.of("level", LevelRow::new)
-            .keyed("id", v -> v.id + "")
+            .keyed("id", v -> String.valueOf(v.id))
             .other("work", v -> v.user_id + "^" + v.work)
+            .build();
+    public static final KeyedTable<ReJoinRow> REJOIN_TABLE = KeyedTable.of("rejoin", ReJoinRow::new)
+            .keyed("index", v -> String.valueOf(v.index))
             .build();
 }

@@ -1,0 +1,204 @@
+package org.lime.gp.player.module;
+
+import com.destroystokyo.paper.profile.CraftPlayerProfile;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import com.google.common.collect.Streams;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.lime.core;
+import org.lime.gp.database.Methods;
+import org.lime.gp.database.rows.ReJoinRow;
+import org.lime.gp.database.tables.Tables;
+import org.lime.gp.extension.ExtMethods;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+public class ReJoin implements Listener {
+    public static core.element create() {
+        return core.element.create(ReJoin.class)
+                .withInit(ReJoin::init)
+                .withInstance()
+                .addCommand("rejoin", v -> v
+                        .withUsage(String.join("\n",
+                                "/rejoin create [name] - Создать аккаунт",
+                                "/rejoin delete [identifier] - Удалить аккаунт",
+                                "/rejoin info [identifier] - Информациа об аккаунте",
+                                "/rejoin set [identifier] [uuid or user_name] - Установить владельца аккаунта",
+                                "/rejoin rename [identifier] [name] - Переименовать аккаунт",
+                                "/rejoin select [identifier] - Выбрать аккаунт"
+                        ))
+                        .withTab((s,a) -> switch (a.length) {
+                            case 1 -> Streams.concat(
+                                    s.isOp() ? Stream.of("create", "delete", "info", "set", "rename") : Stream.empty(),
+                                    s instanceof Player ? Stream.of("select") : Stream.empty()
+                                    ).toList();
+                            case 2 -> switch (a[0]) {
+                                case "create" -> s.isOp() ? Collections.singletonList("[name]") : Collections.emptyList();
+                                case "delete", "info", "set", "rename" -> s.isOp()
+                                        ? Tables.REJOIN_TABLE.getRows()
+                                            .stream()
+                                            .map(ReJoinRow::identifier)
+                                            .toList()
+                                        : Collections.emptyList();
+                                case "select" -> s instanceof Player p
+                                        ? Streams.concat(
+                                                Tables.REJOIN_TABLE.getRows()
+                                                    .stream()
+                                                    .filter(_v -> p.getUniqueId().equals(_v.owner.orElse(null)))
+                                                    .map(ReJoinRow::identifier),
+                                                Stream.of("default")
+                                        ).toList()
+                                        : Collections.singletonList("default");
+                                default -> Collections.emptyList();
+                            };
+                            case 3 -> switch (a[0]) {
+                                case "set" -> s.isOp() ? Bukkit.getOnlinePlayers().stream().flatMap(_v -> Stream.of(_v.getName(), _v.getUniqueId().toString())).toList() : Collections.emptyList();
+                                case "rename" -> s.isOp() ? Collections.singletonList("[name]") : Collections.emptyList();
+                                default -> Collections.emptyList();
+                            };
+                            default -> Collections.emptyList();
+                        })
+                        .withExecutor((s, a) -> switch (a.length) {
+                            case 2 -> switch (a[0]) {
+                                case "create" -> {
+                                    if (!s.isOp()) yield false;
+                                    Methods.rejoinCreate(a[1], s instanceof Player p ? p.getUniqueId() : null, () -> s.sendMessage("Created!"));
+                                    yield true;
+                                }
+                                case "delete" -> {
+                                    if (!s.isOp()) yield false;
+                                    Methods.rejoinDelete(a[1], () -> s.sendMessage("Deleted!"));
+                                    yield true;
+                                }
+                                case "info" -> {
+                                    if (!s.isOp()) yield false;
+                                    Tables.REJOIN_TABLE.getBy(_v -> _v.identifier().equals(a[1])).ifPresentOrElse(row -> {
+                                        s.sendMessage(Component.join(JoinConfiguration.newlines(),
+                                                Component.text("ReJoin info:"),
+                                                Component.text(" - Name: ")
+                                                        .append(Component.text(row.name)
+                                                                .color(NamedTextColor.YELLOW)
+                                                                .clickEvent(ClickEvent.copyToClipboard(row.name))
+                                                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy")))
+                                                        ),
+                                                Component.text(" - Index: ")
+                                                        .append(Component.text(row.index)
+                                                                .color(NamedTextColor.YELLOW)
+                                                                .clickEvent(ClickEvent.copyToClipboard(String.valueOf(row.index)))
+                                                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy")))
+                                                        ),
+                                                Component.text( " - Identifier: ")
+                                                        .append(Component.text(row.identifier())
+                                                                .color(NamedTextColor.YELLOW)
+                                                                .clickEvent(ClickEvent.copyToClipboard(row.identifier()))
+                                                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy")))
+                                                        ),
+                                                Component.text( " - Owner: ")
+                                                        .append(Component.text(row.owner.map(UUID::toString).orElse("NotSet"))
+                                                                .color(NamedTextColor.YELLOW)
+                                                                .clickEvent(ClickEvent.copyToClipboard(row.owner.map(UUID::toString).orElse("NotSet")))
+                                                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy")))
+                                                        ),
+                                                Component.text( " - Generic user UUID: ")
+                                                        .append(Component.text(row.genUUID().toString())
+                                                                .color(NamedTextColor.YELLOW)
+                                                                .clickEvent(ClickEvent.copyToClipboard(row.genUUID().toString()))
+                                                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy")))
+                                                        ),
+                                                Component.text( " - Generic user Name: ")
+                                                        .append(Component.text(row.genName())
+                                                                .color(NamedTextColor.YELLOW)
+                                                                .clickEvent(ClickEvent.copyToClipboard(row.genName()))
+                                                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy")))
+                                                        )
+                                        ));
+                                    }, () -> s.sendMessage("ReJoin info of '"+a[1]+"' not founded"));
+                                    yield true;
+                                }
+                                case "select" -> {
+                                    if (!(s instanceof Player player)) yield false;
+                                    UUID uuid = player.getUniqueId();
+                                    if (a[1].equals("default")) {
+                                        UUID ownerUUID = uuid;
+                                        for (String tag : player.getScoreboardTags()) {
+                                            if (tag.startsWith("gen_owner:")) {
+                                                ownerUUID = UUID.fromString(tag.substring(10));
+                                                break;
+                                            }
+                                        }
+                                        Methods.rejoinSelect(ownerUUID, null, () -> s.sendMessage("ReJoin selected"));
+                                        yield true;
+                                    }
+                                    Tables.REJOIN_TABLE.getBy(_v -> uuid.equals(_v.owner.orElse(null)) && _v.identifier().equals(a[1]))
+                                            .ifPresentOrElse(
+                                                    row -> Methods.rejoinSelect(uuid, row.identifier(), () -> s.sendMessage("ReJoin selected")),
+                                                    () -> s.sendMessage("ReJoin info of '"+a[1]+"' not founded"));
+                                    yield true;
+                                }
+                                default -> false;
+                            };
+                            case 3 -> switch (a[0]) {
+                                case "set" -> {
+                                    if (!s.isOp()) yield false;
+                                    ExtMethods.parseUUID(a[2])
+                                            .or(() -> Optional.ofNullable(Bukkit.getPlayer(a[2])).map(Entity::getUniqueId))
+                                            .ifPresentOrElse(
+                                                    owner -> Methods.rejoinSet(a[1], owner, () -> s.sendMessage("Set!")),
+                                                    () -> s.sendMessage("Player '"+a[2]+"' not founded")
+                                            );
+                                    yield true;
+                                }
+                                case "rename" -> {
+                                    if (!s.isOp()) yield false;
+                                    Methods.rejoinRename(a[1], a[2], () -> s.sendMessage("Renamed!"));
+                                    yield true;
+                                }
+                                default -> false;
+                            };
+                            default -> false;
+                        })
+                );
+    }
+
+    private static void init() {
+
+    }
+
+    @EventHandler public static void on(AsyncPlayerPreLoginEvent e) {
+        PlayerProfile profile = e.getPlayerProfile();
+        UUID uuid = profile.getId();
+        if (uuid == null) return;
+        Tables.REJOIN_TABLE.getBy(v -> v.select && uuid.equals(v.owner.orElse(null))).ifPresent(row -> {
+            PlayerProfile new_profile = new CraftPlayerProfile(row.genUUID(), row.genName());
+            new_profile.setProperties(profile.getProperties());
+            new_profile.setProperty(new ProfileProperty("gen_owner", uuid.toString()));
+            e.setPlayerProfile(new_profile);
+        });
+    }
+    @EventHandler public static void on(PlayerJoinEvent e) {
+        Player player = e.getPlayer();
+        PlayerProfile profile = player.getPlayerProfile();
+        Set<String> tags = player.getScoreboardTags();
+        tags.removeIf(v -> v.startsWith("gen_owner:"));
+        profile.getProperties().removeIf(prop -> {
+            if (!prop.getName().equals("gen_owner")) return false;
+            tags.add("gen_owner:"+prop.getValue());
+            return true;
+        });
+    }
+}
