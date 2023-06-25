@@ -239,7 +239,7 @@ public class Thirst implements Listener, CustomUI.IUI {
             }
             private String update(Player player, boolean moving, ThirstData data, double time) {
                 double delta = getDelta(player, moving);
-                if (delta < 0 && ChurchManager.hasEffect(player, ChurchManager.EffectType.SATURATION)) delta *= 0.5;
+                if (delta < 0 && ChurchManager.hasAnyEffect(player, ChurchManager.EffectType.SATURATION)) delta *= 0.5;
                 data.value += delta;
                 if (data.value < 0) data.value = 0;
                 else if (data.value > 20) data.value = 20;

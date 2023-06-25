@@ -117,12 +117,37 @@ public class ChurchManager implements Listener {
 
     private static final HashMap<Integer, IEffect> effect_list = new HashMap<>();
     private static final HashMap<UUID, HashMap<Integer, IEffect>> effects = new HashMap<>();
-    public static boolean hasEffect(Player player, EffectType type) {
+    public static boolean hasLocalEffect(Player player, EffectType type) {
         HashMap<Integer, IEffect> map = effects.getOrDefault(player.getUniqueId(), null);
         if (map == null) return false;
         for (IEffect effect : map.values()) {
-            if (effect.type == type)
-                return true;
+            if (effect.type == type && effect.isLocal()) return true;
+        }
+        return false;
+    }
+    public static boolean hasGlobalEffect(Player player, EffectType type) {
+        HashMap<Integer, IEffect> map = effects.getOrDefault(player.getUniqueId(), null);
+        if (map == null) return false;
+        for (IEffect effect : map.values()) {
+            if (effect.type == type && !effect.isLocal()) return true;
+        }
+        return false;
+    }
+    public static boolean hasGlobalEffect(EffectType type, Location location) {
+        for (IEffect effect : effect_list.values()) {
+            if (effect.type != type || effect.isLocal()) continue;
+            boolean inHouse = Tables.HOUSE_TABLE.get(String.valueOf(effect.getHouseID()))
+                    .map(house -> house.center().distance(location) < global_distance)
+                    .orElse(false);
+            if (inHouse) return true;
+        }
+        return false;
+    }
+    public static boolean hasAnyEffect(Player player, EffectType type) {
+        HashMap<Integer, IEffect> map = effects.getOrDefault(player.getUniqueId(), null);
+        if (map == null) return false;
+        for (IEffect effect : map.values()) {
+            if (effect.type == type) return true;
         }
         return false;
     }
@@ -176,6 +201,7 @@ public class ChurchManager implements Listener {
         public int getID() { return id; }
         public int getHouseID() { return house_id; }
         public EffectType getType() { return type; }
+        public abstract boolean isLocal();
         public abstract void sync();
         public abstract List<ImageBuilder> icon();
     }
@@ -184,7 +210,7 @@ public class ChurchManager implements Listener {
 
         @Override public void sync() {
             effect_list.put(getID(), this);
-            Tables.HOUSE_TABLE.get(getHouseID() + "").ifPresent(house -> house.center().getNearbyPlayers(global_distance).forEach(player -> effects.compute(player.getUniqueId(), (k, v) -> {
+            Tables.HOUSE_TABLE.get(String.valueOf(getHouseID())).ifPresent(house -> house.center().getNearbyPlayers(global_distance).forEach(player -> effects.compute(player.getUniqueId(), (k, v) -> {
                 if (v == null) v = new HashMap<>();
                 v.put(getID(), this);
                 return v;
@@ -196,9 +222,12 @@ public class ChurchManager implements Listener {
                     ImageBuilder.of(0xEfe7, 5).withColor(NamedTextColor.WHITE)
             );
         }
+        /*
         public boolean inZone(Location pos) {
-            return Tables.HOUSE_TABLE.get(getHouseID() + "").map(v -> v.inZone(pos)).orElse(false);
+            return Tables.HOUSE_TABLE.get(String.valueOf(getHouseID())).map(v -> v.inZone(pos)).orElse(false);
         }
+        */
+        @Override public boolean isLocal() { return false; }
     }
     private static class PlayerEffect extends IEffect {
         private final UUID uuid;
@@ -221,6 +250,7 @@ public class ChurchManager implements Listener {
                     ImageBuilder.of(0xEfe8, 5).withColor(NamedTextColor.WHITE)
             );
         }
+        @Override public boolean isLocal() { return true; }
     }
 
     private static String getTargetKey(UUID uuid) {
@@ -231,19 +261,14 @@ public class ChurchManager implements Listener {
         if (!(e.getTarget() instanceof Player player)) return;
         UUID uuid = player.getUniqueId();
         if (monster.getScoreboardTags().contains(getTargetKey(uuid))) return;
-        HashMap<Integer, IEffect> map = effects.getOrDefault(uuid, null);
-        if (map == null) return;
-        for (IEffect effect : map.values()) {
-            if (effect.type != EffectType.MOBS) continue;
+        if (hasLocalEffect(player, EffectType.MOBS))
             e.setCancelled(true);
-            return;
-        }
     }
     @EventHandler public static void on(EntityDamageByPlayerEvent e) {
         Player player = e.getDamageOwner();
-        if (hasEffect(player, EffectType.DAMAGE)) e.setDamage(e.getDamage() * 1.15);
+        if (hasLocalEffect(player, EffectType.DAMAGE)) e.setDamage(e.getDamage() * 1.15);
         Entity entity = e.getEntity();
-        if (entity instanceof Player target && hasEffect(target, EffectType.DAMAGE)) e.setDamage(e.getDamage() * 0.85);
+        if (entity instanceof Player target && hasGlobalEffect(target, EffectType.DAMAGE)) e.setDamage(e.getDamage() * 0.85);
         else if (entity instanceof Monster monster) {
             monster.getScoreboardTags().add(getTargetKey(player.getUniqueId()));
             if (monster.getTarget() != null) return;
@@ -255,15 +280,9 @@ public class ChurchManager implements Listener {
         if (!(e.getEntity() instanceof Monster)) return;
         Location location = e.getLocation();
         if (location.getWorld() != lime.MainWorld) return;
-        for (IEffect effect : effect_list.values()) {
-            if (effect.type != EffectType.MOBS) continue;
-            if (!(effect instanceof GlobalEffect global)) continue;
-            if (global.inZone(location)) return;
-            e.setCancelled(true);
-            return;
-        }
+        if (!hasGlobalEffect(EffectType.MOBS, location)) return;
+        e.setCancelled(true);
     }
-
 }
 
 
