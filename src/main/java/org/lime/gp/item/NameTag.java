@@ -7,12 +7,14 @@ import net.minecraft.world.ITileInventory;
 import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.ContainerAnvil;
+import net.minecraft.world.inventory.ContainerChest;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,6 +25,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
 import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.player.inventory.InterfaceManager;
 
 import java.util.Optional;
@@ -43,6 +46,9 @@ public class NameTag implements Listener {
         }
     }
     @EventHandler public static void onClick(InventoryClickEvent e) {
+        if (e.getView() instanceof CraftInventoryView view
+                && view.getHandle() instanceof ContainerChest containerChest
+                && containerChest.getContainer() instanceof ReadonlyInventory) return;
         switch (e.getClick()) {
             case RIGHT, LEFT -> {
                 ItemStack cursor = e.getCursor();
@@ -59,7 +65,6 @@ public class NameTag implements Listener {
                 cursor.subtract(1);
                 e.setCancelled(true);
             }
-            default -> {}
         }
     }
 

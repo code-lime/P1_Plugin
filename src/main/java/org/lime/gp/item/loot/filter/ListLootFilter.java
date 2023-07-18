@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import net.minecraft.core.BlockPosition;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.MinecraftKey;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.phys.Vec3D;
 import org.lime.system;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.module.ArrowBow;
@@ -75,6 +80,14 @@ public abstract class ListLootFilter implements ILootFilter {
                     system.IRange range = system.IRange.parse(value);
                     filters.add(e -> e.getOptional(LootContextParameters.LOOTING_MOD).map(v -> range.inRange(v, 3)).orElse(false));
                 }
+                case "biome" -> filters.add(e -> e.getOptional(LootContextParameters.ORIGIN)
+                        .map(v -> new BlockPosition((int) v.x, (int) v.y, (int) v.z))
+                        .map(e.getWorld()::getBiome)
+                        .flatMap(Holder::unwrapKey)
+                        .map(ResourceKey::location)
+                        .map(MinecraftKey::toString)
+                        .orElse("NULL")
+                        .equalsIgnoreCase(value));
 
                 case "!this" -> filters.add(e -> !e.has(LootContextParameters.THIS_ENTITY));
                 case "!damage.player" -> filters.add(e -> !e.has(LootContextParameters.LAST_DAMAGE_PLAYER));

@@ -16,8 +16,10 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.lime.gp.block.BlockComponentInstance;
@@ -50,6 +52,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
 
     private static abstract class BaseInput {
         public abstract String color();
+        public abstract Material material();
+        public abstract int cmd();
         public abstract int count();
         public abstract system.json.builder.object save();
         public abstract ItemStack nms();
@@ -80,6 +84,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         public BaseItemInput(JsonElement value) { item = CraftItemStack.asNMSCopy(system.loadItem(value.getAsString())); }
         public BaseItemInput(ItemStack item) { this.item = item.copy(); }
 
+        @Override public Material material() { return CraftMagicNumbers.getMaterial(item.getItem()); }
+        @Override public int cmd() { return Items.getIDByItem(item).orElse(0); }
         @Override public int count() { return item.getCount(); }
         public abstract String type();
         @Override public system.json.builder.object save() {
@@ -134,6 +140,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 world.playSound(null, blockposition, SoundEffects.ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1.0f, 0.25f);
                 return system.toast(item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
             }
+            if (!instance.isWhitelistItem(itemstack)) return system.toast(this, EnumInteractionResult.PASS);
             return system.toast(this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
         }
         @Override public BaseInput loot(List<org.bukkit.inventory.ItemStack> drop) {
@@ -176,12 +183,15 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 world.gameEvent(null, GameEvent.FLUID_PLACE, blockposition);
                 return system.toast(this, EnumInteractionResult.sidedSuccess(world.isClientSide));
             }
+            if (!instance.isWhitelistItem(itemstack)) return system.toast(this, EnumInteractionResult.PASS);
             return system.toast(item.isEmpty() ? new EmptyInput() : this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
         }
         @Override public BaseInput loot(List<org.bukkit.inventory.ItemStack> drop) { return this; }
     }
     private static class EmptyInput extends BaseInput {
         @Override public String color() { return ThirstSetting.DEFAULT_WATER_COLOR_HEX; }
+        @Override public Material material() { return Material.AIR; }
+        @Override public int cmd() { return 0; }
         @Override public int count() { return 0; }
         @Override public system.json.builder.object save() {
             return system.json.object()
@@ -205,7 +215,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 world.playSound(null, blockposition, SoundEffects.BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.gameEvent(null, GameEvent.FLUID_PLACE, blockposition);
             } else {
-                input = new ItemInput(itemstack);
+                input = new ItemInput(itemstack.copyWithCount(1));
                 if (!entityhuman.getAbilities().instabuild) itemstack.shrink(1);
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1.0f, 0.25f);
@@ -325,6 +335,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             last_click = entityhuman.getUUID();
             syncRecipe("INTERACT", true);
             saveData();
+
+            syncDisplayVariable();
         }
         return result.val1;
     }
@@ -341,6 +353,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             last_click = player.getUniqueId();
             syncRecipe("DAMAGE", true);
             saveData();
+
+            syncDisplayVariable();
 
             if (items.isEmpty()) return;
             Items.dropGiveItem(player, items, true);
@@ -437,6 +451,21 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
     protected final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(map -> {
+                int size = items.size();
+                map.put("waiting.input.type", input.material().name());
+                map.put("waiting.input.id", String.valueOf(input.cmd()));
+                map.put("waiting.input.count", String.valueOf(input.count()));
+                for (int i = 0; i < size; i++) {
+                    ItemStack item = items.get(i);
+                    map.put("waiting.slot."+i+".type", CraftMagicNumbers.getMaterial(item.getItem()).name());
+                    map.put("waiting.slot."+i+".id", String.valueOf(Items.getIDByItem(item).orElse(0)));
+                    map.put("waiting.slot."+i+".count", String.valueOf(items.get(i).getCount()));
+                }
+                for (int i = size; i < 6; i++) {
+                    map.put("waiting.slot."+i+".type", "AIR");
+                    map.put("waiting.slot."+i+".id", "0");
+                    map.put("waiting.slot."+i+".count", "0");
+                }
                 map.put("waiting.color", input.color());
                 map.put("waiting.count", String.valueOf(input.count()));
                 map.put("waiting.progress", String.valueOf(lastShowProgress));

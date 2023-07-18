@@ -56,12 +56,10 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
                     .collect(Collectors.toMap(kv -> kv.val0.name(), kv -> (system.Func2<ItemCreator, JsonElement, ItemSetting<?>>) (creator, json) -> {
                         try {
                             return (ItemSetting<?>)(kv.val1.getParameterCount() == 2 ? kv.val1.newInstance(creator, json) : kv.val1.newInstance(creator));
-                        }
-                        catch (InvocationTargetException e) {
+                        } catch (InvocationTargetException e) {
                             lime.logStackTrace(e.getCause());
                             throw new IllegalArgumentException(e.getCause());
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             lime.logStackTrace(e);
                             throw new IllegalArgumentException(e);
                         }

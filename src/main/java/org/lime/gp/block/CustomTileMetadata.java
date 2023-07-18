@@ -128,6 +128,7 @@ public class CustomTileMetadata extends TileMetadata {
                         if (!(component instanceof ComponentDynamic<?, ?> dynamicComponent)) return;
                         instances.compute(_key, (k,v) -> {
                             if (v == null) {
+                                this.list_buffer.clear();
                                 v = dynamicComponent.createInstance(this).loadData();
                                 v.saveData();
                             }
@@ -178,12 +179,12 @@ public class CustomTileMetadata extends TileMetadata {
     }
 
     private boolean isFirst = true;
-    public record ChunkGroup(long chunk) implements TimeoutData.TGroup {
+    public record ChunkGroup(long chunk) implements TimeoutData.TKeyedGroup<Long> {
         public ChunkGroup(BlockPosition pos) {
             this(ChunkCoordIntPair.asLong(pos));
         }
 
-        @Override public long groupID() { return chunk; }
+        @Override public Long groupID() { return chunk; }
     }
     public static class ChunkBlockTimeout extends TimeoutData.IGroupTimeout {
         public final UUID worldUUID;
@@ -220,7 +221,10 @@ public class CustomTileMetadata extends TileMetadata {
                     info.components.forEach((key, component) -> {
                         if (!(component instanceof ComponentDynamic<?, ?> dynamicComponent)) return;
                         instances.compute(key, (k,v) -> {
-                            if (v == null) v = dynamicComponent.createInstance(this).loadData();
+                            if (v == null) {
+                                this.list_buffer.clear();
+                                v = dynamicComponent.createInstance(this).loadData();
+                            }
                             return v;
                         });
                     });

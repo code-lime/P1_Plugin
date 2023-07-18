@@ -30,7 +30,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.lime.display.Models;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
@@ -57,7 +58,7 @@ import java.util.stream.Stream;
 
 public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Displayable, BlockDisplay.Interactable, CustomTileMetadata.Interactable, CustomTileMetadata.Childable, CustomTileMetadata.Tickable, CustomTileMetadata.Damageable, CustomTileMetadata.Lootable {
     @Override public LaboratoryComponent component() { return (LaboratoryComponent)super.component(); }
-    private final Models.Model model_interact;
+    private final Model model_interact;
     public LaboratoryInstance(LaboratoryComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
         this.model_interact = component.model_interact;
@@ -65,8 +66,8 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         items = Arrays.stream(SlotType.values()).collect(ImmutableMap.toImmutableMap(type -> type, type -> system.func(type.thirst ? WaterLaboratorySlot::new : ItemLaboratorySlot::new).invoke(component(), type)));
     }
 
-    public static Models.Model createInteract(LaboratoryComponent component) {
-        Models.Builder builder = lime.models.builder();
+    public static Model createInteract(LaboratoryComponent component) {
+        Builder builder = lime.models.builder();
         List<LocalLocation> input_thirst = component.input_thirst;
         for (int i = 0; i < Math.min(3, input_thirst.size()); i++) {
             SlotType type = SlotType.slotOfIndex(i, true);
@@ -79,7 +80,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         return builder.build();
     }
 
-    private static final Models.Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
+    private static final Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
             .nbt(() -> {
                 EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                 stand.setNoBasePlate(true);
@@ -95,13 +96,13 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
     @Override public Stream<? extends CustomTileMetadata.Element> childs() { return items.values().stream(); }
 
     private class ItemLaboratorySlot extends LaboratorySlot implements BlockDisplay.Displayable {
-        private system.LockToast1<Models.Model> model;
+        private system.LockToast1<Model> model;
         public ItemLaboratorySlot(LaboratoryComponent component, SlotType type) {
             super(component, type);
         }
         @Override public ItemLaboratorySlot set(ItemStack item) {
             super.set(item);
-            if (model == null) model = system.<Models.Model>toast(null).lock();
+            if (model == null) model = system.<Model>toast(null).lock();
             this.model.set0(lime.models.builder()
                     .local(local)
                     .addChild(builder_interact

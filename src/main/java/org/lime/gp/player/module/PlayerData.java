@@ -45,6 +45,11 @@ public class PlayerData {
         tick();
     }
 
+    public static void clearPlayerData(UUID uuid) {
+        cache.remove(uuid);
+        lime.writeAllConfig(playerData(uuid), "{}");
+    }
+
     private static String playerData(UUID uuid) { return "players/"+uuid; }
     private static final HashMap<UUID, DirtyJsonPersistentDataContainer> cache = new HashMap<>();
 

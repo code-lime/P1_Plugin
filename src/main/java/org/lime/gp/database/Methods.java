@@ -17,6 +17,7 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.BanListRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.player.module.TabManager;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -256,6 +257,17 @@ public class Methods {
                     end.invoke();
                 });
     }
+
+    public static void discordFind(UUID uuid, system.Action1<Long> callback) {
+        SQL.Async.rawSqlOnce("SELECT discord.discord_id FROM discord WHERE discord.uuid = '" + uuid + "'", Long.class, callback);
+    }
+    public static void discordFind(long dsid, system.Action1<UUID> callback) {
+        SQL.Async.rawSqlOnce("SELECT discord.`uuid` FROM discord WHERE discord.discord_id = " + dsid, String.class, uuid -> callback.invoke(ExtMethods.parseUUID(uuid).orElse(null)));
+    }
+    public static void discordClear(long discordId, system.Action0 callback) {
+        SQL.Async.rawSql("DELETE FROM discord WHERE discord.discord_id = " + discordId, callback);
+    }
+
     public enum SoundFillStart {
         CHECK,
         DOWNLOAD,
@@ -485,6 +497,20 @@ public class Methods {
         SQL.Async.rawSql(
                 "UPDATE rejoin SET rejoin.select = IF(CONCAT(rejoin.name,':',rejoin.index) = @identifier,1,0) WHERE rejoin.owner = @owner",
                 MySql.args().add("identifier", identifier).add("owner", owner).build(),
+                callback);
+    }
+
+    public static void hasteDonate(system.Action1<Calendar> callback) {
+        SQL.Async.rawSqlOnce(
+                String.join(" ",
+                "SELECT TIMESTAMPADD(SECOND, SUM(dl.time), donate_list.date) AS `end_time`",
+                        "FROM donate_list",
+                        "JOIN donate_list dl",
+                        "WHERE dl.`type` = 'HASTE_RTS' AND donate_list.type = 'HASTE_RTS' AND dl.date >= donate_list.date",
+                        "GROUP BY donate_list.id",
+                        "ORDER BY TIMESTAMPADD(SECOND, SUM(dl.time), donate_list.date) DESC",
+                        "LIMIT 1"),
+                Calendar.class,
                 callback);
     }
 }

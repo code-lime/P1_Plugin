@@ -1,7 +1,9 @@
 package org.lime.gp.item.weapon;
 
+import net.minecraft.world.inventory.ContainerChest;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -16,6 +18,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.gp.extension.Cooldown;
+import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
@@ -159,8 +162,11 @@ public class WeaponLoader implements Listener {
     }
     @EventHandler public static void on(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
+        if (e.getView() instanceof CraftInventoryView view
+                && view.getHandle() instanceof ContainerChest containerChest
+                && containerChest.getContainer() instanceof ReadonlyInventory) return;
         switch (e.getClick()) {
-            case DROP: {
+            case DROP -> {
                 ItemStack item = e.getCurrentItem();
                 if (item == null) return;
                 Items.getOptional(WeaponSetting.class, item)
@@ -188,10 +194,8 @@ public class WeaponLoader implements Listener {
                             Sounds.playSound(vv.val0.sound_unload, player);
                             e.setCancelled(true);
                         });
-                break;
             }
-            case RIGHT:
-            case LEFT: {
+            case RIGHT, LEFT -> {
                 ItemStack cursor = e.getCursor();
                 ItemStack item = e.getCurrentItem();
                 if (cursor == null || item == null) return;
@@ -208,7 +212,7 @@ public class WeaponLoader implements Listener {
                             items.add(bullet);
                             MagazineSetting.setBullets(item, items);
                             WeaponLoader.data.remove(player.getUniqueId());
-                            Sounds.playSound(magazine_setting.sound_load, (Player)e.getWhoClicked());
+                            Sounds.playSound(magazine_setting.sound_load, (Player) e.getWhoClicked());
                             e.setCancelled(true);
                         });
                 Items.getOptional(WeaponSetting.class, item)
@@ -219,14 +223,11 @@ public class WeaponLoader implements Listener {
                             cursor.subtract(1);
                             WeaponSetting.setMagazine(item, magazine);
                             WeaponLoader.data.remove(player.getUniqueId());
-                            Sounds.playSound(weapon.sound_load, (Player)e.getWhoClicked());
+                            Sounds.playSound(weapon.sound_load, (Player) e.getWhoClicked());
                             WeaponData.updateSync(player, weapon, item);
                             e.setCancelled(true);
                         });
-                break;
             }
-            default:
-                break;
         }
     }
 }

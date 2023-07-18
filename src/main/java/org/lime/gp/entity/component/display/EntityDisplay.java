@@ -6,7 +6,7 @@ import org.bukkit.entity.Marker;
 import org.bukkit.entity.Player;
 import org.lime.core;
 import org.lime.display.Displays;
-import org.lime.display.Models;
+import org.lime.display.models.Model;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.Entities;
@@ -36,8 +36,8 @@ public class EntityDisplay {
     }
 
     public interface IEntity {
-        Optional<Models.Model> data();
-        static IEntity of(Models.Model model) {
+        Optional<Model> data();
+        static IEntity of(Model model) {
             return () -> Optional.ofNullable(model);
         }
     }

@@ -3,6 +3,11 @@ package org.lime.gp.item.loot.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.core.BlockPosition;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.MinecraftKey;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.block.state.IBlockDataHolder;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.item.Items;
@@ -50,10 +55,12 @@ public class DebugLootFilter implements ILootFilter {
         });
         addParam(params, e, "damage.player", LootContextParameters.LAST_DAMAGE_PLAYER, v -> null);
         addParam(params, e, "damage", LootContextParameters.DAMAGE_SOURCE, v -> v.type().msgId());
-        addParam(params, e, "block", LootContextParameters.BLOCK_STATE, v -> v.toString());
+        addParam(params, e, "block", LootContextParameters.BLOCK_STATE, IBlockDataHolder::toString);
         addParam(params, e, "tool", LootContextParameters.TOOL, v -> Items.getGlobalKeyByItem(v).orElse("NULL"));
-        addParam(params, e, "explosion", LootContextParameters.EXPLOSION_RADIUS, v -> system.getDouble(v));
-        addParam(params, e, "looting", LootContextParameters.LOOTING_MOD, v -> system.getDouble(v));
+        addParam(params, e, "explosion", LootContextParameters.EXPLOSION_RADIUS, system::getDouble);
+        addParam(params, e, "looting", LootContextParameters.LOOTING_MOD, system::getDouble);
+        addParam(params, e, "biome", LootContextParameters.ORIGIN, v -> e.getWorld().getBiome(new BlockPosition((int)v.x, (int)v.y, (int)v.z)).unwrapKey().map(ResourceKey::location).map(MinecraftKey::toString).orElse("NULL"));
+        addParam(params, e, "position", LootContextParameters.ORIGIN, v -> system.getDouble(v.x) + " " + system.getDouble(v.y) + " " + system.getDouble(v.z));
         lime.logOP(String.join("\n - ", params));
         return true;
     }

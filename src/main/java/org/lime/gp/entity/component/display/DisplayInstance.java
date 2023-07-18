@@ -6,7 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.display.Models;
+import org.lime.display.models.Model;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityInstance;
 import org.lime.gp.entity.component.Components;
@@ -51,9 +51,9 @@ public final class DisplayInstance extends EntityInstance implements CustomEntit
         }
     }
 
-    public record DisplayObject(Location location, List<UUID> viewers, Models.Model model, Map<String, Object> data) {
+    public record DisplayObject(Location location, List<UUID> viewers, Model model, Map<String, Object> data) {
         public boolean hasViewer(UUID uuid) { return viewers.contains(uuid); }
-        public static DisplayObject of(Location location, List<UUID> viewers, Models.Model model, Map<String, Object> data) {
+        public static DisplayObject of(Location location, List<UUID> viewers, Model model, Map<String, Object> data) {
             return new DisplayObject(location, viewers, model, data);
         }
     }

@@ -50,6 +50,10 @@ public class ExtMethods {
         try { return Optional.of(Integer.parseInt(text)); }
         catch (Exception e) { return Optional.empty(); }
     }
+    public static Optional<Long> parseLong(String text) {
+        try { return Optional.of(Long.parseLong(text)); }
+        catch (Exception e) { return Optional.empty(); }
+    }
     public static Optional<UUID> parseUUID(String text) {
         try { return Optional.of(UUID.fromString(text)); }
         catch (Exception e) { return Optional.empty(); }

@@ -96,8 +96,8 @@ public class WaitingRecipe extends AbstractRecipe {
         int fuel_count = Math.min(fuel.size(), 3);
         int catalyser_count = Math.min(catalyse.size(), 3);
 
-        for (int i = 0; i < fuel_count; i++) slots.set(i + 3, fuel.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
-        for (int i = 0; i < catalyser_count; i++) slots.set(i + 6, catalyse.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
+        for (int i = 0; i < catalyser_count; i++) slots.set(i + 3, catalyse.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
+        for (int i = 0; i < fuel_count; i++) slots.set(i + 6, fuel.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
 
         return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.nms(), Component.text(" ⌚ " + system.formatTotalTime(total_sec, system.FormatTime.DAY_TIME)).color(NamedTextColor.LIGHT_PURPLE))));
     }

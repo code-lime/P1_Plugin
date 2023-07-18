@@ -49,11 +49,11 @@ public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements
                             .build();
                     @EventHandler public void on(InventoryClickEvent e) {
                         switch (e.getClick()) {
-                            case RIGHT:
-                            case LEFT:
+                            case RIGHT, LEFT -> {
                                 ItemStack cursor = e.getCursor();
                                 ItemStack item = e.getCurrentItem();
-                                if (cursor == null || item == null || cursor.getType().isAir() || item.getType().isAir()) return;
+                                if (cursor == null || item == null || cursor.getType().isAir() || item.getType().isAir())
+                                    return;
                                 system.Toast3<Integer, Integer, Integer> color = itemColors.getOrDefault(cursor.getType(), null);
                                 if (color == null) return;
                                 int count = cursor.getAmount();
@@ -64,9 +64,7 @@ public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements
                                     cursor.setAmount(0);
                                     e.setCancelled(true);
                                 });
-                                break;
-                            default:
-                                break;
+                            }
                         }
                     }
                 });

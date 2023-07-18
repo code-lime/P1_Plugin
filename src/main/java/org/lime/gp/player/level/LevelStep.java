@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.lime.system;
 import org.lime.gp.lime;
@@ -127,14 +128,22 @@ public class LevelStep {
 
     public <TValue, TCompare>void deltaExp(UUID uuid, ExperienceAction<TValue, TCompare> type, TValue value) {
         getExpValue(type, value).ifPresent(exp -> UserRow.getBy(uuid).ifPresent(user -> {
+            double mutate = LevelModule.levelMutate(uuid);
+            double mutate_exp = exp * mutate;
             if (LevelModule.DEBUG) {
                 String current = LevelRow.getBy(user.id, data.work).map(v -> (v.exp * total) + "["+v.level+"]").orElse("0[0]");
-                lime.logOP("Exp " + Optional.ofNullable(Bukkit.getPlayer(uuid)).map(v -> v.getName()).orElse(uuid.toString()) + ": " + current + " / " + total + " (" + (exp >= 0 ? "+" : "-") + Math.abs(exp) + ")");
+                lime.logOP("Exp " + Optional.ofNullable(Bukkit.getPlayer(uuid))
+                        .map(Player::getName)
+                        .orElse(uuid.toString()) + ": " + current + " / " + total
+                        + " ("
+                            + (exp >= 0 ? "+" : "-") + Math.abs(exp)
+                            + (mutate != 1 ? (" * " + mutate + " = " + (mutate_exp >= 0 ? "+" : "-") + Math.abs(mutate_exp)) : "")
+                        + ")"
+                );
             }
-            double delta = exp / total;
+            double delta = mutate_exp / total;
             if (delta >= 0) Methods.appendDeltaLevel(user.id, data.work, delta);
             else Methods.removeDeltaLevel(user.id, data.work, -delta);
-            
         }));
     }
 

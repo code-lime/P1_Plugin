@@ -9,6 +9,10 @@ import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minecraft.network.protocol.game.ServerboundChatSessionUpdatePacket;
+import net.minecraft.world.item.armortrim.TrimMaterial;
+import net.minecraft.world.item.armortrim.TrimMaterials;
+import net.minecraft.world.item.armortrim.TrimPatterns;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -17,10 +21,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.lime.core;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.ReJoinRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
+import org.lime.gp.extension.PacketManager;
+import org.lime.gp.lime;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -175,8 +182,20 @@ public class ReJoin implements Listener {
                 );
     }
 
+    private static boolean ENABLE_REJOIN = true;
+    private static boolean DEBUG_REJOIN = false;
     private static void init() {
-
+        AnyEvent.addEvent("rejoin.var", AnyEvent.type.owner_console, v -> v.createParam("debug", "enable").createParam(Boolean::parseBoolean, "true", "false"), (v, name, value) -> {
+            switch (name) {
+                case "enable" -> ENABLE_REJOIN = value;
+                case "debug" -> DEBUG_REJOIN = value;
+            }
+        });
+        PacketManager.adapter().add(ServerboundChatSessionUpdatePacket.class, (packet, event) -> {
+            if (!ENABLE_REJOIN) return;
+            if (DEBUG_REJOIN) lime.logOP("Cancel: " + packet.chatSession().sessionId());
+            event.setCancelled(true);
+        }).listen();
     }
 
     @EventHandler public static void on(AsyncPlayerPreLoginEvent e) {

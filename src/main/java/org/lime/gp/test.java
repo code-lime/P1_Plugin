@@ -3,24 +3,25 @@ package org.lime.gp;
 import net.kyori.adventure.text.Component;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.item.BundleItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.block.BlockSweetBerryBush;
 import net.minecraft.world.level.block.Blocks;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.display.partial.Variable;
 import org.lime.gp.block.component.display.partial.list.BlockPartial;
-import org.lime.gp.block.component.list.CropsComponent;
-import org.lime.gp.block.component.list.DisplayComponent;
-import org.lime.gp.block.component.list.ShrubComponent;
-import org.lime.gp.block.component.list.WaitingComponent;
+import org.lime.gp.block.component.list.*;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.craft.recipe.WaitingRecipe;
 import org.lime.gp.craft.slot.OutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
+import org.lime.gp.item.settings.list.LevelFoodMutateSetting;
 import org.lime.system;
 
 import java.util.List;
@@ -255,9 +256,179 @@ public class test {
                 "test.waiting.thirst"));
     }
 
+    private static void enableArmorTags() {
+        org.lime.gp.item.Items.addHardcodeItem("test.armor.tag1",
+                system.json.object()
+                        .add("item", Material.GRASS_BLOCK.name())
+                        .add("id", -100)
+                        .add("name", "test.armor.tag1")
+                        .addObject("settings", v -> v
+                                .add("equip", "head")
+                                .add("armor_tag", "tmp")
+                        )
+                        .build()
+        );
+        org.lime.gp.item.Items.addHardcodeItem("test.armor.tag2",
+                system.json.object()
+                        .add("item", Material.DIRT_PATH.name())
+                        .add("id", -101)
+                        .add("name", "test.armor.tag2")
+                        .addObject("settings", v -> v
+                                .add("equip", "legs")
+                                .addArray("armor_tag", _v -> _v.add("tmp2").add("tmp33"))
+                        )
+                        .build()
+        );
+    }
+
+    private static void enableBlockLimit() {
+        org.lime.gp.block.Blocks.addDefaultBlocks(new BlockInfo("block.test.limit.3")
+                .add(info -> new DisplayComponent(info, List.of(
+                        new BlockPartial(3, Blocks.BEDROCK.defaultBlockState())
+                                .addVariable(new Variable(
+                                        new BlockPartial(3, Blocks.BEDROCK
+                                                .defaultBlockState()
+                                        ))
+                                )
+                )))
+                .add(info -> new LimitComponent(info, system.json.object()
+                        .add("type", "test_limit_3")
+                        .build())
+                )
+        );
+        org.lime.gp.block.Blocks.addDefaultBlocks(new BlockInfo("block.test.limit.3.double")
+                .add(info -> new DisplayComponent(info, List.of(
+                        new BlockPartial(3, Blocks.BEDROCK.defaultBlockState())
+                                .addVariable(new Variable(
+                                        new BlockPartial(3, Blocks.BEDROCK
+                                                .defaultBlockState()
+                                        ))
+                                )
+                )))
+                .add(info -> new LimitComponent(info, system.json.object()
+                        .add("type", "test_limit_3")
+                        .build())
+                )
+        );
+        org.lime.gp.block.Blocks.addDefaultBlocks(new BlockInfo("block.test.limit.4")
+                .add(info -> new DisplayComponent(info, List.of(
+                        new BlockPartial(3, Blocks.GLASS.defaultBlockState())
+                                .addVariable(new Variable(
+                                        new BlockPartial(3, Blocks.GLASS
+                                                .defaultBlockState()
+                                        ))
+                                )
+                )))
+                .add(info -> new LimitComponent(info, system.json.object()
+                        .add("type", "test_limit_4")
+                        .build())
+                )
+        );
+        org.lime.gp.item.Items.addHardcodeItem("test.limit.3",
+                system.json.object()
+                        .add("item", Material.STRUCTURE_BLOCK.name())
+                        .add("id", -100)
+                        .add("name", "Test Limit (3)")
+                        .addObject("settings", v -> v
+                                .addObject("block", _v -> _v
+                                        .addObject("rotation", __v -> __v
+                                                .add("0", "block.test.limit.3")
+                                        )
+                                )
+                                .addObject("block_limit", _v -> _v
+                                        .add("limit", 3)
+                                        .add("type", "test_limit_3")
+                                )
+                        )
+                        .build()
+        );
+        org.lime.gp.item.Items.addHardcodeItem("test.limit.3.double",
+                system.json.object()
+                        .add("item", Material.STRUCTURE_BLOCK.name())
+                        .add("id", -100)
+                        .add("name", "Test Limit (3) Double")
+                        .addObject("settings", v -> v
+                                .addObject("block", _v -> _v
+                                        .addObject("rotation", __v -> __v
+                                                .add("0", "block.test.limit.3.double")
+                                        )
+                                )
+                                .addObject("block_limit", _v -> _v
+                                        .add("limit", 3)
+                                        .add("type", "test_limit_3")
+                                )
+                        )
+                        .build()
+        );
+        org.lime.gp.item.Items.addHardcodeItem("test.limit.4",
+                system.json.object()
+                        .add("item", Material.STRUCTURE_BLOCK.name())
+                        .add("id", -101)
+                        .add("name", "Test Limit (4)")
+                        .addObject("settings", v -> v
+                                .addObject("block", _v -> _v
+                                        .addObject("rotation", __v -> __v
+                                                .add("0", "block.test.limit.4")
+                                        )
+                                )
+                                .addObject("block_limit", _v -> _v
+                                        .add("limit", 4)
+                                        .add("type", "test_limit_4")
+                                )
+                        )
+                        .build()
+        );
+    }
+    private static void enableLevelMutate() {
+        org.lime.gp.item.Items.addHardcodeItem("test.level.mutate.3",
+                system.json.object()
+                        .add("item", Material.CARROT.name())
+                        .add("id", -100)
+                        .add("name", "Test Level Mutate (3 sec)")
+                        .addObject("settings", v -> v
+                                .addObject("level_food_mutate", _v -> _v
+                                        .add("sec", 3)
+                                )
+                        )
+                        .build()
+        );
+        org.lime.gp.item.Items.addHardcodeItem("test.level.mutate.10",
+                system.json.object()
+                        .add("item", Material.APPLE.name())
+                        .add("id", -101)
+                        .add("name", "Test Level Mutate (10 sec)")
+                        .addObject("settings", v -> v
+                                .addObject("level_food_mutate", _v -> _v
+                                        .add("sec", 10)
+                                )
+                        )
+                        .build()
+        );
+    }
+
+    public static void testMatches() {
+        AnyEvent.addEvent("test.matches", AnyEvent.type.owner_console, v -> v.createParam("item_a").createParam("item_b"), (player, a, b) -> {
+            ItemStack itemA = Items.createItem(a).map(CraftItemStack::asNMSCopy).orElseThrow();
+            ItemStack itemB = Items.createItem(b).map(CraftItemStack::asNMSCopy).orElseThrow();
+
+            boolean matches = net.minecraft.world.item.ItemStack.matches(itemA, itemB);
+            boolean same = net.minecraft.world.item.ItemStack.isSame(itemA, itemB);
+
+            lime.logOP(String.join("\n",
+                    "Matches: " + matches,
+                    "Same: " + same,
+                    "IsReset: " + (!matches && !same)
+            ));
+        });
+    }
+
     private static void init() {
         //enableBlocksAgeable();
-        enableBlockWaiting();
+        //enableBlockWaiting();
+        //enableArmorTags();
+        //enableBlockLimit();
+        //enableLevelMutate();
+        testMatches();
     }
 }
 

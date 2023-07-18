@@ -12,6 +12,8 @@ import org.lime.system;
 
 @InfoComponent.Component(name = "shrub") public class ShrubComponent extends ComponentDynamic<JsonObject, ShrubInstance> implements BaseAgeableInstance.AgeableData {
     public final int ageCount;
+    public final int ageRemove;
+
     public final system.IRange ageStepTicks;
     public final ILoot loot;
 
@@ -19,6 +21,7 @@ import org.lime.system;
         super(info, json);
         JsonObject age = json.get("age").getAsJsonObject();
         ageCount = age.get("count").getAsInt();
+        ageRemove = Math.max(age.has("remove") ? age.get("remove").getAsInt() : 1, 1);
         ageStepTicks = system.IRange.parse(age.get("step_ticks").getAsString());
         loot = ILoot.parse(json.get("loot"));
     }

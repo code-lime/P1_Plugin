@@ -215,17 +215,16 @@ public class BookPaper implements Listener {
 
     @EventHandler public static void onClick(InventoryClickEvent e) {
         switch (e.getClick()) {
-            case RIGHT:
-            case LEFT:
+            case RIGHT, LEFT -> {
                 ItemStack cursor = e.getCursor();
                 ItemStack item = e.getCurrentItem();
                 if (cursor == null || item == null) return;
-                if (cursor.getType() != Material.PAPER || cursor.getItemMeta().hasCustomModelData() || item.getType() != Material.WRITABLE_BOOK) return;
+                if (cursor.getType() != Material.PAPER || cursor.getItemMeta().hasCustomModelData() || item.getType() != Material.WRITABLE_BOOK)
+                    return;
                 int pages = getPageCount(item);
                 Component page = ChatHelper.fromJson(JManager.get(JsonElement.class, cursor.getItemMeta().getPersistentDataContainer(), "page", null));
                 int addPages = Math.min(100 - pages, cursor.getAmount());
                 if (addPages <= 0) return;
-
                 pages += addPages;
                 setPageCount(item, pages);
                 BookMeta meta = (BookMeta) item.getItemMeta();
@@ -234,36 +233,32 @@ public class BookPaper implements Listener {
                 for (int i = pages - addPages; i < pages; i++) _pages.set(i, page);
                 meta.pages(_pages);
                 item.setItemMeta(meta);
-
                 cursor.subtract(addPages);
                 e.setCancelled(true);
-                break;
-            default:
-                break;
+            }
         }
     }
     @EventHandler public static void onInteract(PlayerInteractEvent e) {
         switch (e.getAction()) {
-            case RIGHT_CLICK_AIR:
-            case RIGHT_CLICK_BLOCK:
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 ItemStack item = e.getItem();
                 if (item == null) return;
                 if (e.getHand() != EquipmentSlot.HAND) return;
                 switch (item.getType()) {
-                    case WRITABLE_BOOK: {
+                    case WRITABLE_BOOK -> {
                         if (!e.getPlayer().isSneaking()) return;
                         e.setCancelled(true);
                         ExtMethods.openBook(createBookEditor(item), e.getPlayer());
                         return;
                     }
-                    case PAPER: {
+                    case PAPER -> {
                         PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
                         if (JManager.has(container, "page")) {
                             JsonElement json = JManager.get(JsonElement.class, container, "page", null);
                             Component page = json == null ? null : ChatHelper.fromJson(json);
                             if (page == null) return;
                             ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-                            BookMeta meta = (BookMeta)book.getItemMeta();
+                            BookMeta meta = (BookMeta) book.getItemMeta();
                             meta.pages(page);
                             meta.setAuthor("");
                             meta.setTitle("");
@@ -276,7 +271,7 @@ public class BookPaper implements Listener {
                             List<Component> pages = system.list.<Component>of().add(json.getAsJsonArray(), ChatHelper::fromJson).build();
                             if (pages == null) return;
                             ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-                            BookMeta meta = (BookMeta)book.getItemMeta();
+                            BookMeta meta = (BookMeta) book.getItemMeta();
                             meta.pages(pages);
                             meta.setAuthor("");
                             meta.setTitle("");
@@ -286,11 +281,8 @@ public class BookPaper implements Listener {
                         }
                         return;
                     }
-                    default:
-                        break;
                 }
-            default:
-                break;
+            }
         }
     }
     @EventHandler public static void onBook(PlayerEditBookEvent e) {

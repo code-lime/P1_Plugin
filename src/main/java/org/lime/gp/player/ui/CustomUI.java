@@ -1,5 +1,6 @@
 package org.lime.gp.player.ui;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -8,6 +9,7 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutBoss;
 import net.minecraft.world.BossBattle;
 import org.apache.http.client.utils.URIBuilder;
+import org.bukkit.scheduler.BukkitTask;
 import org.lime.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -146,6 +148,22 @@ public class CustomUI implements Listener {
                 .replace("{branch}", branch);
         }
 
+        private static void logLoggerLine(String line) {
+            if (!line.isBlank()) {
+                if (line.startsWith("ADMIN:")) {
+                    Component component = Component.text("[Share]  - ").append(ChatHelper.formatComponent(line.substring(6)));
+                    Bukkit.getOnlinePlayers().forEach(player -> {
+                        if (!player.isOp()) return;
+                        player.sendMessage(component);
+                    });
+                } else if (line.startsWith("CONSOLE:")) {
+                    Component component = Component.text("[Share]  - ").append(ChatHelper.formatComponent(line.substring(8)));
+                    Bukkit.getConsoleSender().sendMessage(component);
+                } else {
+                    lime.logOP("[Share]  - " + line);
+                }
+            }
+        }
         public void share() {
             lime.logOP("[Share] Setup remote generator...");
             String jsonString = system.json.object()
@@ -175,13 +193,47 @@ public class CustomUI implements Listener {
                     .create(url, jsonString)
                     .expectContinue(true)
                     .headers(headers)
-                    .lines()
-                    .executeAsync((lines, code) -> {
+                    .json()
+                    .map(JsonElement::getAsJsonObject)
+                    .executeAsync((logger, _code) -> {
+                        String logID = logger.get("id").getAsString();
+                        system.Toast2<BukkitTask, Integer> task = system.toast(null, 5);
                         lime.logOP("[Share] Remote generator logs:");
-                        lines.forEach(line -> {
-                            if (!line.isBlank())
-                                lime.logOP("[Share]  - " + line);
-                        });
+                        task.val0 = lime.repeat(() -> {
+                            if (task.val1 <= 0) {
+                                lime.logOP("[Share] Remote generator closed");
+                                task.val0.cancel();
+                                return;
+                            }
+                            task.val1--;
+                            web.method.POST
+                                    .create(url, system.json.object()
+                                            .add("logger", logID)
+                                            .build()
+                                            .toString()
+                                    )
+                                    .expectContinue(true)
+                                    .headers(headers)
+                                    .json()
+                                    .map(JsonElement::getAsJsonObject)
+                                    .executeAsync((log, __code) -> {
+                                        String status = log.get("status").getAsString();
+                                        switch (status) {
+                                            case "end" -> {
+                                                JsonArray array = log.getAsJsonArray("lines");
+                                                array.forEach(line -> logLoggerLine(line.getAsString()));
+                                                if (array.size() == 0) return;
+                                            }
+                                            case "lines" -> log.getAsJsonArray("lines")
+                                                    .forEach(line -> logLoggerLine(line.getAsString()));
+                                            case "close" -> {
+                                                task.val0.cancel();
+                                                lime.logOP("[Share] Remote generator closed");
+                                            }
+                                        }
+                                        task.val1 = 5;
+                                    });
+                        }, 1);
                     });
         }
     }

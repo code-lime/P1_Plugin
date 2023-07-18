@@ -29,7 +29,7 @@ public class ShrubInstance extends BaseAgeableInstance<ShrubComponent> implement
         BlockPosition pos = event.pos();
         component.loot.generate().forEach(item -> Block.popResource(world, pos, CraftItemStack.asNMSCopy(item)));
         world.playSound(null, pos, SoundEffects.SWEET_BERRY_BUSH_PICK_BERRIES, SoundCategory.BLOCKS, 1.0F, 0.8F + world.random.nextFloat() * 0.4F);
-        age--;
+        age -= component.ageRemove;
         age(age);
         return EnumInteractionResult.sidedSuccess(world.isClientSide);
     }

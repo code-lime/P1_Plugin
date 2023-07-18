@@ -282,6 +282,28 @@ public class Vest implements Listener {
         items.forEach(callback);
         return true;
     }
+    private static boolean tryRemoveSingle(CraftInventory inventory, system.Func1<ItemStack, Boolean> filter) {
+        ItemStack[] items = inventory.getStorageContents();
+        for (int slot = 0; slot < items.length; ++slot) {
+            ItemStack item = items[slot];
+            if (item == null || !filter.invoke(item)) continue;
+            item.subtract();
+            inventory.setItem(slot, item);
+            return true;
+        }
+        return false;
+    }
+    public static boolean tryRemoveSingleItem(Player player, system.Func1<ItemStack, Boolean> filter) {
+        UUID uuid = player.getUniqueId();
+        for (EquipmentSlot slot : new EquipmentSlot[] { EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET }) {
+            VestInventory vest = inventoryVest
+                    .computeIfAbsent(uuid, (_uuid) -> new HashMap<>())
+                    .computeIfAbsent(slot, (_slot) -> VestData.read(PlayerData.getPlayerData(uuid), slot).createInventory(player).orElse(null));
+            if (vest == null) continue;
+            if (tryRemoveSingle(vest.inventory, filter)) return true;
+        }
+        return false;
+    }
 }
 
 

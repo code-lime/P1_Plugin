@@ -46,6 +46,7 @@ import java.util.NoSuchElementException;
 public class ReflectionAccess {
     public static final reflection.constructor<PacketPlayOutTileEntityData> init_PacketPlayOutTileEntityData = reflection.constructor.of(PacketPlayOutTileEntityData.class, BlockPosition.class, TileEntityTypes.class, NBTTagCompound.class);
     public static final reflection.field<FoodMetaData> foodData_EntityHuman = reflection.field.ofMojang(EntityHuman.class, "foodData");
+    public static final reflection.field<net.minecraft.world.item.ItemStack> lastItemInMainHand_EntityHuman = reflection.field.ofMojang(EntityHuman.class, "lastItemInMainHand");
 
     public static final reflection.field<WorldMap> worldMap_CraftMapView = reflection.field.of(CraftMapView.class, "worldMap");
     public static final reflection.field<EntityHuman> entityhuman_FoodMetaData = reflection.field.of(FoodMetaData.class, "entityhuman");

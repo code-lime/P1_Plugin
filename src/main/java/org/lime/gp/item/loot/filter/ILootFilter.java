@@ -16,6 +16,7 @@ public interface ILootFilter {
             case "block" -> new BlockLootFilter(p1[1]);
             case "debug" -> new DebugLootFilter(p1[1]);
             case "random" -> new RandomLootFilter(p1[1]);
+            case "tag" -> new TagLootFilter(p1[1]);
             default -> throw new IllegalArgumentException("LootFilter type '" + p1[0] + "' not founded!");
         };
     }

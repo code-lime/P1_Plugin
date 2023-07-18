@@ -3,7 +3,7 @@ package org.lime.gp.block.component.list;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import com.google.gson.JsonObject;
-import org.lime.display.Models;
+import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
@@ -18,7 +18,7 @@ public final class LaboratoryComponent extends ComponentDynamic<JsonObject, Labo
     public final LocalLocation input_dust;
     public final LocalLocation output;
 
-    public final Models.Model model_interact;
+    public final Model model_interact;
 
     public LaboratoryComponent(BlockInfo creator, JsonObject json) {
         super(creator, json);

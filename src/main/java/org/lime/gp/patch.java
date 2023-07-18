@@ -1,5 +1,6 @@
 package org.lime.gp;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.papermc.paper.util.ObfHelper;
@@ -8,10 +9,13 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.minecraft.data.worldgen.BiomeSettings;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.Main;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
 import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.food.FoodMetaData;
 import net.minecraft.world.inventory.ContainerGrindstone;
 import net.minecraft.world.inventory.InventoryCrafting;
 import net.minecraft.world.item.Item;
@@ -394,6 +398,42 @@ public class patch {
                                     }
                                 };
                             }
+                            else if (ofMojang(EntityLiving.class, "isDamageSourceBlocked", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.BOOLEAN_TYPE, Type.getType(DamageSource.class)))) {
+                                log("   Modify method: boolean isDamageSourceBlocked(DamageSource source)");
+                                MethodVisitor visitor = writer.visitMethod(access, name, descriptor, signature, exceptions);
+                                return new MethodVisitor(Opcodes.ASM9, null) {
+                                    @Override public void visitCode() {
+                                        visitor.visitCode();
+
+                                        visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                                        visitor.visitVarInsn(Opcodes.ALOAD, 1);
+                                        visitor.visitMethodInsn(
+                                                Opcodes.INVOKESTATIC,
+                                                "net/minecraft/world/entity/DamageSourceBlockEvent",
+                                                "execute",
+                                                Type.getMethodDescriptor(Type.BOOLEAN_TYPE, Type.getType(EntityLiving.class), Type.getType(DamageSource.class)),
+                                                false
+                                        );
+
+                                        visitor.visitInsn(Opcodes.IRETURN);
+                                        visitor.visitMaxs(0, 0);
+                                        visitor.visitEnd();
+                                    }
+                                };
+                            }
+                            else if (ofMojang(EntityLiving.class, "canDisableShield", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.BOOLEAN_TYPE))) {
+                                log("   Modify method: boolean canDisableShield()");
+                                MethodVisitor visitor = writer.visitMethod(access, name, descriptor, signature, exceptions);
+                                return new MethodVisitor(Opcodes.ASM9, null) {
+                                    @Override public void visitCode() {
+                                        visitor.visitCode();
+                                        visitor.visitInsn(Opcodes.ICONST_0);
+                                        visitor.visitInsn(Opcodes.IRETURN);
+                                        visitor.visitMaxs(0, 0);
+                                        visitor.visitEnd();
+                                    }
+                                };
+                            }
                             else return super.visitMethod(access, name, descriptor, signature, exceptions);
                         }
                     }, 0);
@@ -448,6 +488,50 @@ public class patch {
                                     @Override public void visitTypeInsn(int opcode, String type) {
                                         if (opcode == Opcodes.INSTANCEOF && index == 0 && type.equals("net/minecraft/world/item/ItemSword")) index++;
                                         super.visitTypeInsn(opcode, type);
+                                    }
+                                };
+                            }
+                            else if (ofMojang(EntityHuman.class, "tick", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE))) {
+                                log("   Modify method: void tick() ");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    private boolean isFound(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                        //log("    - TryCompare");
+                                        //log("       - " + opcode + " with " + Opcodes.INVOKESTATIC);
+                                        if (opcode != Opcodes.INVOKESTATIC) return false;
+                                        //log("       - " + owner + " with " + "net/minecraft/world/item/ItemStack");
+                                        if (!owner.equals("net/minecraft/world/item/ItemStack")) return false;
+                                        //log("       - " + ofMojang(net.minecraft.world.item.ItemStack.class, "isSame", descriptor, true) + " with " + name);
+                                        if (!ofMojang(net.minecraft.world.item.ItemStack.class, "isSame", descriptor, true).equals(name)) return false;
+                                        //log("       - " + Type.getType(descriptor) + " with " + Type.getMethodType(Type.BOOLEAN_TYPE, Type.getType(net.minecraft.world.item.ItemStack.class), Type.getType(net.minecraft.world.item.ItemStack.class)));
+                                        if (!Type.getType(descriptor).equals(Type.getMethodType(Type.BOOLEAN_TYPE, Type.getType(net.minecraft.world.item.ItemStack.class), Type.getType(net.minecraft.world.item.ItemStack.class)))) return false;
+                                        return true;
+                                    }
+                                    @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                        if (isFound(opcode, owner, name, descriptor, isInterface)) {
+                                            log("    - Swap ItemStack.isSame(ItemStack,ItemStack)Z to false");
+                                            super.visitInsn(Opcodes.POP2);
+                                            super.visitInsn(Opcodes.ICONST_0);
+                                        } else {
+                                            super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                                        }
+                                    }
+                                };
+                            }
+                            else if (ofMojang(EntityHuman.class, "resetAttackStrengthTicker", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE))) {
+                                log("   Modify method: void resetAttackStrengthTicker() ");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    @Override public void visitInsn(int opcode) {
+                                        if (opcode == Opcodes.RETURN) {
+                                            super.visitVarInsn(Opcodes.ALOAD, 0);
+                                            super.visitMethodInsn(
+                                                    Opcodes.INVOKESTATIC,
+                                                    "net/minecraft/world/entity/player/PlayerAttackStrengthResetEvent",
+                                                    "execute",
+                                                    Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(EntityHuman.class)),
+                                                    false
+                                            );
+                                        }
+                                        super.visitInsn(opcode);
                                     }
                                 };
                             }
@@ -609,6 +693,103 @@ public class patch {
                     version.entries.put(name, writer.toByteArray());
                 }, () -> log("File '"+name+"' not founded in version"));
     }
+    private static void patchFoodMetaData(JarArchive version) {
+        String name = classFile(FoodMetaData.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresentOrElse(bytes -> {
+                    log("Patch FoodMetaData...");
+
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                            List<String> _interfaces = Lists.newArrayList(interfaces);
+                            _interfaces.add("net/minecraft/world/food/IFoodNative");
+                            super.visit(version, access, name, signature, superName, _interfaces.toArray(new String[0]));
+                        }
+
+                        @Override public void visitEnd() {
+                            super.visitField(Opcodes.ACC_PRIVATE, "nativeData", Type.getDescriptor(NBTTagCompound.class).toString(), "", null).visitEnd();
+                            new MethodVisitor(Opcodes.ASM9, super.visitMethod(Opcodes.ACC_PUBLIC, "nativeData", Type.getMethodDescriptor(Type.getType(NBTTagCompound.class)), "", new String[0])) {
+                                @Override public void visitCode() {
+                                    super.visitCode();
+                                    super.visitIntInsn(Opcodes.ALOAD, 0);
+                                    super.visitFieldInsn(Opcodes.GETFIELD, "net/minecraft/world/food/FoodMetaData", "nativeData", Type.getDescriptor(NBTTagCompound.class));
+                                    super.visitInsn(Opcodes.ARETURN);
+                                    super.visitMaxs(0, 0);
+                                    super.visitEnd();
+                                    log("Patch FoodMetaData...GETTER nativeData...OK!");
+                                }
+                            }.visitCode();
+                            new MethodVisitor(Opcodes.ASM9, super.visitMethod(Opcodes.ACC_PUBLIC, "nativeData", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(NBTTagCompound.class)), "", new String[0])) {
+                                @Override public void visitCode() {
+                                    super.visitCode();
+                                    super.visitIntInsn(Opcodes.ALOAD, 0);
+                                    super.visitIntInsn(Opcodes.ALOAD, 1);
+                                    super.visitFieldInsn(Opcodes.PUTFIELD, "net/minecraft/world/food/FoodMetaData", "nativeData", Type.getDescriptor(NBTTagCompound.class));
+                                    super.visitInsn(Opcodes.RETURN);
+                                    super.visitMaxs(0, 0);
+                                    super.visitEnd();
+                                    log("Patch FoodMetaData...SETTER nativeData...OK!");
+                                }
+                            }.visitCode();
+
+                            super.visitEnd();
+                        }
+
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            //log("   Founded method '" + name + "' with descriptor '" + descriptor + "'");
+                            //log("   Try compare '"+Type.getType(descriptor)+"' with '" + Type.getMethodType(Type.VOID_TYPE, Type.getType(NBTTagCompound.class)) + "'");
+                            if (ofMojang(FoodMetaData.class, "readAdditionalSaveData", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE, Type.getType(NBTTagCompound.class)))) {
+                                log("   Modify method: void readAdditionalSaveData(NBTTagCompound)");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    int index = 0;
+                                    @Override public void visitLineNumber(int line, Label start) {
+                                        super.visitLineNumber(line, start);
+                                        if (index == 0) {
+                                            index++;
+                                            super.visitVarInsn(Opcodes.ALOAD, 0);
+                                            super.visitVarInsn(Opcodes.ALOAD, 1);
+                                            super.visitMethodInsn(
+                                                    Opcodes.INVOKESTATIC,
+                                                    "net/minecraft/world/food/IFoodNative",
+                                                    "readNativeSaveData",
+                                                    Type.getMethodDescriptor(Type.VOID_TYPE, replaceDescriptor(Type.getType(FoodMetaData.class), "FoodMetaData", "IFoodNative"), Type.getType(NBTTagCompound.class)),
+                                                    true
+                                            );
+                                            log("Patch FoodMetaData...ReadAdditional...OK!");
+                                        }
+                                    }
+                                };
+                            }
+                            else if (ofMojang(FoodMetaData.class, "addAdditionalSaveData", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE, Type.getType(NBTTagCompound.class)))) {
+                                log("   Modify method: void addAdditionalSaveData(NBTTagCompound)");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    int index = 0;
+                                    @Override public void visitLineNumber(int line, Label start) {
+                                        super.visitLineNumber(line, start);
+                                        if (index == 0) {
+                                            index++;
+                                            super.visitVarInsn(Opcodes.ALOAD, 0);
+                                            super.visitVarInsn(Opcodes.ALOAD, 1);
+                                            super.visitMethodInsn(
+                                                    Opcodes.INVOKESTATIC,
+                                                    "net/minecraft/world/food/IFoodNative",
+                                                    "addNativeSaveData",
+                                                    Type.getMethodDescriptor(Type.VOID_TYPE, replaceDescriptor(Type.getType(FoodMetaData.class), "FoodMetaData", "IFoodNative"), Type.getType(NBTTagCompound.class)),
+                                                    true
+                                            );
+                                            log("Patch FoodMetaData...AddAdditional...OK!");
+                                        }
+                                    }
+                                };
+                            }
+                            else return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                }, () -> log("File '"+name+"' not founded in version"));
+    }
 
     private static class JarArchive {
         public final Manifest manifest;
@@ -753,6 +934,8 @@ public class patch {
             patchEntityHuman(version_archive);
             patchEntityCaveSpider(version_archive);
             patchBiomeSettings(version_archive);
+
+            patchFoodMetaData(version_archive);
         }
 
         log("Save version jar...");

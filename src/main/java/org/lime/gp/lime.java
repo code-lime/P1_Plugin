@@ -1,7 +1,5 @@
 package org.lime.gp;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
@@ -11,7 +9,6 @@ import dev.geco.gsit.objects.IGPoseSeat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.WorldCreator;
@@ -21,7 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
-import org.lime.display.Models;
+import org.lime.display.models.Models;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.Blocks;
@@ -50,6 +47,7 @@ import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.menu.page.Insert;
 import org.lime.gp.player.module.*;
+import org.lime.gp.player.module.food.ProxyFoodMetaData;
 import org.lime.gp.player.perm.Grants;
 import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.perm.Works;
@@ -66,8 +64,6 @@ import org.lime.system;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class lime extends core {
     public static lime _plugin;
@@ -258,7 +254,7 @@ public class lime extends core {
         add(Compass.create());
         add(CustomUI.create());
         add(Infection.create());
-        add(Saturation.create());
+        add(FoodUI.create());
         add(ScoreboardUI.create());
         add(EditorUI.create());
         add(Thirst.create());

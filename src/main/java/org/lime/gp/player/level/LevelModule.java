@@ -5,9 +5,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -19,12 +21,22 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.item.Items;
+import org.lime.gp.item.settings.list.DrugsSetting;
+import org.lime.gp.item.settings.list.LevelFoodMutateSetting;
+import org.lime.gp.item.settings.list.UnDrugsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.module.Discord;
 import org.lime.gp.module.PopulateLootEvent;
 
 import com.google.gson.JsonObject;
+import org.lime.gp.player.module.PlayerData;
+import org.lime.gp.player.module.TabManager;
+import org.lime.system;
 
 public class LevelModule implements Listener {
     public static org.lime.core.element create() {
@@ -39,11 +51,35 @@ public class LevelModule implements Listener {
     
     private static final HashMap<Integer, LevelData> workData = new HashMap<>();
 
+    public static float levelMutate(UUID uuid) {
+        float mutate = 1;
+        if (TabManager.hasDonate(uuid)) mutate += 0.25;
+        PlayerData.JsonPersistentDataContainer data = PlayerData.getPlayerData(uuid);
+        if (data.has(LEVEL_FOOD_MUTATE_KEY)) {
+            boolean delete = true;
+            if (data.getJson(LEVEL_FOOD_MUTATE_KEY) instanceof JsonObject json) {
+                if (json.has("end_ms")) {
+                    if (json.get("end_ms").getAsLong() > System.currentTimeMillis()) {
+                        mutate += 0.25;
+                        delete = false;
+                    }
+                }
+            }
+            if (delete) data.remove(LEVEL_FOOD_MUTATE_KEY);
+        }
+        return mutate;
+    }
+
+    private static final HashMap<String, JsonObject> cache = new HashMap<>();
     private static void init() {
         lime.repeat(LevelModule::update, 0.75);
+        AnyEvent.addEvent("loot.export", AnyEvent.type.owner_console, v -> v.createParam(_v -> _v, cache::keySet), (p, type) -> {
+            String text = cache.get(type).toString();
+            lime.logConsole("Loot export: " + text);
+        });
     }
     private static void update() {
-        Bukkit.getOnlinePlayers().forEach(player -> updateDisplay(player));
+        Bukkit.getOnlinePlayers().forEach(LevelModule::updateDisplay);
     }
     private static void updateDisplay(Player player) {
         int level;
@@ -67,14 +103,19 @@ public class LevelModule implements Listener {
     private static void config(JsonObject json) {
         DEBUG = json.has("DEBUG") && json.remove("DEBUG").getAsBoolean();
 
+        HashMap<String, JsonObject> cache = new HashMap<>();
         json = lime.combineParent(json, true, false);
         HashMap<Integer, LevelData> workData = new HashMap<>();
         json.entrySet().forEach(kv -> {
             int work = Integer.parseInt(kv.getKey());
-            workData.put(work, new LevelData(work, kv.getValue().getAsJsonObject()));
+            LevelData data = new LevelData(work, kv.getValue().getAsJsonObject());
+            workData.put(work, data);
+            data.cache.forEach((level, raw) -> cache.put(work + "." + level, raw));
         });
         LevelModule.workData.clear();
         LevelModule.workData.putAll(workData);
+        LevelModule.cache.clear();
+        LevelModule.cache.putAll(cache);
     }
 
     public static Optional<LevelStep> getLevelStep(int userID, int workID) {
@@ -136,13 +177,37 @@ public class LevelModule implements Listener {
     
     @EventHandler private static void onLoot(PopulateLootEvent e) {
         e.getOptional(PopulateLootEvent.Parameters.KillerEntity)
-            .or(() -> e.getOptional(PopulateLootEvent.Parameters.ThisEntity))
-            .map(v -> v.getBukkitEntity() instanceof CraftPlayer cp ? cp : null)
-            .flatMap(player -> getLevelStep(player.getUniqueId()))
-            .ifPresent(step -> step.tryModifyLoot(e));
+                .or(() -> e.getOptional(PopulateLootEvent.Parameters.ThisEntity))
+                .map(net.minecraft.world.entity.Entity::getBukkitEntity)
+                .map(v -> v instanceof CraftPlayer cp
+                        ? cp
+                        : v instanceof FishHook hook && hook.getShooter() instanceof CraftPlayer cp
+                            ? cp
+                            : null
+                )
+                .flatMap(player -> getLevelStep(player.getUniqueId()))
+                .ifPresent(step -> step.tryModifyLoot(e));
     }
     @EventHandler private static void onExpChange(PlayerExpChangeEvent e) {
         if (workData.size() == 0) return;
         e.setAmount(0);
+    }
+
+
+    private static final NamespacedKey LEVEL_FOOD_MUTATE_KEY = new NamespacedKey(lime._plugin, "level_food_mutate");
+    @EventHandler(ignoreCancelled = true) public static void on(PlayerItemConsumeEvent e) {
+        Items.getOptional(LevelFoodMutateSetting.class, e.getItem())
+                .ifPresent(mutate -> {
+                    long now = System.currentTimeMillis();
+                    long endMs = 0;
+                    PlayerData.JsonPersistentDataContainer data = PlayerData.getPlayerData(e.getPlayer().getUniqueId());
+                    if (data.getJson(LEVEL_FOOD_MUTATE_KEY) instanceof JsonObject json) {
+                        if (json.has("end_ms")) {
+                            endMs = json.get("end_ms").getAsLong();
+                        }
+                    }
+                    endMs = Math.max(endMs, now + (long)(mutate.sec * 1000));
+                    data.setJson(LEVEL_FOOD_MUTATE_KEY, system.json.object().add("end_ms", endMs).build());
+                });
     }
 }

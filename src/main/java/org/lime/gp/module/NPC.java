@@ -5,6 +5,7 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.display.*;
+import org.lime.display.models.ChildDisplay;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
@@ -263,8 +264,8 @@ public class NPC {
         protected NPCDisplay(NPCObject npc) {
             super(npc.location);
             this.npc = npc;
-            this.equipment = Models.Model.ChildDisplay.toPacketData(npc.createEquipment());
-            Models.Model.ChildDisplay<NPCObject> sitParent;
+            this.equipment = ChildDisplay.toPacketData(npc.createEquipment());
+            ChildDisplay<NPCObject> sitParent;
             if (npc.sit) sitParent = preInitDisplay(lime.models.builder(EntityTypes.BLOCK_DISPLAY).build().display(this));
             else sitParent = null;
             postInit();

@@ -19,7 +19,8 @@ import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
-import org.lime.display.Models;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
@@ -43,7 +44,7 @@ import java.util.*;
 public class InventoryInstance extends BlockComponentInstance<InventoryComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable, BlockDisplay.Displayable {
     private final InventorySubcontainer items_container;
     private boolean changed = true;
-    private final system.LockToast1<Models.Model> display = system.<Models.Model>toast(null).lock();
+    private final system.LockToast1<Model> display = system.<Model>toast(null).lock();
     public InventoryInstance(InventoryComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
         items_container = new InventorySubcontainer(6 * 9) {
@@ -54,7 +55,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         };
     }
 
-    private static final Models.Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
+    private static final Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
             .nbt(() -> {
                 EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                 stand.setNoBasePlate(true);
@@ -86,7 +87,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         if (changed) {
             changed = false;
             InventoryComponent component = component();
-            Models.Builder builder = lime.models.builder();
+            Builder builder = lime.models.builder();
             for (Map.Entry<Integer, LocalLocation> kv : component.display.entrySet()) {
                 net.minecraft.world.item.ItemStack item = items_container.getItem(kv.getKey());
                 if (item.isEmpty()) continue;
@@ -149,7 +150,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         return EnumInteractionResult.CONSUME;
     }
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        Models.Model model = display.get0();
+        Model model = display.get0();
         return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10)));
     }
 }

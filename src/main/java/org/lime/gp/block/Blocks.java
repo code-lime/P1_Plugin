@@ -168,7 +168,7 @@ public class Blocks implements Listener {
                         })
                 )
                 .addCommand("variable.block", v -> v.withCheck(ServerOperator::isOp)
-                        .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~] [block:key]")
+                        .withUsage("/variable.block [x:int,~] [y:int,~] [z:int,~]")
                         .withTab((sender, args) -> switch(args.length) {
                             case 1,2,3 -> Collections.singletonList(Optional.ofNullable(sender instanceof Player player ? player.getTargetBlockExact(5) : null)
                                     .map(p -> p.getLocation().toVector())
@@ -199,10 +199,12 @@ public class Blocks implements Listener {
                                     .flatMap(_v -> _v.list(DisplayInstance.class).findFirst())
                                     .map(DisplayInstance::getAll)
                                     .ifPresentOrElse(variable ->
-                                            sender.sendMessage(Component.text("Variables of block in "+x+" "+y+" "+z+":\n{")
-                                                    .append(Component.join(JoinConfiguration.separator(Component.text(",")), variable.entrySet()
+                                            sender.sendMessage(Component.text("Variables of block in "+x+" "+y+" "+z+":\n{\n")
+                                                    .append(Component.join(JoinConfiguration.separator(Component.text(",\n")), variable.entrySet()
                                                             .stream()
+                                                            .sorted(Comparator.comparing(Map.Entry::getKey))
                                                             .map(kv -> Component.empty()
+                                                                    .append(Component.text("  "))
                                                                     .append(Component.text("\""))
                                                                     .append(Component.text(kv.getKey()).color(NamedTextColor.AQUA))
                                                                     .append(Component.text("\":\""))
@@ -211,7 +213,7 @@ public class Blocks implements Listener {
                                                             )
                                                             .toList()
                                                     ))
-                                                    .append(Component.text("}"))),
+                                                    .append(Component.text("\n}"))),
                                             () -> sender.sendMessage("Block in "+x+" "+y+" "+z+" not have display variables")
                                     );
                             return true;
@@ -444,6 +446,7 @@ public class Blocks implements Listener {
         ItemStack item = e.getItemInHand();
         Items.getOptional(BlockSetting.class, item)
                 .ifPresent(setting -> {
+
                     InfoComponent.Rotation.Value rotation = InfoComponent.Rotation.of(e.getPlayer().getLocation().getDirection(), setting.rotation.keySet());
                     Optional.ofNullable(setting.rotation.get(rotation))
                             .flatMap(Blocks::creator)

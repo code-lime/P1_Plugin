@@ -228,7 +228,7 @@ public class Voice implements VoicechatPlugin {
                 PlayerState state = PLAYER_STATE_MANAGER == null ? null : PLAYER_STATE_MANAGER.getState(player.getUniqueId());
                 if (state == null || state.isDisconnected()) {
                     Component component = LangMessages.Message.Chat_NoVoiceActionBar.getSingleMessage();
-                    return Collections.singletonList(ImageBuilder.of(component, ChatHelper.getTextSize(player, component)));
+                    return Collections.singletonList(ImageBuilder.of(component, ChatHelper.getTextSize(player, component), false));
                 }
                 return Collections.emptyList();
             }

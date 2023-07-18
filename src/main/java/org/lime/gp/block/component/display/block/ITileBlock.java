@@ -2,15 +2,14 @@ package org.lime.gp.block.component.display.block;
 
 import java.util.Optional;
 
-import org.lime.display.Models;
-
 import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
 import net.minecraft.world.level.block.state.IBlockData;
+import org.lime.display.models.Model;
 
 public interface ITileBlock extends IBlock {
     Optional<PacketPlayOutTileEntityData> packet();
 
-    @Override default ITileModelBlock withModel(Models.Model model, int distanceChunk) { return ITileModelBlock.of(data().orElse(null), packet().orElse(null), model, distanceChunk); }
+    @Override default ITileModelBlock withModel(Model model, int distanceChunk) { return ITileModelBlock.of(data().orElse(null), packet().orElse(null), model, distanceChunk); }
 
     static ITileBlock of(IBlockData data, PacketPlayOutTileEntityData packet) {
         return new ITileBlock() {

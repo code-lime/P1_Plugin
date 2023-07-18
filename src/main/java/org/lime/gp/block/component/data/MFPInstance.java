@@ -13,8 +13,9 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.Vector;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.system;
-import org.lime.display.Models;
 import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
 import org.lime.gp.lime;
@@ -60,9 +61,9 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
         setItem(null, false);
     }
 
-    private final Models.Builder builder;
+    private final Builder builder;
 
-    public final system.LockToast1<Models.Model> model = system.<Models.Model>toast(null).lock();
+    public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
     private ItemStack head;
 
     public void setItem(ItemStack item, boolean save) {

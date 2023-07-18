@@ -2,7 +2,7 @@ package org.lime.gp.block.component.display.partial.list;
 
 import java.util.Optional;
 
-import org.lime.display.Models;
+import org.lime.display.models.Model;
 import org.lime.gp.lime;
 import org.lime.gp.block.component.display.partial.PartialEnum;
 
@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 
 public class ModelPartial extends FramePartial {
     private final String model;
-    private Models.Model generic = null;
+    private Model generic = null;
 
     public ModelPartial(int distanceChunk, JsonObject json) {
         super(distanceChunk, json);
@@ -24,7 +24,7 @@ public class ModelPartial extends FramePartial {
         return "#generic";
     }
 
-    public Optional<Models.Model> model() {
+    public Optional<Model> model() {
         return Optional.ofNullable(generic).or(() -> lime.models.get(model));
     }
 

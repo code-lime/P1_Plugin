@@ -48,6 +48,7 @@ import org.lime.system;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
 public final class DisplayInstance extends BlockInstance implements CustomTileMetadata.Shapeable, CustomTileMetadata.Tickable, CustomTileMetadata.AsyncTickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable {
     static int TIMEOUT_TICKS = 20;
@@ -242,7 +243,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         boolean isControl = CacheBlockDisplay.isConcurrent(block_position, world.getUID());
 
         tickTimeInfo.variables3_ns += tickTimeInfo.nextTime();
-        
+
         if (isControl) {
             users.forEach(uuid -> {
                 Player player = EntityPosition.onlinePlayers.get(uuid);

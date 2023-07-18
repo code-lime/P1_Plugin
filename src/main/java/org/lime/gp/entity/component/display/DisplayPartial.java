@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.world.entity.EntityLimeMarker;
 import org.bukkit.entity.Player;
-import org.lime.display.Models;
+import org.lime.display.models.Model;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -88,13 +88,13 @@ public class DisplayPartial {
     }
     public static class ModelPartial extends Partial implements EntityDisplay.Displayable {
         private final String model;
-        private Models.Model generic = null;
+        private Model generic = null;
 
         public ModelPartial(double distance, JsonObject json) {
             super(distance, json);
             this.model = parseModel(json.get("model"));
         }
-        public ModelPartial(double distance, Models.Model model) {
+        public ModelPartial(double distance, Model model) {
             super(distance, new JsonObject());
             this.model = "#generic";
             this.generic = model;
@@ -106,7 +106,7 @@ public class DisplayPartial {
             return "#generic";
         }
 
-        public Optional<Models.Model> model() {
+        public Optional<Model> model() {
             return Optional.ofNullable(generic).or(() -> lime.models.get(model));
         }
 

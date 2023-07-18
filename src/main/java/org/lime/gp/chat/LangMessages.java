@@ -77,7 +77,9 @@ public class LangMessages {
         Entity_BackPack_Lock("entity", "backpack", "lock"),
         Entity_BackPack_Unlock("entity", "backpack", "unlock"),
 
-        Work_Error_Use("work", "error", "use");
+        Work_Error_Use("work", "error", "use"),
+
+        Block_Error_Limit("block", "error", "limit");
 
         public final List<String> args;
         private final Component def;

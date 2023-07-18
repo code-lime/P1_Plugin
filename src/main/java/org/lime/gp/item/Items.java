@@ -4,24 +4,27 @@ import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.papermc.paper.adventure.PaperAdventure;
 import net.coreprotect.event.AsyncItemInfoEvent;
 import net.minecraft.ResourceKeyInvalidException;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.PacketPlayOutOpenBook;
+import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.sounds.SoundCategory;
 import net.minecraft.sounds.SoundEffects;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.effect.MobEffectList;
-import net.minecraft.world.entity.EntityAttackSweepEvent;
-import net.minecraft.world.entity.EntityEquipmentSlotEvent;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.item.ItemMaxDamageEvent;
-import net.minecraft.world.item.ItemStackSizeEvent;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.entity.player.PlayerAttackStrengthResetEvent;
+import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.item.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -33,8 +36,10 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -42,8 +47,12 @@ import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.chat.Apply;
+import org.lime.gp.extension.ItemNMS;
+import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
+import org.lime.gp.module.ArrowBow;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
@@ -52,10 +61,6 @@ import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
-import org.lime.gp.item.settings.list.DurabilitySetting;
-import org.lime.gp.item.settings.list.EquipSetting;
-import org.lime.gp.item.settings.list.MaxStackSetting;
-import org.lime.gp.item.settings.list.SweepSetting;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.inventory.WalletInventory;
@@ -367,6 +372,24 @@ public class Items implements Listener {
                 .filter(ItemMeta::hasCustomModelData)
                 .map(ItemMeta::getCustomModelData);
     }
+    public static boolean hasIDByItem(ItemStack item) {
+        return Optional.ofNullable(item)
+                .map(ItemStack::getItemMeta)
+                .map(Items::hasIDByMeta)
+                .orElse(false);
+    }
+    public static boolean hasIDByItem(net.minecraft.world.item.ItemStack item) {
+        return Optional.ofNullable(item)
+                .filter(net.minecraft.world.item.ItemStack::hasTag)
+                .map(net.minecraft.world.item.ItemStack::getTag)
+                .map(v -> v.contains("CustomModelData"))
+                .orElse(false);
+    }
+    public static boolean hasIDByMeta(ItemMeta meta) {
+        return Optional.ofNullable(meta)
+                .map(ItemMeta::hasCustomModelData)
+                .orElse(false);
+    }
     public static boolean hasItem(String key) {
         return creatorIDs.containsKey(key);
     }
@@ -501,6 +524,35 @@ public class Items implements Listener {
     @EventHandler public static void on(PlayerArmorChangeEvent e) {
         if (!(e.getPlayer() instanceof CraftPlayer player)) return;
         lime.once(player::updateInventory, 0.5);
+    }
+    @EventHandler public static void on(PlayerAttackStrengthResetEvent e) {
+        if (!(e.getHuman() instanceof EntityPlayer player)) return;
+        net.minecraft.world.item.ItemStack itemstack = player.getMainHandItem();
+        net.minecraft.world.item.ItemStack lastItemInMainHand = ReflectionAccess.lastItemInMainHand_EntityHuman.get(player);
+
+        if (net.minecraft.world.item.ItemStack.matches(lastItemInMainHand, itemstack)) return;
+        if (!net.minecraft.world.item.ItemStack.isSame(lastItemInMainHand, itemstack) || itemstack.isEmpty()) return;
+        if (!Items.has(AttackFixSetting.class, lastItemInMainHand) && !Items.has(AttackFixSetting.class, itemstack)) return;
+        PlayerInventory inventory = player.getInventory();
+        PlayerConnection connection = player.connection;
+
+        int slot = inventory.items.size() + inventory.selected;
+        int stateId = player.containerMenu.getStateId();
+        connection.send(new PacketPlayOutSetSlot(0, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY));
+        lime.nextTick(player.inventoryMenu::broadcastFullState);
+    }
+
+    @EventHandler private static void on(DamageSourceBlockEvent e) {
+        if (!e.isBlocking()) return;
+        net.minecraft.world.item.ItemStack shield = e.getShield();
+        Entity damageEntity = e.getSource().getEntity();
+        net.minecraft.world.item.ItemStack attack;
+        if (damageEntity instanceof Projectile projectile) attack = ArrowBow.getBowItem(projectile);
+        else if (damageEntity instanceof EntityLiving living) attack = living.getMainHandItem();
+        else attack = net.minecraft.world.item.ItemStack.EMPTY;
+        if (attack.getUseAnimation() == EnumAnimation.BLOCK) attack = net.minecraft.world.item.ItemStack.EMPTY;
+        double chance = Items.getOptional(ShieldIgnoreSetting.class, shield).map(v -> v.chance).orElse(1.0) * Items.getOptional(ShieldIgnoreSetting.class, attack).map(v -> v.chance).orElse(0.0);
+        if (system.rand_is(chance)) e.setBlocking(false);
     }
 }
 

@@ -32,6 +32,7 @@ import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.*;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.gp.player.module.food.ProxyFoodMetaData;
 import org.lime.gp.player.voice.Voice;
 import org.lime.system;
 import org.lime.gp.player.ui.CustomUI;

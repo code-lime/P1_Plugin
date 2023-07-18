@@ -3,6 +3,9 @@ package org.lime.gp.block;
 import com.google.common.collect.Streams;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.commands.data.CommandData;
+import net.minecraft.world.item.ItemHorseArmor;
+import net.minecraft.world.item.ItemHorseArmorDyeable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Material;
@@ -18,6 +21,7 @@ import org.bukkit.util.BlockIterator;
 import org.lime.core;
 import org.lime.gp.block.component.data.OtherGenericInstance;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
+import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.list.LootComponent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.lime;
@@ -53,7 +57,8 @@ public class CreativeInteract implements Listener {
                 .map(Blocks::customOf)
                 .flatMap(Optional::stream)
                 .flatMap(metadata -> CacheBlockDisplay.getCacheBlock(metadata.skull.getBlockPos(), worldUUID)
-                        .flatMap(v -> v.cache(playerUUID).data())
+                        .map(v -> v.cache(playerUUID))
+                        .flatMap(IBlock::data)
                         .map(IBlockData::getBukkitMaterial)
                         .filter(v -> e.getCursor().getType().equals(v))
                         .stream()

@@ -29,6 +29,7 @@ import org.lime.gp.item.settings.list.UnDrugsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.inventory.MainPlayerInventory;
+import org.lime.gp.player.module.food.ProxyFoodMetaData;
 import org.lime.gp.player.ui.Thirst;
 import org.lime.system;
 

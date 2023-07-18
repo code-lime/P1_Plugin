@@ -7,8 +7,8 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.Position;
 import org.lime.display.DisplayManager;
-import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
+import org.lime.display.models.ChildDisplay;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.instance.list.ModelDisplayObject;
 import org.lime.gp.module.TimeoutData;
@@ -25,7 +25,7 @@ public class BlockModelDisplay extends ObjectDisplay<ModelDisplayObject, Marker>
     public final BlockModelKey key;
 
     public ModelDisplayObject data;
-    public Models.Model.ChildDisplay<ModelDisplayObject> model;
+    public ChildDisplay<ModelDisplayObject> model;
 
     @Override public boolean isFilter(Player player) {
         return data.hasViewer(player.getUniqueId());

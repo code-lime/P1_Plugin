@@ -28,6 +28,7 @@ import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.chat.LangMessages;
+import org.lime.gp.player.module.food.ProxyFoodMetaData;
 import org.lime.gp.player.ui.Infection;
 import org.lime.gp.player.ui.Thirst;
 import com.destroystokyo.paper.ParticleBuilder;

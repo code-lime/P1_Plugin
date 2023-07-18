@@ -38,8 +38,9 @@ import org.bukkit.util.Vector;
 import org.lime.core;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
-import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
+import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.Model;
 import org.lime.gp.database.rows.PetsRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.PathFinder;
@@ -79,7 +80,7 @@ public class Pets {
         private PetsRow row;
 
         private final AbstractPet pet;
-        private final Models.Model.ChildDisplay<PetsRow> model;
+        private final ChildDisplay<PetsRow> model;
         private final Map<String, Object> data = new HashMap<>();
         private int step;
         private final double speed;
@@ -233,8 +234,8 @@ public class Pets {
         public final int steps;
         public final boolean fly;
 
-        public abstract Models.Model model();
-        public abstract void tick(Models.Model.ChildDisplay<?> model, Map<String, Object> data);
+        public abstract Model model();
+        public abstract void tick(ChildDisplay<?> model, Map<String, Object> data);
 
         protected AbstractPet(String key, JsonObject json) {
             this.key = key;
@@ -252,12 +253,12 @@ public class Pets {
         public final EntityTypes<? extends EntityLiving> type;
         public final system.Action1<Entity> variable;
         public final boolean baby;
-        public final Models.Model model;
+        public final Model model;
 
         private static final ConcurrentHashMap<EntityTypes<? extends Entity>, Class<? extends Entity>> entityTypes = new ConcurrentHashMap<>();
 
-        @Override public Models.Model model() { return model; }
-        @Override public void tick(Models.Model.ChildDisplay<?> model, Map<String, Object> data) {}
+        @Override public Model model() { return model; }
+        @Override public void tick(ChildDisplay<?> model, Map<String, Object> data) {}
 
         @SuppressWarnings("all")
         protected VariablePet(String key, JsonObject json) {
@@ -339,12 +340,12 @@ public class Pets {
         }
     }
     public static class ModelPet extends AbstractPet {
-        public final Models.Model model;
+        public final Model model;
         public final String animation_tick;
         public final HashMap<String, Object> animation_args = new HashMap<>();
 
-        @Override public Models.Model model() { return model; }
-        @Override public void tick(Models.Model.ChildDisplay<?> model, Map<String, Object> data) {
+        @Override public Model model() { return model; }
+        @Override public void tick(ChildDisplay<?> model, Map<String, Object> data) {
             if (animation_tick == null) return;
             JavaScript.invoke(animation_tick,
                     system.map.<String, Object>of()

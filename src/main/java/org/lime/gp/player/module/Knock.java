@@ -14,8 +14,8 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
+import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.gp.player.perm.Perms;
-import org.lime.gp.module.damage.PlayerDamageByPlayerEvent;
 import org.lime.system;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -77,13 +77,15 @@ public class Knock implements Listener {
         if (e.getPoseSeat().getPose() == Pose.SITTING && e.getReason() == GetUpReason.GET_UP && isKnock(e.getPlayer().getUniqueId())) e.setCancelled(true);
     }
 
-    @EventHandler public static void on(PlayerDamageByPlayerEvent e) {
-        Items.getItemCreator(e.getItem())
-                .filter(v -> e.getBase().getFinalDamage() != 0)
-                .map(v -> v instanceof ItemCreator _v ? _v : null)
-                .filter(v -> v.getOptional(BatonSetting.class).map(_v -> system.rand_is(_v.chance)).orElse(false))
-                .filter(v -> Perms.getCanData(e.getDamageOwner().getUniqueId()).isCanUse(v.getKey()))
-                .ifPresent(v -> Knock.knock(e.getEntity()));
+    @EventHandler public static void on(EntityDamageByPlayerEvent e) {
+        e.getEntityPlayer()
+                .ifPresent(target -> Items.getItemCreator(e.getItem())
+                    .filter(v -> e.getBase().getFinalDamage() != 0)
+                    .map(v -> v instanceof ItemCreator _v ? _v : null)
+                    .filter(v -> v.getOptional(BatonSetting.class).map(_v -> system.rand_is(_v.chance)).orElse(false))
+                    .filter(v -> Perms.getCanData(e.getDamageOwner().getUniqueId()).isCanUse(v.getKey()))
+                    .ifPresent(v -> Knock.knock(target))
+                );
     }
     @EventHandler(priority = EventPriority.LOWEST) public static void on(InventoryOpenEvent e) {
         if (!(e.getPlayer() instanceof Player)) return;

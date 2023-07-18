@@ -33,7 +33,7 @@ import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
-import org.lime.gp.module.damage.PlayerDamageByPlayerEvent;
+import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.gp.player.voice.Voice;
 import org.lime.system;
 
@@ -288,15 +288,16 @@ public class SingleModules implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler public static void on(PlayerDamageByPlayerEvent e) {
+    @EventHandler public static void on(EntityDamageByPlayerEvent e) {
         Player owner = e.getDamageOwner();
-        Player target = e.getEntity();
-        if (owner == null) return;
-        if (!owner.isOp()) return;
-        if (target.isOp()) return;
-        ItemStack item = owner.getInventory().getItemInMainHand();
-        if (item == null || item.getType() != Material.RED_SHULKER_BOX) return;
-        Administrator.aban(target.getUniqueId(), "До разбирательств", null, owner.getUniqueId());
+        e.getEntityPlayer().ifPresent(target -> {
+            if (owner == null) return;
+            if (!owner.isOp()) return;
+            if (target.isOp()) return;
+            ItemStack item = owner.getInventory().getItemInMainHand();
+            if (item == null || item.getType() != Material.RED_SHULKER_BOX) return;
+            Administrator.aban(target.getUniqueId(), "До разбирательств", null, owner.getUniqueId());
+        });
     }
     @EventHandler public static void on(BellRevealRaiderEvent e) {
         e.setCancelled(true);

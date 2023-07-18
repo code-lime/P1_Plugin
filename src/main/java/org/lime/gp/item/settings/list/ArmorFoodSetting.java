@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
-import org.lime.gp.player.module.ProxyFoodMetaData;
+import org.lime.gp.player.module.food.ProxyFoodMetaData;
 
 import com.google.gson.JsonObject;
 
@@ -20,9 +20,9 @@ import com.google.gson.JsonObject;
 
     public void change(Player player) {
         ProxyFoodMetaData.ofPlayer(player)
-            .ifPresent(data -> {
-                if (data.modifySaturation(saturation) <= 0);
-                    data.modifyFoodLevel(food);
-            });
+                .ifPresent(data -> {
+                    if (data.modify(0, saturation))
+                        data.modify(food, 0);
+                });
     }
 }

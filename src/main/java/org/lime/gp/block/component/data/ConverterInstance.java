@@ -26,7 +26,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.display.Models;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
@@ -99,9 +100,9 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         setItem(null, false);
     }
 
-    private final Models.Builder builder;
+    private final Builder builder;
 
-    public final system.LockToast1<Models.Model> model = system.<Models.Model>toast(null).lock();
+    public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
     private ItemStack head;
     private net.minecraft.world.item.ItemStack nms_head;
     /*private Map<String, String> displayVariable;*/
@@ -120,7 +121,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         nms_head = CraftItemStack.asNMSCopy(head);
         metadata()
             .list(DisplayInstance.class)
-            .forEach(display -> display.variableDirty());
+            .forEach(DisplayInstance::variableDirty);
     }
 
     @Override public void read(JsonObjectOptional json) {
@@ -235,6 +236,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
                                     ? net.minecraft.world.item.ItemStack.EMPTY
                                     : output.get(itemIndex).val1;
                         }
+
                         @Override public boolean mayPickup(EntityHuman playerEntity) {
                             if (getRowY() >= 4) {
                                 switch (getRowX()) {

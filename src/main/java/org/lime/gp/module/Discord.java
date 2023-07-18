@@ -9,8 +9,12 @@ import github.scarsz.discordsrv.dependencies.jda.api.entities.*;
 import github.scarsz.discordsrv.dependencies.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import github.scarsz.discordsrv.dependencies.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import github.scarsz.discordsrv.dependencies.jda.api.hooks.ListenerAdapter;
+import github.scarsz.discordsrv.dependencies.jda.api.managers.WebhookManager;
 import github.scarsz.discordsrv.dependencies.jda.api.requests.RestAction;
+import github.scarsz.discordsrv.dependencies.jda.internal.managers.WebhookManagerImpl;
+import github.scarsz.discordsrv.dependencies.jda.internal.requests.restaction.WebhookMessageActionImpl;
 import github.scarsz.discordsrv.util.DiscordUtil;
+import github.scarsz.discordsrv.util.WebhookUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -24,6 +28,7 @@ import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
+import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.DiscordRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
@@ -332,20 +337,20 @@ public class Discord implements Listener {
         if (log) lime.logOP("UPDATE.5");
         return actions;
     }
-    private static void reset(long discord_id) {
-        DiscordSRV.getPlugin().getJda().getGuilds().forEach(guild -> {
+    public static void reset(long discord_id) {
+        Methods.discordClear(discord_id, () -> DiscordSRV.getPlugin().getJda().getGuilds().forEach(guild -> {
             Member member = guild.getMemberById(discord_id);
             if (member == null) return;
-    
+
             List<Role> delRoles = new ArrayList<>();
             delRoles.add(guild.getRoleById(online_role));
             delRoles.add(guild.getRoleById(gift_role));
             delRoles.add(guild.getRoleById(confirmed_role));
-    
+
             role_list.keySet().forEach(_roleId -> delRoles.add(guild.getRoleById(_roleId)));
             guild.modifyMemberRoles(member, new ArrayList<>(), delRoles).queue();
             if (!member.isOwner()) member.modifyNickname(null).queue();
-        });
+        }));
     }
 
     private static RestAction<Void> combine(Collection<RestAction<Void>> actions) {
@@ -408,6 +413,13 @@ public class Discord implements Listener {
     public static void sendMessageToChannel(long channelID, String message) {
         if (!DiscordSRV.getPlugin().isEnabled()) return;
         DiscordSRV.getPlugin().getJda().getTextChannelById(channelID).sendMessage(message).queue();
+    }
+
+    public static void sendMessageToWebhook(String webhook, String message) {
+        web.method.POST.create(webhook, system.json.object().add("content", message).build().toString())
+                .header("Content-Type", "application/json")
+                .none()
+                .executeAsync((v,a) -> {});
     }
 }
 

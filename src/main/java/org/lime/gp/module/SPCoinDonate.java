@@ -7,6 +7,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.bukkit.entity.Player;
 import org.lime.core;
 import org.lime.gp.database.Methods;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 
 import com.google.gson.JsonObject;
@@ -30,6 +31,7 @@ public class SPCoinDonate {
                                 .add("api", "https://admingp.spworlds.org/spcoin")
                                 .add("ws", "WS")
                                 .add("token", "TOKEN")
+                                .addNull("webhook_logs")
                                 .build()
                         )
                         .withInvoke(SPCoinDonate::config)
@@ -72,6 +74,15 @@ public class SPCoinDonate {
                                             .ifPresentOrElse((count) -> balanceDel(uuid, "Buy trefs in gp", count, state -> {
                                                 if (state) {
                                                     lime.logToFile("spcoin", "[{time}] User '"+uuid+"' convert " + count + " SPCoin's");
+                                                    if (webhook_logs != null) {
+                                                        try {
+                                                            Discord.sendMessageToWebhook(webhook_logs, String.join("\n",
+                                                                    "Аккаунт Mojang: **" + uuid + " (" + ((Player)sender).getName() + ")**",
+                                                                    "Аккаунт GP: **" + UserRow.getBy(uuid).map(_v -> _v.firstName + " " + _v.lastName).orElse("Не зарегистрирован") + "**",
+                                                                    "Сумма: **" + count + " RUB**"
+                                                            ));
+                                                        } catch (Throwable ignored) { }
+                                                    }
                                                     Methods.addDonateSPCoin(uuid, count);
                                                     sender.sendMessage(Component.text("[SPCoin] ")
                                                         .color(NamedTextColor.GREEN)
@@ -119,10 +130,12 @@ public class SPCoinDonate {
     private static String api;
     private static String ws;
     private static String token;
+    private static String webhook_logs;
     private static void config(JsonObject json) {
         api = json.get("api").getAsString();
         ws = json.get("ws").getAsString();
         token = json.get("token").getAsString();
+        webhook_logs = json.has("webhook_logs") && !json.get("webhook_logs").isJsonNull() ? json.get("webhook_logs").getAsString() : null;
     }
 
     private static void balanceGet(UUID uuid, system.Action1<Optional<Integer>> state) {

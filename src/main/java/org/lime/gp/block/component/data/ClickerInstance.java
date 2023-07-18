@@ -20,7 +20,8 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.display.Models;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
@@ -59,11 +60,11 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     private final ReadonlyInventory readonlyInventory = ReadonlyInventory.ofBukkit(items, metadata().location());
     private int clicks;
     private int damage;
-    private final system.LockToast1<Models.Model> model = system.<Models.Model>toast(null).lock();
+    private final system.LockToast1<Model> model = system.<Model>toast(null).lock();
     private static LocalLocation ofHeight(int height) {
         return new LocalLocation(0.5, -0.4 + height * 0.025, 0, 0, 0);
     }
-    private static final Models.Builder builder_item = lime.models.builder(EntityTypes.ARMOR_STAND)
+    private static final Builder builder_item = lime.models.builder(EntityTypes.ARMOR_STAND)
             .nbt(() -> {
                 EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                 stand.setNoBasePlate(true);
@@ -117,7 +118,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
                 .forEach(DisplayInstance::variableDirty);
             return;
         }
-        Models.Builder builder = lime.models.builder();
+        Builder builder = lime.models.builder();
         LocalLocation offset = component().show;
         for (int i = 0; i < items.size(); i++) builder = builder.addChild(builder_item.local(ofHeight(i).add(offset)).addEquipment(EnumItemSlot.HEAD, Optional.of(items.get(i)).map(item -> Items.getOptional(TableDisplaySetting.class, item)
                 .flatMap(v -> v.of(TableDisplaySetting.TableType.clicker, component().type))
@@ -178,7 +179,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         }
     }
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        Models.Model model = this.model.get0();
+        Model model = this.model.get0();
         return model == null
                 ? Optional.empty()
                 : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(5)));

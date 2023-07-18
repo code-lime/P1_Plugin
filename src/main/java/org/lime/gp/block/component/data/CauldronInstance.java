@@ -24,7 +24,8 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.lime.display.Models;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -421,7 +422,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
             event.addItems(stepItems().toList());
         }
 
-        private static final Models.Builder builder = lime.models.builder(EntityTypes.ARMOR_STAND)
+        private static final Builder builder = lime.models.builder(EntityTypes.ARMOR_STAND)
                 .nbt(() -> {
                     EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                     stand.setNoBasePlate(true);
@@ -434,7 +435,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     stand.setXRot(0);
                     return stand;
                 });
-        private final system.LockToast1<Models.Model> model = system.<Models.Model>toast(null).lock();
+        private final system.LockToast1<Model> model = system.<Model>toast(null).lock();
 
         private void refreshDisplay() {
             this.model.set0(Items.getOptional(ThirstSetting.class, result)
@@ -442,10 +443,10 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     .map(color -> {
                         int cmd;
                         switch (level()) {
-                            default: return null;
-                            case 1: cmd = 8080001; break;
-                            case 2: cmd = 8080002; break;
-                            case 3: cmd = 8080003; break;
+                            default -> { return null; }
+                            case 1 -> cmd = 8080001;
+                            case 2 -> cmd = 8080002;
+                            case 3 -> cmd = 8080003;
                         }
                         ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
                         LeatherArmorMeta meta = (LeatherArmorMeta)item.getItemMeta();
@@ -454,14 +455,14 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                         item.setItemMeta(meta);
                         return builder.addEquipment(EnumItemSlot.HEAD, CraftItemStack.asNMSCopy(item));
                     })
-                    .map(Models.Builder::build)
+                    .map(Builder::build)
                     .orElse(null));
             CauldronInstance.this.metadata()
                 .list(DisplayInstance.class)
-                .forEach(display -> display.variableDirty());
+                .forEach(DisplayInstance::variableDirty);
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-            Models.Model model = this.model.get0();
+            Model model = this.model.get0();
             return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10)));
         }
     }

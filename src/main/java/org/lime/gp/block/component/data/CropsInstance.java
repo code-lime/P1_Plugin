@@ -16,7 +16,8 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.lime.display.Models;
+import org.lime.display.models.Builder;
+import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
@@ -65,9 +66,9 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         return Items.getOptional(CropsSetting.class, head).<AgeableData>map(v -> v).orElse(EMPTY);
     }
 
-    private final Models.Builder builder;
+    private final Builder builder;
 
-    public final system.LockToast1<Models.Model> model = system.<Models.Model>toast(null).lock();
+    public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
     private org.bukkit.inventory.ItemStack head;
 
     public void setItem(org.bukkit.inventory.ItemStack item, boolean save) {

@@ -29,6 +29,7 @@ import org.lime.Position;
 import org.lime.core;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.chat.Apply;
 import org.lime.gp.craft.Crafts;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.UserCraftsRow;
@@ -37,6 +38,7 @@ import org.lime.gp.database.tables.KeyedTable;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.settings.list.BlockLimitSetting;
 import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -309,14 +311,23 @@ public class Perms implements Listener {
             block.setType(Material.COARSE_DIRT);
             return;
         }
-
+        Items.getOptional(BlockLimitSetting.class, e.getItemInHand())
+                .flatMap(v -> v.isLimitWithGet(e.getBlock().getLocation()).map(_v -> system.toast(_v, v.limit)))
+                .ifPresent(dat -> dat.invoke((count, limit) -> {
+                    e.setCancelled(true);
+                    LangMessages.Message.Block_Error_Limit.sendMessage(e.getPlayer(), Apply.of()
+                            .add("limit", String.valueOf(limit))
+                            .add("count", String.valueOf(count))
+                    );
+                }));
+        if (e.isCancelled()) return;
         if (data.isCanPlace(Items.getOptional(BlockSetting.class, e.getItemInHand())
                 .flatMap(setting -> {
                     InfoComponent.Rotation.Value rotation = InfoComponent.Rotation.of(e.getPlayer().getLocation().getDirection(), setting.rotation.keySet());
                     return Optional.ofNullable(setting.rotation.get(rotation));
                 })
-                .orElseGet(() -> Blocks.getBlockKey(block)))
-        ) {
+                .orElseGet(() -> Blocks.getBlockKey(block))
+        )) {
             if (from == Material.DIRT_PATH && to == Material.FARMLAND) block.setType(Material.DIRT);
             lime.nextTick(() -> owners.put(new Position(block), system.toast(uuid, System.currentTimeMillis() + canBreakCooldown, Blocks.getBlockKey(block))));
             return;

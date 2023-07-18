@@ -3,7 +3,7 @@ package org.lime.gp.entity.component;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.lime.display.Models;
+import org.lime.display.models.Model;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.entity.component.data.BackPackInstance;
@@ -48,7 +48,7 @@ public class Components {
             }
             maxDistanceSquared = DisplayPartial.load(info, json.getAsJsonObject("partial"), partials, partialMap);
         }
-        public DisplayComponent(EntityInfo info, Models.Model model) {
+        public DisplayComponent(EntityInfo info, Model model) {
             super(info);
             animation_tick = null;
             DisplayPartial.ModelPartial partial = new DisplayPartial.ModelPartial(-1, model);

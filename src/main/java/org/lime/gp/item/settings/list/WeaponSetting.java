@@ -60,7 +60,8 @@ import net.kyori.adventure.text.format.TextColor;
                 JsonObject item = _item.getAsJsonObject();
                 ImageBuilder builder = ImageBuilder.of(
                         ChatHelper.formatComponent(item.get("image").getAsString()),
-                        item.get("size").getAsInt()
+                        item.get("size").getAsInt(),
+                        true
                 );
                 if (item.has("offset")) builder = builder.addOffset(item.get("offset").getAsInt());
                 if (item.has("color")) builder = builder.withColor(TextColor.fromHexString("#" + item.get("color").getAsString()));

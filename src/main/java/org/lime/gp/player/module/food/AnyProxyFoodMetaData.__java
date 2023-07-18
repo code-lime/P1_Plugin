@@ -1,4 +1,4 @@
-package org.lime.gp.player.module;
+package org.lime.gp.player.module.food;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.protocol.game.PacketPlayOutUpdateHealth;
@@ -6,6 +6,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.food.FoodMetaData;
+import net.minecraft.world.food.IFoodNative;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.Bukkit;
@@ -14,24 +15,26 @@ import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.lime.core;
+import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.item.Items;
+import org.lime.gp.item.settings.list.FoodSetting;
 import org.lime.gp.lime;
 import org.lime.gp.town.ChurchManager;
-import org.lime.gp.access.ReflectionAccess;
 
 import java.util.Optional;
 
-public class ProxyFoodMetaData extends FoodMetaData {
+public class AnyProxyFoodMetaData extends FoodMetaData {
     public static core.element create() {
-        return core.element.create(ProxyFoodMetaData.class)
-                .withInit(ProxyFoodMetaData::init);
+        return core.element.create(AnyProxyFoodMetaData.class)
+                .withInit(AnyProxyFoodMetaData::init);
     }
     private static void init() {
-        lime.repeat(ProxyFoodMetaData::update, 0.2);
+        lime.repeat(AnyProxyFoodMetaData::update, 0.2);
     }
     private static void update() {
         Bukkit.getOnlinePlayers().forEach(player -> {
             EntityPlayer eplayer = ((CraftPlayer)player).getHandle();
-            ProxyFoodMetaData metaData = getProxyFood(eplayer);
+            AnyProxyFoodMetaData metaData = getProxyFood(eplayer);
             if (ChurchManager.hasAnyEffect(player, ChurchManager.EffectType.SATURATION)) {
                 metaData.saturationStep = 0.5f;
                 metaData.foodStep = 0.5f;
@@ -42,11 +45,11 @@ public class ProxyFoodMetaData extends FoodMetaData {
         });
     }
 
-    private static ProxyFoodMetaData getProxyFood(EntityPlayer eplayer) {
+    private static AnyProxyFoodMetaData getProxyFood(EntityPlayer eplayer) {
         FoodMetaData data = eplayer.getFoodData();
-        if (data instanceof ProxyFoodMetaData metaData) return metaData;
+        if (data instanceof AnyProxyFoodMetaData metaData) return metaData;
         if (data.getClass() != FoodMetaData.class) data = org.lime.reflection.getField(data.getClass(), "base", data);
-        ProxyFoodMetaData proxy = new ProxyFoodMetaData(data);
+        AnyProxyFoodMetaData proxy = new AnyProxyFoodMetaData(data);
         ReflectionAccess.foodData_EntityHuman.set(eplayer, proxy);
         return proxy;
     }
@@ -59,14 +62,15 @@ public class ProxyFoodMetaData extends FoodMetaData {
     public float foodStep = 1;
     public float saturationStep = 1;
 
-    private ProxyFoodMetaData(EntityHuman human, FoodMetaData base) {
+    private AnyProxyFoodMetaData(EntityHuman human, FoodMetaData base) {
         super(human);
         this.human = human;
         this.base = base;
         this.doubleFood = base.getFoodLevel();
     }
-    public ProxyFoodMetaData(FoodMetaData base) {
+    public AnyProxyFoodMetaData(FoodMetaData base) {
         this(ReflectionAccess.entityhuman_FoodMetaData.get(base), base);
+        lime.logOP("IS NATIVE: " + (base instanceof IFoodNative));
     }
     private void onFoodEdit() {
         doubleFood = this.base.foodLevel;
@@ -85,7 +89,25 @@ public class ProxyFoodMetaData extends FoodMetaData {
         base.eat(food, saturationModifier);
         onFoodEdit();
     }
-    @Override public void eat(Item item, ItemStack stack) { base.eat(item, stack); }
+    public void eat(float food, float saturationModifier) {
+        this.doubleFood = Math.max(food + this.doubleFood, 0);
+        base.foodLevel = this.foodLevel = (int)this.doubleFood;
+        base.saturationLevel = this.saturationLevel = Math.min(this.saturationLevel + food * saturationModifier * 2.0f, (float)this.foodLevel);
+    }
+    @Override public void eat(Item item, ItemStack stack) {
+        Items.getOptional(FoodSetting.class, stack).ifPresentOrElse(info -> {
+            if (item.isEdible()) {
+                float oldFoodLevel = doubleFood;
+                float food = Math.max(info.value + oldFoodLevel, 0);
+                int _food = (int)food;
+                FoodLevelChangeEvent event = CraftEventFactory.callFoodLevelChangeEvent(human, _food, stack);
+                if (!event.isCancelled()) {
+                    this.eat((event.getFoodLevel() == _food ? event.getFoodLevel() : food) - oldFoodLevel, info.saturation);
+                }
+                ((EntityPlayer)human).getBukkitEntity().sendHealthUpdate();
+            }
+        }, () -> base.eat(item, stack));
+    }
 
     private void tryModifyFoodLevel(EntityHuman player, float delta) {
         float food = Math.max(doubleFood + delta, 0);
@@ -144,10 +166,10 @@ public class ProxyFoodMetaData extends FoodMetaData {
     @Override public void setSaturation(float saturationLevel) { base.setSaturation(saturationLevel); }
     @Override public void setExhaustion(float exhaustion) { base.setExhaustion(exhaustion); }
 
-    public static Optional<ProxyFoodMetaData> ofPlayer(Player player) {
+    public static Optional<AnyProxyFoodMetaData> ofPlayer(Player player) {
         return Optional.ofNullable(player)
                 .map(v -> v instanceof CraftPlayer c ? c.getHandle() : null)
-                .map(ProxyFoodMetaData::getProxyFood);
+                .map(AnyProxyFoodMetaData::getProxyFood);
     }
 }
 

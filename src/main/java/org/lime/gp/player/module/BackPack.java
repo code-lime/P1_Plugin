@@ -8,12 +8,12 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
+import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.Model;
 import org.lime.system;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
-import org.lime.display.Models;
 import org.lime.display.ObjectDisplay;
-import org.lime.display.Models.Model;
 import org.lime.gp.lime;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BackPackSetting;
@@ -55,7 +55,7 @@ public class BackPack {
         private final Player player;
 
         public ItemStack data;
-        public Models.Model.ChildDisplay<ItemStack> model;
+        public ChildDisplay<ItemStack> model;
     
         protected BackPackDisplay(Player player, ItemStack data) {
             super(player.getLocation());
