@@ -1,4 +1,4 @@
-package org.lime.gp.module.holiday;
+package org.lime.gp.module.biome.holiday;
 
 import com.destroystokyo.paper.util.maplist.IBlockDataList;
 import com.google.gson.JsonObject;
@@ -29,6 +29,7 @@ import org.bukkit.event.Listener;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.lime;
+import org.lime.gp.module.biome.BiomeModify;
 import org.lime.system;
 
 import java.util.Optional;
@@ -38,6 +39,7 @@ public class Snowy implements Listener {
         return core.element.create(Snowy.class)
                 .withInstance()
                 .withInit(Snowy::init)
+                .disable()
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("snowy")
                         .withDefault(system.json.object()
@@ -58,7 +60,7 @@ public class Snowy implements Listener {
         lime.repeatTicks(Snowy::tickServer, 5);
     }
 
-    private static BiomeModify.ModifyActionCloseable closeable = null;
+    private static BiomeModify.ActionCloseable closeable = null;
     public static void config(JsonObject json) {
         ENABLE = json.get("enable").getAsBoolean();
 
@@ -77,7 +79,7 @@ public class Snowy implements Listener {
 
         if ((closeable != null) == ENABLE) return;
         if (ENABLE) {
-            BiomeModify.ModifyActionCloseable _closeable = BiomeModify.appendModify(Snowy::modify);
+            BiomeModify.ActionCloseable _closeable = BiomeModify.appendModify(Snowy::modify);
             if (closeable != null) closeable.close();
             closeable = _closeable;
         } else {

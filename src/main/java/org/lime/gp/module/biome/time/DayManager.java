@@ -1,13 +1,19 @@
-package org.lime.gp.module;
+package org.lime.gp.module.biome.time;
 
 import com.google.gson.JsonObject;
 
-import java.util.Calendar;
-
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.GameRule;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.lime.core;
 import org.lime.gp.lime;
+import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.system;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class DayManager {
     private static double timeSlownessMultiplier;
@@ -32,6 +38,20 @@ public class DayManager {
         DDC = false;
         lime.repeat(() -> DDC = lime.MainWorld.getGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE), 1);
         lime.once(DayManager::next, 1);
+        lime.nextTick(() -> CustomUI.addListener(new CustomUI.GUI(CustomUI.IType.ACTIONBAR) {
+            @Override public Collection<ImageBuilder> getUI(Player player) {
+                if (player.getInventory().getItemInMainHand().getType() != Material.CLOCK) return Collections.emptyList();
+                DateTime now = now();
+                return Collections.singleton(ImageBuilder.of(player, now.toFormat("dd.SS.yyyy HH:mm:ss"))
+                        .withColor(switch (now.getSeasonIndex()) {
+                            case 1 -> TextColor.color(0xF0F329);
+                            case 2 -> TextColor.color(0xE7E7E7);
+                            case 3 -> TextColor.color(0x31ABF9);
+                            default -> null;
+                        })
+                );
+            }
+        }));
     }
     private static void next() {
         if (!DDC) lime.MainWorld.setFullTime(lime.MainWorld.getFullTime() + 1L);
@@ -39,10 +59,8 @@ public class DayManager {
         lime.once(DayManager::next, timeSlownessMultiplier / 20.0);
     }
 
-    public static Calendar now() {
+    public static DateTime now() {
         double hours = (lime.MainWorld.getFullTime() + 6000) / 1000.0;
-        Calendar calendar = new Calendar.Builder().setDate(1183, 1, 1).build();
-        calendar.add(Calendar.SECOND, (int)(hours * 60 * 60));
-        return calendar;
+        return DateTime.START_TIME.addHours(hours);
     }
 }
