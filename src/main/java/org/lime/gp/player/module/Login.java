@@ -208,6 +208,10 @@ public class Login implements Listener {
         });
     }
 
+    public static boolean isLogin(Player player) {
+        return player.getWorld() == lime.LoginWorld;
+    }
+
     private static final Map<UUID, Map<UUID, String>> multiList = system.map.<UUID, Map<UUID, String>>of()
             .add(UUID.fromString("ce6e763f-a669-40eb-866d-019e6ddca12c"),
                     system.map.<UUID, String>of(true)
