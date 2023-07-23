@@ -10,8 +10,11 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentManager;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.chat.ChatHelper;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -87,6 +90,11 @@ public class ItemNMS {
         if (!tag.contains(TAG_CUSTOM_MODEL_DATA, NBTBase.TAG_ANY_NUMERIC) && custom_model_data == null) return;
         if (custom_model_data == null) tag.remove(TAG_CUSTOM_MODEL_DATA);
         else tag.putInt(TAG_CUSTOM_MODEL_DATA, custom_model_data);
+    }
+
+    public static NBTTagCompound getUnhandledTags(ItemMeta item) {
+        Map<String, NBTBase> unhandledTags = ReflectionAccess.unhandledTags_CraftMetaItem.get(item);
+        return ReflectionAccess.initMap_NBTTagCompound.newInstance(unhandledTags);
     }
 }
 

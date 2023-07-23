@@ -1,43 +1,5 @@
 package org.lime.gp.item.data;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.CrossbowMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.potion.PotionEffect;
-import org.lime.system;
-import org.lime.gp.lime;
-import org.lime.gp.chat.Apply;
-import org.lime.gp.chat.ChatColorHex;
-import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.chat.TextSplitRenderer;
-import org.lime.gp.extension.JManager;
-import org.lime.gp.item.Items;
-import org.lime.gp.item.settings.IItemSetting;
-import org.lime.gp.item.settings.ItemSetting;
-import org.lime.gp.player.menu.page.slot.ISlot;
-
 import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.common.collect.LinkedHashMultimap;
@@ -45,8 +7,37 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import net.kyori.adventure.text.Component;
+import net.minecraft.world.item.InstrumentSoundItem;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.*;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.potion.PotionEffect;
+import org.lime.gp.chat.Apply;
+import org.lime.gp.chat.ChatColorHex;
+import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.chat.TextSplitRenderer;
+import org.lime.gp.extension.ItemNMS;
+import org.lime.gp.extension.JManager;
+import org.lime.gp.item.Items;
+import org.lime.gp.item.settings.IItemSetting;
+import org.lime.gp.item.settings.ItemSetting;
+import org.lime.gp.lime;
+import org.lime.gp.player.menu.page.slot.ISlot;
+import org.lime.system;
+
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ItemCreator extends IItemCreator {
     static final Map<String, Attribute> ATTRIBUTE_NAMES = system.map.<String, Attribute>of()
@@ -72,6 +63,12 @@ public class ItemCreator extends IItemCreator {
     public final String head_data;
     public final String color;
     public final boolean is_stack;
+    public record Instrument(String sound, float range, int cooldown) {
+        public Instrument(JsonObject json) {
+            this(json.get("sound").getAsString(), json.get("range").getAsFloat(), json.get("cooldown").getAsInt());
+        }
+    }
+    public final Instrument instrument;
 
     public final HashMap<String, String> enchants = new HashMap<>();
 
@@ -120,6 +117,7 @@ public class ItemCreator extends IItemCreator {
             ItemSetting<?> setting = ItemSetting.parse(kv.getKey(), this, kv.getValue());
             settings.put(setting.name(), setting);
         });
+        instrument = json.has("instrument") ? new Instrument(json.get("instrument").getAsJsonObject()) : null;
         if (json.has("charged")) json.get("charged").getAsJsonArray().forEach(item -> charged.add(item.getAsString()));
         if (json.has("attributes")) json.getAsJsonArray("attributes")
                 .forEach(item -> {
@@ -144,7 +142,7 @@ public class ItemCreator extends IItemCreator {
     }
 
     public ItemStack createItem(int count, Apply apply) {
-        ItemStack item = new ItemStack(Material.valueOf(ChatHelper.formatText(this.item, apply)));
+        ItemStack item = CraftItemStack.asCraftMirror(CraftItemStack.asNMSCopy(new ItemStack(Material.valueOf(ChatHelper.formatText(this.item, apply)))));
         return apply(item, count, apply);
     }
     public List<Component> createLore(Apply apply) {
@@ -193,6 +191,8 @@ public class ItemCreator extends IItemCreator {
             catch (Exception ignored) { }
         });
         settings.values().forEach(setting -> setting.apply(item, meta, _apply));
+        if (instrument != null)
+            InstrumentSoundItem.setInstrument(ItemNMS.getUnhandledTags(meta), instrument.sound(), instrument.range(), instrument.cooldown());
         item.setItemMeta(meta);
         return item;
     }
