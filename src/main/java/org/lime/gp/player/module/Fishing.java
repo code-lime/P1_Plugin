@@ -12,14 +12,12 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import org.lime.gp.craft.slot.OutputSlot;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.Vest;
 import org.lime.gp.item.settings.list.BaitSetting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class Fishing implements Listener {
     public static core.element create() {
