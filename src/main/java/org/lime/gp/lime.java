@@ -40,6 +40,7 @@ import org.lime.gp.item.weapon.WeaponLoader;
 import org.lime.gp.map.MapMonitor;
 import org.lime.gp.module.*;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
+import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.TownInventory;

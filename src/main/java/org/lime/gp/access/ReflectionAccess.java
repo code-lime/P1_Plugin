@@ -1,10 +1,14 @@
 package org.lime.gp.access;
 
 import com.google.common.collect.ImmutableList;
+import io.papermc.paper.chunk.PlayerChunkLoader;
 import io.papermc.paper.util.maplist.IteratorSafeOrderedReferenceSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryMaterials;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
@@ -13,6 +17,7 @@ import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.ChunkProviderServer;
 import net.minecraft.server.level.PlayerChunk;
 import net.minecraft.server.level.PlayerChunkMap;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityLiving;
@@ -34,7 +39,9 @@ import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
 import net.minecraft.world.level.storage.loot.LootTableInfo;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.map.CraftMapView;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.reflection;
 import org.lime.system;
 
@@ -102,6 +109,13 @@ public class ReflectionAccess {
 
     public static final reflection.field<EnumSet<ClientboundPlayerInfoUpdatePacket.a>> actions_ClientboundPlayerInfoUpdatePacket = reflection.field.<EnumSet<ClientboundPlayerInfoUpdatePacket.a>>ofMojang(ClientboundPlayerInfoUpdatePacket.class, "actions").nonFinal();
     public static final reflection.field<List<ClientboundPlayerInfoUpdatePacket.b>> entries_ClientboundPlayerInfoUpdatePacket = reflection.field.<List<ClientboundPlayerInfoUpdatePacket.b>>ofMojang(ClientboundPlayerInfoUpdatePacket.class, "entries").nonFinal();
+    public static final reflection.field<IRegistryCustom.Dimension> synchronizedRegistries_PlayerList = reflection.field.ofMojang(PlayerList.class, "synchronizedRegistries");
+    public static final reflection.field<byte[]> buffer_ClientboundLevelChunkPacketData = reflection.field.<byte[]>ofMojang(ClientboundLevelChunkPacketData.class, "buffer").nonFinal();
+    public static final reflection.field<LongOpenHashSet> sentChunks_PlayerLoaderData_PlayerChunkLoader = reflection.field.ofMojang(PlayerChunkLoader.PlayerLoaderData.class, "sentChunks");
+    public static final reflection.field<Double> lastLocX_PlayerLoaderData_PlayerChunkLoader = reflection.field.ofMojang(PlayerChunkLoader.PlayerLoaderData.class, "lastLocX");
+    public static final Class<?> class_CraftMetaItem = system.<String, Class<?>>funcEx(Class::forName).throwable().invoke(CraftItemStack.class.getName().replace("CraftItemStack", "CraftMetaItem"));//unhandledTags
+    public static final reflection.field<Map<String, NBTBase>> unhandledTags_CraftMetaItem = reflection.field.of(class_CraftMetaItem, "unhandledTags");
+    public static final reflection.constructor<NBTTagCompound> initMap_NBTTagCompound = reflection.constructor.of(NBTTagCompound.class, Map.class);
 }
 
 

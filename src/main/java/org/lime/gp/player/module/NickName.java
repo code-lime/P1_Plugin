@@ -91,7 +91,7 @@ public class NickName {
     public static class ShowVoice implements DrawText.IShow {
         @Override public String getID() { return target.getUniqueId() + ".Voice"; }
         @Override public boolean filter(Player owner) {
-            if (target.getGameMode() == GameMode.SPECTATOR && owner.getGameMode() != GameMode.SPECTATOR) return false;
+            if (!owner.canSee(target) || (target.getGameMode() == GameMode.SPECTATOR && owner.getGameMode() != GameMode.SPECTATOR)) return false;
             return owner.getEntityId() != target.getEntityId();
         }
         @Override public Component text(Player player) { return text; }

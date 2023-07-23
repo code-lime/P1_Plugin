@@ -12,7 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.lime.core;
-import org.lime.gp.module.holiday.Snowy;
+import org.lime.gp.module.biome.holiday.Snowy;
 import org.lime.system;
 
 public class SnowballHit implements Listener {
