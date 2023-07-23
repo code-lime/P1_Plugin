@@ -13,3 +13,6 @@
 /.project
 /.classpath
 .settings/
+
+.classpath
+.project
