@@ -2,10 +2,8 @@ package org.lime.gp;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.resources.MinecraftKey;
-import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.level.block.BlockSweetBerryBush;
 import net.minecraft.world.level.block.Blocks;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
@@ -17,11 +15,10 @@ import org.lime.gp.block.component.display.partial.list.BlockPartial;
 import org.lime.gp.block.component.list.*;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.craft.recipe.WaitingRecipe;
-import org.lime.gp.craft.slot.OutputSlot;
+import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.item.settings.list.LevelFoodMutateSetting;
 import org.lime.system;
 
 import java.util.List;
@@ -241,7 +238,7 @@ public class test {
                         RecipeSlot.of(Checker.createCheck(Items.getMaterialKey(Material.ACACIA_LOG))).withAmount(1),
                         RecipeSlot.of(Checker.createCheck(Items.getMaterialKey(Material.STONE))).withAmount(3)
                 ),
-                OutputSlot.of(Material.BEDROCK.name() + "*5"),
+                IOutputSlot.ofString(Material.BEDROCK.name() + "*5"),
                 30,
                 "test.waiting.thirst"));
         org.lime.gp.craft.Crafts.addDefaultCraft(new WaitingRecipe(
@@ -251,7 +248,7 @@ public class test {
                 RecipeSlot.of(Checker.createCheck("test.waiting.item.single")),
                 List.of(),
                 List.of(),
-                OutputSlot.of(Material.RED_CONCRETE.name() + "*2"),
+                IOutputSlot.ofString(Material.RED_CONCRETE.name() + "*2"),
                 10,
                 "test.waiting.thirst"));
     }
@@ -428,7 +425,7 @@ public class test {
         //enableArmorTags();
         //enableBlockLimit();
         //enableLevelMutate();
-        testMatches();
+        //testMatches();
     }
 }
 

@@ -8,9 +8,13 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.minecraft.core.BlockPosition;
 import net.minecraft.data.worldgen.BiomeSettings;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.Main;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
@@ -18,18 +22,26 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.food.FoodMetaData;
 import net.minecraft.world.inventory.ContainerGrindstone;
 import net.minecraft.world.inventory.InventoryCrafting;
+import net.minecraft.world.item.InstrumentItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeRepair;
+import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.BiomeSettingsGeneration;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockSkull;
+import net.minecraft.world.level.block.BlockSnow;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntitySkull;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
+import net.minecraft.world.level.block.state.IBlockData;
+import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
+import org.lime.gp.database.Methods;
 import org.lime.system;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
@@ -790,7 +802,175 @@ public class patch {
                     version.entries.put(name, writer.toByteArray());
                 }, () -> log("File '"+name+"' not founded in version"));
     }
+    private static void patchBlockSnow(JarArchive version) {
+        String name = classFile(BlockSnow.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresentOrElse(bytes -> {
+                    log("Patch BlockSnow...");
 
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            if (ofMojang(BlockSnow.class, "randomTick", descriptor, true).equals(name)
+                                    && Type.getType(descriptor).equals(
+                                    Type.getMethodType(Type.VOID_TYPE,
+                                            Type.getType(IBlockData.class),
+                                            Type.getType(WorldServer.class),
+                                            Type.getType(BlockPosition.class),
+                                            Type.getType(RandomSource.class)
+                                    ))) {
+                                log("   Modify method: void randomTick(IBlockData state, WorldServer world, BlockPosition pos, RandomSource random)");
+                                MethodVisitor visitor = writer.visitMethod(access, name, descriptor, signature, exceptions);
+                                return new MethodVisitor(Opcodes.ASM9, null) {
+                                    @Override public void visitCode() {
+                                        visitor.visitCode();
+                                        visitor.visitIntInsn(Opcodes.ALOAD, 0);
+                                        visitor.visitIntInsn(Opcodes.ALOAD, 1);
+                                        visitor.visitIntInsn(Opcodes.ALOAD, 2);
+                                        visitor.visitIntInsn(Opcodes.ALOAD, 3);
+                                        visitor.visitIntInsn(Opcodes.ALOAD, 4);
+                                        visitor.visitMethodInsn(
+                                                Opcodes.INVOKESTATIC,
+                                                "net/minecraft/world/level/block/BlockSnowTickEvent",
+                                                "execute",
+                                                Type.getMethodDescriptor(Type.VOID_TYPE,
+                                                        Type.getType(BlockSnow.class),
+                                                        Type.getType(IBlockData.class),
+                                                        Type.getType(WorldServer.class),
+                                                        Type.getType(BlockPosition.class),
+                                                        Type.getType(RandomSource.class)
+                                                ),
+                                                false
+                                        );
+                                        visitor.visitInsn(Opcodes.RETURN);
+                                        visitor.visitMaxs(0, 0);
+                                        visitor.visitEnd();
+                                        log("Patch BlockSnow...OK!");
+                                    }
+                                };
+                            }
+                            else return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                }, () -> log("File '"+name+"' not founded in version"));
+    }
+    private static void patchWorldServer(JarArchive version) {
+        String name = classFile(WorldServer.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresentOrElse(bytes -> {
+                    log("Patch WorldServer...");
+
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            if (ofMojang(WorldServer.class, "tickChunk", descriptor, true).equals(name)
+                                    && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE, Type.getType(Chunk.class), Type.INT_TYPE))) {
+                                log("   Modify method: void tickChunk(Chunk chunk, int randomTickSpeed)");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+                                        if (opcode == Opcodes.GETSTATIC
+                                                && owner.equals(className(Blocks.class))
+                                                && ofMojang(Blocks.class, "ICE", descriptor, false).equals(name)
+                                                && Type.getType(descriptor).equals(Type.getType(Block.class))) {
+                                            super.visitFieldInsn(opcode, owner, ofMojang(Blocks.class, "FROSTED_ICE", descriptor, false), descriptor);
+                                            log("Patch WorldServer...OK!");
+                                            return;
+                                        }
+                                        super.visitFieldInsn(opcode, owner, name, descriptor);
+                                    }
+                                };
+                            }
+                            else return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                }, () -> log("File '"+name+"' not founded in version"));
+    }
+    private static void patchBiomeBase(JarArchive version) {
+        String name = classFile(BiomeBase.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresentOrElse(bytes -> {
+                    log("Patch BiomeBase...");
+
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            if (ofMojang(BiomeBase.class, "getTemperature", descriptor, true).equals(name)
+                                    && Type.getType(descriptor).equals(Type.getMethodType(Type.FLOAT_TYPE, Type.getType(BlockPosition.class)))) {
+                                log("   Modify method: float getTemperature(BlockPosition)");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    @Override public void visitInsn(int opcode) {
+                                        if (opcode == Opcodes.FRETURN) {
+                                            super.visitIntInsn(Opcodes.ALOAD, 0);
+                                            super.visitIntInsn(Opcodes.ALOAD, 1);
+                                            super.visitMethodInsn(
+                                                    Opcodes.INVOKESTATIC,
+                                                    "net/minecraft/world/level/biome/BiomeTemperatureEvent",
+                                                    "execute",
+                                                    Type.getMethodDescriptor(Type.FLOAT_TYPE,
+                                                            Type.FLOAT_TYPE,
+                                                            Type.getType(BiomeBase.class),
+                                                            Type.getType(BlockPosition.class)
+                                                    ),
+                                                    false
+                                            );
+                                            log("Patch BiomeBase...OK!");
+                                        }
+                                        super.visitInsn(opcode);
+                                    }
+                                };
+                            }
+                            else return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                }, () -> log("File '"+name+"' not founded in version"));
+    }
+    private static void patchItems(JarArchive version) {
+        String name = classFile(Items.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresent(bytes -> {
+                    log("Patch Items...");
+
+                    String from = InstrumentItem.class.getName().replace('.', '/');
+                    String to = from.replace("InstrumentItem", "InstrumentSoundItem");
+
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            if (name.equals("<clinit>")) return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                @Override public void visitTypeInsn(int opcode, String type) {
+                                    if (opcode == Opcodes.NEW && type.equals(from)) {
+                                        type = to;
+                                        log("Patch Items... NEW!");
+                                    }
+                                    super.visitTypeInsn(opcode, type);
+                                }
+                                @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                    if (opcode == Opcodes.INVOKESPECIAL
+                                            && owner.equals(from)
+                                            && name.equals("<init>")
+                                            && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE, Type.getType(Item.Info.class), Type.getType(TagKey.class)))
+                                    ) {
+                                        owner = to;
+                                        log("Patch Items... <init>!");
+                                    }
+                                    super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                                }
+                            };
+                            return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                });
+    }
+
+//public float getTemperature(BlockPosition blockPos) {
     private static class JarArchive {
         public final Manifest manifest;
         public final HashMap<String, byte[]> entries = new HashMap<>();
@@ -936,6 +1116,10 @@ public class patch {
             patchBiomeSettings(version_archive);
 
             patchFoodMetaData(version_archive);
+            patchBlockSnow(version_archive);
+            patchWorldServer(version_archive);
+            patchBiomeBase(version_archive);
+            patchItems(version_archive);
         }
 
         log("Save version jar...");
