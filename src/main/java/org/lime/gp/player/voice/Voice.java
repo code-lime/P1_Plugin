@@ -226,7 +226,7 @@ public class Voice implements VoicechatPlugin {
         CustomUI.addListener(new CustomUI.GUI(CustomUI.IType.ACTIONBAR) {
             @Override public Collection<ImageBuilder> getUI(Player player) {
                 PlayerState state = PLAYER_STATE_MANAGER == null ? null : PLAYER_STATE_MANAGER.getState(player.getUniqueId());
-                if (state == null || state.isDisconnected()) {
+                if ((state == null || state.isDisconnected()) && !player.getScoreboardTags().contains("voice.hide")) {
                     Component component = LangMessages.Message.Chat_NoVoiceActionBar.getSingleMessage();
                     return Collections.singletonList(ImageBuilder.of(component, ChatHelper.getTextSize(player, component), false));
                 }
