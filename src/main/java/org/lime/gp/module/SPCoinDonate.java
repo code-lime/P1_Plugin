@@ -3,7 +3,10 @@ package org.lime.gp.module;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
+import net.minecraft.world.level.block.BlockFire;
 import org.apache.http.client.utils.URIBuilder;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.lime.core;
 import org.lime.gp.database.Methods;
@@ -138,7 +141,7 @@ public class SPCoinDonate {
         webhook_logs = json.has("webhook_logs") && !json.get("webhook_logs").isJsonNull() ? json.get("webhook_logs").getAsString() : null;
     }
 
-    private static void balanceGet(UUID uuid, system.Action1<Optional<Integer>> state) {
+    public static void balanceGet(UUID uuid, system.Action1<Optional<Integer>> state) {
         web.method.GET.create(apiBuilder(
                 v -> v
                     .addParameter("uuid", uuid.toString()), 
@@ -201,6 +204,28 @@ public class SPCoinDonate {
                 lime.log("[BalanceDEL] OK " + code + ": " + data);
                 state.invoke(data.getAsBoolean());
             });
+    }
+
+    public static void convert(UUID uuid, int count, system.Action1<Integer> callback) {
+        if (count <= 0) return;
+        balanceDel(uuid, "Buy trefs in gp", count, state -> {
+            if (state) {
+                lime.logToFile("spcoin", "[{time}] User '"+uuid+"' convert " + count + " SPCoin's");
+                if (webhook_logs != null) {
+                    try {
+                        Discord.sendMessageToWebhook(webhook_logs, String.join("\n",
+                                "Аккаунт Mojang: **" + uuid + " (" + Optional.ofNullable(Bukkit.getOfflinePlayer(uuid)).map(OfflinePlayer::getName).orElse("NONE") + ")**",
+                                "Аккаунт GP: **" + UserRow.getBy(uuid).map(_v -> _v.firstName + " " + _v.lastName).orElse("Не зарегистрирован") + "**",
+                                "Сумма: **" + count + " RUB**"
+                        ));
+                    } catch (Throwable ignored) { }
+                }
+                Methods.addDonateSPCoin(uuid, count);
+                callback.invoke(count);
+            } else {
+                balanceGet(uuid, balance -> callback.invoke(count - balance.orElse(0)));
+            }
+        });
     }
 }
 
