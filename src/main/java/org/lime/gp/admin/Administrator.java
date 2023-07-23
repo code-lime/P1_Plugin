@@ -407,12 +407,14 @@ public class Administrator implements Listener {
         Bukkit.getOnlinePlayers().forEach(player -> {
             UUID uuid = player.getUniqueId();
             Set<String> tags = player.getScoreboardTags();
-            if (tags.contains("immortality")) {
-                if (player.getGameMode() != GameMode.SURVIVAL || (!player.isOp() && !Permissions.AGM.check(player))) tags.remove("immortality");
+            boolean isLogin = Login.isLogin(player);
+            boolean isImmortality = tags.contains("immortality");
+            if (isLogin || isImmortality) {
+                if (!isLogin && ((player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE) || (!player.isOp() && !Permissions.AGM.check(player)))) tags.remove("immortality");
                 else {
                     tags.remove("leg.broken");
                     SleepSaturation.reset(player);
-                    CustomUI.TextUI.show(player, "[Бессмертие]", 15);
+                    if (isImmortality) CustomUI.TextUI.show(player, "[Бессмертие]", 15);
                     player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                     ProxyFoodMetaData.ofPlayer(player)
                             .ifPresent(food -> {
@@ -503,7 +505,7 @@ public class Administrator implements Listener {
     }
     @EventHandler public static void on(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player player)) return;
-        if (player.getScoreboardTags().contains("immortality") || inABan(player.getUniqueId())) e.setCancelled(true);
+        if (Login.isLogin(player) || player.getScoreboardTags().contains("immortality") || inABan(player.getUniqueId())) e.setCancelled(true);
     }
 }
 
