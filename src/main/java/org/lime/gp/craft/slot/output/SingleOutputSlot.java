@@ -1,6 +1,8 @@
-package org.lime.gp.craft.slot;
+package org.lime.gp.craft.slot.output;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
@@ -9,31 +11,27 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.lime;
+import org.lime.system;
 
 import java.util.Optional;
 
-public class OutputSlot {
-    private final int amount;
+public class SingleOutputSlot implements IOutputSlot {
     private final String key;
+    private final int amount;
 
-    public OutputSlot(String key, int amount) {
+    public SingleOutputSlot(String key, int amount) {
         this.key = key;
         this.amount = amount;
     }
 
-    private OutputSlot(String[] args) { this(args[0], args.length > 1 ? Integer.parseUnsignedInt(args[1]) : 1); }
-    public OutputSlot(JsonElement json) { this(json.getAsString().split("\\*")); }
-
-    public static OutputSlot of(String str) {
-        String[] args = str.split("\\*");
-        return new OutputSlot(args[0], args.length > 1 ? Integer.parseUnsignedInt(args[1]) : 1);
+    private SingleOutputSlot(String[] args) {
+        this(args[0], args.length > 1 ? Integer.parseUnsignedInt(args[1]) : 1);
+    }
+    public SingleOutputSlot(JsonPrimitive json) {
+        this(json.getAsString().split("\\*"));
     }
 
-    public Optional<IItemCreator> creator() {
-        return Items.getItemCreator(key);
-    }
-
-    public ItemStack create() {
+    @Override public ItemStack create() {
         return Items.getItemCreator(key)
                 .map(v -> v.createItem(amount))
                 .orElseGet(() -> {
@@ -41,7 +39,7 @@ public class OutputSlot {
                     return new ItemStack(Material.STONE, 0);
                 });
     }
-    public ItemStack apply(ItemStack item, boolean copy) {
+    @Override public ItemStack apply(ItemStack item, boolean copy) {
         return Items.getItemCreator(key)
                 .map(v -> Optional.ofNullable(v instanceof ItemCreator c ? c : null).map(i -> i.apply(copy ? item.clone() : item, amount, Apply.of())).orElseGet(() -> v.createItem(amount)))
                 .orElseGet(() -> {
@@ -50,7 +48,7 @@ public class OutputSlot {
                 });
     }
 
-    public net.minecraft.world.item.ItemStack nms() {
+    @Override public net.minecraft.world.item.ItemStack nms(boolean isPreview) {
         return CraftItemStack.asNMSCopy(create());
     }
 }

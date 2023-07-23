@@ -31,7 +31,7 @@ import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
 import org.lime.gp.craft.recipe.*;
 import org.lime.gp.craft.recipe.Recipes;
-import org.lime.gp.craft.slot.OutputSlot;
+import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
@@ -204,23 +204,23 @@ public class Crafts {
     }
 
     private enum CookingType {
-        Blasting((key, group, category, output, input, exp, time) -> new RecipeBlasting(key, group, category, input.getRecipeSlotNMS(), output.nms(), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
+        Blasting((key, group, category, output, input, exp, time) -> new RecipeBlasting(key, group, category, input.getRecipeSlotNMS(), output.nms(true), exp, time) {
+            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
             @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
             @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
         }),
-        Furnace((key, group, category, output, input, exp, time) -> new FurnaceRecipe(key, group, category, input.getRecipeSlotNMS(), output.nms(), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
+        Furnace((key, group, category, output, input, exp, time) -> new FurnaceRecipe(key, group, category, input.getRecipeSlotNMS(), output.nms(true), exp, time) {
+            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
             @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
             @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
         }),
-        Campfire((key, group, category, output, input, exp, time) -> new RecipeCampfire(key, group, category, input.getRecipeSlotNMS(), output.nms(), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
+        Campfire((key, group, category, output, input, exp, time) -> new RecipeCampfire(key, group, category, input.getRecipeSlotNMS(), output.nms(true), exp, time) {
+            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
             @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
             @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
         }),
-        Smoking((key, group, category, output, input, exp, time) -> new RecipeSmoking(key, group, category, input.getRecipeSlotNMS(), output.nms(), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
+        Smoking((key, group, category, output, input, exp, time) -> new RecipeSmoking(key, group, category, input.getRecipeSlotNMS(), output.nms(true), exp, time) {
+            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
             @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
             @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
         });
@@ -229,13 +229,13 @@ public class Crafts {
             return input.test(inventory.getItem(0));
         }
 
-        private final system.Func7<MinecraftKey, String, CookingBookCategory, OutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init;
-        CookingType(system.Func7<MinecraftKey, String, CookingBookCategory, OutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init) {
+        private final system.Func7<MinecraftKey, String, CookingBookCategory, IOutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init;
+        CookingType(system.Func7<MinecraftKey, String, CookingBookCategory, IOutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init) {
             this.init = init;
         }
 
         public RecipeCooking create(MinecraftKey key, String group, CookingBookCategory category, JsonObject json) {
-            OutputSlot output = OutputSlot.of(json.get("output").getAsString());
+            IOutputSlot output = IOutputSlot.of(json.get("output"));
             RecipeSlot input = RecipeSlot.of(key.toString(), json.get("input"));
             float experience = json.get("experience").getAsFloat();
             int cookTime = json.get("cookTime").getAsInt();
@@ -406,11 +406,11 @@ public class Crafts {
                     json.has("category") ? json.get("category").getAsString() : null,
                     CraftingBookCategory.MISC);
 
-                OutputSlot output = OutputSlot.of(json.get("output").getAsString());
+                IOutputSlot output = IOutputSlot.of(json.get("output"));
                 List<RecipeSlot> recipes = create(key.toString(), json.get("input").getAsJsonArray());
                 Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
-                return new ShapelessRecipes(key, group, category, recipes, output.nms(), NonNullList.of(RecipeItemStack.of(), recipes.stream().map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new))) {
-                    @Override public net.minecraft.world.item.ItemStack result() { return output.nms(); }
+                return new ShapelessRecipes(key, group, category, recipes, output.nms(true), NonNullList.of(RecipeItemStack.of(), recipes.stream().map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new))) {
+                    @Override public net.minecraft.world.item.ItemStack result() { return output.nms(false); }
                     @Override public Optional<String> vanillaType() { return vanilla_type; }
                     @Override public boolean matches(InventoryCrafting inventory, World world) {
                         return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
@@ -426,14 +426,14 @@ public class Crafts {
                     json.has("category") ? json.get("category").getAsString() : null,
                     CraftingBookCategory.MISC);
 
-                OutputSlot output = OutputSlot.of(json.get("output").getAsString());
+                IOutputSlot output = IOutputSlot.of(json.get("output"));
                 int width = json.get("width").getAsInt();
                 int height = json.get("height").getAsInt();
                 List<RecipeSlot> recipes = create(key.toString(), json.get("input").getAsJsonArray());
                 Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
                 if (recipes.size() != width * height) throw new IllegalArgumentException("In craft '"+key.getPath()+"' input.length != width*height");
-                return new ShapedRecipes(key, group, category, width, height, recipes, output.nms()) {
-                    @Override public net.minecraft.world.item.ItemStack result() { return output.nms(); }
+                return new ShapedRecipes(key, group, category, width, height, recipes, output.nms(true)) {
+                    @Override public net.minecraft.world.item.ItemStack result() { return output.nms(false); }
                     @Override public Optional<String> vanillaType() { return vanilla_type; }
                     @Override public boolean matches(InventoryCrafting inventory, net.minecraft.world.level.World world) {
                         return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
@@ -447,7 +447,7 @@ public class Crafts {
                         CraftingBookCategory.values(),
                         json.has("category") ? json.get("category").getAsString() : null,
                         CraftingBookCategory.MISC),
-                    create(key.toString(), json.get("input").getAsJsonArray()), OutputSlot.of(json.get("output").getAsString()));
+                    create(key.toString(), json.get("input").getAsJsonArray()), IOutputSlot.of(json.get("output")));
             case "waiting": return new WaitingRecipe(key, group, getByName(
                         CraftingBookCategory.values(),
                         json.has("category") ? json.get("category").getAsString() : null,
@@ -455,14 +455,14 @@ public class Crafts {
                     RecipeSlot.of(key.toString(), json.get("input")),
                     create(key.toString(), json.get("fuel").getAsJsonArray()),
                     create(key.toString(), json.get("catalyse").getAsJsonArray()),
-                    OutputSlot.of(json.get("output").getAsString()),
+                    IOutputSlot.of(json.get("output")),
                     json.get("total_sec").getAsInt(),
                     json.get("waiting_type").getAsString());
             case "laboratory": return new LaboratoryRecipe(key, group, getByName(
                         CraftingBookCategory.values(),
                         json.has("category") ? json.get("category").getAsString() : null,
                         CraftingBookCategory.MISC),
-                    create(key.toString(), json.get("input_thirst").getAsJsonArray()), create(key.toString(), json.get("input_dust").getAsJsonArray()), OutputSlot.of(json.get("output").getAsString()));
+                    create(key.toString(), json.get("input_thirst").getAsJsonArray()), create(key.toString(), json.get("input_dust").getAsJsonArray()), IOutputSlot.of(json.get("output")));
             case "converter": return new ConverterRecipe(key,
                     group,
                     getByName(
@@ -471,8 +471,8 @@ public class Crafts {
                         CraftingBookCategory.MISC),
                     create(key.toString(), json.get("input").getAsJsonArray()),
                     json.get("output").isJsonArray()
-                            ? Streams.stream(json.get("output").getAsJsonArray().iterator()).map(JsonElement::getAsString).map(OutputSlot::of).collect(Collectors.toMap(v -> v, v -> Optional.empty()))
-                            : json.get("output").getAsJsonObject().entrySet().stream().collect(Collectors.toMap(kv -> OutputSlot.of(kv.getKey()), kv -> kv.getValue().isJsonNull() ? Optional.empty() : Optional.of(kv.getValue().getAsString()))),
+                            ? Streams.stream(json.get("output").getAsJsonArray().iterator()).map(IOutputSlot::of).collect(Collectors.toMap(v -> v, v -> Optional.empty()))
+                            : json.get("output").getAsJsonObject().entrySet().stream().collect(Collectors.toMap(kv -> IOutputSlot.ofString(kv.getKey()), kv -> kv.getValue().isJsonNull() ? Optional.empty() : Optional.of(kv.getValue().getAsString()))),
                     json.get("converter_type").getAsString(),
                     !json.has("replace") || json.get("replace").getAsBoolean()
             );
@@ -489,14 +489,14 @@ public class Crafts {
                 else if (json.has("enchantments")) return ClickerRecipe.ofCombine(key, group, category, input, Streams.stream(json.get("enchantments").getAsJsonArray()).map(JsonElement::getAsString).map(NamespacedKey::minecraft).map(Enchantment::getByKey).toList(), clicks, clicker_type);
                 else {
                     if (json.get("output").isJsonArray()) {
-                        return ClickerRecipe.ofDefault(key, group, category, input, Streams.stream(json.get("output").getAsJsonArray().iterator()).map(v -> v.getAsString()).map(OutputSlot::of).toList(), clicks, clicker_type);
+                        return ClickerRecipe.ofDefault(key, group, category, input, Streams.stream(json.get("output").getAsJsonArray().iterator()).map(IOutputSlot::of).toList(), clicks, clicker_type);
                     } else {
-                        return ClickerRecipe.ofDefault(key, group, category, input, List.of(OutputSlot.of(json.get("output").getAsString())), clicks, clicker_type);
+                        return ClickerRecipe.ofDefault(key, group, category, input, List.of(IOutputSlot.of(json.get("output"))), clicks, clicker_type);
                     }
                     
                 }
             }
-            case "item_frame": return new ItemFrameRecipe(key, RecipeSlot.of(key.toString(), json.get("input")), OutputSlot.of(json.get("output").getAsString()), json.get("seconds").getAsInt());
+            case "item_frame": return new ItemFrameRecipe(key, RecipeSlot.of(key.toString(), json.get("input")), IOutputSlot.of(json.get("output")), json.get("seconds").getAsInt());
         }
         switch (json.get("type").getAsString()) {
             case "blasting": return CookingType.Blasting.create(key, group, getByName(

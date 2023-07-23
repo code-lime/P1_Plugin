@@ -14,7 +14,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
-import org.lime.gp.craft.slot.OutputSlot;
+import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
@@ -57,9 +57,9 @@ public class ItemFrameRecipe extends AbstractRecipe {
     }
 
     public final RecipeSlot input;
-    public final OutputSlot output;
+    public final IOutputSlot output;
     public final int seconds;
-    public ItemFrameRecipe(MinecraftKey key, RecipeSlot input, OutputSlot output, int seconds) {
+    public ItemFrameRecipe(MinecraftKey key, RecipeSlot input, IOutputSlot output, int seconds) {
         super(key, "", CraftingBookCategory.MISC, Recipes.ITEM_FRAME);
         this.input = input;
         this.output = output;
@@ -74,6 +74,6 @@ public class ItemFrameRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
     @Override public Stream<String> getWhitelistKeys() { return input.getWhitelistKeys(); }
 }

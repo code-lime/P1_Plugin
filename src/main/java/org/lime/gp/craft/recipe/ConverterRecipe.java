@@ -13,7 +13,7 @@ import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
-import org.lime.gp.craft.slot.OutputSlot;
+import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.system;
 
@@ -25,11 +25,11 @@ import java.util.stream.Stream;
 
 public class ConverterRecipe extends AbstractRecipe {
     public final ImmutableList<RecipeSlot> input;
-    public final ImmutableMap<OutputSlot, Optional<String>> output;
+    public final ImmutableMap<IOutputSlot, Optional<String>> output;
     public final String converter_type;
     public final boolean replace;
 
-    public ConverterRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, Map<OutputSlot, Optional<String>> output, String converter_type, boolean replace) {
+    public ConverterRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, Map<IOutputSlot, Optional<String>> output, String converter_type, boolean replace) {
         super(key, group, category, Recipes.CONVERTER);
         this.input = ImmutableList.copyOf(input);
         this.output = ImmutableMap.copyOf(output);
@@ -48,17 +48,17 @@ public class ConverterRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int i, int j) { return i == 1 && j == 1; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return system.rand(output.entrySet()).getKey().nms(); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return system.rand(output.entrySet()).getKey().nms(false); }
 
     @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
         List<RecipeCrafting> recipes = new ArrayList<>();
         int index = 0;
-        for (Map.Entry<OutputSlot, Optional<String>> kv : output.entrySet()) {
-            OutputSlot result = kv.getKey();
+        for (Map.Entry<IOutputSlot, Optional<String>> kv : output.entrySet()) {
+            IOutputSlot result = kv.getKey();
             index++;
             NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
             slots.set(4, RecipeItemStack.of(input.stream().flatMap(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName))));
-            recipes.add(new ShapedRecipes(new MinecraftKey(displayKey.getNamespace() + "." + index, displayKey.getPath()), kv.getValue().orElse(displayGroup), category, 3, 3, slots, result.nms()));
+            recipes.add(new ShapedRecipes(new MinecraftKey(displayKey.getNamespace() + "." + index, displayKey.getPath()), kv.getValue().orElse(displayGroup), category, 3, 3, slots, result.nms(true)));
         }
         return recipes.stream();
     }

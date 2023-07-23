@@ -13,7 +13,7 @@ import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
 import org.lime.gp.craft.Crafts;
-import org.lime.gp.craft.slot.OutputSlot;
+import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 
 import java.util.HashMap;
@@ -23,8 +23,8 @@ import java.util.stream.Stream;
 
 public class CauldronRecipe extends AbstractRecipe {
     public final ImmutableList<RecipeSlot> input;
-    public final OutputSlot output;
-    public CauldronRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, OutputSlot output) {
+    public final IOutputSlot output;
+    public CauldronRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, IOutputSlot output) {
         super(key, group, category, Recipes.CAULDRON);
         this.input = ImmutableList.copyOf(input);
         this.output = output;
@@ -44,7 +44,7 @@ public class CauldronRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
     @Override public Stream<String> getWhitelistKeys() { return input.stream().flatMap(RecipeSlot::getWhitelistKeys).distinct(); }
 
     @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
@@ -52,7 +52,7 @@ public class CauldronRecipe extends AbstractRecipe {
         List<RecipeItemStack> items = input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
         int count = Math.min(items.size(), slots.size());
         for (int i = 0; i < count; i++) slots.set(i, items.get(i));
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.nms()));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.nms(true)));
     }
 }
 
