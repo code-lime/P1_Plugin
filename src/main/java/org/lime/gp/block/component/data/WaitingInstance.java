@@ -319,6 +319,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 ItemStack item = recipe.assemble(createReadonly(), event.getWorld().registryAccess());
                 if (DEBUG) lime.logOP("Result: " + item);
                 if (item.isEmpty()) input = new EmptyInput();
+                else if (Items.has(ThirstSetting.class, item)) input = new WaterInput(item);
                 else input = new ItemInput(item);
                 items.clear();
                 syncRecipe("TIME_END_RESYNC", true);
