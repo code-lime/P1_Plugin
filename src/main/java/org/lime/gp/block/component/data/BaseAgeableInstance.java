@@ -7,6 +7,7 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.lime;
+import org.lime.gp.module.RandomTickSpeed;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
@@ -53,7 +54,7 @@ public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> exte
         AgeableData ageable = ageableData();
         int limitAge = ageable.limitAge();
         int oldAge = age();
-        double value = ageValue + ageable.tickAgeModify();
+        double value = ageValue + ageable.tickAgeModify() * (RandomTickSpeed.finalValue() / 3);
         if (value > limitAge) value = limitAge;
         ageValue = value;
         int newAge = age();
