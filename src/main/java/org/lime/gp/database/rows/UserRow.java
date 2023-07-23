@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
+import org.lime.gp.module.biome.time.DateTime;
 import org.lime.system;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
@@ -22,7 +23,6 @@ public class UserRow extends BaseRow {
     public boolean isMale = true;
     public Integer phone = null;
     public Integer cardID = null;
-    public Calendar birthdayDate = null;
     public int role;
     public int work;
     public Calendar workTime = null;
@@ -31,7 +31,7 @@ public class UserRow extends BaseRow {
     public int wanted = 0;
     public int exp = 0;
     
-    public Optional<Calendar> dieDate = Optional.empty();
+    public Optional<DateTime> dieDate = Optional.empty();
 
     public Calendar CreateDate = null;
     public Calendar ConnectDate = null;
@@ -66,7 +66,7 @@ public class UserRow extends BaseRow {
         isMale = MySql.readObject(set, "male", Integer.class) == 1;
         phone = MySql.readObject(set, "phone", Integer.class);
         cardID = MySql.readObject(set, "card_id", Integer.class);
-        birthdayDate = MySql.readObject(set, "birthday_date", Calendar.class);
+        //birthdayDate = MySql.readObject(set, "birthday_date", Calendar.class);
         role = MySql.readObject(set, "role", Integer.class);
         work = MySql.readObject(set, "work", Integer.class);
         workTime = MySql.readObject(set, "work_time", Calendar.class);
@@ -75,7 +75,8 @@ public class UserRow extends BaseRow {
         phoneRegen = MySql.readObject(set, "phone_regen", Integer.class);
         cardRegen = MySql.readObject(set, "card_regen", Integer.class);
 
-        dieDate = MySql.readObjectOptional(set, "die_date", Calendar.class);
+        dieDate = MySql.readObjectOptional(set, "die_date", String.class).flatMap(DateTime::tryParse);
+        //dieDate = MySql.readObjectOptional(set, "die_date", Calendar.class).map(v -> DateTime.ofHours(v.getTimeInMillis() / 1000.0));
 
         CreateDate = MySql.readObject(set, "create_date", Calendar.class);
         ConnectDate = MySql.readObject(set, "connect_date", Calendar.class);
@@ -97,7 +98,7 @@ public class UserRow extends BaseRow {
         map.put("male", isMale ? "true" : "false");
         map.put("phone", Tables.valueOfInt(phone));
         map.put("card_id", Tables.valueOfInt(cardID));
-        map.put("birthday_date", system.formatCalendar(birthdayDate, false));
+        //map.put("birthday_date", system.formatCalendar(birthdayDate, false));
         map.put("role", String.valueOf(role));
         map.put("work", String.valueOf(work));
         map.put("work_time", system.formatCalendar(workTime, true));

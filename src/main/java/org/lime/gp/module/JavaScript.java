@@ -12,6 +12,8 @@ import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.mysql.MySqlAsync;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.lime;
+import org.lime.gp.module.biome.time.DateTime;
+import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.system;
 
@@ -75,8 +77,8 @@ public class JavaScript {
         public void untarget_npc(String uuid, String npc) {}
         public List<String> targets_npc(String uuid) { return Collections.emptyList(); }
 
-        public String gameTime() {
-            return MySql.calendarToString(DayManager.now());
+        public DateTime gameTime() {
+            return DayManager.now();
         }
 
         public List<String> getPlayers() { return Bukkit.getOnlinePlayers().stream().map(OfflinePlayer::getUniqueId).map(UUID::toString).collect(Collectors.toList()); }
@@ -106,6 +108,13 @@ public class JavaScript {
         public void show(String menu) { this.show(menu, 0, new HashMap<>()); }
         public void show(String menu, int page) { this.show(menu, page, new HashMap<>()); }
         public void show(String menu, int page, Map<String, String> args) { MenuCreator.show(menu, page, Apply.of().add(args)); }
+
+        public void getSpCoin(String uuid, system.Action1<Integer> callback) {
+             SPCoinDonate.balanceGet(UUID.fromString(uuid), value -> callback.invoke(value.orElse(0)));
+        }
+        public void convertSpCoin(String uuid, int count, system.Action1<Integer> callback) {
+            SPCoinDonate.convert(UUID.fromString(uuid), count, callback);
+        }
     }
 
     public static Optional<Boolean> isJsTrue(String js) { return JavaScript.js.isJsTrue(js); }
