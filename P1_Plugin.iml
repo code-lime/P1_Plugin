@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$" dumb="true">
+      <excludeFolder url="file://$MODULE_DIR$/.settings" />
+      <excludeFolder url="file://$MODULE_DIR$/__.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/bin" />
+    </content>
+  </component>
   <component name="EclipseModuleManager">
     <libelement value="jar://$MODULE_DIR$/../.libs/paper-unmapped-1.19.4.jar!/" />
     <libelement value="jar://$MODULE_DIR$/../.libs/CrazyAdvancementsAPI.jar!/" />
