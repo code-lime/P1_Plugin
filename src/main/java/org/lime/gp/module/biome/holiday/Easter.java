@@ -1,4 +1,4 @@
-package org.lime.gp.module.holiday;
+package org.lime.gp.module.biome.holiday;
 
 import java.util.ArrayList;
 import java.util.Arrays;

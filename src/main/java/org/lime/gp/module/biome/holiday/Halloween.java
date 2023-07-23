@@ -1,4 +1,4 @@
-package org.lime.gp.module.holiday;
+package org.lime.gp.module.biome.holiday;
 
 import com.google.gson.JsonObject;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,6 +17,7 @@ import org.bukkit.util.Vector;
 import org.lime.core;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
+import org.lime.gp.module.biome.BiomeModify;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.system;
 
@@ -62,7 +63,7 @@ public class Halloween implements Listener {
 
     private static system.Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
 
-    private static BiomeModify.ModifyActionCloseable closeable = null;
+    private static BiomeModify.ActionCloseable closeable = null;
     public static void config(JsonObject json) {
         ENABLE = json.get("enable").getAsBoolean();
         JsonObject vex = json.getAsJsonObject("vex");
@@ -97,7 +98,7 @@ public class Halloween implements Listener {
         };
         if ((closeable != null) == ENABLE) return;
         if (ENABLE) {
-            BiomeModify.ModifyActionCloseable _closeable = BiomeModify.appendModify(Halloween::modify);
+            BiomeModify.ActionCloseable _closeable = BiomeModify.appendModify(Halloween::modify);
             if (closeable != null) closeable.close();
             closeable = _closeable;
         } else {
