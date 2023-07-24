@@ -88,6 +88,10 @@ public class UserRow extends BaseRow {
     public static Optional<UserRow> getBy(int id) { return Tables.USER_TABLE.get(id + ""); }
     public static Optional<UserRow> getByTimedID(int timed_id) { return Optional.ofNullable(TabManager.getUUIDorNull(timed_id)).flatMap(UserRow::getBy); }
 
+    public Optional<Integer> getCityID() {
+        return RolesRow.getBy(role).flatMap(v -> GroupRow.getBy(v.groupID)).flatMap(v -> v.city);
+    }
+
     @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", Tables.valueOfInt(id));

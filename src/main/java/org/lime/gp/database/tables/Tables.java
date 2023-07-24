@@ -80,6 +80,9 @@ public class Tables {
     public static final KeyedTable<RolesRow> ROLES_TABLE = KeyedTable.of("roles", RolesRow::new)
             .keyed("id", v -> String.valueOf(v.id))
             .build();
+    public static final KeyedTable<GroupRow> GROUPS_TABLE = KeyedTable.of("role_groups", GroupRow::new)
+            .keyed("id", v -> String.valueOf(v.id))
+            .build();
     public static final KeyedTable<UserRow> USER_TABLE = KeyedTable.of("users", UserRow::new)
             .keyed("id", v -> String.valueOf(v.id))
             .other("uuid", v -> v.uuid.toString())
