@@ -47,7 +47,8 @@ import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
@@ -365,7 +366,9 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                                     .location(metadata.location(0.5, 1.2, 0.5))
                                     .spawn();
                             Perms.onRecipeUse(recipe, last_click, canData);
-                            Block.popResource(event.getWorld(), event.getPos().above(), recipe.assemble(inventory, world.registryAccess()));
+                            net.minecraft.world.item.ItemStack output = recipe.assemble(inventory, world.registryAccess());
+                            LevelModule.onCraft(last_click, CraftItemStack.asCraftMirror(output));
+                            Block.popResource(event.getWorld(), event.getPos().above(), output);
                         }, () -> PARTICLE
                                 .color(Color.fromRGB(0x000000), 3)
                                 .count(3)

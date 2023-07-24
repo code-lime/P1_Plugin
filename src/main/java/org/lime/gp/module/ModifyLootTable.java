@@ -9,6 +9,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.lime.core;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.system;
 
 import java.util.Arrays;

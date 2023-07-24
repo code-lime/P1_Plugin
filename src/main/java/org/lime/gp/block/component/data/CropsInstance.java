@@ -27,12 +27,17 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.CropsSetting;
 import org.lime.gp.item.settings.list.TableDisplaySetting;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.Parameters;
+import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.gp.player.level.LevelModule;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class CropsInstance extends BaseAgeableInstance<CropsComponent> implements BlockDisplay.Displayable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable {
     public CropsInstance(CropsComponent component, CustomTileMetadata metadata) {
@@ -118,6 +123,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         EnumHand hand = event.hand();
         EntityHuman player = event.player();
+        UUID uuid = player.getUUID();
         World world = event.world();
 
         net.minecraft.world.item.ItemStack itemStack = player.getItemInHand(hand);
@@ -127,7 +133,16 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
             setItem(null, true);
             Items.getOptional(CropsSetting.class, outputItem).filter(v -> age() == v.limitAge()).ifPresentOrElse(data -> {
                 net.minecraft.world.item.ItemStack handItem = itemStack;
-                for (ItemStack item : data.loot.generate()) {
+                IPopulateLoot loot = IPopulateLoot.of(world, List.of(
+                        IPopulateLoot.var(Parameters.ThisEntity, player),
+                        IPopulateLoot.var(Parameters.BlockEntity, metadata.skull),
+                        IPopulateLoot.var(Parameters.BlockState, event.state()),
+                        IPopulateLoot.var(Parameters.Origin, event.pos().getCenter()),
+                        IPopulateLoot.var(Parameters.Tool, itemStack)
+                ));
+                String key = "crops/" + Items.getGlobalKeyByItem(head).orElse("none").toLowerCase();
+                LevelModule.onHarvest(uuid, key);
+                for (ItemStack item : LevelModule.getLoot(uuid, key, data.loot, loot).generateFilter(loot)) {
                     net.minecraft.world.item.ItemStack _item = CraftItemStack.asNMSCopy(item);
                     if (handItem.isEmpty()) {
                         player.setItemInHand(hand, _item);

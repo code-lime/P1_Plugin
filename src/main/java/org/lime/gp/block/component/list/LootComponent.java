@@ -12,7 +12,7 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import java.util.HashMap;
 import java.util.List;

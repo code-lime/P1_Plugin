@@ -2,10 +2,11 @@ package org.lime.gp.item.loot.filter;
 
 import java.util.regex.Pattern;
 
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 public interface ILootFilter {
-    boolean isFilter(PopulateLootEvent loot);
+    boolean isFilter(IPopulateLoot loot);
 
     static ILootFilter parse(String value) {
         if (value.endsWith("]")) value = value.substring(0, value.length() - 1);

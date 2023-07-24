@@ -2,8 +2,8 @@ package org.lime.gp.item.loot;
 
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
-import org.lime.gp.item.loot.filter.ILootFilter;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.system;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ public class RandomLoot extends ILoot {
             return new LootWeight(ILoot.parse(json.get("loot")), json.get("weight").getAsDouble());
         }
         public List<ItemStack> generate() { return this.loot.generate(); }
-        public List<ItemStack> generateFilter(PopulateLootEvent loot) { return this.loot.generateFilter(loot); }
+        public List<ItemStack> generateFilter(IPopulateLoot loot) { return this.loot.generateFilter(loot); }
     }
     public final List<LootWeight> values = new ArrayList<>();
     public final double totalWeight;
@@ -42,7 +42,7 @@ public class RandomLoot extends ILoot {
     @Override public List<ItemStack> generate() {
         return random().map(LootWeight::generate).orElseGet(Collections::emptyList);
     }
-    @Override public List<ItemStack> generateFilter(PopulateLootEvent loot) {
+    @Override public List<ItemStack> generateFilter(IPopulateLoot loot) {
         return random().map(v -> v.generateFilter(loot)).orElseGet(Collections::emptyList);
     }
 }

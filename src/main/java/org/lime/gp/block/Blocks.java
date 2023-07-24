@@ -46,7 +46,8 @@ import org.lime.gp.extension.Modify;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.Parameters;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.module.ThreadPool;
 import org.lime.gp.module.TimeoutData;
 import org.lime.system;
@@ -414,9 +415,9 @@ public class Blocks implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH) public static void loot(PopulateLootEvent e) {
-        Vec3D pos = e.getOrDefault(PopulateLootEvent.Parameters.Origin, null);
-        if (pos == null || !e.has(PopulateLootEvent.Parameters.BlockState)) return;
-        if (!(e.getOrDefault(PopulateLootEvent.Parameters.BlockEntity, null) instanceof TileEntityLimeSkull skull)) return;
+        Vec3D pos = e.getOrDefault(Parameters.Origin, null);
+        if (pos == null || !e.has(Parameters.BlockState)) return;
+        if (!(e.getOrDefault(Parameters.BlockEntity, null) instanceof TileEntityLimeSkull skull)) return;
         of(skull).ifPresent(v -> v.onLoot(e));
     }
     @EventHandler public static void damage(BlockDamageEvent e) {

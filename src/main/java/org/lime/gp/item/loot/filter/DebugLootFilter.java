@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPosition;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.state.IBlockDataHolder;
+import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.item.Items;
 import org.lime.gp.module.ArrowBow;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.entity.EntityLiving;
@@ -26,7 +26,7 @@ public class DebugLootFilter implements ILootFilter {
         this.prefix = prefix;
     }
     
-    private static <T>void addParam(List<String> params, PopulateLootEvent loot, String name, LootContextParameter<T> type, system.Func1<T, String> convert) {
+    private static <T>void addParam(List<String> params, IPopulateLoot loot, String name, LootContextParameter<T> type, system.Func1<T, String> convert) {
         loot.getOptional(type)
             .ifPresentOrElse(
                 v -> {
@@ -38,7 +38,7 @@ public class DebugLootFilter implements ILootFilter {
             );
     }
 
-    public boolean isFilter(PopulateLootEvent e) {
+    public boolean isFilter(IPopulateLoot e) {
         List<String> params = new ArrayList<>();
         params.add("List '"+prefix+"' of loot filter:");
         addParam(params, e, "this", LootContextParameters.THIS_ENTITY, v -> v.getBukkitEntity().getType().name());

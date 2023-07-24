@@ -16,7 +16,7 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import javax.annotation.Nullable;
 

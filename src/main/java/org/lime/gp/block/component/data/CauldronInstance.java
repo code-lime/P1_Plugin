@@ -40,7 +40,8 @@ import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
@@ -380,6 +381,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                                 .ifPresentOrElse(recipe -> {
                                     this.result = recipe.assemble(readonlyInventory, world.registryAccess()).asBukkitCopy();
                                     Perms.onRecipeUse(recipe, last_owner, canData);
+                                    LevelModule.onCraft(last_owner, this.result);
                                     this.last_owner = null;
 
                                     Location center = metadata.location(0.5,0.5,0.5);

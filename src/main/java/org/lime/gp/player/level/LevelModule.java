@@ -22,16 +22,17 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.ItemStack;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.settings.list.DrugsSetting;
+import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.settings.list.LevelFoodMutateSetting;
-import org.lime.gp.item.settings.list.UnDrugsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
-import org.lime.gp.module.Discord;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.Parameters;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import com.google.gson.JsonObject;
 import org.lime.gp.player.module.PlayerData;
@@ -125,12 +126,7 @@ public class LevelModule implements Listener {
         return Optional.of(data.levels.get(level));
     }
     public static Optional<LevelData> getLevelData(UUID uuid) {
-        return UserRow.getBy(uuid).map(user -> {
-            int work = user.work;
-            LevelData data = workData.get(work);
-            if (data == null) return null;
-            return data;
-        });
+        return UserRow.getBy(uuid).map(user -> workData.get(user.work));
     }
     public static Optional<LevelStep> getLevelStep(UUID uuid) {
         return UserRow.getBy(uuid).map(user -> {
@@ -169,24 +165,33 @@ public class LevelModule implements Listener {
         UUID uuid = e.getWhoClicked().getUniqueId();
         getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.CRAFT, e.getCurrentItem()));
     }
+    public static void onCraft(UUID uuid, ItemStack output) {
+        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.CRAFT, output));
+    }
+    public static void onHarvest(UUID uuid, String key) {
+        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.HARVEST, key));
+    }
 
     public static void dieAction(Player player) {
         UUID uuid = player.getUniqueId();
         getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.DIE, null));
     }
-    
+
     @EventHandler private static void onLoot(PopulateLootEvent e) {
-        e.getOptional(PopulateLootEvent.Parameters.KillerEntity)
-                .or(() -> e.getOptional(PopulateLootEvent.Parameters.ThisEntity))
+        e.getOptional(Parameters.KillerEntity)
+                .or(() -> e.getOptional(Parameters.ThisEntity))
                 .map(net.minecraft.world.entity.Entity::getBukkitEntity)
                 .map(v -> v instanceof CraftPlayer cp
                         ? cp
                         : v instanceof FishHook hook && hook.getShooter() instanceof CraftPlayer cp
-                            ? cp
-                            : null
+                        ? cp
+                        : null
                 )
                 .flatMap(player -> getLevelStep(player.getUniqueId()))
                 .ifPresent(step -> step.tryModifyLoot(e));
+    }
+    public static ILoot getLoot(UUID uuid, String key, ILoot loot, IPopulateLoot variable) {
+        return getLevelStep(uuid).map(step -> step.tryGetLoot(key, loot, variable)).orElse(loot);
     }
     @EventHandler private static void onExpChange(PlayerExpChangeEvent e) {
         if (workData.size() == 0) return;

@@ -26,7 +26,7 @@ import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.extension.ExtMethods;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.module.TimeoutData;
 
 import net.minecraft.core.BlockPosition;

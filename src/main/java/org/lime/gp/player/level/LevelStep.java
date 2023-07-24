@@ -1,22 +1,19 @@
 package org.lime.gp.player.level;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.lime.gp.item.loot.MultiLoot;
+import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.loot.ILoot;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.perm.Perms.CanData;
 import org.lime.gp.player.perm.Perms.ICanData;
 
@@ -102,6 +99,45 @@ public class LevelStep {
             }
             default -> {}
         }
+    }
+    public ILoot tryGetLoot(String key, ILoot base, IPopulateLoot variable) {
+        system.Toast2<ILoot, LootModifyAction> loot = null;
+        for (var kv : modifyLootTable.entrySet()) {
+            if (!system.compareRegex(key, kv.getKey())) continue;
+            loot = kv.getValue();
+            break;
+        }
+        if (loot == null) return base;
+
+        ILoot other = loot.val0;
+
+        return switch (loot.val1) {
+            case APPEND -> new MultiLoot(List.of(base, loot.val0));
+            case APPEND_IF_NOT_EMPTY -> new ILoot() {
+                @Override public List<ItemStack> generate() {
+                    List<ItemStack> items = new ArrayList<>(base.generate());
+                    if (!items.isEmpty()) items.addAll(other.generate());
+                    return items;
+                }
+                @Override public List<ItemStack> generateFilter(IPopulateLoot loot) {
+                    List<ItemStack> items = new ArrayList<>(base.generateFilter(loot));
+                    if (!items.isEmpty()) items.addAll(other.generateFilter(loot));
+                    return items;
+                }
+            };
+            case REPLACE -> other;
+            case REPLACE_IF_NOT_EMPTY -> new ILoot() {
+                @Override public List<ItemStack> generate() {
+                    List<ItemStack> items = new ArrayList<>(base.generate());
+                    return items.isEmpty() ? items : other.generate();
+                }
+                @Override public List<ItemStack> generateFilter(IPopulateLoot loot) {
+                    List<ItemStack> items = new ArrayList<>(base.generateFilter(loot));
+                    return items.isEmpty() ? items : other.generateFilter(loot);
+                }
+            };
+            default -> base;
+        };
     }
 
     private static <TValue, TCompare>HashMap<TCompare, system.IRange> createVariable(ExperienceAction<TValue, TCompare> action, JsonObject values) {

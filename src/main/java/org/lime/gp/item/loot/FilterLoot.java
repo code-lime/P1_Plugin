@@ -5,9 +5,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bukkit.inventory.ItemStack;
+import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.system;
 import org.lime.gp.item.loot.filter.ILootFilter;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import com.google.gson.JsonObject;
 
@@ -21,7 +22,7 @@ public class FilterLoot extends ILoot {
     @Override public List<ItemStack> generate() {
         return Collections.emptyList();
     }
-    @Override public List<ItemStack> generateFilter(PopulateLootEvent loot) {
+    @Override public List<ItemStack> generateFilter(IPopulateLoot loot) {
         List<ItemStack> items = new ArrayList<>();
         for (system.Toast2<ILootFilter, ILoot> item : this.loot) {
             if (item.val0.isFilter(loot)) {

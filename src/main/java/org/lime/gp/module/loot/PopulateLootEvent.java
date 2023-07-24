@@ -1,22 +1,14 @@
-package org.lime.gp.module;
+package org.lime.gp.module.loot;
 
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.IInventory;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.TileEntity;
-import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.storage.loot.*;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameter;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameterSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameterSets;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParameters;
-import net.minecraft.world.phys.Vec3D;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
@@ -30,7 +22,7 @@ import org.lime.reflection;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class PopulateLootEvent extends Event implements Cancellable {
+public class PopulateLootEvent extends Event implements Cancellable, IPopulateLoot {
     private static class LootTableProxy extends LootTable {
         public final LootTable base_of_proxy;
         public final MinecraftKey key;
@@ -74,38 +66,6 @@ public class PopulateLootEvent extends Event implements Cancellable {
         });
         reflection.field.ofMojang(LootTableRegistry.class, "tables").set(registry, lootTables);
         registry.lootTableToKey = lootTableToKey;
-    }
-
-    public static class Parameters {
-        public static final LootContextParameter<Entity> ThisEntity = LootContextParameters.THIS_ENTITY;
-        public static final LootContextParameter<EntityHuman> LastDamagePlayer = LootContextParameters.LAST_DAMAGE_PLAYER;
-        public static final LootContextParameter<DamageSource> DamageSource = LootContextParameters.DAMAGE_SOURCE;
-        public static final LootContextParameter<Entity> KillerEntity = LootContextParameters.KILLER_ENTITY;
-        public static final LootContextParameter<Entity> DirectKillerEntity = LootContextParameters.DIRECT_KILLER_ENTITY;
-        public static final LootContextParameter<Vec3D> Origin = LootContextParameters.ORIGIN;
-        public static final LootContextParameter<IBlockData> BlockState = LootContextParameters.BLOCK_STATE;
-        public static final LootContextParameter<TileEntity> BlockEntity = LootContextParameters.BLOCK_ENTITY;
-        public static final LootContextParameter<ItemStack> Tool = LootContextParameters.TOOL;
-        public static final LootContextParameter<Float> ExplosionRadius = LootContextParameters.EXPLOSION_RADIUS;
-        public static final LootContextParameter<Integer> LootingMod = LootContextParameters.LOOTING_MOD;
-
-        public static Map<String, LootContextParameter<?>> all() {
-            return ImmutableMap.<String, LootContextParameter<?>>builder()
-                    .put("ThisEntity", ThisEntity)
-                    .put("LastDamagePlayer", LastDamagePlayer)
-                    .put("DamageSource", DamageSource)
-                    .put("KillerEntity", KillerEntity)
-                    .put("DirectKillerEntity", DirectKillerEntity)
-                    .put("Origin", Origin)
-                    .put("BlockState", BlockState)
-                    .put("BlockEntity", BlockEntity)
-                    .put("Tool", Tool)
-                    .put("ExplosionRadius", ExplosionRadius)
-                    .put("LootingMod", LootingMod)
-                    .build();
-        }
-
-        private static <T>void appendTo(LootContextParameter<T> param, LootTableInfo context, LootTableInfo.Builder builder) { builder.withParameter(param, context.getParam(param)); }
     }
 
     private final MinecraftKey key;

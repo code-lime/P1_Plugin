@@ -48,7 +48,7 @@ import org.lime.gp.map.MapMonitor;
 import org.lime.gp.map.MonitorInstance;
 import org.lime.gp.map.ViewPosition;
 import org.lime.gp.module.DrawMap;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 

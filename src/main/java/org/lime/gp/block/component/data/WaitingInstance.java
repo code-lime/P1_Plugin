@@ -34,7 +34,8 @@ import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
@@ -317,6 +318,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         if (currentDelta >= totalDelta) {
             syncRecipe("TIME_END", false).ifPresent(recipe -> {
                 ItemStack item = recipe.assemble(createReadonly(), event.getWorld().registryAccess());
+                LevelModule.onCraft(last_click, CraftItemStack.asCraftMirror(item));
                 if (DEBUG) lime.logOP("Result: " + item);
                 if (item.isEmpty()) input = new EmptyInput();
                 else if (Items.has(ThirstSetting.class, item)) input = new WaterInput(item);

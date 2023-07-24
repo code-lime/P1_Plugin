@@ -41,6 +41,7 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BlockLimitSetting;
 import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
+import org.lime.gp.module.loot.Parameters;
 import org.lime.system;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.chat.LangMessages;
@@ -48,7 +49,7 @@ import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.module.HandCuffs;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -336,9 +337,9 @@ public class Perms implements Listener {
         LangMessages.Message.Work_Error_Use.sendMessage(e.getPlayer());
     }
     @EventHandler public static void on(PopulateLootEvent e) {
-        net.minecraft.world.entity.Entity entity = e.getOrDefault(PopulateLootEvent.Parameters.ThisEntity, null);
+        net.minecraft.world.entity.Entity entity = e.getOrDefault(Parameters.ThisEntity, null);
         if (entity == null || entity instanceof EntityPlayer || entity instanceof EntityFishingHook) return;
-        if (!(e.getOrDefault(PopulateLootEvent.Parameters.KillerEntity, null) instanceof EntityPlayer killer)) {
+        if (!(e.getOrDefault(Parameters.KillerEntity, null) instanceof EntityPlayer killer)) {
             e.setCancelled(true);
             return;
         }

@@ -4,13 +4,14 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import com.google.gson.JsonElement;
 
 public abstract class ILoot {
     public abstract List<ItemStack> generate();
-    public List<ItemStack> generateFilter(PopulateLootEvent loot) {
+    public List<ItemStack> generateFilter(IPopulateLoot loot) {
         return generate();
     }
 

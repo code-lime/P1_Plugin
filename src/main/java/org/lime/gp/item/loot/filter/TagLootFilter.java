@@ -1,17 +1,8 @@
 package org.lime.gp.item.loot.filter;
 
-import net.minecraft.core.BlockPosition;
-import net.minecraft.core.Holder;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.EnumHand;
-import net.minecraft.world.entity.EntityLiving;
-import net.minecraft.world.entity.projectile.IProjectile;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameters;
-import org.lime.gp.item.data.Checker;
-import org.lime.gp.module.ArrowBow;
-import org.lime.gp.module.PopulateLootEvent;
-import org.lime.system;
+import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.PopulateLootEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +14,7 @@ public class TagLootFilter implements ILootFilter {
     public TagLootFilter(String argLine) {
         tags.addAll(Arrays.asList(argLine.split(Pattern.quote(";"))));
     }
-    @Override public boolean isFilter(PopulateLootEvent loot) {
+    @Override public boolean isFilter(IPopulateLoot loot) {
         return loot.getOptional(LootContextParameters.THIS_ENTITY)
                 .map(v -> v.getTags().containsAll(tags))
                 .orElse(false);

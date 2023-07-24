@@ -31,7 +31,7 @@ import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.BookPaper;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.json.JsonObjectOptional;
 
 import net.minecraft.core.BlockPosition;
