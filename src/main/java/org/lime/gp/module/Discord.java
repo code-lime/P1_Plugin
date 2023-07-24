@@ -134,6 +134,8 @@ public class Discord implements Listener {
             UUID uuid = player.getUniqueId();
             long discord_id = e.getAuthor().getIdLong();
             String discord_name = e.getAuthor().getAsTag();
+            String[] discord_split = discord_name.split("#");
+            String discord_display_name = discord_split.length == 2 && discord_split[1].equals("0000") ? discord_split[0] : discord_name;
             if (auth_callback.containsKey(uuid)) {
                 e.getChannel().sendMessage("Данный пользователь уже ожидает подтверждения").queue(TIMED_MESSAGE);
                 return;
@@ -144,7 +146,7 @@ public class Discord implements Listener {
                     () -> {
                         e.getChannel().sendMessage("Подтвердите аккаунт '"+nickName+"' в игре").queue(TIMED_MESSAGE);
                         Apply args = Apply.of()
-                                .add("discord_name", discord_name)
+                                .add("discord_name", discord_display_name)
                                 .add("discord_id", String.valueOf(discord_id));
                         LangMessages.Message.Discord_Check.sendMessage(player, args);
 
