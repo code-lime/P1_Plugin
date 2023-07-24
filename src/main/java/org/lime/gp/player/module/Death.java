@@ -1,5 +1,7 @@
 package org.lime.gp.player.module;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
 import dev.geco.gsit.objects.GetUpReason;
@@ -14,6 +16,7 @@ import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.coreprotect.CoreProtectHandle;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.entity.component.data.BackPackInstance;
 import org.lime.gp.item.Items;
@@ -61,15 +64,40 @@ import org.lime.system;
 import java.util.*;
 
 public class Death implements Listener {
-    public static Location SPAWN_LOCATION;
+    private static Location DEFAULT_SPAWN_LOCATION;
+    private static Map<Integer, Location> SPAWN_LOCATIONS = new HashMap<>();
+
+    public static Location getSpawnLocation(UUID uuid) {
+        return UserRow.getBy(uuid).flatMap(UserRow::getCityID).map(SPAWN_LOCATIONS::get).orElse(DEFAULT_SPAWN_LOCATION);
+    }
+    public static Location getSpawnLocation(Player player) {
+        return getSpawnLocation(player.getUniqueId());
+    }
+
     public static core.element create() {
         return core.element.create(Death.class)
                 .withInit(Death::init)
                 .withUninit(Death::uninit)
-                .<JsonPrimitive>addConfig("config", v -> v
+                .addConfig("config", v -> v
                         .withParent("spawn")
                         .withDefault(new JsonPrimitive(system.getString(new Vector(0, 70, 0))))
-                        .withInvoke(json -> SPAWN_LOCATION = system.getLocation(lime.MainWorld, json.getAsString()))
+                        .withInvoke(json -> {
+                            if (json.isJsonPrimitive()) {
+                                DEFAULT_SPAWN_LOCATION = system.getLocation(lime.MainWorld, json.getAsString());
+                                SPAWN_LOCATIONS.clear();
+                            } else if (json.isJsonObject()) {
+                                JsonObject spawn = json.getAsJsonObject().deepCopy();
+                                Location defaultSpawn = system.getLocation(lime.MainWorld, spawn.remove("default").getAsString());
+                                HashMap<Integer, Location> spawns = new HashMap<>();
+                                spawn.entrySet().forEach(kv -> spawns.put(
+                                        Integer.parseInt(kv.getKey()),
+                                        system.getLocation(lime.MainWorld, kv.getValue().getAsString()))
+                                );
+                                DEFAULT_SPAWN_LOCATION = defaultSpawn;
+                                SPAWN_LOCATIONS.clear();
+                                SPAWN_LOCATIONS.putAll(spawns);
+                            }
+                        })
                 )
                 .withInstance();
     }
@@ -177,11 +205,12 @@ public class Death implements Listener {
             player.removeScoreboardTag("leg.broken");
         }));
         lime.repeat(() -> {
+            if (!SPAWN_LOCATIONS.isEmpty()) return;
             nextSets.removeIf(uuid -> !EntityPosition.onlinePlayers.containsKey(uuid));
             List<UUID> isHeal = new ArrayList<>();
             system.Toast1<Boolean> isSpawnWork = system.toast(false);
             Tables.HOUSE_TABLE.getRows().forEach(v -> {
-                if (!v.inZone(SPAWN_LOCATION)) return;
+                if (!v.inZone(DEFAULT_SPAWN_LOCATION)) return;
                 isSpawnWork.val0 = true;
                 EntityPosition.onlinePlayers.forEach((uuid, player) -> {
                     if (player.getWorld() != lime.MainWorld) return;
@@ -199,7 +228,7 @@ public class Death implements Listener {
                 if (isHeal.contains(uuid) || Administrator.inABan(uuid)) return;
                 Player player = Bukkit.getPlayer(uuid);
                 if (player == null) return;
-                player.teleport(SPAWN_LOCATION);
+                player.teleport(DEFAULT_SPAWN_LOCATION);
                 lime.once(() -> LangMessages.Message.Medic_Teleport_HP.sendMessage(player), 2);
             });
         }, 2);
@@ -301,8 +330,9 @@ public class Death implements Listener {
         player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
         dieCooldown.remove(player.getUniqueId());
         player.removeScoreboardTag("leg.broken");
-        player.teleport(SPAWN_LOCATION);
-        for (int i = 0; i < 5; i++) lime.onceTicks(() -> player.teleport(SPAWN_LOCATION), i * 2);
+        Location spawnLocation = getSpawnLocation(player);
+        player.teleport(spawnLocation);
+        for (int i = 0; i < 5; i++) lime.onceTicks(() -> player.teleport(spawnLocation), i * 2);
         lime.once(() -> LangMessages.Message.Medic_Teleport_Die.sendMessage(player), 2);
     }
     public static boolean up(UUID player) {
