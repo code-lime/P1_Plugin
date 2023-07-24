@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
-import org.lime.gp.module.PopulateLootEvent;
+import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
