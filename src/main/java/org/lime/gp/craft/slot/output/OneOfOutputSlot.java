@@ -1,7 +1,6 @@
 package org.lime.gp.craft.slot.output;
 
-import org.bukkit.inventory.ItemStack;
-import org.lime.gp.item.data.IItemCreator;
+import net.minecraft.world.item.ItemStack;
 import org.lime.system;
 
 import java.util.*;
@@ -16,7 +15,6 @@ public class OneOfOutputSlot implements IOutputSlot {
     }
 
     private IOutputSlot oneOf() { return system.rand(slots); }
-    @Override public ItemStack create() { return oneOf().create(); }
-    @Override public ItemStack apply(ItemStack item, boolean copy) { return oneOf().apply(item, copy); }
-    @Override public net.minecraft.world.item.ItemStack nms(boolean isPreview) { return oneOf().nms(isPreview); }
+    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return oneOf().modify(item, copy, variable); }
+    @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return oneOf().create(isPreview, variable); }
 }

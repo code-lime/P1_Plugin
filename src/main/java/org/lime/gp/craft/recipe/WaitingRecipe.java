@@ -16,6 +16,7 @@ import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.system;
 
 import java.util.Comparator;
@@ -70,8 +71,8 @@ public class WaitingRecipe extends AbstractRecipe {
             return true;
         }).orElse(false);
     }
-    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) {
-        ItemStack output = this.output.nms(false);
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
+        ItemStack output = this.output.create(false, variable);
         input.split(inventory.getItem(0)).ifPresent(count -> output.setCount(output.getCount() * count));
         return output;
     }
@@ -96,7 +97,7 @@ public class WaitingRecipe extends AbstractRecipe {
         for (int i = 0; i < catalyser_count; i++) slots.set(i + 3, catalyse.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
         for (int i = 0; i < fuel_count; i++) slots.set(i + 6, fuel.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
 
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.nms(true), Component.text(" ⌚ " + system.formatTotalTime(total_sec, system.FormatTime.DAY_TIME)).color(NamedTextColor.LIGHT_PURPLE))));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.create(true, IOutputVariable.empty()), Component.text(" ⌚ " + system.formatTotalTime(total_sec, system.FormatTime.DAY_TIME)).color(NamedTextColor.LIGHT_PURPLE))));
     }
 
     @Override public String toString() {

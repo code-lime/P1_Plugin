@@ -512,6 +512,12 @@ public class TownInventory implements Listener {
         Player player = e.getPlayer();
         if (player.getWorld() != lime.MainWorld) return;
         if (isCantBlock(block, player)) {
+            MenuCreator.show(player, "interact.lock", Apply.of()
+                    .add("block_x", String.valueOf(block.getX()))
+                    .add("block_y", String.valueOf(block.getY()))
+                    .add("block_z", String.valueOf(block.getZ()))
+                    .add("block_type", block.getType().name())
+            );
             e.setCancelled(true);
         }
     }

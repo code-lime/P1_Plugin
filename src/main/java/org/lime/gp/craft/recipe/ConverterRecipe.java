@@ -15,6 +15,7 @@ import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.system;
 
 import java.util.ArrayList;
@@ -48,7 +49,8 @@ public class ConverterRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int i, int j) { return i == 1 && j == 1; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return system.rand(output.entrySet()).getKey().nms(false); }
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) { return system.rand(output.entrySet()).getKey().create(false, variable); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return system.rand(output.entrySet()).getKey().create(false, IOutputVariable.empty()); }
 
     @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
         List<RecipeCrafting> recipes = new ArrayList<>();
@@ -58,7 +60,7 @@ public class ConverterRecipe extends AbstractRecipe {
             index++;
             NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
             slots.set(4, RecipeItemStack.of(input.stream().flatMap(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName))));
-            recipes.add(new ShapedRecipes(new MinecraftKey(displayKey.getNamespace() + "." + index, displayKey.getPath()), kv.getValue().orElse(displayGroup), category, 3, 3, slots, result.nms(true)));
+            recipes.add(new ShapedRecipes(new MinecraftKey(displayKey.getNamespace() + "." + index, displayKey.getPath()), kv.getValue().orElse(displayGroup), category, 3, 3, slots, result.create(true, IOutputVariable.empty())));
         }
         return recipes.stream();
     }

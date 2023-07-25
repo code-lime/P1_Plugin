@@ -115,6 +115,7 @@ public abstract class Base implements Logged.ILoggedDelete {
         else if (json.has("called")) menu = new SQL(json);
         else if (json.has("dialog")) menu = new Dialog(json);
         else if (json.has("selector")) menu = new Selector(json);
+        else if (json.has("unlock")) menu = new UnLock(json);
         else if (json.has("type")) menu = switch (json.get("type").getAsString()) {
             case "insert" -> new Insert(json);
             default -> throw new IllegalArgumentException("TYPE '" + json.get("type") + "' IN MENU");

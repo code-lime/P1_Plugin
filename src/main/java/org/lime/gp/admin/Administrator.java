@@ -1,5 +1,6 @@
 package org.lime.gp.admin;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
@@ -145,44 +146,81 @@ public class Administrator implements Listener {
                 )
                 .addCommand("awarn", _v -> _v
                         .withCheck(v -> v.isOp() || Permissions.AWARN.check(v))
-                        .withUsage("/awarn [id_or_nick] {reason}\n/awarn list [id_or_nick]")
+                        .withUsage(String.join("\n",
+                                "/awarn list [id_or_nick]",
+                                "/awarn add [id_or_nick] [time_or_null] {reason}"
+                        ))
                         .withTab((s,args) -> switch (args.length) {
-                            case 1 -> Stream.concat(Stream.of("list"), Stream.concat(
+                            case 1 -> List.of("list", "add");
+                            case 2 -> Stream.concat(
                                     TabManager.getPlayers().keySet().stream().map(String::valueOf),
                                     Bukkit.getOnlinePlayers().stream().map(Player::getName)
-                            )).collect(Collectors.toList());
-                            default -> args[0].equals("list")
-                                    ? Stream.concat(
-                                            TabManager.getPlayers().keySet().stream().map(String::valueOf),
-                                            Bukkit.getOnlinePlayers().stream().map(Player::getName)
-                                    ).collect(Collectors.toList())
-                                    : Collections.singletonList("{reason}");
+                            ).collect(Collectors.toList());
+                            case 3 -> switch (args[0]) {
+                                case "add" -> Collections.singletonList("[time_or_null]");
+                                default -> Collections.emptyList();
+                            };
+                            default -> switch (args[0]) {
+                                case "add" -> Collections.singletonList("{reason}");
+                                default -> Collections.emptyList();
+                            };
                         })
                         .withExecutor((s,args) -> {
-                            if (args.length < 2) return false;
-                            boolean list = args[0].equals("list");
-                            String find_user = args[list ? 1 : 0];
-                            UUID uuid = TabManager.getUUIDs().getOrDefault(find_user, null);
-                            if (uuid == null) {
-                                OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(find_user);
-                                uuid = player == null ? null : player.getUniqueId();
-                            }
-                            if (uuid == null) {
-                                s.sendMessage("User '"+find_user+"' not founded!");
-                                return true;
-                            }
-                            system.Action1<List<Methods.WarnInfo>> callback_list = warns -> s.sendMessage(Component
-                                    .text("Список варнов игрока ("+warns.size()+" шт.):\n")
-                                    .append(Component.join(JoinConfiguration.separator(Component.text("\n")), warns.stream().map(v -> v.toLine(" - ")).toList()))
-                            );
-                            if (list) {
-                                Methods.aWarnList(uuid, callback_list);
-                                return true;
-                            }
-                            String reason = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
-                            s.sendMessage("Варн выдан!");
-                            Methods.aWarnAdd(uuid, reason, s instanceof Player sp ? sp.getUniqueId() : null, callback_list);
-                            return true;
+                            system.Action1<List<Methods.WarnInfo>> callback_list = warns -> {
+                                List<Component> warnActive = warns.stream().filter(v -> !v.isEnd()).map(v -> v.toLine(" - ")).toList();
+                                List<Component> warnEnd = warns.stream().filter(Methods.WarnInfo::isEnd).map(v -> v.toLine(" - ")).toList();
+                                if (warnActive.isEmpty() && warnEnd.isEmpty()) {
+                                    s.sendMessage(Component.text("Варны не найдены"));
+                                    return;
+                                }
+                                s.sendMessage(Component.empty()
+                                        .append(Component.text("Список истекших варнов игрока ("+warnEnd.size()+" шт.):\n")
+                                                .append(Component.join(JoinConfiguration.separator(Component.text("\n")), warnEnd)))
+                                        .appendNewline()
+                                        .append(Component.text("Список активных варнов игрока ("+warnActive.size()+" шт.):\n")
+                                                .append(Component.join(JoinConfiguration.separator(Component.text("\n")), warnActive)))
+                                );
+                            };
+                            return switch (args.length) {
+                                case 1, 3 -> false;
+                                case 2 -> switch (args[0]) {
+                                    case "list" -> {
+                                        String find_user = args[1];
+                                        UUID uuid = TabManager.getUUIDs().getOrDefault(find_user, null);
+                                        if (uuid == null) {
+                                            OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(find_user);
+                                            uuid = player == null ? null : player.getUniqueId();
+                                        }
+                                        if (uuid == null) {
+                                            s.sendMessage("User '"+find_user+"' not founded!");
+                                            yield true;
+                                        }
+                                        Methods.aWarnList(uuid, callback_list);
+                                        yield true;
+                                    }
+                                    default -> false;
+                                };
+                                default -> switch (args[0]) {
+                                    case "add" -> {
+                                        String find_user = args[1];
+                                        UUID uuid = TabManager.getUUIDs().getOrDefault(find_user, null);
+                                        if (uuid == null) {
+                                            OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(find_user);
+                                            uuid = player == null ? null : player.getUniqueId();
+                                        }
+                                        if (uuid == null) {
+                                            s.sendMessage("User '"+find_user+"' not founded!");
+                                            yield true;
+                                        }
+                                        Integer time = "null".equals(args[2]) ? null : system.formattedTime(args[2]);
+                                        String reason = Arrays.stream(args).skip(3).collect(Collectors.joining(" "));
+                                        s.sendMessage("Варн выдан!");
+                                        Methods.aWarnAdd(uuid, reason, time, s instanceof Player sp ? sp.getUniqueId() : null, callback_list);
+                                        yield true;
+                                    }
+                                    default -> false;
+                                };
+                            };
                         })
                 )
                 .addCommand("amute", _v -> _v

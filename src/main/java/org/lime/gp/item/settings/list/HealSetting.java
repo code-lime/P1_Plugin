@@ -19,6 +19,7 @@ import com.google.gson.JsonObject;
     public final Integer total;
     public final int time;
     public final boolean up;
+    public final boolean fixLegs;
 
     public HealSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
@@ -26,6 +27,7 @@ import com.google.gson.JsonObject;
         this.total = json.has("total") ? json.get("total").getAsInt() : null;
         this.time = json.has("time") ? json.get("time").getAsInt() : 0;
         this.up = json.get("up").getAsBoolean();
+        this.fixLegs = json.has("fixLegs") && json.get("fixLegs").getAsBoolean();
     }
 
     @Override public EquipmentSlot arm() { return EquipmentSlot.HAND; }
@@ -35,6 +37,7 @@ import com.google.gson.JsonObject;
             Death.up(target);
             MenuCreator.show(player, "phone.user.die.medic_up", Apply.of().add("other_uuid", target.getUniqueId().toString()));
         }
+        if (fixLegs) target.removeScoreboardTag("leg.broken");
         double total = target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
         double health = heal.getValue(total);
         double hp = target.getHealth();

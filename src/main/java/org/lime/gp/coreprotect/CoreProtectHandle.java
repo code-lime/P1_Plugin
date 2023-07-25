@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -160,12 +161,18 @@ public class CoreProtectHandle implements Listener {
             BlockState blockState = world.getBlockState(pos.getX(), pos.getY(), pos.getZ());
             net.coreprotect.consumer.Queue.queueBlockPlace(player.getName(), blockState, blockState.getType(), null, null, -1, 0, null);
         }
+        private static void onBlockInteract(Block block, Player player) {
+            net.coreprotect.consumer.Queue.queuePlayerInteraction(player.getName(), block.getState(), block.getType());
+        }
     }
     public static void logDrop(Location location, Player player, ItemStack item) {
         _0.onPlayerDropItem(location, player, item);
     }
     public static void logPickUp(Location location, Player player, ItemStack itemStack) {
         _0.onEntityPickupItem(location, player, itemStack);
+    }
+    public static void logInteract(Block block, Player player) {
+        _0.onBlockInteract(block, player);
     }
     public static void logSetBlock(TileEntityLimeSkull skull, Player player) {
         _0.onBlockPlace(skull, player);

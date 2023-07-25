@@ -34,6 +34,7 @@ import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.recipe.Recipes;
 import org.lime.gp.extension.PacketManager;
@@ -379,7 +380,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                                 .filter(v -> v.matches(readonlyInventory, world))
                                 .findFirst()
                                 .ifPresentOrElse(recipe -> {
-                                    this.result = recipe.assemble(readonlyInventory, world.registryAccess()).asBukkitCopy();
+                                    this.result = recipe.assemble(readonlyInventory, world.registryAccess(), IOutputVariable.of(last_owner)).asBukkitCopy();
                                     Perms.onRecipeUse(recipe, last_owner, canData);
                                     LevelModule.onCraft(last_owner, this.result);
                                     this.last_owner = null;

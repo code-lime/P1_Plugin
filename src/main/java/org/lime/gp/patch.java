@@ -28,6 +28,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeRepair;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.BiomeSettingsGeneration;
+import net.minecraft.world.level.biome.WorldChunkManagerHell;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockSkull;
 import net.minecraft.world.level.block.BlockSnow;

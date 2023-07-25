@@ -1,9 +1,6 @@
 package org.lime.gp.craft.slot.output;
 
-import org.bukkit.inventory.ItemStack;
-import org.lime.gp.item.data.IItemCreator;
-
-import java.util.Optional;
+import net.minecraft.world.item.ItemStack;
 
 public class PreviewOutputSlot implements IOutputSlot {
     private final IOutputSlot preview;
@@ -14,7 +11,6 @@ public class PreviewOutputSlot implements IOutputSlot {
         this.item = item;
     }
 
-    @Override public ItemStack create() { return this.item.create(); }
-    @Override public ItemStack apply(ItemStack item, boolean copy) { return this.item.apply(item, copy); }
-    @Override public net.minecraft.world.item.ItemStack nms(boolean isPreview) { return isPreview ? preview.nms(true) : item.nms(false); }
+    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return this.item.modify(item, copy, variable); }
+    @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return isPreview ? preview.create(true, variable) : item.create(false, variable); }
 }

@@ -30,6 +30,7 @@ import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.craft.recipe.Recipes;
 import org.lime.gp.craft.recipe.WaitingRecipe;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
@@ -317,7 +318,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         }
         if (currentDelta >= totalDelta) {
             syncRecipe("TIME_END", false).ifPresent(recipe -> {
-                ItemStack item = recipe.assemble(createReadonly(), event.getWorld().registryAccess());
+                ItemStack item = recipe.assemble(createReadonly(), event.getWorld().registryAccess(), IOutputVariable.of(last_click));
                 LevelModule.onCraft(last_click, CraftItemStack.asCraftMirror(item));
                 if (DEBUG) lime.logOP("Result: " + item);
                 if (item.isEmpty()) input = new EmptyInput();

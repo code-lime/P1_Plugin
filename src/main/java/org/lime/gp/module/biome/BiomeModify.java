@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import io.netty.handler.codec.EncoderException;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.RegistrySynchronization;
 import net.minecraft.nbt.DynamicOpsNBT;
 import net.minecraft.nbt.NBTBase;
@@ -17,6 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
+import org.lime.gp.lime;
 import org.lime.reflection;
 import org.lime.system;
 
@@ -64,7 +66,7 @@ public class BiomeModify {
         return () -> actions.remove(uuid);
     }
     public static <T>NBTTagCompound nbt(Codec<T> codec, T object) {
-        DataResult<NBTBase> dataresult = codec.encodeStart(DynamicOpsNBT.INSTANCE, object);
+        DataResult<NBTBase> dataresult = codec.encodeStart(ReflectionAccess.BUILTIN_CONTEXT_OPS_PacketPlayOutLogin.get(null), object);
         dataresult.error().ifPresent(partialresult -> {
             String s2 = partialresult.message();
             throw new EncoderException("Failed to encode: " + s2 + " " + object);

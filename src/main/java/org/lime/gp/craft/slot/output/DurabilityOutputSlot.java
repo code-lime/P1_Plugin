@@ -1,8 +1,6 @@
 package org.lime.gp.craft.slot.output;
 
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.lime.gp.item.Items;
+import net.minecraft.world.item.ItemStack;
 import org.lime.system;
 
 public class DurabilityOutputSlot implements IOutputSlot {
@@ -15,26 +13,19 @@ public class DurabilityOutputSlot implements IOutputSlot {
     }
 
 
-    @Override public ItemStack create() {
-        ItemStack result = this.item.create();
-        if (result.getItemMeta() instanceof Damageable damageable) {
-            damageable.setDamage((int)Math.round(durability.getValue(Items.getMaxDamage(result))));
-            result.setItemMeta(damageable);
-        }
-        return result;
-    }
-    @Override public ItemStack apply(ItemStack item, boolean copy) {
-        ItemStack result = this.item.apply(item, copy);
-        if (result.getItemMeta() instanceof Damageable damageable) {
-            damageable.setDamage((int)Math.round(durability.getValue(Items.getMaxDamage(result))));
-            result.setItemMeta(damageable);
-        }
+    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) {
+        ItemStack result = this.item.modify(item, copy, variable);
+        int max = result.getMaxDamage();
+        int value = (int)Math.round(durability.getValue(max));
+        result.setDamageValue(max - value);
         return result;
     }
 
-    @Override public net.minecraft.world.item.ItemStack nms(boolean isPreview) {
-        net.minecraft.world.item.ItemStack result = this.item.nms(isPreview);
-        result.setDamageValue((int)Math.round(durability.getValue(result.getMaxDamage())));
+    @Override public ItemStack create(boolean isPreview, IOutputVariable variable) {
+        ItemStack result = this.item.create(isPreview, variable);
+        int max = result.getMaxDamage();
+        int value = (int)Math.round(durability.getValue(max));
+        result.setDamageValue(max - value);
         return result;
     }
 }

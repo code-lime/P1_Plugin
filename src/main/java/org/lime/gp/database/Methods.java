@@ -133,12 +133,19 @@ public class Methods {
         public final UUID uuid;
         public final String reason;
         public final UUID owner;
-        public final Calendar time;
+        public final Calendar create_time;
+        public final Optional<Calendar> end_time;
+
+        public boolean isEnd() {
+            return end_time.map(v -> v.getTimeInMillis() < System.currentTimeMillis()).orElse(false);
+        }
+
         private WarnInfo(ResultSet set) {
             uuid = UUID.fromString(MySql.readObject(set, "uuid", String.class));
             reason = MySql.readObject(set, "reason", String.class);
             owner = Optional.ofNullable(MySql.readObject(set, "owner", String.class)).map(UUID::fromString).orElse(null);
-            time = MySql.readObject(set, "time", Calendar.class);
+            create_time = MySql.readObject(set, "create_time", Calendar.class);
+            end_time = MySql.readObjectOptional(set, "end_time", Calendar.class);
         }
         public Component toLine(String prefix) {
             return toLine(Component.text(prefix));
@@ -146,21 +153,24 @@ public class Methods {
         public Component toLine(Component prefix) {
             Optional<UserRow> user = Optional.ofNullable(this.uuid).flatMap(UserRow::getBy);
             Optional<UserRow> owner = Optional.ofNullable(this.owner).flatMap(UserRow::getBy);
-            String time = system.formatCalendar(this.time, true);
+            String createTime = system.formatCalendar(this.create_time, true);
+            String endTime = this.end_time.map(v -> system.formatCalendar(v, true)).orElse("Неограничено");
             Component display = Component.empty()
-                    .append(Component.text("Дата выдачи: ").append(Component.text(time).color(NamedTextColor.GRAY)).append(Component.newline()))
+                    .append(Component.text("Дата выдачи: ").append(Component.text(createTime).color(NamedTextColor.GRAY)).append(Component.newline()))
+                    .append(Component.text("Действителен до: ").append(Component.text(endTime).color(this.end_time.isPresent() ? NamedTextColor.GRAY : NamedTextColor.RED)).append(Component.newline()))
                     .append(ChatHelper.formatComponent("Кем выдано: " + (owner.map(v -> "<GRAY>"+v.firstName +" "+v.lastName +"</> (<GOLD>"+v.userName +"</>)").orElse("<AQUA>CONSOLE</>") + "\n")))
                     .append(ChatHelper.formatComponent("Кому выдано: " + (user.map(v -> "<GRAY>"+v.firstName +" "+v.lastName +"</> (<GOLD>"+v.userName +"</>)").orElse("<AQUA>Неизвестно</>") + "\n")))
                     .append(Component.text("Причина: ").append(Component.text(reason).color(NamedTextColor.GRAY)).append(Component.newline()))
                     .append(Component.text(" Нажми для копирования...").color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC));
             return Component.empty()
                     .append(prefix)
-                    .append(Component.text("[" + time + "] ").color(NamedTextColor.GRAY))
+                    .append(Component.text("[" + createTime + "] ").color(NamedTextColor.GRAY))
                     .append(Component.text("✉")
                             .color(NamedTextColor.RED)
                             .hoverEvent(HoverEvent.showText(display))
                             .clickEvent(ClickEvent.copyToClipboard(String.join("\n",
-                                            "Дата выдачи: " + time,
+                                    "Дата выдачи: " + createTime,
+                                            "Действителен до: " + endTime,
                                             "Кем выдано: " + (owner.map(v -> v.firstName +" "+v.lastName + " (" + v.userName + ")").orElse("CONSOLE")),
                                             "Кому выдано: " + (user.map(v -> v.firstName +" "+v.lastName + " (" + v.userName + ")").orElse("Неизвестно")),
                                             "Причина: " + reason
@@ -185,9 +195,9 @@ public class Methods {
                 MySql.args().add("uuid", uuid.toString()).add("owner", owner == null ? "" : owner.toString()).add("reason", reason).add("time", time).build(),
                 callback);
     }
-    public static void aWarnAdd(UUID uuid, String reason, UUID owner, system.Action1<List<Methods.WarnInfo>> callback) {
-        SQL.Async.rawSql("SELECT AWarnCreate(@uuid, @reason, @owner)",
-                MySql.args().add("uuid", uuid.toString()).add("reason", reason).add("owner", owner == null ? null : owner.toString()).build(),
+    public static void aWarnAdd(UUID uuid, String reason, Integer time, UUID owner, system.Action1<List<Methods.WarnInfo>> callback) {
+        SQL.Async.rawSql("SELECT AWarnCreate(@uuid, @reason, @time, @owner)",
+                MySql.args().add("uuid", uuid.toString()).add("reason", reason).add("time", time).add("owner", owner == null ? null : owner.toString()).build(),
                 () -> aWarnList(uuid, callback));
     }
     public static void aWarnList(UUID uuid, system.Action1<List<Methods.WarnInfo>> callback) {

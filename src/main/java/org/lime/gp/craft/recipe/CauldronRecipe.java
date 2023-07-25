@@ -15,6 +15,7 @@ import net.minecraft.world.level.World;
 import org.lime.gp.craft.Crafts;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,9 @@ public class CauldronRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) { return output.create(false, variable); }
+
     @Override public Stream<String> getWhitelistKeys() { return input.stream().flatMap(RecipeSlot::getWhitelistKeys).distinct(); }
 
     @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
@@ -52,7 +55,7 @@ public class CauldronRecipe extends AbstractRecipe {
         List<RecipeItemStack> items = input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
         int count = Math.min(items.size(), slots.size());
         for (int i = 0; i < count; i++) slots.set(i, items.get(i));
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.nms(true)));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.create(true, IOutputVariable.empty())));
     }
 }
 

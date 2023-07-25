@@ -1,14 +1,11 @@
 package org.lime.gp.craft.slot.output;
 
 import com.google.gson.JsonObject;
-import org.bukkit.inventory.ItemStack;
-import org.lime.gp.item.data.IItemCreator;
-import org.lime.gp.item.loot.RandomLoot;
+import net.minecraft.world.item.ItemStack;
 import org.lime.system;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class WeightOutputSlot implements IOutputSlot {
@@ -36,7 +33,6 @@ public class WeightOutputSlot implements IOutputSlot {
         return weights.get(weights.size() - 1).item;
     }
 
-    @Override public ItemStack create() { return random().create(); }
-    @Override public ItemStack apply(ItemStack item, boolean copy) { return random().apply(item, copy); }
-    @Override public net.minecraft.world.item.ItemStack nms(boolean isPreview) { return random().nms(isPreview); }
+    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return random().modify(item, copy, variable); }
+    @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return random().create(isPreview, variable); }
 }

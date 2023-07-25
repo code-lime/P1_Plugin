@@ -25,6 +25,7 @@ import org.lime.gp.craft.Crafts;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeAmountSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.ItemNMS;
 import org.lime.gp.item.Items;
 import org.lime.system;
@@ -37,7 +38,7 @@ public class ClickerRecipe extends AbstractRecipe {
 
     private interface Action {
         Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category);
-        Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom);
+        Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable);
         default boolean matches(ClickerRecipe recipe, IInventory inventory, World world) {
             List<ItemStack> items = inventory.getContents().stream().filter(v -> !v.isEmpty()).toList();
             int length = items.size();
@@ -55,10 +56,10 @@ public class ClickerRecipe extends AbstractRecipe {
                     List<RecipeItemStack> items = recipe.input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
                     int count = Math.min(items.size(), slots.size());
                     for (int i = 0; i < count; i++) slots.set(i, items.get(i));
-                    return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.get(0).nms(true), Component.text(" +" + recipe.clicks + " кликов").color(NamedTextColor.LIGHT_PURPLE))));
+                    return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.get(0).create(true, IOutputVariable.empty()), Component.text(" +" + recipe.clicks + " кликов").color(NamedTextColor.LIGHT_PURPLE))));
                 }
-                @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom) {
-                    return output.stream().map(v -> v.nms(false));
+                @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
+                    return output.stream().map(v -> v.create(false, variable));
                 }
             };
         }
@@ -88,7 +89,7 @@ public class ClickerRecipe extends AbstractRecipe {
                         );
                     });
                 }
-                @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom) {
+                @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
                     org.bukkit.inventory.ItemStack base_item = CraftItemStack.asBukkitCopy(inventory.getItem(0));
                     if (base_item.getItemMeta() instanceof Damageable damageable) {
                         double maxDamage = Items.getMaxDamage(base_item);
@@ -178,7 +179,7 @@ public class ClickerRecipe extends AbstractRecipe {
                                     })
                     ) ;
                 }
-                @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom) {
+                @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
                     if (inventory.getItem(1).isEmpty()) return Stream.of(inventory.getItem(0));
 
                     org.bukkit.inventory.ItemStack base_item = inventory.getItem(0).asBukkitCopy();
@@ -272,11 +273,12 @@ public class ClickerRecipe extends AbstractRecipe {
     @Override public boolean matches(IInventory inventory, World world) {
         return this.action.matches(this, inventory, world);
     }
-    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) {
-        return this.action.assembleList(this, inventory, custom).findFirst().get();
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
+        return this.action.assembleList(this, inventory, custom, variable).findFirst().get();
     }
-    public Stream<ItemStack> assembleList(IInventory inventory, IRegistryCustom custom) {
-        return this.action.assembleList(this, inventory, custom);
+
+    public Stream<ItemStack> assembleList(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
+        return this.action.assembleList(this, inventory, custom, variable);
     }
 
     @Override public NonNullList<ItemStack> getRemainingItems(IInventory inventory) {

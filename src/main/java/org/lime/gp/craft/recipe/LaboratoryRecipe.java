@@ -14,6 +14,8 @@ import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
+import org.lime.gp.craft.slot.output.IOutputVariable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -63,7 +65,8 @@ public class LaboratoryRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int i, int j) { return true; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) { return output.create(false, variable); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
 
     @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
         NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
@@ -79,7 +82,7 @@ public class LaboratoryRecipe extends AbstractRecipe {
             for (int i = 0; i < Math.min(count_dust, 3); i++) slots.set(i + 3, input_dust.get(i));
         }
 
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.nms(true)));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, output.create(true, IOutputVariable.empty())));
     }
 }
 

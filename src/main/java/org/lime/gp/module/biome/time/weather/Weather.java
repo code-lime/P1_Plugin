@@ -164,6 +164,9 @@ public class Weather {
         RandomTickSpeed.setRoundValue(roundValue);
     }
 
+    public static boolean isSeasons() {
+        return seasons;
+    }
     public static SeasonKey getCurrentSeason() {
         return lastSeasonKey;
     }

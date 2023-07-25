@@ -13,6 +13,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
@@ -44,7 +45,7 @@ public class ItemFrameRecipe extends AbstractRecipe {
                     if (recipe.matches(inventory, _world)) {
                         int sec = container.getOrDefault(ITEM_FRAME_RECIPE_SEC, PersistentDataType.INTEGER, 0) + 1;
                         if (recipe.seconds <= sec) {
-                            itemFrame.setItem(recipe.assemble(inventory, _world.registryAccess()).asBukkitCopy());
+                            itemFrame.setItem(recipe.assemble(inventory, _world.registryAccess(), IOutputVariable.empty()).asBukkitCopy());
                             container.remove(ITEM_FRAME_RECIPE_SEC);
                         } else {
                             container.set(ITEM_FRAME_RECIPE_SEC, PersistentDataType.INTEGER, sec);
@@ -74,6 +75,7 @@ public class ItemFrameRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int width, int height) { return true; }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.nms(false); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) { return output.create(false, variable); }
     @Override public Stream<String> getWhitelistKeys() { return input.getWhitelistKeys(); }
 }

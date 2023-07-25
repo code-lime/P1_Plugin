@@ -43,6 +43,7 @@ import org.lime.gp.block.component.list.LaboratoryComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
@@ -366,7 +367,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                                     .location(metadata.location(0.5, 1.2, 0.5))
                                     .spawn();
                             Perms.onRecipeUse(recipe, last_click, canData);
-                            net.minecraft.world.item.ItemStack output = recipe.assemble(inventory, world.registryAccess());
+                            net.minecraft.world.item.ItemStack output = recipe.assemble(inventory, world.registryAccess(), IOutputVariable.of(last_click));
                             LevelModule.onCraft(last_click, CraftItemStack.asCraftMirror(output));
                             Block.popResource(event.getWorld(), event.getPos().above(), output);
                         }, () -> PARTICLE

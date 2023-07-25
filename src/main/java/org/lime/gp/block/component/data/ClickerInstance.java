@@ -31,6 +31,7 @@ import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.recipe.ClickerRecipe;
@@ -247,7 +248,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             can = true;
             if (recipe.clicks > clicks) continue;
             List<ItemStack> drop = new ArrayList<>();
-            ItemStack result = CraftItemStack.asBukkitCopy(recipe.assemble(readonlyInventory, world.registryAccess()));
+            ItemStack result = CraftItemStack.asBukkitCopy(recipe.assemble(readonlyInventory, world.registryAccess(), IOutputVariable.of(player)));
             drop.add(result);
             LevelModule.onCraft(player.getUniqueId(), result);
             Perms.onRecipeUse(recipe, player.getUniqueId(), canData);

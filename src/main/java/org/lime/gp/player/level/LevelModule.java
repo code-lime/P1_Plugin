@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FishHook;
@@ -119,6 +120,23 @@ public class LevelModule implements Listener {
         LevelModule.cache.putAll(cache);
     }
 
+    public static Optional<Integer> getLevel(int userID, int workID) {
+        LevelData data = workData.get(workID);
+        if (data == null) return Optional.empty();
+        int level = LevelRow.getBy(userID, workID).map(value -> value.level).orElse(0);
+        return Optional.of(level);
+    }
+    public static Optional<Integer> getCurrentLevel(UUID uuid) {
+        return UserRow.getBy(uuid)
+                .map(v -> LevelRow.getBy(v.id, v.work).map(value -> value.level).orElse(0));
+    }
+    public static Optional<Integer> getCurrentLevel(UUID uuid, int workID) {
+        LevelData data = workData.get(workID);
+        if (data == null) return Optional.empty();
+        return UserRow.getBy(uuid)
+                .filter(v -> v.work == workID)
+                .map(v -> LevelRow.getBy(v.id, workID).map(value -> value.level).orElse(0));
+    }
     public static Optional<LevelStep> getLevelStep(int userID, int workID) {
         LevelData data = workData.get(workID);
         if (data == null) return Optional.empty();

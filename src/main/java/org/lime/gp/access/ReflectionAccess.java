@@ -12,8 +12,10 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.network.protocol.game.PacketPlayOutLogin;
 import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
 import net.minecraft.resources.MinecraftKey;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ChunkProviderServer;
 import net.minecraft.server.level.PlayerChunk;
 import net.minecraft.server.level.PlayerChunkMap;
@@ -110,6 +112,7 @@ public class ReflectionAccess {
     public static final reflection.field<EnumSet<ClientboundPlayerInfoUpdatePacket.a>> actions_ClientboundPlayerInfoUpdatePacket = reflection.field.<EnumSet<ClientboundPlayerInfoUpdatePacket.a>>ofMojang(ClientboundPlayerInfoUpdatePacket.class, "actions").nonFinal();
     public static final reflection.field<List<ClientboundPlayerInfoUpdatePacket.b>> entries_ClientboundPlayerInfoUpdatePacket = reflection.field.<List<ClientboundPlayerInfoUpdatePacket.b>>ofMojang(ClientboundPlayerInfoUpdatePacket.class, "entries").nonFinal();
     public static final reflection.field<IRegistryCustom.Dimension> synchronizedRegistries_PlayerList = reflection.field.ofMojang(PlayerList.class, "synchronizedRegistries");
+    public static final reflection.field<RegistryOps<NBTBase>> BUILTIN_CONTEXT_OPS_PacketPlayOutLogin = reflection.field.ofMojang(PacketPlayOutLogin.class, "BUILTIN_CONTEXT_OPS");
     public static final reflection.field<byte[]> buffer_ClientboundLevelChunkPacketData = reflection.field.<byte[]>ofMojang(ClientboundLevelChunkPacketData.class, "buffer").nonFinal();
     public static final reflection.field<LongOpenHashSet> sentChunks_PlayerLoaderData_PlayerChunkLoader = reflection.field.ofMojang(PlayerChunkLoader.PlayerLoaderData.class, "sentChunks");
     public static final reflection.field<Double> lastLocX_PlayerLoaderData_PlayerChunkLoader = reflection.field.ofMojang(PlayerChunkLoader.PlayerLoaderData.class, "lastLocX");

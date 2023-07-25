@@ -12,6 +12,8 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftCampfireRecipe;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftRecipe;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftNamespacedKey;
 import org.bukkit.inventory.Recipe;
+import org.lime.gp.craft.slot.output.IOutputVariable;
+
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -32,7 +34,9 @@ public abstract class AbstractRecipe implements IRecipe<IInventory>, IDisplayRec
     @Override public ItemStack getToastSymbol() { return new ItemStack(Blocks.BEDROCK); }
     @Override public Recipe toBukkitRecipe() { return new CraftCampfireRecipe(CraftNamespacedKey.fromMinecraft(key), new org.bukkit.inventory.ItemStack(Material.STONE, 1), CraftRecipe.toBukkit(RecipeItemStack.EMPTY), 0, 0); }
     @Override public RecipeSerializer<?> getSerializer() { return null; }
-    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
+
+    public abstract ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable);
+    @Override public final ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
     public abstract Stream<String> getWhitelistKeys();
     private List<RecipeCrafting> displayRecipe = null;
     @Override public Stream<RecipeCrafting> getDisplayRecipe(IRegistryCustom custom) {

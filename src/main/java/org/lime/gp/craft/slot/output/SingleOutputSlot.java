@@ -1,17 +1,12 @@
 package org.lime.gp.craft.slot.output;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.bukkit.Material;
+import net.minecraft.world.item.ItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
-import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.lime;
-import org.lime.system;
 
 import java.util.Optional;
 
@@ -31,24 +26,23 @@ public class SingleOutputSlot implements IOutputSlot {
         this(json.getAsString().split("\\*"));
     }
 
-    @Override public ItemStack create() {
+    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) {
         return Items.getItemCreator(key)
-                .map(v -> v.createItem(amount))
+                .map(v -> Optional.ofNullable(v instanceof ItemCreator c ? c : null).map(i -> i.apply(CraftItemStack.asCraftMirror(copy ? item.copy() : item), amount, Apply.of())).orElseGet(() -> v.createItem(amount)))
+                .map(CraftItemStack::asNMSCopy)
                 .orElseGet(() -> {
                     lime.logOP("CRAFT OUTPUT ITEM '" + key + "' NOT FOUNDED!");
-                    return new ItemStack(Material.STONE, 0);
-                });
-    }
-    @Override public ItemStack apply(ItemStack item, boolean copy) {
-        return Items.getItemCreator(key)
-                .map(v -> Optional.ofNullable(v instanceof ItemCreator c ? c : null).map(i -> i.apply(copy ? item.clone() : item, amount, Apply.of())).orElseGet(() -> v.createItem(amount)))
-                .orElseGet(() -> {
-                    lime.logOP("CRAFT OUTPUT ITEM '" + key + "' NOT FOUNDED!");
-                    return new ItemStack(Material.STONE, 0);
+                    return new ItemStack(net.minecraft.world.item.Items.STONE, 0);
                 });
     }
 
-    @Override public net.minecraft.world.item.ItemStack nms(boolean isPreview) {
-        return CraftItemStack.asNMSCopy(create());
+    @Override public net.minecraft.world.item.ItemStack create(boolean isPreview, IOutputVariable variable) {
+        return Items.getItemCreator(key)
+                .map(v -> v.createItem(amount))
+                .map(CraftItemStack::asNMSCopy)
+                .orElseGet(() -> {
+                    lime.logOP("CRAFT OUTPUT ITEM '" + key + "' NOT FOUNDED!");
+                    return new ItemStack(net.minecraft.world.item.Items.STONE, 0);
+                });
     }
 }

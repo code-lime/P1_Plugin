@@ -86,6 +86,10 @@ public class ChatMessages implements Listener {
                         .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.trydo", Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
+                .addCommand("stats", v -> v
+                        .withCheck(_v -> _v instanceof Player)
+                        .withExecutor(sender -> MenuCreator.show((Player) sender, "lang.stats"))
+                )
                 .addCommand("chat.test", v -> v
                         .withCheck(ServerOperator::isOp)
                         .withExecutor((sender, args) -> {

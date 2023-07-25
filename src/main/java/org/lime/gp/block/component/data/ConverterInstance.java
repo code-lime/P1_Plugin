@@ -39,6 +39,7 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.craft.RecipesBook;
 import org.lime.gp.craft.recipe.ConverterRecipe;
 import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
@@ -200,7 +201,8 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         List<net.minecraft.world.item.ItemStack> items = NonNullList.withSize(5 * 9, net.minecraft.world.item.ItemStack.EMPTY);
         items.set(0, nms_head);
         ReadonlyInventory view = ReadonlyInventory.ofNMS(items);
-        UUID uuid = event.player().getUUID();
+        EntityHuman human = event.player();
+        UUID uuid = human.getUUID();
         ConverterComponent component = component();
 
         World world = event.world();
@@ -208,7 +210,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         List<system.Toast2<ConverterRecipe, net.minecraft.world.item.ItemStack>> output = Recipes.CONVERTER.getAllRecipes(canData)
                 .filter(v -> v.converter_type.equals(component.converter_type))
                 .filter(v -> v.matches(view, world))
-                .flatMap(v -> v.output.keySet().stream().map(_v -> system.toast(v, CraftItemStack.asNMSCopy(v.replace ? _v.create() : _v.apply(head, true)))))
+                .flatMap(v -> v.output.keySet().stream().map(_v -> system.toast(v, v.replace ? _v.create(false, IOutputVariable.of(human)) : _v.modify(nms_head, true, IOutputVariable.of(human)))))
                 .toList();
         int maxPage = (output.size() - 1) / (4 * 9);
 

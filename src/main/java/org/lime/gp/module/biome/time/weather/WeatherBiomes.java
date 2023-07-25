@@ -171,8 +171,9 @@ public class WeatherBiomes {
         return byteBuf;
     }
     public static void onPacket(ClientboundLevelChunkWithLightPacket packet, PacketEvent event) {
-        boolean isDebug = packet.getX() == 0 && packet.getZ() == 0;
-        if (isDebug) lime.logOP("Begin update chunk");
+        if (!Weather.isSeasons()) return;
+        //boolean isDebug = packet.getX() == 0 && packet.getZ() == 0;
+        //if (isDebug) lime.logOP("Begin update chunk");
         ClientboundLevelChunkPacketData change = packet.getChunkData();
         PacketDataSerializer buffer = change.getReadBuffer();
         WorldServer world = ((CraftWorld)event.getPlayer().getWorld()).getHandle();
@@ -180,20 +181,18 @@ public class WeatherBiomes {
             for (int x = 0; x < 4; x++)
                 for (int y = 0; y < 4; y++)
                     for (int z = 0; z < 4; z++) {
-                        boolean isDebugSection = isDebug && section.bottomBlockY() == ChunkSection.getBottomBlockY(4) && x == 0 && y == 0 && z == 0;
+                        //boolean isDebugSection = isDebug && section.bottomBlockY() == ChunkSection.getBottomBlockY(4) && x == 0 && y == 0 && z == 0;
                         BiomeHolder holder = section.getNoiseBiome(x,y,z).unwrapKey()
-                                .filter(isDebugSection ? ExtMethods.filterLog("Full key: {0}") : v -> true)
+                                //.filter(isDebugSection ? ExtMethods.filterLog("Full key: {0}") : v -> true)
                                 .map(v -> v.location().toString())
-                                .filter(isDebugSection ? ExtMethods.filterLog("Location: {0} / Season: " + Weather.getCurrentSeason().key) : v -> true)
+                                //.filter(isDebugSection ? ExtMethods.filterLog("Location: {0} / Season: " + Weather.getCurrentSeason().key) : v -> true)
                                 .map(biomeName -> seasonToBiomeID.get(system.toast(biomeName, Weather.getCurrentSeason())))
-                                .filter(isDebugSection ? ExtMethods.filterLog("Biome index: {0}") : v -> true)
+                                //.filter(isDebugSection ? ExtMethods.filterLog("Biome index: {0}") : v -> true)
                                 .map(customBiomeMap::get)
-                                .filter(isDebugSection ? ExtMethods.filterLog("Biome: {0}") : v -> true)
+                                //.filter(isDebugSection ? ExtMethods.filterLog("Biome: {0}") : v -> true)
                                 .orElse(null);
                         if (holder == null) continue;
-                        if (isDebugSection) {
-                            lime.logOP("Holder: " + holder.vanillaKey + "#" + holder.seasonKey.key);
-                        }
+                        //if (isDebugSection) lime.logOP("Holder: " + holder.vanillaKey + "#" + holder.seasonKey.key);
                         section.setBiome(x, y, z, holder);
                     }
         }).toList();
@@ -201,7 +200,7 @@ public class WeatherBiomes {
         PacketDataSerializer serializer = new PacketDataSerializer(getWriteBuffer(bytes));
         for (ChunkSection section : sections) section.write(serializer, null);
         ReflectionAccess.buffer_ClientboundLevelChunkPacketData.set(change, bytes);
-        if (isDebug) lime.logOP("End update chunk");
+        //if (isDebug) lime.logOP("End update chunk");
     }
 
     private static JsonElement colorsToHex(JsonElement json) {
