@@ -19,8 +19,11 @@ import net.kyori.adventure.text.format.TextColor;
 public class FramePartial extends BlockPartial {
     private final ItemStack item;
     private final net.minecraft.world.item.ItemStack nms_item;
-    public final InfoComponent.Rotation.Value rotation;
-    public final boolean show;
+    private final InfoComponent.Rotation.Value rotation;
+    private final boolean show;
+
+    public InfoComponent.Rotation.Value rotation() { return rotation; }
+    public boolean show() { return show; }
 
     public FramePartial(int distanceChunk, JsonObject json) {
         super(distanceChunk, json);

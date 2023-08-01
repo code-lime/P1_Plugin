@@ -12,6 +12,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutRecipeUpdate;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.stats.RecipeBookServer;
 import net.minecraft.world.EnumInteractionResult;

@@ -115,6 +115,19 @@ public class JavaScript {
         public void convertSpCoin(String uuid, int count, system.Action1<Integer> callback) {
             SPCoinDonate.convert(UUID.fromString(uuid), count, callback);
         }
+
+        public boolean hasTag(String uuid, String tag) {
+            Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+            return player != null && player.getScoreboardTags().contains(tag);
+        }
+        public boolean addTag(String uuid, String tag) {
+            Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+            return player != null && player.addScoreboardTag(tag);
+        }
+        public boolean removeTag(String uuid, String tag) {
+            Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+            return player != null && player.removeScoreboardTag(tag);
+        }
     }
 
     public static Optional<Boolean> isJsTrue(String js) { return JavaScript.js.isJsTrue(js); }

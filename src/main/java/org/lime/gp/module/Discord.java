@@ -1,20 +1,18 @@
 package org.lime.gp.module;
 
 import com.google.gson.JsonObject;
-import github.scarsz.discordsrv.DiscordSRV;
-import github.scarsz.discordsrv.api.Subscribe;
-import github.scarsz.discordsrv.api.events.DiscordReadyEvent;
-import github.scarsz.discordsrv.dependencies.jda.api.EmbedBuilder;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.*;
-import github.scarsz.discordsrv.dependencies.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import github.scarsz.discordsrv.dependencies.jda.api.events.message.priv.PrivateMessageReceivedEvent;
-import github.scarsz.discordsrv.dependencies.jda.api.hooks.ListenerAdapter;
-import github.scarsz.discordsrv.dependencies.jda.api.managers.WebhookManager;
-import github.scarsz.discordsrv.dependencies.jda.api.requests.RestAction;
-import github.scarsz.discordsrv.dependencies.jda.internal.managers.WebhookManagerImpl;
-import github.scarsz.discordsrv.dependencies.jda.internal.requests.restaction.WebhookMessageActionImpl;
-import github.scarsz.discordsrv.util.DiscordUtil;
-import github.scarsz.discordsrv.util.WebhookUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.requests.RestAction;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -47,9 +45,9 @@ public class Discord implements Listener {
         private static final ListenDS discordsrvListener = new ListenDS();
         private static final Consumer<? super Message> TIMED_MESSAGE = msg -> msg.delete().queueAfter(8, TimeUnit.SECONDS);
 
-        @Override public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent e) {
+        private void onPrivateMessage(MessageReceivedEvent e) {
             if (e.getAuthor().isBot()) return;
-            DiscordRow row = Tables.DISCORD_TABLE.get(e.getChannel().getUser().getIdLong() + "").orElse(null);
+            DiscordRow row = Tables.DISCORD_TABLE.get(String.valueOf(e.getChannel().asPrivateChannel().getUser().getIdLong())).orElse(null);
             if (row == null) return;
             Message message = e.getMessage();
             Message ref = message.getReferencedMessage();
@@ -61,51 +59,51 @@ public class Discord implements Listener {
             MessageEmbed embed = embeds.get(0);
             Message.Attachment attachment = attachments.get(0);
             Optional.ofNullable(embed.getFooter())
-                        .map(MessageEmbed.Footer::getText)
-                        .ifPresent(footer -> {
-                            switch (footer) {
-                                case "gp:voice":
-                                    Optional.ofNullable(attachment.getFileExtension())
-                                            .ifPresent(ext -> {
-                                                RecorderInstance.AudioType type;
-                                                switch (ext) {
-                                                    case "mp3" -> type = RecorderInstance.AudioType.MP3;
-                                                    case "wav" -> type = RecorderInstance.AudioType.WAV;
-                                                    default -> {
-                                                        message.reply("Ошибка! Поддерживаемые форматы музыкальных файлов только `*.mp3` и `*.wav`").queue();
-                                                        return;
-                                                    }
+                    .map(MessageEmbed.Footer::getText)
+                    .ifPresent(footer -> {
+                        switch (footer) {
+                            case "gp:voice":
+                                Optional.ofNullable(attachment.getFileExtension())
+                                        .ifPresent(ext -> {
+                                            RecorderInstance.AudioType type;
+                                            switch (ext) {
+                                                case "mp3" -> type = RecorderInstance.AudioType.MP3;
+                                                case "wav" -> type = RecorderInstance.AudioType.WAV;
+                                                default -> {
+                                                    message.reply("Ошибка! Поддерживаемые форматы музыкальных файлов только `*.mp3` и `*.wav`").queue();
+                                                    return;
                                                 }
-                                                system.LockToast2<Boolean, Message> convertBIF = system.<Boolean, Message>toast(false, null).lock();
-                                                Methods.recorderFill(row.uuid, type, attachment.getUrl(), attachment.getFileName(), (action, reason) -> {
-                                                    if (action == Methods.SoundFillStart.CONVERT_BIF) {
-                                                        convertBIF.invoke(kv -> {
-                                                            if (kv.val1 == null) {
-                                                                if (kv.val0) return;
-                                                                kv.val0 = true;
-                                                                message.reply(reason).queue(convertBIF::set1);
-                                                            } else {
-                                                                kv.val1.editMessage(reason).queue();
-                                                            }
-                                                        });
-                                                        return;
-                                                    }
-                                                    message.reply(switch (action) {
-                                                        case ERROR -> "Ошибка! " + reason;
-                                                        case CHECK -> "Проверка активных запросов... 0 / 5";
-                                                        case DOWNLOAD -> "Скачивание файла... 1 / 5";
-                                                        case CONVERT -> "Конвертация файла... 2 / 5";
-                                                        case SAVE -> "Сохранение файла... 4 / 5";
-                                                        case DONE -> "Успешно! 5 / 5";
-                                                        default -> "";
-                                                    }).queue();
-                                                });
+                                            }
+                                            system.LockToast2<Boolean, Message> convertBIF = system.<Boolean, Message>toast(false, null).lock();
+                                            Methods.recorderFill(row.uuid, type, attachment.getUrl(), attachment.getFileName(), (action, reason) -> {
+                                                if (action == Methods.SoundFillStart.CONVERT_BIF) {
+                                                    convertBIF.invoke(kv -> {
+                                                        if (kv.val1 == null) {
+                                                            if (kv.val0) return;
+                                                            kv.val0 = true;
+                                                            message.reply(reason).queue(convertBIF::set1);
+                                                        } else {
+                                                            kv.val1.editMessage(reason).queue();
+                                                        }
+                                                    });
+                                                    return;
+                                                }
+                                                message.reply(switch (action) {
+                                                    case ERROR -> "Ошибка! " + reason;
+                                                    case CHECK -> "Проверка активных запросов... 0 / 5";
+                                                    case DOWNLOAD -> "Скачивание файла... 1 / 5";
+                                                    case CONVERT -> "Конвертация файла... 2 / 5";
+                                                    case SAVE -> "Сохранение файла... 4 / 5";
+                                                    case DONE -> "Успешно! 5 / 5";
+                                                    default -> "";
+                                                }).queue();
                                             });
-                                    break;
-                            }
-                        });
+                                        });
+                                break;
+                        }
+                    });
         }
-        @Override public void onGuildMessageReceived(@Nonnull GuildMessageReceivedEvent e) {
+        private void onGuildMessage(MessageReceivedEvent e) {
             if (e.getChannel().getIdLong() != auth_channel) return;
             if (e.getAuthor().isBot()) return;
             e.getMessage().delete().queueAfter(1, TimeUnit.SECONDS);
@@ -114,7 +112,7 @@ public class Discord implements Listener {
                 id = Integer.parseInt(e.getMessage().getContentRaw());
             }
             catch (Exception ignored) {
-                e.getChannel().sendMessage("Ошибка! Введите просто число!").queue(TIMED_MESSAGE);
+                e.getMessage().reply("Ошибка! Введите просто число!").queue(TIMED_MESSAGE);
                 return;
             }
             Player _player;
@@ -127,31 +125,31 @@ public class Discord implements Listener {
             Player player = _player;
 
             if (player == null) {
-                e.getChannel().sendMessage("Данный пользователь не подключен к серверу").queue(TIMED_MESSAGE);
+                e.getMessage().reply("Данный пользователь не подключен к серверу").queue(TIMED_MESSAGE);
                 return;
             }
             String nickName = player.getName();
             UUID uuid = player.getUniqueId();
             long discord_id = e.getAuthor().getIdLong();
-            String discord_name = e.getAuthor().getAsTag();
+            String discord_name = e.getAuthor().getName();
             String[] discord_split = discord_name.split("#");
             String discord_display_name = discord_split.length == 2 && discord_split[1].equals("0000") ? discord_split[0] : discord_name;
             if (auth_callback.containsKey(uuid)) {
-                e.getChannel().sendMessage("Данный пользователь уже ожидает подтверждения").queue(TIMED_MESSAGE);
+                e.getMessage().reply("Данный пользователь уже ожидает подтверждения").queue(TIMED_MESSAGE);
                 return;
             }
-            Tables.DISCORD_TABLE.getBy(v -> v.discordID == discord_id || v.uuid.equals(uuid)).ifPresentOrElse(row -> e.getChannel().sendMessage(row.discordID == discord_id
-                    ? "К данному дискорду уже привязан аккаунт"
-                    : "К данному аккаунту уже привязан дискорд").queue(TIMED_MESSAGE),
+            Tables.DISCORD_TABLE.getBy(v -> v.discordID == discord_id || v.uuid.equals(uuid)).ifPresentOrElse(row -> e.getMessage().reply(row.discordID == discord_id
+                            ? "К данному дискорду уже привязан аккаунт"
+                            : "К данному аккаунту уже привязан дискорд").queue(TIMED_MESSAGE),
                     () -> {
-                        e.getChannel().sendMessage("Подтвердите аккаунт '"+nickName+"' в игре").queue(TIMED_MESSAGE);
+                        e.getMessage().reply("Подтвердите аккаунт '"+nickName+"' в игре").queue(TIMED_MESSAGE);
                         Apply args = Apply.of()
                                 .add("discord_name", discord_display_name)
                                 .add("discord_id", String.valueOf(discord_id));
                         LangMessages.Message.Discord_Check.sendMessage(player, args);
 
                         auth_callback.put(uuid, system.toast(() -> Methods.addDiscord(discord_id, uuid, () -> {
-                            e.getChannel().sendMessage("<@"+discord_id+"> связан с ником " + nickName).queue(TIMED_MESSAGE);
+                            e.getMessage().reply("<@"+discord_id+"> связан с ником " + nickName).queue(TIMED_MESSAGE);
 
                             Player __player = Bukkit.getPlayer(uuid);
                             if (__player == null) return;
@@ -160,8 +158,9 @@ public class Discord implements Listener {
                     });
         }
 
-        @Subscribe public void discordReadyEvent(DiscordReadyEvent event) {
-            DiscordUtil.getJda().addEventListener(this);
+        @Override public void onMessageReceived(@NotNull MessageReceivedEvent e) {
+            if (e.isFromType(ChannelType.PRIVATE)) onPrivateMessage(e);
+            else if (e.isFromType(ChannelType.TEXT) && e.isFromGuild()) onGuildMessage(e);
         }
     }
 
@@ -184,15 +183,43 @@ public class Discord implements Listener {
                         .withInvoke(json -> {
                             debug = json.has("debug") && json.get("debug").getAsBoolean();
                             update = json.get("update").getAsInt();
+                            String token = json.get("token").getAsString();
                             main_guild = json.get("main_guild").getAsLong();
                             auth_channel = json.get("auth_channel").getAsLong();
                             confirmed_role = json.get("confirmed_role").getAsLong();
                             online_role = json.get("online_role").getAsLong();
                             gift_role = json.get("gift_role").getAsLong();
+                            if (jda != null) jda.shutdown();
+                            if (token.isEmpty()) return;
+                            jda = JDABuilder.createDefault(token)
+                                    .enableIntents(
+                                            GatewayIntent.GUILD_MEMBERS,
+                                            GatewayIntent.GUILD_MODERATION,
+                                            GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
+                                            GatewayIntent.GUILD_WEBHOOKS,
+                                            GatewayIntent.GUILD_INVITES,
+                                            GatewayIntent.GUILD_VOICE_STATES,
+                                            GatewayIntent.GUILD_PRESENCES,
+                                            GatewayIntent.GUILD_MESSAGES,
+                                            GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                                            GatewayIntent.GUILD_MESSAGE_TYPING,
+
+                                            GatewayIntent.DIRECT_MESSAGES,
+                                            GatewayIntent.DIRECT_MESSAGE_REACTIONS,
+                                            GatewayIntent.DIRECT_MESSAGE_TYPING,
+
+                                            GatewayIntent.MESSAGE_CONTENT,
+                                            GatewayIntent.SCHEDULED_EVENTS,
+
+                                            GatewayIntent.AUTO_MODERATION_CONFIGURATION,
+                                            GatewayIntent.AUTO_MODERATION_EXECUTION
+                                    ).build();
+                            jda.addEventListener(ListenDS.discordsrvListener);
                         })
                         .withDefault(system.json.object()
                                 .add("debug", false)
                                 .add("update", 5 * 20)
+                                .add("token", "")
                                 .add("main_guild", 870190631824289863L)
                                 .add("auth_channel", 0)
                                 .add("confirmed_role", 870190631824289866L)
@@ -202,11 +229,16 @@ public class Discord implements Listener {
                         ));
     }
 
-    public static void uninit() {
-        DiscordSRV.api.unsubscribe(ListenDS.discordsrvListener);
+    private static JDA jda = null;
+    private static JDA getJDA() {
+        return jda;
     }
+
+    public static void uninit() {
+        if (jda != null) jda.shutdown();
+    }
+    private static String lastStatus = "";
     public static void init() {
-        DiscordSRV.api.subscribe(ListenDS.discordsrvListener);
         AnyEvent.addEvent("discord.auth", AnyEvent.type.none, player -> {
             system.Toast2<system.Action0, Long> callback = auth_callback.remove(player.getUniqueId());
             if (callback == null) return;
@@ -232,6 +264,12 @@ public class Discord implements Listener {
                 LangMessages.Message.Discord_Timeout.sendMessage(player);
                 return true;
             });
+            JDA jda = getJDA();
+            if (jda == null) return;
+            String status = "Онлайн: " + Bukkit.getOnlinePlayers().size();
+            if (status.equals(lastStatus)) return;
+            lastStatus = status;
+            jda.getPresence().setPresence(OnlineStatus.ONLINE, Activity.watching(status));
         }, 5);
         lime.once(Discord::nextUpdate, 5);
     }
@@ -245,10 +283,9 @@ public class Discord implements Listener {
     }
 
     public static void sendRecord(long discord_id) {
-        if (!DiscordSRV.getPlugin().isEnabled()) return;
-        DiscordSRV.getPlugin()
-                .getJda()
-                .getGuilds()
+        JDA jda = getJDA();
+        if (jda == null) return;
+        jda.getGuilds()
                 .stream()
                 .map(v -> v.getMemberById(discord_id))
                 .flatMap(Stream::ofNullable)
@@ -270,9 +307,10 @@ public class Discord implements Listener {
 
     private static Map<String, RestAction<Void>> update(long discord_id, String user_name, List<Long> discord_roles, UUID uuid) {
         HashMap<String, RestAction<Void>> actions = new HashMap<>();
-        if (!DiscordSRV.getPlugin().isEnabled()) return actions;
+        JDA jda = getJDA();
+        if (jda == null) return actions;
         String main_prefix = main_guild + ":";
-        DiscordSRV.getPlugin().getJda().getGuilds().forEach(guild -> {
+        jda.getGuilds().forEach(guild -> {
             String prefix = guild.getId() + ":";
             update(guild, discord_id, user_name, prefix.equals(main_prefix) ? discord_roles : Collections.emptyList(), uuid)
                     .forEach((k,v) -> actions.put(prefix + k, v));
@@ -340,7 +378,7 @@ public class Discord implements Listener {
         return actions;
     }
     public static void reset(long discord_id) {
-        Methods.discordClear(discord_id, () -> DiscordSRV.getPlugin().getJda().getGuilds().forEach(guild -> {
+        Methods.discordClear(discord_id, () -> Optional.ofNullable(getJDA()).ifPresent(jda -> jda.getGuilds().forEach(guild -> {
             Member member = guild.getMemberById(discord_id);
             if (member == null) return;
 
@@ -352,7 +390,7 @@ public class Discord implements Listener {
             role_list.keySet().forEach(_roleId -> delRoles.add(guild.getRoleById(_roleId)));
             guild.modifyMemberRoles(member, new ArrayList<>(), delRoles).queue();
             if (!member.isOwner()) member.modifyNickname(null).queue();
-        }));
+        })));
     }
 
     private static RestAction<Void> combine(Collection<RestAction<Void>> actions) {
@@ -413,8 +451,9 @@ public class Discord implements Listener {
     private static final HashMap<UUID, system.Toast2<system.Action0, Long>> auth_callback = new HashMap<>();
 
     public static void sendMessageToChannel(long channelID, String message) {
-        if (!DiscordSRV.getPlugin().isEnabled()) return;
-        DiscordSRV.getPlugin().getJda().getTextChannelById(channelID).sendMessage(message).queue();
+        JDA jda = getJDA();
+        if (jda == null) return;
+        jda.getTextChannelById(channelID).sendMessage(message).queue();
     }
 
     public static void sendMessageToWebhook(String webhook, String message) {

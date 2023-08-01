@@ -28,7 +28,7 @@ import com.google.gson.JsonObject;
         all;
 
         public static Stream<TableDisplaySetting.TableType> all() {
-            return Stream.of(TableType.converter, TableType.laboratory, TableType.clicker);
+            return Stream.of(TableType.inventory, TableType.converter, TableType.laboratory, TableType.clicker, TableType.crops);
         }
     }
 

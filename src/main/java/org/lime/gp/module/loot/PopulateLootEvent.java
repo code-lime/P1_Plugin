@@ -3,12 +3,15 @@ package org.lime.gp.module.loot;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.IInventory;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.storage.loot.*;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameter;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameterSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameterSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParameters;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
@@ -17,6 +20,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.filter.data.IFilterParameter;
 import org.lime.reflection;
 
 import java.util.*;
@@ -89,9 +93,9 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
                 .withLuck(context.getLuck());
         LootContextParameterSet.Builder set = LootContextParameterSet.builder();
         Parameters.all().values().forEach(param -> {
-            if (context.hasParam(param)) {
-                Parameters.appendTo(param, context, builder);
-                set.required(param);
+            if (context.hasParam(param.nms())) {
+                Parameters.appendTo(param.nms(), context, builder);
+                set.required(param.nms());
             }
         });
         ReflectionAccess.dynamicDrops_LootTableInfo.get(context).forEach(builder::withDynamicDrop);
@@ -103,7 +107,24 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
     public void addItem(org.bukkit.inventory.ItemStack item) { this.append_items.add(item); }
     public void addItems(Collection<org.bukkit.inventory.ItemStack> items) { this.append_items.addAll(items); }
 
-    public net.minecraft.world.level.World getWorld() { return context.getLevel(); }
+    public net.minecraft.world.level.World world() { return context.getLevel(); }
+    public Optional<IBlockData> blockData() { return getOptional(LootContextParameters.BLOCK_STATE); }
+
+    @Override public Optional<Collection<String>> tags() { return getOptional(LootContextParameters.THIS_ENTITY).map(Entity::getTags); }
+
+    @Override public boolean has(IFilterParameter<IPopulateLoot, ?> parameter) {
+        return LootParameter.of(parameter).map(this::has).orElse(false);
+    }
+    @Override public <TValue> TValue get(IFilterParameter<IPopulateLoot, TValue> parameter) {
+        return LootParameter.of(parameter).map(this::get).orElseThrow(() -> new NoSuchElementException(parameter.name()));
+    }
+    @Override public <TValue> Optional<TValue> getOptional(IFilterParameter<IPopulateLoot, TValue> parameter) {
+        return LootParameter.of(parameter).flatMap(this::getOptional);
+    }
+    @Override public <TValue> TValue getOrDefault(IFilterParameter<IPopulateLoot, TValue> parameter, TValue def) {
+        return LootParameter.of(parameter).flatMap(this::getOptional).orElse(def);
+    }
+
     public World getCraftWorld() { return context.getLevel().getWorld(); }
 
     public boolean has(LootContextParameter<?> parameter) { return context.hasParam(parameter); }

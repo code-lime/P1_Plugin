@@ -24,6 +24,8 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerAttackStrengthResetEvent;
 import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.entity.projectile.EntityProjectile;
+import net.minecraft.world.entity.projectile.EntityThrownTrident;
 import net.minecraft.world.item.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Location;
@@ -33,10 +35,12 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftTrident;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -65,6 +69,7 @@ import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.inventory.WalletInventory;
 
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -487,13 +492,28 @@ public class Items implements Listener {
     public static int getMaxDamage(ItemStack item) {
         return CraftItemStack.asNMSCopy(item).getMaxDamage();
     }
+
+    public static void hurt(net.minecraft.world.item.ItemStack item, EntityPlayer player, int amount, EnumItemSlot slot) {
+        item.hurtAndBreak(amount, player, e2 -> e2.broadcastBreakEvent(slot));
+    }
+    public static void hurt(ItemStack item, Player player, int amount, @Nullable EquipmentSlot slot) {
+        net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
+        hurt(nms, ((CraftPlayer)player).getHandle(), amount, slot == null ? EnumItemSlot.MAINHAND : switch (slot) {
+            case OFF_HAND -> EnumItemSlot.OFFHAND;
+            case FEET -> EnumItemSlot.FEET;
+            case LEGS -> EnumItemSlot.LEGS;
+            case CHEST -> EnumItemSlot.CHEST;
+            case HEAD -> EnumItemSlot.HEAD;
+            default -> EnumItemSlot.MAINHAND;
+        });
+        ExecuteItem.replace(item, CraftItemStack.asBukkitCopy(nms));
+    }
+
     public static void hurt(net.minecraft.world.item.ItemStack item, EntityPlayer player, int amount) {
-        item.hurtAndBreak(amount, player, e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
+        hurt(item, player, amount, EnumItemSlot.MAINHAND);
     }
     public static void hurt(ItemStack item, Player player, int amount) {
-        net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
-        hurt(nms, ((CraftPlayer)player).getHandle(), amount);
-        ExecuteItem.replace(item, CraftItemStack.asBukkitCopy(nms));
+        hurt(item, player, amount, EquipmentSlot.HAND);
     }
 
     @EventHandler public static void on(ItemStackSizeEvent e) {
@@ -547,7 +567,8 @@ public class Items implements Listener {
         net.minecraft.world.item.ItemStack shield = e.getShield();
         Entity damageEntity = e.getSource().getEntity();
         net.minecraft.world.item.ItemStack attack;
-        if (damageEntity instanceof Projectile projectile) attack = ArrowBow.getBowItem(projectile);
+        if (damageEntity instanceof EntityThrownTrident trident) attack = trident.getPickupItem();
+        else if (damageEntity instanceof EntityProjectile projectile) attack = ArrowBow.getBowItem(projectile);
         else if (damageEntity instanceof EntityLiving living) attack = living.getMainHandItem();
         else attack = net.minecraft.world.item.ItemStack.EMPTY;
         if (attack.getUseAnimation() == EnumAnimation.BLOCK) attack = net.minecraft.world.item.ItemStack.EMPTY;

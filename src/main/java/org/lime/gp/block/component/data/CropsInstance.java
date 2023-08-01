@@ -28,6 +28,7 @@ import org.lime.gp.item.settings.list.CropsSetting;
 import org.lime.gp.item.settings.list.TableDisplaySetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
@@ -142,7 +143,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
                 ));
                 String key = "crops/" + Items.getGlobalKeyByItem(head).orElse("none").toLowerCase();
                 LevelModule.onHarvest(uuid, key);
-                for (ItemStack item : LevelModule.getLoot(uuid, key, data.loot, loot).generateFilter(loot)) {
+                for (ItemStack item : ModifyLootTable.getLoot(uuid, key, data.loot, loot).generateLoot(loot)) {
                     net.minecraft.world.item.ItemStack _item = CraftItemStack.asNMSCopy(item);
                     if (handItem.isEmpty()) {
                         player.setItemInHand(hand, _item);
@@ -161,6 +162,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
             age(0);
         } else {
             if (!Items.has(CropsSetting.class, itemStack)) return EnumInteractionResult.PASS;
+            if (!component().filter.check(itemStack)) return EnumInteractionResult.PASS;
             setItem(CraftItemStack.asBukkitCopy(itemStack.copyWithCount(1)), true);
             age(0);
             if (!player.getAbilities().instabuild) {

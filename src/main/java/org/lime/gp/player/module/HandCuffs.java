@@ -22,6 +22,7 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
+import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.menu.MenuCreator;
 

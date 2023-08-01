@@ -26,7 +26,7 @@ public class PartialLoader {
         }
         public Partial build() {
             Partial base = this.base == null ? new NonePartial(distanceChunk) : this.base;
-            childs.forEach(child -> base.variables.add(new Variable(child.val0, child.val1)));
+            childs.forEach(child -> base.variables().add(new Variable(child.val0, child.val1)));
             return base;
         }
     }
@@ -56,23 +56,23 @@ public class PartialLoader {
         distanceBuilder.values()
                 .stream()
                 .map(Builder::build)
-                .sorted(Comparator.<Partial>comparingInt(v -> v.distanceChunk).reversed())
+                .sorted(Comparator.<Partial>comparingInt(Partial::distanceChunk).reversed())
                 .forEach(partials::add);
         partials.stream()
                 .map(Partial::partials)
                 .flatMap(Collection::stream)
-                .forEach(partial -> partialMap.put(partial.uuid, partial));
-        return partials.size() == 0 ? -1 : partials.get(0).distanceChunk;
+                .forEach(partial -> partialMap.put(partial.uuid(), partial));
+        return partials.size() == 0 ? -1 : partials.get(0).distanceChunk();
     }
     public static double loadStatic(BlockInfo creator, List<Partial> load, List<Partial> partials, Map<UUID, Partial> partialMap) {
         load.stream()
-                .sorted(Comparator.<Partial>comparingInt(v -> v.distanceChunk).reversed())
+                .sorted(Comparator.<Partial>comparingInt(Partial::distanceChunk).reversed())
                 .forEach(partials::add);
         partials.stream()
                 .map(Partial::partials)
                 .flatMap(Collection::stream)
-                .forEach(partial -> partialMap.put(partial.uuid, partial));
-        return partials.size() == 0 ? -1 : partials.get(0).distanceChunk;
+                .forEach(partial -> partialMap.put(partial.uuid(), partial));
+        return partials.size() == 0 ? -1 : partials.get(0).distanceChunk();
     }
 }
 

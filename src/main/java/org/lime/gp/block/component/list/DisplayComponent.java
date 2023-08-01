@@ -70,13 +70,13 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
         for (int i = lenght - 1; i >= 0; i--) {
             Partial partial = partials.get(i);
             if (last != null) {
-                int lastDistanceChunk = last.distanceChunk;
-                int delta = partial.distanceChunk - lastDistanceChunk;
+                int lastDistanceChunk = last.distanceChunk();
+                int delta = partial.distanceChunk() - lastDistanceChunk;
                 for (int _i = 1; _i < delta; _i++) {
                     outPartials.put(lastDistanceChunk + _i, last);
                 }
             }
-            if (outPartials.putIfAbsent(partial.distanceChunk, partial) == null) last = partial;
+            if (outPartials.putIfAbsent(partial.distanceChunk(), partial) == null) last = partial;
         }
         return outPartials;
     }

@@ -3,6 +3,10 @@ package org.lime.gp.item;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -17,6 +21,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.system.*;
@@ -34,9 +39,29 @@ public class ExecuteItem implements Listener {
     }
     
     public static void replace(ItemStack original, ItemStack item) {
+        /*lime.logOP(Component.text("REPLACE ")
+                .append(Component.text(original.getType().name())
+                        .hoverEvent(HoverEvent.showText(Component.text(original.toString())))
+                        .clickEvent(ClickEvent.copyToClipboard(original.toString()))
+                        .color(NamedTextColor.AQUA)
+                )
+                .append(Component.text(" TO "))
+                .append(Component.text(item.getType().name())
+                        .hoverEvent(HoverEvent.showText(Component.text(item.toString())))
+                        .clickEvent(ClickEvent.copyToClipboard(item.toString()))
+                        .color(NamedTextColor.AQUA)
+                )
+        );*/
         original.setType(item.getType());
         original.setItemMeta(item.getItemMeta());
         original.setAmount(item.getAmount());
+        /*lime.logOP(Component.text("RESULT: ")
+                .append(Component.text(original.getType().name())
+                        .hoverEvent(HoverEvent.showText(Component.text(original.toString())))
+                        .clickEvent(ClickEvent.copyToClipboard(original.toString()))
+                        .color(NamedTextColor.GOLD)
+                )
+        );*/
     }
 
     private static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {

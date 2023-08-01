@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
-import org.lime.gp.player.module.food.ProxyFoodMetaData;
+import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 
 import com.google.gson.JsonObject;
 

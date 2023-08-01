@@ -7,18 +7,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.lime.gp.block.component.display.partial.list.BlockPartial;
-import org.lime.gp.block.component.display.partial.list.FramePartial;
-import org.lime.gp.block.component.display.partial.list.ModelPartial;
-import org.lime.gp.block.component.display.partial.list.NonePartial;
-import org.lime.gp.block.component.display.partial.list.ViewPartial;
+import org.lime.gp.block.component.display.partial.list.*;
 
 import com.google.gson.JsonObject;
 
 public abstract class Partial {
-    public final UUID uuid;
-    public final int distanceChunk;
-    public final List<Variable> variables = new LinkedList<>();
+    private final UUID uuid;
+    private final int distanceChunk;
+    private final List<Variable> variables = new LinkedList<>();
+
+    public UUID uuid() { return uuid; }
+    public int distanceChunk() { return distanceChunk; }
+    public List<Variable> variables() { return variables; }
 
     public Partial(int distanceChunk, JsonObject json) {
         this.uuid = UUID.randomUUID();
@@ -57,10 +57,20 @@ public abstract class Partial {
     }
 
     public static Partial parse(int distanceChunk, JsonObject json) {
-        if (json.has("model")) return new ModelPartial(distanceChunk, json);
-        else if (json.has("view")) return new ViewPartial(distanceChunk, json);
+        if (json.has("view")) return new ViewPartial(distanceChunk, json);
+        else if (json.has("model")) return new ModelPartial(distanceChunk, json);
         else if (json.has("item")) return new FramePartial(distanceChunk, json);
         else if (json.has("material")) return new BlockPartial(distanceChunk, json);
         else return new NonePartial(distanceChunk, json);
     }
 }
+
+
+
+
+
+
+
+
+
+

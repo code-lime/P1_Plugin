@@ -1,6 +1,5 @@
 package org.lime.gp.player.module;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
@@ -31,9 +30,10 @@ import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.chat.LangMessages;
-import org.lime.gp.player.module.food.ProxyFoodMetaData;
+import org.lime.gp.player.module.drugs.Drugs;
+import org.lime.gp.player.module.needs.thirst.Thirst;
+import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 import org.lime.gp.player.ui.Infection;
-import org.lime.gp.player.ui.Thirst;
 import com.destroystokyo.paper.ParticleBuilder;
 import com.google.gson.JsonPrimitive;
 import org.bukkit.Particle;

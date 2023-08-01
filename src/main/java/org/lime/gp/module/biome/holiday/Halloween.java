@@ -138,7 +138,7 @@ public class Halloween implements Listener {
         if (event.getEntity() instanceof CraftVex vex && vex.getScoreboardTags().contains("halloween")) {
             event.setCancelled(true);
             vex.getHandle().kill();
-            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(item_key, v -> v.setCount((int)count.getValue(64)))
+            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(item_key, v -> v.setCount(count.getIntValue(64)))
                     .ifPresent(item -> Items.dropGiveItem(event.getDamageOwner(), item, true))
             );
         }

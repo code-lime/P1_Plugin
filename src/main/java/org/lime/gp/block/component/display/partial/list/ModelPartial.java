@@ -9,7 +9,7 @@ import org.lime.gp.block.component.display.partial.PartialEnum;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class ModelPartial extends FramePartial {
+public class ModelPartial extends FramePartial implements IModelPartial {
     private final String model;
     private Model generic = null;
 

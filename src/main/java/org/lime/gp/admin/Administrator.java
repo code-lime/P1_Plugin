@@ -1,6 +1,5 @@
 package org.lime.gp.admin;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
@@ -33,11 +32,11 @@ import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.*;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.gp.player.module.food.ProxyFoodMetaData;
+import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 import org.lime.gp.player.voice.Voice;
 import org.lime.system;
 import org.lime.gp.player.ui.CustomUI;
-import org.lime.gp.player.ui.Thirst;
+import org.lime.gp.player.module.needs.thirst.Thirst;
 import org.lime.gp.chat.ChatHelper;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -453,6 +452,7 @@ public class Administrator implements Listener {
                     tags.remove("leg.broken");
                     SleepSaturation.reset(player);
                     if (isImmortality) CustomUI.TextUI.show(player, "[Бессмертие]", 15);
+                    if (Death.isDamageLay(uuid)) Death.up(uuid);
                     player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                     ProxyFoodMetaData.ofPlayer(player)
                             .ifPresent(food -> {

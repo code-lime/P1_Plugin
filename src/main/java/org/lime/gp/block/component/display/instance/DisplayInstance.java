@@ -34,7 +34,7 @@ import org.lime.gp.block.component.display.invokable.BlockUpdateInvokable;
 import org.lime.gp.block.component.display.partial.Partial;
 import org.lime.gp.block.component.display.partial.list.BlockPartial;
 import org.lime.gp.block.component.display.partial.list.FramePartial;
-import org.lime.gp.block.component.display.partial.list.ModelPartial;
+import org.lime.gp.block.component.display.partial.list.IModelPartial;
 import org.lime.gp.block.component.display.partial.list.ViewPartial;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.extension.ExtMethods;
@@ -48,7 +48,6 @@ import org.lime.system;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Stream;
 
 public final class DisplayInstance extends BlockInstance implements CustomTileMetadata.Shapeable, CustomTileMetadata.Tickable, CustomTileMetadata.AsyncTickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable {
     static int TIMEOUT_TICKS = 20;
@@ -258,9 +257,9 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                             ? orSync(metadata, uuid, player, variables, null, v)
                             : orSync(metadata, uuid, player, variables, getPartial(distanceChunk, variables).orElse(null), v);
                         if (partial == null) return null;
-                        if (partial instanceof FramePartial frame && frame.show) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation, frame.uuid));
-                        if (partial instanceof ViewPartial view && view.show) viewMap.put(uuid, ItemDisplayObject.of(pos.toLocation(world), view.nms(variables), view.rotation, view.uuid));
-                        if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
+                        if (partial instanceof FramePartial frame && frame.show()) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation(), frame.uuid()));
+                        if (partial instanceof ViewPartial view && view.show()) viewMap.put(uuid, ItemDisplayObject.of(pos.toLocation(world), view.nms(variables), view));
+                        if (partial instanceof IModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
                                 new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
                                 _k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
                         ).addViewer(uuid));

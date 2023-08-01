@@ -32,7 +32,7 @@ public final class LootComponent extends ComponentStatic<JsonObject> implements 
         json.getAsJsonObject("items").entrySet().forEach(kv -> {
             items.put(kv.getKey(), kv.getValue().getAsInt());
             if (Items.getItemCreator(kv.getKey()).isPresent()) return;
-            lime.logOP("[Warning] Key of item in loot '" + kv.getKey() + "' not founded!");
+            lime.logOP("[Warning] Key of item in spawn '" + kv.getKey() + "' not founded!");
         });
         this.items = items;
         if (json.has("args"))
@@ -68,7 +68,7 @@ public final class LootComponent extends ComponentStatic<JsonObject> implements 
                 .map(kv -> Items.getItemCreator(kv.getKey())
                         .map(v -> v.createItem(kv.getValue(), modify))
                         .or(() -> {
-                            lime.logOP("[Warning] Key of item in loot '" + kv.getKey() + "' not founded!");
+                            lime.logOP("[Warning] Key of item in spawn '" + kv.getKey() + "' not founded!");
                             return Optional.empty();
                         })
                 )

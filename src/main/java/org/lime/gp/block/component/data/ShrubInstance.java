@@ -10,11 +10,10 @@ import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
-import org.bukkit.inventory.ItemStack;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.list.ShrubComponent;
-import org.lime.gp.item.Items;
 import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.player.level.LevelModule;
 
@@ -51,8 +50,8 @@ public class ShrubInstance extends BaseAgeableInstance<ShrubComponent> implement
         ));
         String key = "shrub/" + component.info().getKey().toLowerCase();
         LevelModule.onHarvest(uuid, key);
-        LevelModule.getLoot(uuid, key, component.loot, loot)
-                .generateFilter(loot)
+        ModifyLootTable.getLoot(uuid, key, component.loot, loot)
+                .generateLoot(loot)
                 .forEach(item -> Block.popResource(world, pos, CraftItemStack.asNMSCopy(item)));
 
         world.playSound(null, pos, SoundEffects.SWEET_BERRY_BUSH_PICK_BERRIES, SoundCategory.BLOCKS, 1.0F, 0.8F + world.random.nextFloat() * 0.4F);

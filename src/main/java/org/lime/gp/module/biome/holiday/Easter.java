@@ -172,7 +172,7 @@ public class Easter implements Listener {
         if (event.getEntity() instanceof CraftRabbit rabbit && rabbit.getScoreboardTags().contains("easter")) {
             event.setCancelled(true);
             rabbit.getHandle().kill();
-            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(system.rand(item_key.getWhitelistKeys().toList()), v -> v.setCount((int)count.getValue(64)))
+            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(system.rand(item_key.getWhitelistKeys().toList()), v -> v.setCount(count.getIntValue(64)))
                     .ifPresent(item -> Items.dropGiveItem(event.getDamageOwner(), item, true))
             );
         }

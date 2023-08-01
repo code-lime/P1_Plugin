@@ -19,6 +19,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
 import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.entity.projectile.EntityThrownTrident;
 import net.minecraft.world.food.FoodMetaData;
 import net.minecraft.world.inventory.ContainerGrindstone;
 import net.minecraft.world.inventory.InventoryCrafting;
@@ -38,6 +39,7 @@ import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.phys.MovingObjectPositionEntity;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
@@ -970,6 +972,46 @@ public class patch {
                     version.entries.put(name, writer.toByteArray());
                 });
     }
+    private static void patchEntityThrownTrident(JarArchive version) {
+        String name = classFile(EntityThrownTrident.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresentOrElse(bytes -> {
+                    log("Patch EntityThrownTrident...");
+
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            if (ofMojang(EntityThrownTrident.class, "onHitEntity", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.VOID_TYPE, Type.getType(MovingObjectPositionEntity.class)))) {
+                                log("   Modify method: void onHitEntity(MovingObjectPositionEntity entityHitResult) ");
+                                return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                                    @Override public void visitLdcInsn(Object value) {
+                                        if (value instanceof Float raw && raw == 8.0) {
+                                            super.visitIntInsn(Opcodes.ALOAD, 0);
+                                            super.visitIntInsn(Opcodes.ALOAD, 1);
+                                            super.visitMethodInsn(
+                                                    Opcodes.INVOKESTATIC,
+                                                    "net/minecraft/world/entity/projectile/EntityTridentBaseDamageEvent",
+                                                    "execute",
+                                                    Type.getMethodDescriptor(Type.FLOAT_TYPE,
+                                                            Type.getType(EntityThrownTrident.class),
+                                                            Type.getType(MovingObjectPositionEntity.class)
+                                                    ),
+                                                    false
+                                            );
+                                            log("Patch EntityThrownTrident...OK!");
+                                            return;
+                                        }
+                                        super.visitLdcInsn(value);
+                                    }
+                                };
+                            }
+                            else return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                }, () -> log("File '"+name+"' not founded in version"));
+    }
 
 //public float getTemperature(BlockPosition blockPos) {
     private static class JarArchive {
@@ -1121,6 +1163,7 @@ public class patch {
             patchWorldServer(version_archive);
             patchBiomeBase(version_archive);
             patchItems(version_archive);
+            patchEntityThrownTrident(version_archive);
         }
 
         log("Save version jar...");

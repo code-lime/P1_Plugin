@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.inventory.ItemStack;
+import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.system;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.IItemCreator;
 
 import com.google.gson.JsonPrimitive;
 
-public class SingleLoot extends ILoot {
+public class SingleLoot implements ILoot {
     public Checker item;
     public system.IRange amount;
 
@@ -33,8 +34,8 @@ public class SingleLoot extends ILoot {
         if (item.getWhitelistCreators().anyMatch(v -> true)) throw new IllegalArgumentException("[LOOT] ITEM '"+item+"' NOT FOUNDED!");
     }
 
-    @Override public List<ItemStack> generate() {
-        int amount = (int)this.amount.getValue(64);
+    @Override public List<ItemStack> generateLoot(IPopulateLoot loot) {
+        int amount = this.amount.getIntValue(64);
         if (amount < 1) return Collections.emptyList();
         List<IItemCreator> creators = item.getWhitelistCreators().toList();
         if (creators.isEmpty()) return Collections.emptyList();

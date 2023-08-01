@@ -4,15 +4,15 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
+import org.lime.gp.filter.BlockFilter;
 import org.lime.system;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.item.loot.filter.BlockLootFilter;
 
 import net.minecraft.world.level.block.state.IBlockData;
 
 public class ExperienceAction<TValue, TCompare> {
     public static final ExperienceAction<Entity, EntityCompare> KILL = of((e1, e2) -> e2.isCompare(e1), EntityCompare::create);
-    public static final ExperienceAction<Block, system.Func1<IBlockData, Boolean>> BREAK = of((e1, e2) -> e1 instanceof CraftBlock b && e2.invoke(b.getNMS()), v -> BlockLootFilter.createBlockTest("block="+v));
+    public static final ExperienceAction<Block, system.Func1<IBlockData, Boolean>> BREAK = of((e1, e2) -> e1 instanceof CraftBlock b && e2.invoke(b.getNMS()), v -> BlockFilter.createBlockTest("block="+v));
     public static final ExperienceAction<ItemStack, Checker> CRAFT = of((e1, e2) -> e2.check(e1), Checker::createCheck);
     public static final ExperienceAction<Entity, EntityCompare> FARM = of((e1, e2) -> e2.isCompare(e1), EntityCompare::create);
     public static final ExperienceAction<String, String> HARVEST = of((e1, e2) -> e2.equals(e1), v -> v);

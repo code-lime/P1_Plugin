@@ -15,6 +15,7 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
+import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.gp.player.perm.Perms;
 import org.lime.system;
 import org.bukkit.Bukkit;

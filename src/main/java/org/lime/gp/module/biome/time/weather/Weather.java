@@ -6,6 +6,10 @@ import com.google.gson.JsonPrimitive;
 import io.papermc.paper.chunk.PlayerChunkLoader;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.level.PlayerChunkMap;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.util.valueproviders.IntProvider;
+import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.level.World;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
@@ -154,6 +158,7 @@ public class Weather {
                 lastSeasonKey = seasonKey;
                 changeWeather(seasonKey);
             }
+
         } else if (lime.MainWorld.isClearWeather()) counter++;
 
         if (counter == lastCounter) return;
@@ -181,6 +186,15 @@ public class Weather {
             ViewDistance.clearPlayerView(player);
         });
         SnowModify.setSnow(seasonKey == SeasonKey.Frosty);
+
+        int modifyRain = switch (seasonKey) {
+            case Frosty -> 2;
+            case Rainy -> 4;
+            default -> 1;
+        };
+        ReflectionAccess.RAIN_DELAY_WorldServer.set(null, UniformInt.of(12000 / modifyRain, 180000 / modifyRain));
+        ReflectionAccess.RAIN_DURATION_WorldServer.set(null, UniformInt.of(12000 * modifyRain, 24000 * modifyRain));
+        Bukkit.getWorlds().forEach(world -> world.setStorm(seasonKey != SeasonKey.Sunny));
     }
 
     private static Stream<system.Toast3<Integer, NBTTagCompound, String>> generate(int id, String key, NBTTagCompound element) {

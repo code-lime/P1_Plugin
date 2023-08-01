@@ -1,8 +1,8 @@
 package org.lime.gp.player.module;
 
+import com.google.common.collect.Streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import github.scarsz.discordsrv.dependencies.google.common.collect.Streams;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.core.NonNullList;

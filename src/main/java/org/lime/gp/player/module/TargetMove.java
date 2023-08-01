@@ -24,6 +24,7 @@ import org.lime.core;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
+import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.system;
 
 import java.util.HashMap;

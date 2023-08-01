@@ -19,12 +19,15 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ChunkProviderServer;
 import net.minecraft.server.level.PlayerChunk;
 import net.minecraft.server.level.PlayerChunkMap;
+import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.random.WeightedRandomList;
+import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumCreatureType;
+import net.minecraft.world.entity.animal.horse.EntityHorseAbstract;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.food.FoodMetaData;
 import net.minecraft.world.inventory.ContainerChest;
@@ -119,6 +122,10 @@ public class ReflectionAccess {
     public static final Class<?> class_CraftMetaItem = system.<String, Class<?>>funcEx(Class::forName).throwable().invoke(CraftItemStack.class.getName().replace("CraftItemStack", "CraftMetaItem"));//unhandledTags
     public static final reflection.field<Map<String, NBTBase>> unhandledTags_CraftMetaItem = reflection.field.of(class_CraftMetaItem, "unhandledTags");
     public static final reflection.constructor<NBTTagCompound> initMap_NBTTagCompound = reflection.constructor.of(NBTTagCompound.class, Map.class);
+
+    public static final reflection.field<IntProvider> RAIN_DELAY_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DELAY").nonFinal();
+    public static final reflection.field<IntProvider> RAIN_DURATION_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DURATION").nonFinal();
+    public static final reflection.field<Float> MAX_MOVEMENT_SPEED_EntityHorseAbstract = reflection.field.<Float>ofMojang(EntityHorseAbstract.class, "MAX_MOVEMENT_SPEED").nonFinal();
 }
 
 

@@ -5,7 +5,7 @@ import net.minecraft.world.food.FoodInfo;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
-import org.lime.gp.player.module.food.FoodType;
+import org.lime.gp.player.module.needs.food.FoodType;
 
 import java.util.HashMap;
 

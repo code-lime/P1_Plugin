@@ -20,6 +20,7 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.player.module.TabManager;
 import org.lime.gp.lime;
+import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 import org.lime.web;
 
@@ -43,21 +44,14 @@ public class Methods {
                             json.get("login").getAsString(),
                             json.get("password").getAsString());
                     if (!SQL.isValidMySQL()) throw new IllegalArgumentException("Could not establish database connection.");
-                }).withDefault(() -> {
-                    JsonObject dbJson = new JsonObject();
-
-                    dbJson.addProperty("port", 3306);
-                    dbJson.addProperty("host", "localhost");
-
-                    dbJson.addProperty("name", "DATABASE_NAME");
-
-                    dbJson.addProperty("login", "LOGIN");
-                    dbJson.addProperty("password", "PASSWORD");
-
-                    dbJson.addProperty("pool_size", 10);
-
-                    return dbJson;
-                }));
+                }).withDefault(() -> system.json.object()
+                        .add("port", 3306)
+                        .add("host", "localhost")
+                        .add("name", "DATABASE_NAME")
+                        .add("login", "LOGIN")
+                        .add("password", "PASSWORD")
+                        .add("pool_size", 10)
+                        .build()));
     }
 
     private static final List<Thread> threads = new ArrayList<>();

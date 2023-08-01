@@ -37,12 +37,18 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.VoxelShapes;
 
 public class BlockPartial extends Partial implements CustomTileMetadata.Shapeable {
-    public final Material material;
-    public final IBlockData blockData;
-    public final TileEntityTypes<?> type;
-    public final JsonNBT.DynamicNBT<NBTTagCompound> nbt;
+    private final Material material;
+    private final IBlockData blockData;
+    private final TileEntityTypes<?> type;
+    private final JsonNBT.DynamicNBT<NBTTagCompound> nbt;
 
-    public final boolean hasCollision;
+    private final boolean hasCollision;
+
+    public Material material() { return this.material; }
+    public IBlockData blockData() { return this.blockData; }
+    public TileEntityTypes<?> entity() { return this.type; }
+    public JsonNBT.DynamicNBT<NBTTagCompound> nbt() { return this.nbt; }
+    public boolean hasCollision() { return this.hasCollision; }
 
     public BlockPartial(int distanceChunk, IBlockData blockData) {
         super(distanceChunk, new JsonObject());

@@ -30,6 +30,7 @@ import java.util.*;
 public class MobSaturation implements Listener {
     public static core.element create() {
         return core.element.create(MobSaturation.class)
+                .disable()
                 .withInstance()
                 .withInit(MobSaturation::init)
                 .<JsonObject>addConfig("config", v -> v

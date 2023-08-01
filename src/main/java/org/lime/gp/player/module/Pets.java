@@ -1,62 +1,8 @@
 package org.lime.gp.player.module;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Marker;
-import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ambient.EntityBat;
-import net.minecraft.world.entity.animal.*;
-import net.minecraft.world.entity.animal.axolotl.Axolotl;
-import net.minecraft.world.entity.animal.horse.EntityHorse;
-import net.minecraft.world.entity.animal.horse.EntityLlama;
-import net.minecraft.world.entity.animal.horse.HorseColor;
-import net.minecraft.world.entity.animal.horse.HorseStyle;
-import net.minecraft.world.entity.monster.EntitySlime;
-import net.minecraft.world.entity.monster.EntityVex;
-import net.minecraft.world.item.EnumColor;
-import net.minecraft.world.level.ChunkCache;
-import net.minecraft.world.level.block.state.IBlockData;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import org.bukkit.DyeColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPanda;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftTropicalFish;
-import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
-import org.lime.core;
-import org.lime.display.DisplayManager;
-import org.lime.display.Displays;
-import org.lime.display.ObjectDisplay;
-import org.lime.display.models.ChildDisplay;
-import org.lime.display.models.Model;
-import org.lime.gp.database.rows.PetsRow;
-import org.lime.gp.database.tables.Tables;
-import org.lime.gp.extension.PathFinder;
-import org.lime.gp.lime;
-import org.lime.gp.module.DrawText;
-import org.lime.gp.module.EntityPosition;
-import org.lime.gp.module.JavaScript;
-import org.lime.system;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 @SuppressWarnings("unused")
 public class Pets {
+    /*
     public static core.element create() {
         return core.element.create(Pets.class)
                 //.disable()
@@ -140,6 +86,7 @@ public class Pets {
                     double size = path.getSize();
                     /*drawPoint(start.toVector(), true);
                     drawPoint(end.toVector(), false);*/
+/*---------------
                     if (size >= 2) {
                         Location to = path.getNode(1);
                         Vector adder = to.toVector().subtract(start.toVector());
@@ -462,11 +409,13 @@ public class Pets {
             from = to;
         }*/
     //}*/
+/*---------------
     public static void init() {
         /*lime.RepeatTicks(() -> {
             Bukkit.getOnlinePlayers().forEach(v -> drawMoved(v.getLocation()));
             drawPath(lime.MainWorld, new Vector(-102.5, 4.5, 92.5), Bukkit.getOnlinePlayers().stream().findFirst().get().getLocation().toVector());
         }, 1);*/
+/*---------------
     }
     /*public static class PetEntity {
         public DataReader.PetsRow row;
@@ -479,6 +428,7 @@ public class Pets {
     public static void uninit() {
 
     }*/
+/*---------------
     public static void config(JsonObject json) {
         /*json = system.json.object()
                 .add("temp001", system.json.object()
@@ -527,6 +477,7 @@ public class Pets {
                         .add("baby", true)
                 )
                 .build();*/
+/*---------------
         HashMap<String, AbstractPet> pets = new HashMap<>();
         json.entrySet().forEach(kv -> pets.put(kv.getKey(), AbstractPet.parse(kv.getKey(), kv.getValue().getAsJsonObject())));
         Displays.uninitDisplay(MANAGER);

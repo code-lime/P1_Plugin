@@ -1,5 +1,5 @@
 {
-  "version": "0.0.87",
+  "version": "0.0.90",
   "append": [],
   "append_regex": [
     "net\\/minecraft\\/.*"

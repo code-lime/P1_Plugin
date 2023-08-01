@@ -7,7 +7,6 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FishHook;
@@ -75,7 +74,7 @@ public class LevelModule implements Listener {
     private static final HashMap<String, JsonObject> cache = new HashMap<>();
     private static void init() {
         lime.repeat(LevelModule::update, 0.75);
-        AnyEvent.addEvent("loot.export", AnyEvent.type.owner_console, v -> v.createParam(_v -> _v, cache::keySet), (p, type) -> {
+        AnyEvent.addEvent("spawn.export", AnyEvent.type.owner_console, v -> v.createParam(_v -> _v, cache::keySet), (p, type) -> {
             String text = cache.get(type).toString();
             lime.logConsole("Loot export: " + text);
         });
@@ -195,22 +194,6 @@ public class LevelModule implements Listener {
         getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.DIE, null));
     }
 
-    @EventHandler private static void onLoot(PopulateLootEvent e) {
-        e.getOptional(Parameters.KillerEntity)
-                .or(() -> e.getOptional(Parameters.ThisEntity))
-                .map(net.minecraft.world.entity.Entity::getBukkitEntity)
-                .map(v -> v instanceof CraftPlayer cp
-                        ? cp
-                        : v instanceof FishHook hook && hook.getShooter() instanceof CraftPlayer cp
-                        ? cp
-                        : null
-                )
-                .flatMap(player -> getLevelStep(player.getUniqueId()))
-                .ifPresent(step -> step.tryModifyLoot(e));
-    }
-    public static ILoot getLoot(UUID uuid, String key, ILoot loot, IPopulateLoot variable) {
-        return getLevelStep(uuid).map(step -> step.tryGetLoot(key, loot, variable)).orElse(loot);
-    }
     @EventHandler private static void onExpChange(PlayerExpChangeEvent e) {
         if (workData.size() == 0) return;
         e.setAmount(0);

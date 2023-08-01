@@ -109,7 +109,7 @@ public class WeatherBiomes {
             boolean isWhitelist = whitelist.contains(dat.getKey());
 
             JsonElement value = dat.getValue();
-            if (isWhitelist) lime.logOP("See raw " + dat.getKey() + ": " + value);
+            //if (isWhitelist) lime.logOP("See raw " + dat.getKey() + ": " + value);
 
             if (value.isJsonPrimitive()) dat.setValue(value = system.json.object().add("parent", value.getAsString()).build());
 
@@ -126,10 +126,10 @@ public class WeatherBiomes {
                 }
             }
             if (isSeasons) {
-                if (isWhitelist) lime.logOP("Contains seasons " + dat.getKey());
+                //if (isWhitelist) lime.logOP("Contains seasons " + dat.getKey());
                 return;
             }
-            if (isWhitelist) lime.logOP("Add seasons " + dat.getKey());
+            //if (isWhitelist) lime.logOP("Add seasons " + dat.getKey());
             for (SeasonKey key : SeasonKey.values()) {
                 String name = key.key;
                 JsonObject raw = element.deepCopy();
@@ -144,18 +144,18 @@ public class WeatherBiomes {
                 .forEach(kv -> {
                     String[] args = kv.getKey().split("#");
                     if (!whitelist.contains(args[0])) return;
-                    lime.logOP("Setup biome settings: " + system.toast(args[0], SeasonKey.byKey(args[1])));
+                    //lime.logOP("Setup biome settings: " + system.toast(args[0], SeasonKey.byKey(args[1])));
                     biomeColorMap.put(system.toast(args[0], SeasonKey.byKey(args[1])), BiomeColors.parseJson(JsonObjectOptional.of(kv.getValue().getAsJsonObject())));
                 });
 
         system.Toast1<Integer> iterator = system.toast(BIOME_COUNT*2);
         HashMap<Integer, BiomeHolder> customBiomeList = new HashMap<>();
         HashMap<system.Toast2<String, SeasonKey>, Integer> seasonToBiomeID = new HashMap<>();
-        biomeColorMap.forEach((kk, v) -> kk.invoke((biomeName, seasonKey) -> {
+        biomeColorMap.entrySet().stream().sorted(Comparator.comparing(v -> v.getKey().toString())).forEach(kkv -> kkv.getKey().invoke((biomeName, seasonKey) -> {
             int index = iterator.val0;
-            customBiomeList.put(index, new BiomeHolder(index, biomeName, seasonKey, v));
+            customBiomeList.put(index, new BiomeHolder(index, biomeName, seasonKey, kkv.getValue()));
             seasonToBiomeID.put(system.toast(biomeName, seasonKey), index);
-            lime.logOP("Settings of " + biomeName + "#"+seasonKey.key+": " + v);
+            //lime.logOP("Settings of " + biomeName + "#"+seasonKey.key+": " + kkv.getValue());
             iterator.val0++;
         }));
         WeatherBiomes.customBiomeMap.clear();

@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.gp.player.ui.CustomUI.IType;
 import org.lime.gp.player.ui.CustomUI.IUI;
 
@@ -88,7 +89,7 @@ public class SleepSaturation implements IUI {
             if (Administrator.inABan(uuid)) return;
             PersistentDataContainer data = player.getPersistentDataContainer();
             boolean isSleep = lime.isLay(player) && SingleModules.isInBed(uuid);
-            if (modifyValue(data, isSleep ? delta_reset_sec : -delta_total_sec) == 0) {
+            if (modifyValue(data, isSleep ? delta_reset_sec : -(delta_total_sec * NeedSystem.getSleepMutate(player))) == 0) {
                 player.addPotionEffect(DARKNESS_EFFECT);
                 player.addPotionEffect(SLOW_EFFECT);
             }

@@ -5,17 +5,13 @@ import java.util.List;
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.module.loot.IPopulateLoot;
-import org.lime.gp.module.loot.PopulateLootEvent;
 
 import com.google.gson.JsonElement;
 
-public abstract class ILoot {
-    public abstract List<ItemStack> generate();
-    public List<ItemStack> generateFilter(IPopulateLoot loot) {
-        return generate();
-    }
+public interface ILoot {
+    List<ItemStack> generateLoot(IPopulateLoot loot);
 
-    public static ILoot parse(JsonElement json) {
+    static ILoot parse(JsonElement json) {
         if (json.isJsonPrimitive()) return new SingleLoot(json.getAsJsonPrimitive());
         else if (json.isJsonArray()) return new MultiLoot(json.getAsJsonArray());
         else if (json.isJsonNull()) return EmptyLoot.Instance;

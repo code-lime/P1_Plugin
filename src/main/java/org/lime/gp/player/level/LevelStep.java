@@ -4,9 +4,8 @@ import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.lime.gp.item.loot.MultiLoot;
 import org.lime.gp.module.loot.IPopulateLoot;
+import org.lime.gp.module.loot.LootModifyAction;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
@@ -21,32 +20,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public class LevelStep {
-    public enum LootModifyAction {
-        NONE("n"),
-        APPEND("a"),
-        REPLACE("r"),
-        APPEND_IF_NOT_EMPTY("ane"),
-        REPLACE_IF_NOT_EMPTY("rne");
-
-        public final String fastPrefix;
-
-        LootModifyAction(String fp) {
-            this.fastPrefix = fp;
-        }
-
-        private boolean isPostfix(String postfix) {
-            return postfix.equalsIgnoreCase(fastPrefix) ||
-                postfix.equalsIgnoreCase(name());
-        }
-
-        public static LootModifyAction byPostfix(String postfix) {
-            for (LootModifyAction action : values()) {
-                if (action.isPostfix(postfix))
-                    return action;
-            }
-            return LootModifyAction.NONE;
-        }
-    }
 
     public final int level;
     public final LevelData data;
@@ -68,17 +41,20 @@ public class LevelStep {
                 this.variable.put(action, createVariable(action, kv.getValue().getAsJsonPrimitive()));
             }
         });
-        if (json.has("loot")) json.get("loot").getAsJsonObject().entrySet().forEach(kv -> {
-            String key = kv.getKey();
-            String[] keys = key.split("#", 2);
-            this.modifyLootTable.put(keys[0], system.toast(ILoot.parse(kv.getValue()), LootModifyAction.byPostfix(keys[1])));
-        });
+        if (json.has("loot")) json.get("loot")
+                .getAsJsonObject()
+                .entrySet()
+                .forEach(kv -> LootModifyAction.parse(kv.getKey(), kv.getValue())
+                        .invoke((key, loot, action) -> this.modifyLootTable
+                                .put(key, system.toast(loot, action))
+                        )
+                );
         if (json.has("perm")) canData = new CanData(json.get("perm").getAsJsonObject());
         else canData = ICanData.getNothing();
     }
 
 
-    public void tryModifyLoot(PopulateLootEvent e) {
+    public boolean tryModifyLoot(PopulateLootEvent e) {
         String key = e.getKey().getPath();
         system.Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
@@ -86,58 +62,18 @@ public class LevelStep {
             loot = kv.getValue();
             break;
         }
-        if (loot == null) return;
-        List<ItemStack> items = loot.val0.generateFilter(e);
-        switch (loot.val1) {
-            case APPEND -> e.addItems(items);
-            case APPEND_IF_NOT_EMPTY -> {
-                if (!items.isEmpty()) e.addItems(items);
-            }
-            case REPLACE -> e.setItems(items);
-            case REPLACE_IF_NOT_EMPTY -> {
-                if (!items.isEmpty()) e.setItems(items);
-            }
-            default -> {}
-        }
+        if (loot == null) return false;
+        loot.val1.modifyLoot(e, loot.val0);
+        return true;
     }
-    public ILoot tryGetLoot(String key, ILoot base, IPopulateLoot variable) {
+    public Optional<ILoot> tryChangeLoot(String key, ILoot base, IPopulateLoot variable) {
         system.Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
             if (!system.compareRegex(key, kv.getKey())) continue;
             loot = kv.getValue();
             break;
         }
-        if (loot == null) return base;
-
-        ILoot other = loot.val0;
-
-        return switch (loot.val1) {
-            case APPEND -> new MultiLoot(List.of(base, loot.val0));
-            case APPEND_IF_NOT_EMPTY -> new ILoot() {
-                @Override public List<ItemStack> generate() {
-                    List<ItemStack> items = new ArrayList<>(base.generate());
-                    if (!items.isEmpty()) items.addAll(other.generate());
-                    return items;
-                }
-                @Override public List<ItemStack> generateFilter(IPopulateLoot loot) {
-                    List<ItemStack> items = new ArrayList<>(base.generateFilter(loot));
-                    if (!items.isEmpty()) items.addAll(other.generateFilter(loot));
-                    return items;
-                }
-            };
-            case REPLACE -> other;
-            case REPLACE_IF_NOT_EMPTY -> new ILoot() {
-                @Override public List<ItemStack> generate() {
-                    List<ItemStack> items = new ArrayList<>(base.generate());
-                    return items.isEmpty() ? items : other.generate();
-                }
-                @Override public List<ItemStack> generateFilter(IPopulateLoot loot) {
-                    List<ItemStack> items = new ArrayList<>(base.generateFilter(loot));
-                    return items.isEmpty() ? items : other.generateFilter(loot);
-                }
-            };
-            default -> base;
-        };
+        return loot == null ? Optional.empty() : Optional.of(loot.val1.changeLoot(base, loot.val0));
     }
 
     private static <TValue, TCompare>HashMap<TCompare, system.IRange> createVariable(ExperienceAction<TValue, TCompare> action, JsonObject values) {

@@ -16,7 +16,7 @@ public class DurabilityOutputSlot implements IOutputSlot {
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) {
         ItemStack result = this.item.modify(item, copy, variable);
         int max = result.getMaxDamage();
-        int value = (int)Math.round(durability.getValue(max));
+        int value = durability.getIntValue(max);
         result.setDamageValue(max - value);
         return result;
     }
@@ -24,7 +24,7 @@ public class DurabilityOutputSlot implements IOutputSlot {
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) {
         ItemStack result = this.item.create(isPreview, variable);
         int max = result.getMaxDamage();
-        int value = (int)Math.round(durability.getValue(max));
+        int value = durability.getIntValue(max);
         result.setDamageValue(max - value);
         return result;
     }
