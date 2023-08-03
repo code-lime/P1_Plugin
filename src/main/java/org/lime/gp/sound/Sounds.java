@@ -29,6 +29,11 @@ public class Sounds {
         Optional.ofNullable(sounds.get(key))
                 .ifPresentOrElse(sound -> sound.playSound(player), () -> lime.logOP("Sound '"+key+"' not founded!"));
     }
+    public static void playSound(String key, Player player, Vector position) {
+        if (key == null) return;
+        Optional.ofNullable(sounds.get(key))
+                .ifPresentOrElse(sound -> sound.playSound(player, position), () -> lime.logOP("Sound '"+key+"' not founded!"));
+    }
     public static void playSound(String key, Location location) {
         if (key == null) return;
         String[] args = key.split(" ");

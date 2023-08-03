@@ -2,6 +2,7 @@ package org.lime.gp.sound;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.lime.system;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -20,9 +21,7 @@ public interface IReplaceInfo {
             @Override public Collection<String> tags() { return tags; }
         };
     }
-    default IReplaceInfo setTags(String... tags) {
-        return setTags(List.of(tags));
-    }
+    default IReplaceInfo setTags(String... tags) { return setTags(List.of(tags)); }
 }
 
 

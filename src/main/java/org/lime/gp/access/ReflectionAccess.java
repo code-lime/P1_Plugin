@@ -24,16 +24,20 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumCreatureType;
 import net.minecraft.world.entity.animal.horse.EntityHorseAbstract;
+import net.minecraft.world.entity.monster.EntityStrider;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.food.FoodMetaData;
 import net.minecraft.world.inventory.ContainerChest;
 import net.minecraft.world.inventory.ContainerWorkbench;
 import net.minecraft.world.inventory.InventoryCrafting;
+import net.minecraft.world.item.ItemCarrotStick;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.level.ChunkCoordIntPair;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.biome.BiomeSettingsMobs;
@@ -126,6 +130,8 @@ public class ReflectionAccess {
     public static final reflection.field<IntProvider> RAIN_DELAY_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DELAY").nonFinal();
     public static final reflection.field<IntProvider> RAIN_DURATION_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DURATION").nonFinal();
     public static final reflection.field<Float> MAX_MOVEMENT_SPEED_EntityHorseAbstract = reflection.field.<Float>ofMojang(EntityHorseAbstract.class, "MAX_MOVEMENT_SPEED").nonFinal();
+    public static final reflection.field<Entity> canInteractWith_ItemCarrotStick = reflection.field.<Entity>ofMojang(ItemCarrotStick.class, "canInteractWith").nonFinal();
+    public static final reflection.field<RecipeItemStack> TEMPT_ITEMS_EntityStrider = reflection.field.<RecipeItemStack>ofMojang(EntityStrider.class, "TEMPT_ITEMS").nonFinal();
 }
 
 

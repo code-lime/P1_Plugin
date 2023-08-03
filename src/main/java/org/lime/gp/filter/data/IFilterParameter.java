@@ -35,5 +35,4 @@ public interface IFilterParameter<TData extends IFilterData<TData>, TValue> {
     default IFilterParameterInfo<TData, TValue> createInfo(String name, FilterParameterInfo.IAction<TData, TValue> action) {
         return new FilterParameterInfo<>(name, this, action);
     }
-
 }

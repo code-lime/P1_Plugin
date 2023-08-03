@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BlockModelDisplay extends ObjectDisplay<ModelDisplayObject, Marker> {
-    @Override public double getDistance() { return Double.POSITIVE_INFINITY; }
+    @Override public double getDistance() { return data.distance(); }
     @Override public Location location() { return data.location(); }
 
     public final BlockModelKey key;

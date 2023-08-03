@@ -1,5 +1,9 @@
-package org.lime.gp;
+package patch;
 
+import net.minecraft.world.level.block.Blocks;
+import org.lime.system;
+
+/*
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -18,6 +22,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
+import net.minecraft.world.entity.monster.EntityStrider;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.projectile.EntityThrownTrident;
 import net.minecraft.world.food.FoodMetaData;
@@ -29,7 +34,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeRepair;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.BiomeSettingsGeneration;
-import net.minecraft.world.level.biome.WorldChunkManagerHell;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockSkull;
 import net.minecraft.world.level.block.BlockSnow;
@@ -44,7 +48,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
-import org.lime.gp.database.Methods;
 import org.lime.system;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
@@ -59,13 +62,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 
 @SuppressWarnings("all")
+*/
 public class patch {
+    void test() {
+        Native.isField(system.func(() -> Blocks.ICE), "owner", "name", "descriptor");
+    }
+    /*
     private enum JarType {
         VersionBase,
         PaperAPI
@@ -73,45 +77,6 @@ public class patch {
     private static void log(String log) {
         System.out.println(log);
     }
-    private static MemoryMappingTree tree;
-    private static Closeable loadDeobf() throws Throwable {
-        InputStream mappingsInputStream = ObfHelper.class.getClassLoader().getResourceAsStream("META-INF/mappings/reobf.tiny");
-        tree = new MemoryMappingTree();
-        if (mappingsInputStream == null) return () -> {};
-        MappingReader.read(new InputStreamReader(mappingsInputStream, StandardCharsets.UTF_8), MappingFormat.TINY_2, tree);
-        for (MappingTree.ClassMapping classMapping : tree.getClasses()) {
-            Map<system.Toast3<String, String, Boolean>, String> members = new HashMap<>();
-            for (MappingTree.MemberMapping member : classMapping.getMethods()) {
-                members.put(system.toast(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), true), member.getName(ObfHelper.SPIGOT_NAMESPACE));
-            }
-            for (MappingTree.MemberMapping member : classMapping.getFields()) {
-                members.put(system.toast(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), false), member.getName(ObfHelper.SPIGOT_NAMESPACE));
-            }
-            classes.put(classMapping.getName(ObfHelper.SPIGOT_NAMESPACE).replace('/', '.'), members);
-        }
-        return mappingsInputStream;
-    }
-    private static final Map<String, Map<system.Toast3<String, String, Boolean>, String>> classes = new HashMap<>();
-    private static final List<Class<?>> dat = new ArrayList<>();
-    private static String ofMojang(Class<?> tClass, String name, String desc, boolean isMethod) {
-        Map<system.Toast3<String, String, Boolean>, String> mapping = classes.get(tClass.getName());
-        if (mapping == null) return name;
-        if (dat.contains(tClass)) {
-            log("Class " + tClass.getName() + " with found " + (isMethod ? "method" : "field") + " " + name + desc + "\n" + system.json.object().add(mapping, system.IToast::toString, v -> v).build().toString());
-            dat.add(tClass);
-        }
-        //
-        String src_name = mapping.get(system.toast(name, desc, isMethod));
-        boolean isFound = src_name != null;
-        if (src_name == null) {
-            src_name = name;
-        }
-        return src_name;
-    }
-    private static String ofMojang(Class<?> tClass, String name, Type desc, boolean isMethod) {
-        return ofMojang(tClass, name, desc.getDescriptor(), isMethod);
-    }
-
     public static void patch(URL url) {
         try {
             URLConnection connection = url.openConnection();
@@ -125,23 +90,6 @@ public class patch {
         catch (Throwable e) { throw new IllegalArgumentException(e); }
     }
 
-    private static String sha256(byte[] bytes) throws Throwable {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(bytes);
-        StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (byte b : hash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-    private static String classFile(Class<?> tClass) { return className(tClass) + ".class"; }
-    private static String className(Class<?> tClass) { return tClass.getName().replace('.', '/'); }
-
-    private static Type replaceDescriptor(Type type, String from, String to) {
-        return Type.getType(type.getDescriptor().replace(from, to));
-    }
 
     private static void patchLootTable(JarArchive version) {
         String name = classFile(LootTable.class);
@@ -1012,55 +960,36 @@ public class patch {
                     version.entries.put(name, writer.toByteArray());
                 }, () -> log("File '"+name+"' not founded in version"));
     }
+    private static void patchEntityEntityStrider(JarArchive version) {
+        String name = classFile(EntityStrider.class);
+        Optional.ofNullable(version.entries.get(name))
+                .ifPresentOrElse(bytes -> {
+                    log("Patch EntityStrider...");
 
-//public float getTemperature(BlockPosition blockPos) {
-    private static class JarArchive {
-        public final Manifest manifest;
-        public final HashMap<String, byte[]> entries = new HashMap<>();
-
-        private JarArchive(Manifest manifest) {
-            this.manifest = manifest;
-        }
-
-        public static JarArchive of(Path path) throws Throwable {
-            return of(Files.readAllBytes(path));
-        }
-        public static JarArchive of(byte[] bytes) throws Throwable {
-            try (JarInputStream zis = new JarInputStream(new ByteArrayInputStream(bytes))) {
-                JarArchive archive = new JarArchive(zis.getManifest());
-                JarEntry jarEntry;
-                while (true) {
-                    jarEntry = zis.getNextJarEntry();
-                    if (jarEntry == null) break;
-                    String name = jarEntry.getName();
-                    byte[] entryBytes;
-                    try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-                        for (int c = zis.read(); c != -1; c = zis.read()) stream.write(c);
-                        entryBytes = stream.toByteArray();
-                    }
-                    zis.closeEntry();
-                    archive.entries.put(name, entryBytes);
-                }
-                return archive;
-            }
-        }
-
-        public byte[] toByteArray() throws Throwable {
-            try (ByteArrayOutputStream array = new ByteArrayOutputStream(); JarOutputStream zos = new JarOutputStream(array, manifest)) {
-                for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
-                    zos.putNextEntry(new JarEntry(entry.getKey()));
-                    zos.write(entry.getValue());
-                    zos.closeEntry();
-                }
-                zos.close();
-                return array.toByteArray();
-            }
-        }
-        public void toFile(Path path) throws Throwable {
-            Files.write(path, toByteArray());
-        }
+                    ClassReader reader = new ClassReader(bytes);
+                    ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                    reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+                        @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                            if (ofMojang(EntityStrider.class, "getControllingPassenger", descriptor, true).equals(name) && Type.getType(descriptor).equals(Type.getMethodType(Type.getType(EntityLiving.class)))) {
+                                log("   Modify method: EntityLiving getControllingPassenger() ");
+                                MethodVisitor visitor = writer.visitMethod(access, name, descriptor, signature, exceptions);
+                                return new MethodVisitor(Opcodes.ASM9, null) {
+                                    @Override public void visitCode() {
+                                        visitor.visitCode();
+                                        visitor.visitInsn(Opcodes.ACONST_NULL);
+                                        visitor.visitInsn(Opcodes.ARETURN);
+                                        visitor.visitMaxs(0, 0);
+                                        visitor.visitEnd();
+                                        log("Patch EntityStrider...OK!");
+                                    }
+                                };
+                            }
+                            else return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        }
+                    }, 0);
+                    version.entries.put(name, writer.toByteArray());
+                }, () -> log("File '"+name+"' not founded in version"));
     }
-
     //Paper: Paths.get(ManagementFactory.getRuntimeMXBean().getClassPath())
     //Version: new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toPath()
     //Plugin: new File(patch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toPath()
@@ -1094,11 +1023,6 @@ public class patch {
 
         log("Current patch version: " + (current_version == null ? "Not patched" : current_version));
         log("Patch version: " + patch_version);
-        /*log("Read deobf file...");
-        try (Closeable ignored = loadDeobf()) {
-            log("Test deobf file...");
-            testDeobf();
-        }*/
 
         if (patch_version.equals(current_version)) return;
 
@@ -1164,6 +1088,7 @@ public class patch {
             patchBiomeBase(version_archive);
             patchItems(version_archive);
             patchEntityThrownTrident(version_archive);
+            patchEntityEntityStrider(version_archive);
         }
 
         log("Save version jar...");
@@ -1196,6 +1121,7 @@ public class patch {
         log("Exit...");
         Runtime.getRuntime().halt(0);
     }
+    */
 }
 
 

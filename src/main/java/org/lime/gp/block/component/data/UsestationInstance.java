@@ -61,7 +61,7 @@ public class UsestationInstance extends BlockComponentInstance<UsestationCompone
                 .findFirst()
                 .map(item -> {
                     Items.getOptional(NextSetting.class, item)
-                        .flatMap(v -> Items.createItem(v.next))
+                        .flatMap(v -> Items.createItem(v.next()))
                         .ifPresent(v -> Items.dropGiveItem(player, v, false));
                     item.subtract(1);
                     return true;

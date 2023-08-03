@@ -164,7 +164,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         return displayVariable;
     }*/
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10)));
+        return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
     }
     @Override public void onLoot(CustomTileMetadata metadata, PopulateLootEvent event) {
         if (!head.getType().isAir()) event.addItem(head);

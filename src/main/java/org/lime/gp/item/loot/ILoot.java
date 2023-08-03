@@ -19,6 +19,7 @@ public interface ILoot {
             JsonObject obj = json.getAsJsonObject();
             return obj.has("type") ? switch (obj.get("type").getAsString()) {
                 case "random" -> new RandomLoot(obj);
+                case "js" -> new JavaScriptLoot(obj);
                 default -> throw new IllegalArgumentException("[LOOT] Type '"+obj.get("type").getAsString()+"' not supported");
             } : new FilterLoot(obj);
         }

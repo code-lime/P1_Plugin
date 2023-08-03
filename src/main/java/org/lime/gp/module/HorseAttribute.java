@@ -16,7 +16,7 @@ public class HorseAttribute {
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("horse_attribute")
                         .withDefault(system.json.object()
-                                .add("max_speed_multiply", 1.0)
+                                .add("max_speed_multiply", 0.75)
                                 .build())
                         .withInvoke(json -> {
                             setMaxSpeedMultiply(json.get("max_speed_multiply").getAsDouble());

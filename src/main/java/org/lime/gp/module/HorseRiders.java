@@ -20,6 +20,7 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.settings.list.HorseArmorSetting;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.spigotmc.event.entity.EntityDismountEvent;
@@ -107,7 +108,9 @@ public class HorseRiders implements Listener {
         });
         lime.repeat(() -> Bukkit.getWorlds().forEach(world -> world.getEntitiesByClass(Horse.class).forEach(horse -> {
             ItemStack armor = horse.getInventory().getArmor();
-            if (armor == null || !armor.getItemMeta().hasCustomModelData()) return;
+            if (armor == null) return;
+            if (!armor.getItemMeta().hasCustomModelData()) return;
+            if (Items.getOptional(HorseArmorSetting.class, armor).map(v -> v.isArmor).orElse(false)) return;
             horse.getInventory().setArmor(null);
             Items.dropItem(horse.getLocation(), armor);
         })), 0.1);

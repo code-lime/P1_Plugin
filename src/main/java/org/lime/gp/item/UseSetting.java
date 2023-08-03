@@ -154,7 +154,7 @@ public class UseSetting implements Listener {
         if (item.isDamageableItem()) {
             item.hurtAndBreak(1, player, e2 -> {
                 nextOption
-                    .flatMap(v -> Items.createItem(v.next))
+                    .flatMap(v -> Items.createItem(v.next()))
                     .ifPresentOrElse(
                         v -> Items.dropGiveItem(e2.getBukkitEntity(), v, false),
                         () -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND)
@@ -163,7 +163,7 @@ public class UseSetting implements Listener {
         } else {
             item.shrink(1);
             nextOption
-                .flatMap(v -> Items.createItem(v.next))
+                .flatMap(v -> Items.createItem(v.next()))
                 .ifPresentOrElse(
                     v -> Items.dropGiveItem(player.getBukkitEntity(), v, false),
                     () -> player.broadcastBreakEvent(EnumItemSlot.MAINHAND)

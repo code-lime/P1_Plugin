@@ -27,7 +27,7 @@ public class QToNext implements Listener {
                 if (item == null) return;
                 Items.getOptional(NextSetting.class, item)
                         .ifPresent(_v -> Items.getOptional(QToNextSetting.class, item).ifPresent(qtn -> {
-                            Items.getItemCreator(_v.next)
+                            Items.getItemCreator(_v.next())
                                     .map(v -> v instanceof ItemCreator c ? c : null)
                                     .map(next -> next.apply(item))
                                     .ifPresent(v -> {

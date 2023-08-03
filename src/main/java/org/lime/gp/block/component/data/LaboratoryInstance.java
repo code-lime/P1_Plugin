@@ -122,10 +122,10 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             return this;
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-            return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10)));
+            return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
         }
     }
-    private class WaterLaboratorySlot extends LaboratorySlot {
+    private static class WaterLaboratorySlot extends LaboratorySlot {
         private String color;
         public WaterLaboratorySlot(LaboratoryComponent component, SlotType type) {
             super(component, type);
@@ -140,7 +140,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             variables.put("water_level_" + (type.index + 1), isPresent() ? "1" : "0");
         }
     }
-    private abstract class LaboratorySlot implements CustomTileMetadata.Uniqueable {
+    private abstract static class LaboratorySlot implements CustomTileMetadata.Uniqueable {
         public final UUID unique;
         public final SlotType type;
         public final LocalLocation local;
@@ -295,7 +295,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         return RecipesBook.openCustomWorkbench(event.player(), metadata, Recipes.LABORATORY, Recipes.LABORATORY.getAllRecipes());
     }
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        return Optional.of(IModelBlock.of(null, model_interact, BlockDisplay.getChunkSize(10)));
+        return Optional.of(IModelBlock.of(null, model_interact, BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
     }
     private int ticks = 0;
     private static final int TOTAL_TICKS = 30 * 20;

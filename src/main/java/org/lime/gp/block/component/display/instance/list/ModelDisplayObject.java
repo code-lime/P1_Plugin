@@ -9,10 +9,10 @@ import org.bukkit.Location;
 import org.lime.display.models.Model;
 import org.lime.system;
 
-public record ModelDisplayObject(Location location, Set<UUID> viewers, Model model, Map<String, Object> data) {
+public record ModelDisplayObject(Location location, Set<UUID> viewers, Model model, Map<String, Object> data, double distance) {
     public boolean hasViewer(UUID uuid) { return viewers.contains(uuid); }
-    public static ModelDisplayObject of(Location location, Model model, Map<String, Object> data) {
-        return new ModelDisplayObject(location, ConcurrentHashMap.newKeySet(), model, data);
+    public static ModelDisplayObject of(Location location, Model model, Map<String, Object> data, double distance) {
+        return new ModelDisplayObject(location, ConcurrentHashMap.newKeySet(), model, data, distance);
     }
     public void removeViewersIf(system.Func1<UUID, Boolean> filter) {
         viewers.removeIf(filter::invoke);

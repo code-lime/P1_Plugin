@@ -40,6 +40,7 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
     public Vector offset_scale() { return offset_scale; }
 
     private final String model;
+    private final double modelDistance;
     private Model generic = null;
 
     public ViewPartial(int distanceChunk, JsonObject json) {
@@ -77,6 +78,7 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
         this.show = true;
 
         this.model = json.has("model") ? parseModel(json.get("model")) : null;
+        this.modelDistance = json.has("model_distance") ? json.get("model_distance").getAsDouble() : Double.POSITIVE_INFINITY;
     }
 
     private String parseModel(JsonElement json) {
@@ -102,7 +104,7 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
         return super.toString()+ "^" + item + "R" + rotation.angle;
     }
 
-    @Override public Optional<Model> model() {
-        return Optional.ofNullable(generic).or(() -> model == null ? Optional.empty() : lime.models.get(model));
+    @Override public Optional<system.Toast2<Model, Double>> model() {
+        return Optional.ofNullable(generic).or(() -> model == null ? Optional.empty() : lime.models.get(model)).map(v -> system.toast(v, modelDistance));
     }
 }

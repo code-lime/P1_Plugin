@@ -8,7 +8,7 @@ import org.lime.display.models.Model;
 public interface IBlock {
     Optional<IBlockData> data();
 
-    default IModelBlock withModel(Model model, int distanceChunk) { return IModelBlock.of(data().orElse(null), model, distanceChunk); }
+    default IModelBlock withModel(Model model, int distanceChunk, double distanceModel) { return IModelBlock.of(data().orElse(null), model, distanceChunk, distanceModel); }
 
     static IBlock of(IBlockData data) { return () -> Optional.ofNullable(data); }
 }

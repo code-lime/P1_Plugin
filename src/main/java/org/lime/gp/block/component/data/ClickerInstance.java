@@ -184,7 +184,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         Model model = this.model.get0();
         return model == null
                 ? Optional.empty()
-                : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(5)));
+                : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(5), Double.POSITIVE_INFINITY));
     }
     @Override public void onDamage(CustomTileMetadata metadata, BlockDamageEvent event) {
         Player player = event.getPlayer();

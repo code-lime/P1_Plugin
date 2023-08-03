@@ -260,8 +260,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                         if (partial instanceof FramePartial frame && frame.show()) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation(), frame.uuid()));
                         if (partial instanceof ViewPartial view && view.show()) viewMap.put(uuid, ItemDisplayObject.of(pos.toLocation(world), view.nms(variables), view));
                         if (partial instanceof IModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
-                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, unique()),
-                                _k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
+                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.val0.unique, unique()),
+                                _k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model.val0, animationData, _model.val1)
                         ).addViewer(uuid));
                         shows.put(player, distanceChunk);
                         return partial;
@@ -285,8 +285,8 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                         .filter(v -> distanceChunk <= v.distanceChunk())
                         .flatMap(IModelBlock::model)
                         .ifPresent(_model -> modelMap.computeIfAbsent(
-                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.unique, displayable.unique()),
-                                k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model, animationData)
+                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.val0.unique, displayable.unique()),
+                                k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model.val0, animationData, _model.val1)
                         ).addViewer(player.getUniqueId()))
                 ));
         

@@ -65,6 +65,7 @@ import org.lime.gp.town.ChurchManager;
 import org.lime.gp.town.Prison;
 import org.lime.invokable.IInvokable;
 import org.lime.system;
+import patch.Patcher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class lime extends core {
     @Override public String getConfigFile() { return "plugins/p1/"; }
 
     static {
-        patch.patch(lime.class.getClassLoader().getResource("patch.json"));
+        Patcher.patch(lime.class.getClassLoader().getResource("patch.json"));
     }
 
     //<editor-fold desc="CORE INIT">

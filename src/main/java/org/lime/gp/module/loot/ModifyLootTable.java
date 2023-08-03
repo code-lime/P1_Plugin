@@ -29,16 +29,20 @@ public class ModifyLootTable implements Listener {
         ModifyLootTable.modifyLootTable.putAll(lootTables);
     }
 
-    @EventHandler private static void onLoot(PopulateLootEvent e) {
-        if (e.getOptional(Parameters.KillerEntity)
-                .or(() -> e.getOptional(Parameters.ThisEntity))
+    public static Optional<CraftPlayer> getOwnerPlayer(IPopulateLoot loot) {
+        return loot.getOptional(Parameters.KillerEntity)
+                .or(() -> loot.getOptional(Parameters.ThisEntity))
                 .map(net.minecraft.world.entity.Entity::getBukkitEntity)
                 .map(v -> v instanceof CraftPlayer cp
                         ? cp
                         : v instanceof FishHook hook && hook.getShooter() instanceof CraftPlayer cp
                         ? cp
                         : null
-                )
+                );
+    }
+
+    @EventHandler private static void onLoot(PopulateLootEvent e) {
+        if (getOwnerPlayer(e)
                 .flatMap(player -> LevelModule.getLevelStep(player.getUniqueId()))
                 .filter(step -> step.tryModifyLoot(e))
                 .isEmpty()

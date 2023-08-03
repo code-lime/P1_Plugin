@@ -9,7 +9,7 @@ import org.lime.display.models.Model;
 public interface ITileBlock extends IBlock {
     Optional<PacketPlayOutTileEntityData> packet();
 
-    @Override default ITileModelBlock withModel(Model model, int distanceChunk) { return ITileModelBlock.of(data().orElse(null), packet().orElse(null), model, distanceChunk); }
+    @Override default ITileModelBlock withModel(Model model, int distanceChunk, double distanceModel) { return ITileModelBlock.of(data().orElse(null), packet().orElse(null), model, distanceChunk, distanceModel); }
 
     static ITileBlock of(IBlockData data, PacketPlayOutTileEntityData packet) {
         return new ITileBlock() {

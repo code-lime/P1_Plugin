@@ -39,8 +39,7 @@ public class WeaponLoader implements Listener {
     public static core.element create() {
         return core.element.create(WeaponLoader.class)
                 .withInstance()
-                .withInit(WeaponLoader::init)
-                .addText("weapons.js", v -> v.withInvoke(t -> {}).withDefault(""));
+                .withInit(WeaponLoader::init);
     }
     public static void init() {
         CustomUI.addListener(new WeaponUI());

@@ -8,14 +8,17 @@ import org.lime.gp.block.component.display.partial.PartialEnum;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.lime.system;
 
 public class ModelPartial extends FramePartial implements IModelPartial {
     private final String model;
+    private final double modelDistance;
     private Model generic = null;
 
     public ModelPartial(int distanceChunk, JsonObject json) {
         super(distanceChunk, json);
         this.model = parseModel(json.get("model"));
+        this.modelDistance = json.has("model_distance") ? json.get("model_distance").getAsDouble() : Double.POSITIVE_INFINITY;
     }
 
     private String parseModel(JsonElement json) {
@@ -24,8 +27,8 @@ public class ModelPartial extends FramePartial implements IModelPartial {
         return "#generic";
     }
 
-    public Optional<Model> model() {
-        return Optional.ofNullable(generic).or(() -> lime.models.get(model));
+    public Optional<system.Toast2<Model, Double>> model() {
+        return Optional.ofNullable(generic).or(() -> lime.models.get(model)).map(v -> system.toast(v, modelDistance));
     }
 
     @Override public PartialEnum type() { return PartialEnum.Model; }
