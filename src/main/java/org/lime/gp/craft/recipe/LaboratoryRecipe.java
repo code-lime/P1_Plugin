@@ -12,6 +12,7 @@ import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.level.World;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;

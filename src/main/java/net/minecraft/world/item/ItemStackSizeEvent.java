@@ -55,14 +55,14 @@ public class ItemStackSizeEvent extends Event {
     @Override public HandlerList getHandlers() { return handlers; }
     public static HandlerList getHandlerList() { return handlers; }
 
-    public static int call_getMaxStackSize(org.bukkit.inventory.ItemStack bukkit_item) {
+    public static int call_getMaxStackSizeBukkit(org.bukkit.inventory.ItemStack bukkit_item) {
         Server server = Bukkit.getServer();
         ItemStackSizeEvent event = new ItemStackSizeEvent(bukkit_item, server == null || !server.isPrimaryThread());
         if (server == null) return event.getMaxItemStack();
         server.getPluginManager().callEvent(event);
         return event.getMaxItemStack();
     }
-    public static int call_getMaxStackSize(net.minecraft.world.item.ItemStack nms_item) {
+    public static int call_getMaxStackSizeNMS(net.minecraft.world.item.ItemStack nms_item) {
         Server server = Bukkit.getServer();
         ItemStackSizeEvent event = new ItemStackSizeEvent(nms_item, server == null || !server.isPrimaryThread());
         if (server == null) return event.getMaxItemStack();

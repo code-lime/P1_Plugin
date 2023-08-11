@@ -39,6 +39,7 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.lime.core;
@@ -196,7 +197,7 @@ public class Voice implements VoicechatPlugin {
                 handle.getRecipeBook().sendInitialRecipeBook(handle);
                 playerList.updateEntireScoreboard(worldserver.getScoreboard(), handle);
 
-                playerList.respawn(handle, worldserver, true, loc, true);
+                playerList.respawn(handle, worldserver, true, loc, true, PlayerRespawnEvent.RespawnReason.PLUGIN);
             });
         });
     }

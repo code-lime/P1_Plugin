@@ -22,6 +22,7 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.craft.Crafts;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeAmountSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
@@ -49,7 +50,7 @@ public class ClickerRecipe extends AbstractRecipe {
             return true;
         }
 
-        static Action ofDefault(List<IOutputSlot> output) {
+        static Action ofDefault(List<IOutputSlot> output, boolean replace) {
             return new Action() {
                 @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
@@ -59,7 +60,9 @@ public class ClickerRecipe extends AbstractRecipe {
                     return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.get(0).create(true, IOutputVariable.empty()), Component.text(" +" + recipe.clicks + " кликов").color(NamedTextColor.LIGHT_PURPLE))));
                 }
                 @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
-                    return output.stream().map(v -> v.create(false, variable));
+                    return replace
+                            ? output.stream().map(v -> v.create(false, variable))
+                            : Stream.concat(Stream.of(output.get(0).modify(inventory.getItem(0), false, variable)), output.stream().skip(1).map(v -> v.create(false, variable)));
                 }
             };
         }
@@ -252,8 +255,8 @@ public class ClickerRecipe extends AbstractRecipe {
     public final int clicks;
     public final String clicker_type;
 
-    public static ClickerRecipe ofDefault(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<IOutputSlot> output, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, category, input, Action.ofDefault(output), clicks, clicker_type);
+    public static ClickerRecipe ofDefault(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<IOutputSlot> output, boolean replace, int clicks, String clicker_type) {
+        return new ClickerRecipe(key, group, category, input, Action.ofDefault(output, replace), clicks, clicker_type);
     }
     public static ClickerRecipe ofRepair(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, system.IRange repair, int clicks, String clicker_type) {
         return new ClickerRecipe(key, group, category, input, Action.ofRepair(repair), clicks, clicker_type);

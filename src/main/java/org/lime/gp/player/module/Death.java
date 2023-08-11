@@ -2,7 +2,10 @@ package org.lime.gp.player.module;
 
 import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
+import dev.geco.gsit.api.event.PreEntityGetUpSitEvent;
+import dev.geco.gsit.api.event.PrePlayerGetUpPlayerSitEvent;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
+import dev.geco.gsit.api.event.PrePlayerPlayerSitEvent;
 import dev.geco.gsit.objects.GetUpReason;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
 import net.minecraft.world.effect.MobEffect;
@@ -410,7 +413,18 @@ public class Death implements Listener {
     }
 
     @EventHandler public static void on(PrePlayerGetUpPoseEvent e) {
-        if (e.getPoseSeat().getPose() == Pose.SLEEPING && e.getReason() == GetUpReason.GET_UP && isDamageLay(e.getPlayer().getUniqueId())) e.setCancelled(true);
+        switch (e.getPoseSeat().getPose()) {
+            case SITTING, SLEEPING: break;
+            default: return;
+        }
+        if (e.getReason() != GetUpReason.GET_UP) return;
+        if (!isDamageLay(e.getPlayer().getUniqueId())) return;
+        e.setCancelled(true);
+    }
+    @EventHandler public static void on(PreEntityGetUpSitEvent e) {
+        if (e.getReason() != GetUpReason.GET_UP) return;
+        if (!isDamageLay(e.getEntity().getUniqueId())) return;
+        e.setCancelled(true);
     }
     @EventHandler public static void on(PlayerQuitEvent e) {
         Player player = e.getPlayer();

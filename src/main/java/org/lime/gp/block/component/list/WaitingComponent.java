@@ -12,11 +12,14 @@ import org.lime.gp.block.component.data.WaitingInstance;
     public final int max_count;
     public final String type;
 
+    public final boolean debug;
+
     public WaitingComponent(BlockInfo info, JsonObject json) {
         super(info, json);
         progress = json.get("progress").getAsInt();
         max_count = json.get("max_count").getAsInt();
         type = json.get("type").getAsString();
+        debug = json.has("debug") && json.get("debug").getAsBoolean();
     }
 
     @Override public WaitingInstance createInstance(CustomTileMetadata metadata) {

@@ -36,9 +36,10 @@ import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.ConverterComponent;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.book.ContainerWorkbenchBook;
+import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.recipe.ConverterRecipe;
-import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
@@ -86,7 +87,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
     @Override public ConverterComponent component() { return (ConverterComponent)super.component(); }
     public ConverterInstance(ConverterComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
-        builder = lime.models.builder(EntityTypes.ARMOR_STAND)
+        /*builder = lime.models.builder(EntityTypes.ARMOR_STAND)
                 .local(new LocalLocation(component.offset).add(0, -0.4, -0.5, 0, 0))
                 .nbt(() -> {
                     EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
@@ -97,11 +98,11 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
                     stand.setMarker(true);
                     stand.setHeadPose(new Vector3f(90, 0, 0));
                     return stand;
-                });
+                });*/
         setItem(null, false);
     }
 
-    private final Builder builder;
+    //private final Builder builder;
 
     public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
     private ItemStack head;
@@ -112,11 +113,13 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
     public void setItem(ItemStack item, boolean save) {
         if (item == null) head = new ItemStack(Material.AIR);
         else head = item.clone();
-        model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, head)
+        /*model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, head)
                 .flatMap(v -> v.of(TableDisplaySetting.TableType.converter, component().converter_type))
                 .map(v -> v.display(head))
                 .orElseGet(() -> CraftItemStack.asNMSCopy(head))
-        ).build());
+        ).build());*/
+        ConverterComponent component = component();
+        model.set0(TableDisplaySetting.builderItem(head, component.offset, TableDisplaySetting.TableType.converter, component.converter_type).build());
         if (save) saveData();
         unique_key = UUID.randomUUID();
         nms_head = CraftItemStack.asNMSCopy(head);
@@ -210,7 +213,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         List<system.Toast2<ConverterRecipe, net.minecraft.world.item.ItemStack>> output = Recipes.CONVERTER.getAllRecipes(canData)
                 .filter(v -> v.converter_type.equals(component.converter_type))
                 .filter(v -> v.matches(view, world))
-                .flatMap(v -> v.output.keySet().stream().map(_v -> system.toast(v, v.replace ? _v.create(false, IOutputVariable.of(human)) : _v.modify(nms_head, true, IOutputVariable.of(human)))))
+                .flatMap(v -> v.output.slots().map(_v -> system.toast(v, v.replace ? _v.create(false, IOutputVariable.of(human)) : _v.modify(nms_head, true, IOutputVariable.of(human)))))
                 .toList();
         int maxPage = (output.size() - 1) / (4 * 9);
 
@@ -245,7 +248,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
                                     case 0 -> {
                                         if (page > 0) page--;
                                     }
-                                    case 2 -> RecipesBook.openCustomWorkbench(playerEntity,
+                                    case 2 -> ContainerWorkbenchBook.open(playerEntity,
                                             metadata,
                                             Recipes.CONVERTER,
                                             "recipes",

@@ -75,8 +75,11 @@ public class SleepSaturation implements IUI {
         .withIcon(false)
         .withParticles(false);
     private static final PotionEffect SLOW_EFFECT = PotionEffectType.SLOW.createEffect(40, 1)
-        .withIcon(false)
-        .withParticles(false);
+            .withIcon(false)
+            .withParticles(false);
+    private static final PotionEffect SLOW_DIGGING = PotionEffectType.SLOW_DIGGING.createEffect(40, 1)
+            .withIcon(false)
+            .withParticles(false);
     private static void update() {
         if (!enable) return;
         Bukkit.getOnlinePlayers().forEach(player -> {
@@ -92,6 +95,7 @@ public class SleepSaturation implements IUI {
             if (modifyValue(data, isSleep ? delta_reset_sec : -(delta_total_sec * NeedSystem.getSleepMutate(player))) == 0) {
                 player.addPotionEffect(DARKNESS_EFFECT);
                 player.addPotionEffect(SLOW_EFFECT);
+                player.addPotionEffect(SLOW_DIGGING);
             }
         });
     }

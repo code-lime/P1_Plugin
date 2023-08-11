@@ -8,7 +8,7 @@ import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
 public interface IFoodLevel {
-    void addLevel(FoodType type, float level); //this.foodLevel = Math.min(food + this.foodLevel, 20);
+    boolean addLevel(FoodType type, float level); //this.foodLevel = Math.min(food + this.foodLevel, 20);
     float totalLevel();
     boolean needsFood();
     void moveTo(float food);

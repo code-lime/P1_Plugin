@@ -49,7 +49,7 @@ public class UseSetting implements Listener {
         int getTime();
         void timeUse(Player player, Player target, ItemStack item);
 
-        private boolean useTick(Player player, Player target, EquipmentSlot arm, Integer ticks) {
+        private boolean useTick(Player player, Player target, Location playerLocation, Location targetLocation, EquipmentSlot arm, Integer ticks) {
             return !Death.isDamageLay(player.getUniqueId())
                     && !HandCuffs.isMove(player.getUniqueId())
                     && Optional.of(player.getInventory().getItem(arm))
@@ -64,14 +64,12 @@ public class UseSetting implements Listener {
                                             CustomUI.TextUI.hide(player);
                                             return true;
                                         }
-                                        Location l1 = player.getLocation().clone();
-                                        Location l2 = target.getLocation().clone();
                                         CustomUI.TextUI.show(player, timerMs(_ticks));
                                         Cooldown.setCooldown(player.getUniqueId(), "use_item", 1);
                                         lime.onceTicks(() -> {
                                             if (!item.isSimilar(player.getInventory().getItemInMainHand())) return;
-                                            if (!isDistance(l1, player.getLocation(), 0.25) || !isDistance(l2, target.getLocation(), 0.25)) return;
-                                            useTick(player, target, arm, _ticks - 1);
+                                            if (!isDistance(playerLocation, player.getLocation(), 1) || !isDistance(targetLocation, target.getLocation(), 1)) return;
+                                            useTick(player, target, playerLocation, targetLocation, arm, _ticks - 1);
                                         }, 1);
                                         return true;
                                     })
@@ -81,7 +79,7 @@ public class UseSetting implements Listener {
         @Override default boolean use(Player player, Player target, EquipmentSlot arm, boolean shift) {
             //if (!shift) return false;
             if (Cooldown.hasCooldown(player.getUniqueId(), "use_item")) return false;
-            return useTick(player, target, arm, null);
+            return useTick(player, target, player.getLocation(), target.getLocation(), arm, null);
         }
     }
 

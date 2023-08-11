@@ -4,6 +4,8 @@ import com.google.common.collect.Streams;
 import com.mojang.math.Transformation;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
@@ -11,6 +13,7 @@ import net.minecraft.world.entity.EntityTypes;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 import org.lime.core;
 import org.lime.display.DisplayManager;
@@ -120,6 +123,10 @@ public class DrawText {
         double distance();
         boolean tryRemove();
 
+        default Vector3f scale() {
+            return new Vector3f(1,1,1);
+        }
+
         static IShow create(Player player, Location location, Component text, double sec) {
             UUID uuid = player.getUniqueId();
             long next = System.currentTimeMillis() + Math.round(sec * 1000);
@@ -192,6 +199,11 @@ public class DrawText {
                 return;
             }
             keyOf(player, "last_text", component);
+            /*lime.logOP(Component.text("Set DataWatcher text for '"+player.getName()+"': ")
+                    .append(Component.text("TEXT")
+                            .hoverEvent(HoverEvent.showText(component))
+                            .color(NamedTextColor.AQUA))
+            );*/
             dataWatcher.setCustom(EditedDataWatcher.DATA_TEXT_ID, ChatHelper.toNMS(component));
         }
 
@@ -211,7 +223,18 @@ public class DrawText {
         @Override protected void sendData(Player player, boolean child) {
             Component old = this.<Component>keyOf(player, "last_text").orElse(null);
             Component component = show.text(player);
-            if (!Objects.equals(old, component)) markDirty(player, true);
+            if (!Objects.equals(old, component)) {
+                /*lime.logOP(Component.text("Update show for player '"+player.getName()+"': ")
+                        .append(Component.text("OLD")
+                                .hoverEvent(HoverEvent.showText(old == null ? Component.text("NULL") : old))
+                                .color(NamedTextColor.AQUA))
+                        .append(Component.text(" -> "))
+                        .append(Component.text("NEW")
+                                .hoverEvent(HoverEvent.showText(component == null ? Component.text("NULL") : component))
+                                .color(NamedTextColor.AQUA))
+                );*/
+                markDirty(player, true);
+            }
             super.sendData(player, child);
         }
 
@@ -228,7 +251,7 @@ public class DrawText {
             Display.TextDisplay text = new Display.TextDisplay(EntityTypes.TEXT_DISPLAY, ((CraftWorld)location.getWorld()).getHandle());
             text.moveTo(location.getX(), location.getY(), location.getZ());
             text.setText(BASE_TEXT);
-            text.setTransformation(new Transformation(new Vector3f(0, 0.6f, 0), null, null, null));
+            text.setTransformation(new Transformation(new Vector3f(0, 0.6f, 0), null, show.scale(), null));
             text.setLineWidth(100000);
             text.setBackgroundColor(0);
             text.setBillboardConstraints(Display.BillboardConstraints.VERTICAL);

@@ -468,6 +468,11 @@ public class Items implements Listener {
                 .map(v -> v.hasCustomModelData() ? v.getCustomModelData() : null)
                 .map(creators::get);
     }
+    public static Optional<IItemCreator> getItemCreator(ItemMeta meta) {
+        return Optional.ofNullable(meta)
+                .map(v -> v.hasCustomModelData() ? v.getCustomModelData() : null)
+                .map(creators::get);
+    }
     public static Optional<IItemCreator> getItemCreator(net.minecraft.world.item.ItemStack item) {
         return getIDByItem(item)
                 .map(creators::get);
@@ -491,6 +496,11 @@ public class Items implements Listener {
 
     public static int getMaxDamage(ItemStack item) {
         return CraftItemStack.asNMSCopy(item).getMaxDamage();
+    }
+    public static int getMaxDamage(Material material, ItemMeta item) {
+        return Items.getItemCreator(item)
+                .flatMap(v -> v instanceof ItemCreator c ? c.getOptional(DurabilitySetting.class).map(_v -> (short)_v.maxDurability) : Optional.empty())
+                .orElseGet(material::getMaxDurability);
     }
 
     public static void hurt(net.minecraft.world.item.ItemStack item, EntityPlayer player, int amount, EnumItemSlot slot) {

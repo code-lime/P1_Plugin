@@ -12,7 +12,7 @@ public class StriderDisable {
     }
     
     private static void init() {
-        ReflectionAccess.canInteractWith_ItemCarrotStick.set(Items.WARPED_FUNGUS_ON_A_STICK, null);
+        //ReflectionAccess.canInteractWith_ItemCarrotStick.set(Items.WARPED_FUNGUS_ON_A_STICK, null);
         ReflectionAccess.TEMPT_ITEMS_EntityStrider.set(null, RecipeItemStack.of(Items.WARPED_FUNGUS));
     }
 }

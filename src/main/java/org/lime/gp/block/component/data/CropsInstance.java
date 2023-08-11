@@ -1,5 +1,6 @@
 package org.lime.gp.block.component.data;
 
+import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.Vector3f;
 import net.minecraft.world.EnumHand;
@@ -16,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.lime.Position;
 import org.lime.display.models.Builder;
 import org.lime.display.models.Model;
 import org.lime.display.transform.LocalLocation;
@@ -43,7 +45,7 @@ import java.util.UUID;
 public class CropsInstance extends BaseAgeableInstance<CropsComponent> implements BlockDisplay.Displayable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable {
     public CropsInstance(CropsComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
-        builder = lime.models.builder(EntityTypes.ARMOR_STAND)
+        /*builder = lime.models.builder(EntityTypes.ARMOR_STAND)
                 .local(new LocalLocation(component.offset))
                 .nbt(() -> {
                     EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
@@ -54,9 +56,10 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
                     stand.setMarker(true);
                     stand.setHeadPose(new Vector3f(90, 0, 0));
                     return stand;
-                });
+                });*/
         setItem(null, false);
     }
+
 
     private static final AgeableData EMPTY = new AgeableData() {
         @Override public double tickAgeModify() {
@@ -72,7 +75,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         return Items.getOptional(CropsSetting.class, head).<AgeableData>map(v -> v).orElse(EMPTY);
     }
 
-    private final Builder builder;
+    //private final Builder builder;
 
     public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
     private org.bukkit.inventory.ItemStack head;
@@ -91,12 +94,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         syncDisplayVariable();
     }
     public void syncItem() {
-        model.set0(builder.addEquipment(EnumItemSlot.HEAD, Items.getOptional(TableDisplaySetting.class, head)
-                .flatMap(v -> v.of(TableDisplaySetting.TableType.crops, String.valueOf(age())))
-                .map(v -> v.display(head))
-                .orElseGet(() -> CraftItemStack.asNMSCopy(head))
-        ).build());
-
+        model.set0(TableDisplaySetting.builderItem(head, component().offset, TableDisplaySetting.TableType.crops, String.valueOf(age())).build());
     }
 
     @Override public void read(JsonObjectOptional json) {
@@ -141,7 +139,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
                         IPopulateLoot.var(Parameters.Origin, event.pos().getCenter()),
                         IPopulateLoot.var(Parameters.Tool, itemStack)
                 ));
-                String key = "crops/" + Items.getGlobalKeyByItem(head).orElse("none").toLowerCase();
+                String key = "crops/" + Items.getGlobalKeyByItem(outputItem).orElse("none").toLowerCase();
                 LevelModule.onHarvest(uuid, key);
                 for (ItemStack item : ModifyLootTable.getLoot(uuid, key, data.loot, loot).generateLoot(loot)) {
                     net.minecraft.world.item.ItemStack _item = CraftItemStack.asNMSCopy(item);

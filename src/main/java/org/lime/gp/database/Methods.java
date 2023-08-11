@@ -237,6 +237,9 @@ public class Methods {
     public static void delDiscord(UUID uuid, system.Action1<Long> callback) {
         SQL.Async.rawSqlQuery("SELECT discord_id FROM discord WHERE discord.uuid = '"+uuid+"'", Long.class, ids -> ids.forEach(id -> SQL.Async.rawSql("DELETE FROM discord WHERE discord_id = '"+id+"'", () -> callback.invoke(id))));
     }
+    public static void findDiscord(UUID uuid, system.Action1<Long> callback) {
+        SQL.Async.rawSqlOnce("SELECT discord_id FROM discord WHERE discord.uuid = '"+uuid+"'", Long.class, callback);
+    }
     public static void discordRoleList(system.Action1<Map<Long, Object>> callback) {
         SQL.Async.rawSqlQuery("SELECT roles.discord_role FROM roles WHERE roles.discord_role IS NOT NULL GROUP BY roles.discord_role UNION SELECT role_groups.discord_role FROM role_groups WHERE role_groups.discord_role IS NOT NULL GROUP BY role_groups.discord_role", Long.class, list -> callback.invoke(system.map.<Long, Object>of().add(list, new Object()).build()));
     }

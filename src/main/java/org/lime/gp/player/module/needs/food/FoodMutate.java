@@ -51,7 +51,7 @@ public class FoodMutate {
     }
 
     public void eat(FoodType type, float food, float saturationModifier) {
-        this.food.addLevel(type, food);
+        if (!this.food.addLevel(type, food)) return;
         this.saturationLevel = Math.min(this.saturationLevel + food * saturationModifier * 2.0f, this.food.totalLevel());
     }
     public void eatDelta(float food, float saturationModifier) {

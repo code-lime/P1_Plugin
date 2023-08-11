@@ -22,7 +22,7 @@ public interface Checker {
 
     Optional<IItemCreator> getRandomCreator();
 
-    public static Checker createCheck(system.Func1<String, Boolean> filter) {
+    static Checker createCheck(system.Func1<String, Boolean> filter) {
         return new Checker() {
             private Set<String> keys = Collections.emptySet();
             private Set<Material> whitelist = Collections.emptySet();
@@ -72,17 +72,17 @@ public interface Checker {
         };
     }
 
-    public static Checker createCheck(Collection<String> regexList) {
+    static Checker createCheck(Collection<String> regexList) {
         return createCheck(value -> {
             return regexList.stream().anyMatch(regex -> system.compareRegex(value, regex));
         });
     }
-    public static Checker createCheck(String regex) {
+    static Checker createCheck(String regex) {
         return createCheck(value -> {
             return system.compareRegex(value, regex);
         });
     }
-    public static Checker empty() {
+    static Checker empty() {
         return new Checker() {
             @Override public boolean check(String key) { return false; }
             @Override public Stream<String> getWhitelistKeys() { return Stream.empty(); }

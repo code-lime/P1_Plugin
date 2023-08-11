@@ -2,14 +2,16 @@ package org.lime.gp.item.elemental.step.group;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.lime.display.transform.LocalLocation;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
+import org.lime.json.JsonObjectOptional;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-public record FunctionStep(IStep step, String js, Map<String, Object> args) implements IStep {
+public record FunctionStep(IStep step, String js, JsonObjectOptional args) implements IStep {
     private @Nullable Vector tryConvert(Iterable<?> i) {
         double x = 0;
         double y = 0;
@@ -27,11 +29,11 @@ public record FunctionStep(IStep step, String js, Map<String, Object> args) impl
         }
         return new Vector(x,y,z);
     }
-    @Override public void execute(Player player, Vector position) {
-        double x = position.getX();
-        double y = position.getY();
-        double z = position.getZ();
-        HashMap<String, Object> args = new HashMap<>(this.args);
+    @Override public void execute(Player player, LocalLocation location) {
+        double x = location.x();
+        double y = location.y();
+        double z = location.z();
+        Map<String, Object> args = this.args.createObject();
         args.put("x", x);
         args.put("y", y);
         args.put("z", z);
@@ -54,6 +56,6 @@ public record FunctionStep(IStep step, String js, Map<String, Object> args) impl
         )
             lime.logOP("Error execute JS '" + js + "'. Return format of execute not equals [[x,y,z],[x,y,z],...,[x,y,z]]");
 
-        points.forEach(point -> step.execute(player, point));
+        points.forEach(point -> step.execute(player, location.set(point)));
     }
 }

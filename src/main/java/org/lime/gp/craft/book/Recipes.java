@@ -1,4 +1,4 @@
-package org.lime.gp.craft.recipe;
+package org.lime.gp.craft.book;
 
 import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.collect.*;
@@ -26,6 +26,7 @@ import org.bukkit.inventory.Recipe;
 import org.jetbrains.annotations.NotNull;
 import org.lime.core;
 import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.craft.recipe.*;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
@@ -37,65 +38,7 @@ import java.util.stream.Stream;
 
 public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.item.crafting.Recipes<T> {
     public static core.element create() {
-        return core.element.create(Recipes.class)
-                .withInit(Recipes::init);
-    }
-    @SuppressWarnings("unused")
-    private static class IgnoreRecipe implements IRecipe<IInventory> {
-        @Override public boolean matches(IInventory iInventory, World world) { return false; }
-        @Override public ItemStack assemble(IInventory iInventory, IRegistryCustom custom) { return null; }
-        @Override public boolean canCraftInDimensions(int i, int j) { return false; }
-        @Override public ItemStack getResultItem(IRegistryCustom custom) { return null;}
-        @Override public MinecraftKey getId() { return new MinecraftKey("none", "none"); }
-        @Override public RecipeSerializer<?> getSerializer() { return null; }
-        @Override public net.minecraft.world.item.crafting.Recipes<?> getType() { return null; }
-        @Override public Recipe toBukkitRecipe() { return null; }
-    }
-    private static <T>Iterable<T> iterable(Stream<T> stream) {
-        return new Iterable<>() {
-            @NotNull @Override public Iterator<T> iterator() { return stream.iterator(); }
-            @Override public void forEach(Consumer<? super T> action) { stream.forEach(action); }
-            @Override public Spliterator<T> spliterator() { return stream.spliterator(); }
-        };
-    }
-    public static void init() {
-        PacketManager.adapter()
-                .add(PacketPlayOutRecipeUpdate.class, (packet, event) -> {
-                    Optional.of(event.getPlayer())
-                            .map(v -> v instanceof CraftPlayer cp ? cp : null)
-                            .map(Entity::getUniqueId)
-                            .map(PLAYER_LIST::getPlayer)
-                            .ifPresentOrElse(player -> {
-                                RecipeBookServer book = player.getRecipeBook();
-                                List<IRecipe<?>> original = packet.getRecipes();
-
-                                List<List<IRecipe<?>>> appendQuery = new ArrayList<>();
-
-                                List<IRecipe<?>> append = new ArrayList<>();
-                                appendQuery.add(append);
-                                for (IRecipe<?> recipe : original) {
-                                    if (recipe instanceof IDisplayRecipe abstractRecipe) {
-                                        for (IRecipe<?> displayRecipe : iterable(abstractRecipe.getDisplayRecipe(player.level.registryAccess()))) {
-                                            if (book.contains(displayRecipe.getId())) append.add(displayRecipe);
-                                        }
-                                    }
-                                    if (recipe.getSerializer() != null) {
-                                        if (book.contains(recipe.getId())) append.add(recipe);
-                                    }
-                                }
-
-                                append = appendQuery.remove(0);
-                                if (append.size() > 1500) append = append.subList(0, 1500);
-                                event.setPacket(new PacketContainer(event.getPacketType(), new PacketPlayOutRecipeUpdate(append)));
-                            }, () -> {
-                                if (event.isPlayerTemporary()) lime.logOP("[PPORU] PlayerTemporary: " + event.getPlayer());
-                                event.setPacket(new PacketContainer(event.getPacketType(), new PacketPlayOutRecipeUpdate(Collections.emptyList())));
-                            });
-                })
-                .listen();
-    }
-    public static void send(EntityPlayer player, Collection<IRecipe<?>> send) {
-        player.connection.send(new PacketPlayOutRecipeUpdate(send));
+        return core.element.create(Recipes.class);
     }
 
     private static String createStaticPrefix() {

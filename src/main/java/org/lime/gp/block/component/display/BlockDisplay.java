@@ -41,9 +41,6 @@ public class BlockDisplay implements Listener {
     public static final BlockItemFrameDisplay.BlockItemFrameManager ITEM_FRAME_MANAGER = BlockItemFrameDisplay.manager();
     public static final BlockItemDisplay.BlockItemManager ITEM_MANAGER = BlockItemDisplay.manager();
     public static void init() {
-        Displays.initDisplay(MODEL_MANAGER);
-        Displays.initDisplay(ITEM_FRAME_MANAGER);
-        Displays.initDisplay(ITEM_MANAGER);
         PacketManager.adapter()
                 .add(PacketPlayOutBlockChange.class, PacketListener::onPacket)
                 .add(PacketPlayOutMultiBlockChange.class, PacketListener::onPacket)
@@ -70,6 +67,10 @@ public class BlockDisplay implements Listener {
                         .flatMap(v -> v.list(DisplayInstance.class).findAny())
                         .ifPresent(instance -> instance.set(key, value))
         );
+    }
+    public static void resetDisplay() {
+        Displays.uninitDisplay(MODEL_MANAGER, ITEM_FRAME_MANAGER, ITEM_MANAGER);
+        Displays.initDisplay(MODEL_MANAGER, ITEM_FRAME_MANAGER, ITEM_MANAGER);
     }
 
     public interface Displayable extends CustomTileMetadata.Uniqueable {

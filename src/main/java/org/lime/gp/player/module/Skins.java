@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
@@ -94,7 +95,7 @@ public class Skins implements Listener {
         lime.nextTick(() -> {
             player.teleport(loc);
             WorldServer worldserver = ep.getLevel();
-            worldserver.getServer().getPlayerList().respawn(ep, worldserver, true, loc, true);
+            worldserver.getServer().getPlayerList().respawn(ep, worldserver, true, loc, true, PlayerRespawnEvent.RespawnReason.PLUGIN);
             lime.nextTick(() -> player.teleport(loc));
         });
     }

@@ -24,7 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
-import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.player.inventory.InterfaceManager;
 

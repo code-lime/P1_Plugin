@@ -1,5 +1,6 @@
 package org.lime.gp.block.component.data;
 
+import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.InventorySubcontainer;
@@ -55,7 +56,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         };
     }
 
-    private static final Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
+    /*private static final Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
             .nbt(() -> {
                 EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                 stand.setNoBasePlate(true);
@@ -63,7 +64,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
                 stand.setSmall(true);
                 return stand;
             })
-            .invisible(true);
+            .invisible(true);*/
 
     @Override public void read(JsonObjectOptional json) {
         items_container.clearContent();
@@ -88,9 +89,11 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
             changed = false;
             InventoryComponent component = component();
             Builder builder = lime.models.builder();
-            for (Map.Entry<Integer, LocalLocation> kv : component.display.entrySet()) {
+            for (Map.Entry<Integer, Transformation> kv : component.display.entrySet()) {
                 net.minecraft.world.item.ItemStack item = items_container.getItem(kv.getKey());
                 if (item.isEmpty()) continue;
+                builder = builder.addChild(TableDisplaySetting.builderItem(CraftItemStack.asBukkitCopy(item), kv.getValue(), TableDisplaySetting.TableType.inventory, component.type));
+/*
                 builder = builder.addChild(builder_interact
                         .local(kv.getValue())
                         .nbt(v -> v.putBoolean("Invulnerable", true))
@@ -100,11 +103,12 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
                                 .map(v -> v.display(item))
                                 .orElseGet(item::copy))
                 );
+ */
             }
             display.set0(builder.build());
             metadata()
                 .list(DisplayInstance.class)
-                .forEach(display -> display.variableDirty());
+                .forEach(DisplayInstance::variableDirty);
             saveData();
         }
     }

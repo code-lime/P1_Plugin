@@ -2,6 +2,7 @@ package org.lime.gp;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.resources.MinecraftKey;
+import net.minecraft.server.commands.CommandMe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.block.Blocks;
@@ -13,7 +14,7 @@ import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.display.partial.Variable;
 import org.lime.gp.block.component.display.partial.list.BlockPartial;
 import org.lime.gp.block.component.list.*;
-import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.recipe.WaitingRecipe;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
@@ -238,6 +239,7 @@ public class test {
                         RecipeSlot.of(Checker.createCheck(Items.getMaterialKey(Material.ACACIA_LOG))).withAmount(1),
                         RecipeSlot.of(Checker.createCheck(Items.getMaterialKey(Material.STONE))).withAmount(3)
                 ),
+                true,
                 IOutputSlot.ofString(Material.BEDROCK.name() + "*5"),
                 30,
                 "test.waiting.thirst"));
@@ -248,6 +250,7 @@ public class test {
                 RecipeSlot.of(Checker.createCheck("test.waiting.item.single")),
                 List.of(),
                 List.of(),
+                true,
                 IOutputSlot.ofString(Material.RED_CONCRETE.name() + "*2"),
                 10,
                 "test.waiting.thirst"));

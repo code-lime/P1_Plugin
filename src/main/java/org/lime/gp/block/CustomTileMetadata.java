@@ -153,12 +153,14 @@ public class CustomTileMetadata extends TileMetadata {
         Stream<Object> stream;
         if (info != null) {
             Stream.Builder<Object> builder = Stream.builder();
-            info.components.keySet().forEach(key -> {
+            info.components.forEach((key, value) -> {
+                builder.add(value);
                 BlockInstance instance = instances.get(key);
                 if (instance == null) return;
                 builder.add(instance);
             });
-            stream = Stream.concat(builder.build(), info.components.values().stream());
+            stream = builder.build();
+            //stream = Stream.concat(builder.build(), info.components.values().stream());
         } else {
             stream = Stream.empty();
         }

@@ -13,6 +13,7 @@ import java.io.Closeable;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -34,9 +35,9 @@ public class Native {
     public static String classFile(Class<?> tClass) { return className(tClass) + ".class"; }
     public static String className(Class<?> tClass) { return tClass.getName().replace('.', '/'); }
 
-    public static Type replaceDescriptor(Type type, String from, String to) {
+    /*public static Type replaceDescriptor(Type type, String from, String to) {
         return Type.getType(type.getDescriptor().replace(from, to));
-    }
+    }*/
 
     private static @Nullable String prefix = null;
     public static void log(String log) {
@@ -51,6 +52,31 @@ public class Native {
     }
     public static void subLog(IAction subLogger) {
         try (var ignored = subLog()) { subLogger.execute(); }
+    }
+    public static void subLog(String log, IAction subLogger) {
+        log(log);
+        subLog(subLogger);
+    }
+
+    public static void writeMethod(system.ICallable callable, system.Action5<Integer, String, String, String, Boolean> method) {
+        SerializedLambda lambda = infoFromLambda(callable);
+        String kind = MethodHandleInfo.referenceKindToString(lambda.getImplMethodKind());
+        int opcode = switch (kind) {
+            case "invokeVirtual" -> Opcodes.INVOKEVIRTUAL;
+            case "invokeStatic" -> Opcodes.INVOKESTATIC;
+            case "invokeSpecial", "newInvokeSpecial" -> Opcodes.INVOKESPECIAL;
+            case "invokeInterface" -> Opcodes.INVOKEINTERFACE;
+            case "getField", "getStatic", "putField", "putStatic" -> throw new IllegalArgumentException("Kind method type '"+kind+"' can be only invokable!");
+            default -> throw new IllegalArgumentException("Kind method type '"+kind+"' not supported!");
+        };
+        boolean isInterface = opcode == Opcodes.INVOKEINTERFACE
+                || system.funcEx(() -> Class.forName(lambda.getImplClass().replace('/', '.')).isInterface())
+                    .optional().invoke().orElse(false);
+        method.invoke(opcode, lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature(), isInterface);
+    }
+    public static void writeField(int opcode, system.ICallable callable, system.Action4<Integer, String, String, String> field) {
+        FieldInfo info = infoFromField(callable);
+        field.invoke(opcode, info.owner(), info.name(), info.descriptor());
     }
 
     public static boolean isMethod(system.ICallable callable, String owner, String name, String descriptor) {

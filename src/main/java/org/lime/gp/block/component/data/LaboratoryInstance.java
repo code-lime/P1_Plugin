@@ -41,8 +41,9 @@ import org.lime.gp.block.component.display.event.BlockMarkerEventInteract;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.LaboratoryComponent;
 import org.lime.gp.chat.ChatColorHex;
-import org.lime.gp.craft.RecipesBook;
-import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.book.ContainerWorkbenchBook;
+import org.lime.gp.craft.book.RecipesBook;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
@@ -292,7 +293,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                 });
     }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
-        return RecipesBook.openCustomWorkbench(event.player(), metadata, Recipes.LABORATORY, Recipes.LABORATORY.getAllRecipes());
+        return ContainerWorkbenchBook.open(event.player(), metadata, Recipes.LABORATORY, Recipes.LABORATORY.getAllRecipes());
     }
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
         return Optional.of(IModelBlock.of(null, model_interact, BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
@@ -368,7 +369,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                                     .spawn();
                             Perms.onRecipeUse(recipe, last_click, canData);
                             net.minecraft.world.item.ItemStack output = recipe.assemble(inventory, world.registryAccess(), IOutputVariable.of(last_click));
-                            LevelModule.onCraft(last_click, CraftItemStack.asCraftMirror(output));
+                            LevelModule.onCraft(last_click, recipe.getId());
                             Block.popResource(event.getWorld(), event.getPos().above(), output);
                         }, () -> PARTICLE
                                 .color(Color.fromRGB(0x000000), 3)

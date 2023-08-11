@@ -1,11 +1,13 @@
 package org.lime.gp.craft.slot.output;
 
 import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.item.ItemStack;
 import org.bukkit.entity.Player;
 import org.lime.gp.player.level.LevelModule;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public interface IOutputVariable {
     Optional<Integer> getLevel();

@@ -30,6 +30,7 @@ import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.IItemSetting;
 import org.lime.gp.item.settings.ItemSetting;
+import org.lime.gp.item.settings.list.MaxStackSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.page.slot.ISlot;
 import org.lime.system;
@@ -88,6 +89,10 @@ public class ItemCreator extends IItemCreator {
     @Override public String getKey() { return _key; }
     @Override public int getID() { return _id; }
     @Override public Stream<Material> getWhitelist() { return Stream.ofNullable(nullable_cache_item); }
+    @Override public Optional<Integer> tryGetMaxStackSize() {
+        return (is_stack ? getOptional(MaxStackSetting.class).map(_v -> _v.maxStack) : Optional.of(1))
+                .or(() -> Optional.ofNullable(nullable_cache_item).map(Material::getMaxStackSize));
+    }
 
     public final List<PotionEffect> potionEffects = new ArrayList<>();
     public ItemCreator(String key, JsonObject json) {
@@ -154,6 +159,7 @@ public class ItemCreator extends IItemCreator {
     public ItemStack apply(ItemStack item) { return apply(item, Apply.of()); }
     public ItemStack apply(ItemStack item, Apply apply) { return apply(item, null, apply); }
     public ItemStack apply(ItemStack item, Integer count, Apply apply) {
+        int maxDamage = Items.getMaxDamage(item);
         if (count != null) item.setAmount(count);
         Apply _apply = ISlot.createArgs(this.args, apply);
         settings.values().forEach(setting -> setting.appendArgs(item, _apply));
@@ -180,6 +186,11 @@ public class ItemCreator extends IItemCreator {
         if (color != null && meta instanceof PotionMeta potion) potion.setColor(ChatColorHex.of(ChatHelper.formatText(color, _apply)).toBukkitColor());
         if (charged.size() != 0 && meta instanceof CrossbowMeta crossbow) crossbow.setChargedProjectiles(charged.stream().map(Items::createItem).filter(Optional::isPresent).map(Optional::get).toList());
         if (potionEffects.size() != 0 && meta instanceof PotionMeta potion) potionEffects.forEach(effect -> potion.addCustomEffect(effect, false));
+        if (meta instanceof Damageable damageable && maxDamage > 0) {
+            double damage = Math.min(1, Math.max(0, damageable.getDamage() / (double)maxDamage));
+            maxDamage = Items.getMaxDamage(item.getType(), meta);
+            damageable.setDamage((int)Math.round(damage * maxDamage));
+        }
         meta.setAttributeModifiers(attributes);
         PersistentDataContainer container = meta.getPersistentDataContainer();
         data.forEach((k, v) -> JManager.set(container, k, setArgs(v, _apply)));

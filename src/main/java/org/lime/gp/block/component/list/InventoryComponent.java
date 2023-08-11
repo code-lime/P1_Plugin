@@ -1,8 +1,10 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import com.mojang.math.Transformation;
 import net.kyori.adventure.text.Component;
 import org.lime.display.transform.LocalLocation;
+import org.lime.display.transform.Transform;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -23,7 +25,7 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
     public final String type;
     public final Component title;
     public final Map<Integer, Checker> slots = new HashMap<>();
-    public final Map<Integer, LocalLocation> display = new HashMap<>();
+    public final Map<Integer, Transformation> display = new HashMap<>();
 
     public InventoryComponent(BlockInfo info, JsonObject json) {
         super(info, json);
@@ -36,12 +38,11 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
             Menu.rangeOf(kv.getKey()).forEach(slot -> this.slots.put(slot, checker));
         });
         json.getAsJsonObject("display").entrySet().forEach(kv -> {
-            LocalLocation location = new LocalLocation(system.getLocation(null, kv.getValue().getAsString()));
-            Menu.rangeOf(kv.getKey()).forEach(slot -> this.display.put(slot, location));
+            Menu.rangeOf(kv.getKey()).forEach(slot -> this.display.put(slot, system.transformation(kv.getValue())));
         });
     }
 
-    public InventoryComponent(BlockInfo info, @Nullable String type, int rows, Component title, Map<Integer, Checker> slots, Map<Integer, LocalLocation> display) {
+    public InventoryComponent(BlockInfo info, @Nullable String type, int rows, Component title, Map<Integer, Checker> slots, Map<Integer, Transformation> display) {
         super(info);
 
         this.type = type;

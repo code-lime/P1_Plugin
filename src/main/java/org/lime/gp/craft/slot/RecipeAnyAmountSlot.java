@@ -29,4 +29,5 @@ public class RecipeAnyAmountSlot extends RecipeSlot {
     @Override public Optional<Integer> split(ItemStack item) { return base.split(item).map(count -> count / amount); }
     @Override public net.minecraft.world.item.ItemStack result(int count) { return base.result(count); }
     @Override public Stream<String> getWhitelistKeys() { return base.getWhitelistKeys(); }
+    @Override public boolean checkCrafting() { return base.checkCrafting(); }
 }

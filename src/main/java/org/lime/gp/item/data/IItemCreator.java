@@ -1,5 +1,6 @@
 package org.lime.gp.item.data;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,6 +16,8 @@ public abstract class IItemCreator {
     public abstract int getID();
     public abstract ItemStack createItem(int count, Apply apply);
     public abstract Stream<Material> getWhitelist();
+
+    public abstract Optional<Integer> tryGetMaxStackSize();
 
     public final String stack;
 

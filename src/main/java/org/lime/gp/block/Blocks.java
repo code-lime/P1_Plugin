@@ -39,6 +39,7 @@ import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.OtherGenericInstance;
+import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
@@ -276,6 +277,7 @@ public class Blocks implements Listener {
         Blocks.creators.putAll(creators);
         Blocks.creators.values().forEach(creator -> replaceBlocks.putAll(creator.replaces));
         CacheBlockDisplay.reset();
+        BlockDisplay.resetDisplay();
     }
     public static final system.LockToast2<Long, Long> nextAsyncTimes = system.toast(0L, 0L).lock();
     public static final system.LockToast1<TickTimeInfo> deltaTime = system.toast(new TickTimeInfo()).lock();

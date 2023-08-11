@@ -1,12 +1,16 @@
 package org.lime.gp.block.component.data;
 
+import com.google.common.primitives.Floats;
+import com.google.gson.JsonElement;
+import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
-import net.minecraft.core.Vector3f;
 import net.minecraft.world.EnumInteractionResult;
+import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
@@ -15,6 +19,7 @@ import net.minecraft.world.phys.AxisAlignedBB;
 import net.minecraft.world.phys.shapes.OperatorBoolean;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.VoxelShapes;
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -24,6 +29,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.joml.Vector3f;
 import org.lime.display.models.Builder;
 import org.lime.display.models.Model;
 import org.lime.gp.block.BlockInstance;
@@ -33,21 +39,24 @@ import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
-import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.book.ContainerWorkbenchBook;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
-import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
+import org.lime.gp.module.JavaScript;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -382,7 +391,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                                 .ifPresentOrElse(recipe -> {
                                     this.result = recipe.assemble(readonlyInventory, world.registryAccess(), IOutputVariable.of(last_owner)).asBukkitCopy();
                                     Perms.onRecipeUse(recipe, last_owner, canData);
-                                    LevelModule.onCraft(last_owner, this.result);
+                                    LevelModule.onCraft(last_owner, recipe.getId());
                                     this.last_owner = null;
 
                                     Location center = metadata.location(0.5,0.5,0.5);
@@ -411,6 +420,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                 case RECIPE: {
                     spawnParticle(metadata.location(0.5,0.5,0.5));
                     timer -= timeDelta;
+
                     if (timer <= 0) {
                         reset(State.RECIPE, false);
                         CauldronInstance.this.decreaseLevel();
@@ -425,7 +435,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
             event.addItems(stepItems().toList());
         }
 
-        private static final Builder builder = lime.models.builder(EntityTypes.ARMOR_STAND)
+        /*private static final Builder builder = lime.models.builder(EntityTypes.ARMOR_STAND)
                 .nbt(() -> {
                     EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                     stand.setNoBasePlate(true);
@@ -437,6 +447,12 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     stand.setYRot(0);
                     stand.setXRot(0);
                     return stand;
+                });*/
+        private static final Builder builder = lime.models.builder(EntityTypes.ITEM_DISPLAY)
+                .nbt(() -> {
+                    Display.ItemDisplay display = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, lime.MainWorld.getHandle());
+                    display.setTransformation(new Transformation(new Vector3f(0, 0.001f, 0), null, new Vector3f(1f, 1f, 1f), null));
+                    return display;
                 });
         private final system.LockToast1<Model> model = system.<Model>toast(null).lock();
 
@@ -527,7 +543,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         if (cauldronInteraction != null) {
             EnumInteractionResult result = cauldronInteraction.interact(this, itemStack, event);
             if (result.consumesAction()) return result;
-            else return RecipesBook.openCustomWorkbench(event.player(), metadata, Recipes.CAULDRON, Recipes.CAULDRON.getAllRecipes());
+            else return ContainerWorkbenchBook.open(event.player(), metadata, Recipes.CAULDRON, Recipes.CAULDRON.getAllRecipes());
         }
         return EnumInteractionResult.PASS;
     }

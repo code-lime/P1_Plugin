@@ -12,7 +12,7 @@ public interface IOutputSlot {
 
     static IOutputSlot ofString(String str) {
         String[] args = str.split("\\*");
-        return new SingleOutputSlot(args[0], args.length > 1 ? Integer.parseUnsignedInt(args[1]) : 1);
+        return new RangeOutputSlot(args[0], args.length > 1 ? system.IRange.parse(args[1]) : new system.OnceRange(1));
     }
     static IOutputSlot of(JsonElement element) {
         if (element.isJsonPrimitive()) return ofString(element.getAsString());

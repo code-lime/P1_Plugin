@@ -24,6 +24,7 @@ public class TreeGenerator implements Listener {
                 default:
                     break;
             }
+            /*
             switch (material) {
                 case ACACIA_LEAVES:
                 case AZALEA_LEAVES:
@@ -38,6 +39,7 @@ public class TreeGenerator implements Listener {
                 default:
                     break;
             }
+            */
             if (original != material) v.setType(material);
         });
     }

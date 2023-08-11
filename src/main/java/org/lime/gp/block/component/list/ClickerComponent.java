@@ -1,7 +1,9 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import com.mojang.math.Transformation;
 import org.bukkit.Material;
+import org.joml.Vector3f;
 import org.lime.Position;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInfo;
@@ -27,7 +29,9 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
     public final String sound_click;
     public final String sound_result;
     public final Replace replace;
-    public final LocalLocation show;
+    public final Transformation show;
+    public final Transformation step_fore;
+    public final Transformation step_back;
     public final Material particle;
     public final boolean hand_click;
 
@@ -114,7 +118,21 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
         this.sound_click = json.has("sound_click") ? json.get("sound_click").getAsString() : null;
         this.sound_result = json.has("sound_result") ? json.get("sound_result").getAsString() : null;
         this.replace = json.has("replace") ? Replace.of(json.getAsJsonObject("replace")) : Replace.none;
-        this.show = json.has("show") ? new LocalLocation(system.getVector(json.get("show").getAsString())) : LocalLocation.ZERO;
+        this.show = json.has("show") ? system.transformation(json.get("show")) : Transformation.identity();
+        if (json.has("step")) {
+            if (json.get("step").isJsonPrimitive()) {
+                this.step_fore = this.step_back = system.transformation(json.get("step"));
+            } else {
+                JsonObject step = json.getAsJsonObject("step");
+                if (step.has("all")) this.step_fore = this.step_back = system.transformation(step.get("all"));
+                else {
+                    this.step_fore = system.transformation(step.get("fore"));
+                    this.step_back = system.transformation(step.get("back"));
+                }
+            }
+        } else {
+            this.step_fore = this.step_back = new Transformation(new Vector3f(0, 0.025f, 0), null, null, null);
+        }
         this.particle = json.has("particle") ? Material.valueOf(json.get("particle").getAsString()) : null;
         this.hand_click = json.has("hand_click") && json.get("hand_click").getAsBoolean();
     }

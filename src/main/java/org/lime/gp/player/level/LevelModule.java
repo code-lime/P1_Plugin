@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
+import net.minecraft.resources.MinecraftKey;
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
@@ -180,10 +182,11 @@ public class LevelModule implements Listener {
     }
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST) private static void onCraft(CraftItemEvent e) {
         UUID uuid = e.getWhoClicked().getUniqueId();
-        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.CRAFT, e.getCurrentItem()));
+        if (!(e.getRecipe() instanceof Keyed keyed)) return;
+        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.CRAFT, keyed.getKey().getKey()));
     }
-    public static void onCraft(UUID uuid, ItemStack output) {
-        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.CRAFT, output));
+    public static void onCraft(UUID uuid, MinecraftKey key) {
+        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.CRAFT, key.getPath()));
     }
     public static void onHarvest(UUID uuid, String key) {
         getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.HARVEST, key));

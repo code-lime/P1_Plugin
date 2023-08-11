@@ -2,6 +2,7 @@ package org.lime.gp.craft;
 
 import co.aikar.util.Counter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -30,11 +31,13 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.recipe.*;
-import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
 import org.lime.system;
@@ -250,7 +253,7 @@ public class Crafts {
         public final List<RecipeSlot> recipes;
         public ShapelessRecipes(MinecraftKey id, String group, CraftingBookCategory category, List<RecipeSlot> recipes, net.minecraft.world.item.ItemStack output, NonNullList<RecipeItemStack> input) {
             super(id, group, category, output, input);
-            this.recipes = recipes;
+            this.recipes = checkRecipeCrafting(id.getPath(), recipes);
         }
         public abstract net.minecraft.world.item.ItemStack result(IOutputVariable variable);
         @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) {
@@ -312,11 +315,93 @@ public class Crafts {
         }
         protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
     }
+    private static abstract class ModifyRecipes extends net.minecraft.world.item.crafting.ShapelessRecipes implements VanillaType, IDisplayRecipe {
+        public final RecipeSlot modifySlot;
+        public final List<RecipeSlot> otherSlots;
+        public ModifyRecipes(MinecraftKey id, String group, CraftingBookCategory category, RecipeSlot modifySlot, List<RecipeSlot> otherSlots, net.minecraft.world.item.ItemStack output, NonNullList<RecipeItemStack> input) {
+            super(id, group, category, output, input);
+            this.modifySlot = checkRecipeCrafting(id.getPath(), modifySlot);
+            this.otherSlots = checkRecipeCrafting(id.getPath(), otherSlots);
+        }
+        public abstract net.minecraft.world.item.ItemStack result(ItemStack replace, IOutputVariable variable);
+        @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) {
+            return result(ItemStack.EMPTY, IOutputVariable.empty());
+        }
+        @Override public net.minecraft.world.item.ItemStack assemble(InventoryCrafting inventory, IRegistryCustom custom) {
+            return inventory.getOwner() instanceof Player player
+                    ? result(findModifyItem(inventory), IOutputVariable.of(player))
+                    : result(findModifyItem(inventory), IOutputVariable.empty());
+        }
+        @Override public boolean canCraftInDimensions(int width, int height) {
+            return width * height >= otherSlots.size() + 1;
+        }
+
+        private ItemStack findModifyItem(InventoryCrafting inventory) {
+            for (int j2 = 0; j2 < inventory.getContainerSize(); ++j2) {
+                net.minecraft.world.item.ItemStack itemstack = inventory.getItem(j2);
+                if (itemstack.isEmpty()) continue;
+                itemstack = itemstack.copy(true);
+                if (modifySlot.test(itemstack))
+                    return itemstack;
+            }
+            return ItemStack.EMPTY;
+        }
+
+        public Optional<HashMap<Integer, RecipeSlot>> craft(InventoryCrafting inventory) {
+            Iterable<RecipeSlot> recipeSlots = Iterables.concat(Collections.singleton(modifySlot), otherSlots);
+
+            ArrayList<system.Toast2<net.minecraft.world.item.ItemStack, Integer>> providedItems = new ArrayList<>();
+            Counter<net.minecraft.world.item.ItemStack> matchedProvided = new Counter<>();
+            Counter<RecipeSlot> matchedIngredients = new Counter<>();
+            for (int j2 = 0; j2 < inventory.getContainerSize(); ++j2) {
+                net.minecraft.world.item.ItemStack itemstack = inventory.getItem(j2);
+                if (itemstack.isEmpty()) continue;
+                itemstack = itemstack.copy(true);
+                providedItems.add(system.toast(itemstack, j2));
+                for (RecipeSlot ingredient : recipeSlots) {
+                    if (!ingredient.test(itemstack)) continue;
+                    matchedProvided.increment(itemstack);
+                    matchedIngredients.increment(ingredient);
+                }
+            }
+            if (matchedProvided.isEmpty() || matchedIngredients.isEmpty()) return Optional.empty();
+            ArrayList<RecipeSlot> ingredients = new ArrayList<>();
+            recipeSlots.forEach(ingredients::add);
+            providedItems.sort(Comparator.<system.Toast2<net.minecraft.world.item.ItemStack, Integer>>comparingInt(c2 -> (int)matchedProvided.getCount(c2.val0)).reversed());
+            ingredients.sort(Comparator.comparingInt(c2 -> (int)matchedIngredients.getCount(c2)));
+            HashMap<Integer, RecipeSlot> output = new HashMap<>();
+            block2: for (system.Toast2<net.minecraft.world.item.ItemStack, Integer> provided : providedItems) {
+                Iterator<RecipeSlot> itIngredient = ingredients.iterator();
+                while (itIngredient.hasNext()) {
+                    RecipeSlot ingredient = itIngredient.next();
+                    if (!ingredient.test(provided.val0)) continue;
+                    output.put(provided.val1, ingredient);
+                    itIngredient.remove();
+                    continue block2;
+                }
+                return Optional.empty();
+            }
+            return ingredients.isEmpty() ? Optional.of(output) : Optional.empty();
+        }
+
+        @Override public boolean matches(InventoryCrafting inventory, net.minecraft.world.level.World world) {
+            return craft(inventory).isPresent();
+        }
+
+        @Override public NonNullList<net.minecraft.world.item.ItemStack> getRemainingItems(InventoryCrafting inventory) {
+            return Crafts.getRemainingItems(craft(inventory).orElse(null), inventory);
+        }
+        private Optional<net.minecraft.world.item.crafting.RecipeCrafting> displayRecipe = null;
+        @Override public Stream<net.minecraft.world.item.crafting.RecipeCrafting> getDisplayRecipe(IRegistryCustom custom) {
+            return (displayRecipe == null ? (displayRecipe = createDisplayRecipe(new MinecraftKey(getId().getNamespace() + ".g", getId().getPath()), this.getGroup()).map(v -> IDisplayRecipe.removeLore(v, custom))) : displayRecipe).stream();
+        }
+        protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
+    }
     private static abstract class ShapedRecipes extends net.minecraft.world.item.crafting.ShapedRecipes implements VanillaType, IDisplayRecipe {
         public final List<RecipeSlot> recipes;
         public ShapedRecipes(MinecraftKey id, String group, CraftingBookCategory category, int width, int height, List<RecipeSlot> recipes, ItemStack output) {
             super(id, group, category, width, height, NonNullList.of(RecipeItemStack.of(), recipes.stream().map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new)), output);
-            this.recipes = recipes;
+            this.recipes = checkRecipeCrafting(id.getPath(), recipes);
         }
         public abstract net.minecraft.world.item.ItemStack result(IOutputVariable variable);
         @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) {
@@ -373,6 +458,20 @@ public class Crafts {
         protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
     }
 
+    private static <T extends Collection<RecipeSlot>>T checkRecipeCrafting(String key, T slots) {
+        for (RecipeSlot slot : slots) {
+            if (slot.checkCrafting()) continue;
+            lime.logOP("RecipeSlot in '"+key+"' is try DUPE! Slot count not equals ONE! Maybe error...");
+            return slots;
+        }
+        return slots;
+    }
+    private static <T extends RecipeSlot>T checkRecipeCrafting(String key, T slot) {
+        if (slot.checkCrafting()) return slot;
+        lime.logOP("RecipeSlot in '"+key+"' is try DUPE! Slot count not equals ONE! Maybe error...");
+        return slot;
+    }
+
     public interface VanillaType {
         Optional<String> vanillaType();
         static Optional<String> ofInventory(InventoryCrafting inv) { return inv instanceof VanillaType vt ? vt.vanillaType() : Optional.empty(); }
@@ -408,15 +507,39 @@ public class Crafts {
         switch (json.get("type").getAsString()) {
             case "shapeless": {
                 CraftingBookCategory category = getByName(
-                    CraftingBookCategory.values(),
-                    json.has("category") ? json.get("category").getAsString() : null,
-                    CraftingBookCategory.MISC);
+                        CraftingBookCategory.values(),
+                        json.has("category") ? json.get("category").getAsString() : null,
+                        CraftingBookCategory.MISC);
 
                 IOutputSlot output = IOutputSlot.of(json.get("output"));
                 List<RecipeSlot> recipes = create(key.toString(), json.get("input").getAsJsonArray());
                 Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
                 return new ShapelessRecipes(key, group, category, recipes, output.create(true, IOutputVariable.empty()), NonNullList.of(RecipeItemStack.of(), recipes.stream().map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new))) {
                     @Override public net.minecraft.world.item.ItemStack result(IOutputVariable variable) { return output.create(false, variable); }
+                    @Override public Optional<String> vanillaType() { return vanilla_type; }
+                    @Override public boolean matches(InventoryCrafting inventory, World world) {
+                        return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
+                    }
+                    @Override protected Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
+                        return Optional.of(this);
+                    }
+                };
+            }
+            case "modify": {
+                CraftingBookCategory category = getByName(
+                        CraftingBookCategory.values(),
+                        json.has("category") ? json.get("category").getAsString() : null,
+                        CraftingBookCategory.MISC);
+
+                IOutputSlot output = IOutputSlot.of(json.get("output"));
+                JsonObject input = json.getAsJsonObject("input");
+                RecipeSlot modifySlot = RecipeSlot.of(key.toString(), input.get("modify"));
+                List<RecipeSlot> otherSlot = create(key.toString(), input.get("other").getAsJsonArray());
+                Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
+                return new ModifyRecipes(key, group, category, modifySlot, otherSlot, output.create(true, IOutputVariable.empty()), NonNullList.of(RecipeItemStack.of(), Stream.concat(Stream.of(modifySlot), otherSlot.stream()).map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new))) {
+                    @Override public net.minecraft.world.item.ItemStack result(ItemStack modify, IOutputVariable variable) {
+                        return modify.isEmpty() ? output.create(false, variable) : output.modify(modify, false, variable);
+                    }
                     @Override public Optional<String> vanillaType() { return vanilla_type; }
                     @Override public boolean matches(InventoryCrafting inventory, World world) {
                         return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
@@ -461,6 +584,7 @@ public class Crafts {
                     RecipeSlot.of(key.toString(), json.get("input")),
                     create(key.toString(), json.get("fuel").getAsJsonArray()),
                     create(key.toString(), json.get("catalyse").getAsJsonArray()),
+                    !json.has("split_catalyse") || json.get("split_catalyse").getAsBoolean(),
                     IOutputSlot.of(json.get("output")),
                     json.get("total_sec").getAsInt(),
                     json.get("waiting_type").getAsString());
@@ -469,16 +593,21 @@ public class Crafts {
                         json.has("category") ? json.get("category").getAsString() : null,
                         CraftingBookCategory.MISC),
                     create(key.toString(), json.get("input_thirst").getAsJsonArray()), create(key.toString(), json.get("input_dust").getAsJsonArray()), IOutputSlot.of(json.get("output")));
-            case "converter": return new ConverterRecipe(key,
+            case "converter":
+                return new ConverterRecipe(key,
                     group,
                     getByName(
                         CraftingBookCategory.values(),
                         json.has("category") ? json.get("category").getAsString() : null,
                         CraftingBookCategory.MISC),
                     create(key.toString(), json.get("input").getAsJsonArray()),
-                    json.get("output").isJsonArray()
-                            ? Streams.stream(json.get("output").getAsJsonArray().iterator()).map(IOutputSlot::of).collect(Collectors.toMap(v -> v, v -> Optional.empty()))
-                            : json.get("output").getAsJsonObject().entrySet().stream().collect(Collectors.toMap(kv -> IOutputSlot.ofString(kv.getKey()), kv -> kv.getValue().isJsonNull() ? Optional.empty() : Optional.of(kv.getValue().getAsString()))),
+                        json.get("output").isJsonPrimitive()
+                                ? ConverterRecipe.IConverterOutput.ofString(json.get("output").getAsString())
+                                : ConverterRecipe.IConverterOutput.ofMap(
+                                        json.get("output").isJsonArray()
+                                            ? Streams.stream(json.get("output").getAsJsonArray().iterator()).map(IOutputSlot::of).collect(Collectors.toMap(v -> v, v -> Optional.empty()))
+                                            : json.get("output").getAsJsonObject().entrySet().stream().collect(Collectors.toMap(kv -> IOutputSlot.ofString(kv.getKey()), kv -> kv.getValue().isJsonNull() ? Optional.empty() : Optional.of(kv.getValue().getAsString())))
+                                ),
                     json.get("converter_type").getAsString(),
                     !json.has("replace") || json.get("replace").getAsBoolean()
             );
@@ -494,12 +623,12 @@ public class Crafts {
                 if (json.has("repair")) return ClickerRecipe.ofRepair(key, group, category, input, system.IRange.parse(json.get("repair").getAsString()), clicks, clicker_type);
                 else if (json.has("enchantments")) return ClickerRecipe.ofCombine(key, group, category, input, Streams.stream(json.get("enchantments").getAsJsonArray()).map(JsonElement::getAsString).map(NamespacedKey::minecraft).map(Enchantment::getByKey).toList(), clicks, clicker_type);
                 else {
+                    boolean replace = !json.has("replace") || json.get("replace").getAsBoolean();
                     if (json.get("output").isJsonArray()) {
-                        return ClickerRecipe.ofDefault(key, group, category, input, Streams.stream(json.get("output").getAsJsonArray().iterator()).map(IOutputSlot::of).toList(), clicks, clicker_type);
+                        return ClickerRecipe.ofDefault(key, group, category, input, Streams.stream(json.get("output").getAsJsonArray().iterator()).map(IOutputSlot::of).toList(), replace, clicks, clicker_type);
                     } else {
-                        return ClickerRecipe.ofDefault(key, group, category, input, List.of(IOutputSlot.of(json.get("output"))), clicks, clicker_type);
+                        return ClickerRecipe.ofDefault(key, group, category, input, List.of(IOutputSlot.of(json.get("output"))), replace, clicks, clicker_type);
                     }
-                    
                 }
             }
             case "item_frame": return new ItemFrameRecipe(key, RecipeSlot.of(key.toString(), json.get("input")), IOutputSlot.of(json.get("output")), json.get("seconds").getAsInt());

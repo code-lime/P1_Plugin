@@ -2,6 +2,7 @@ package org.lime.gp.item.elemental.step.group;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.lime.display.transform.LocalLocation;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.item.elemental.step.action.NoneStep;
 
@@ -37,14 +38,14 @@ public record PaletteStep(IStep[] matrix, int sizeX, int sizeY, int sizeZ) imple
         this(palette, map, map.size());
     }
 
-    @Override public void execute(Player player, Vector position) {
+    @Override public void execute(Player player, LocalLocation location) {
         double offsetX = -sizeX / 2.0 + 0.5;
         double offsetY = -sizeY / 2.0 + 0.5;
         double offsetZ = -sizeZ / 2.0 + 0.5;
         for (int y = 0; y < sizeY; y++) {
             for (int z = 0; z < sizeZ; z++) {
                 for (int x = 0; x < sizeX; x++) {
-                    matrix[(z + x * sizeZ) * sizeY + y].execute(player, new Vector(x + offsetX, y + offsetY, z + offsetZ).add(position));
+                    matrix[(z + x * sizeZ) * sizeY + y].execute(player, location.add(x + offsetX, y + offsetY, z + offsetZ));
                 }
             }
         }

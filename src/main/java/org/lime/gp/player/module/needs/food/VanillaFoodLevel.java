@@ -12,11 +12,12 @@ public class VanillaFoodLevel implements IFoodLevel {
         this.onChange = onChange;
     }
 
-    @Override public void addLevel(FoodType type, float level) {
-        if (type != FoodType.Vanilla) return;
+    @Override public boolean addLevel(FoodType type, float level) {
+        if (type != FoodType.Vanilla) return false;
         float oldValue = value;
         value = IFoodLevel.limit(type, value + level);
         if (value != oldValue) onChange.invoke();
+        return true;
     }
     @Override public float totalLevel() { return value; }
     @Override public boolean needsFood() { return value < FoodType.Vanilla.maxCount; }

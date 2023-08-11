@@ -7,32 +7,30 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
-import org.lime.*;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.lime.core;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.DiscordRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.TabManager;
+import org.lime.system;
+import org.lime.web;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -251,7 +249,8 @@ public class Discord implements Listener {
             if (callback == null) return;
             LangMessages.Message.Discord_Cancel.sendMessage(player);
         });
-        AnyEvent.addEvent("discord.reset", AnyEvent.type.none, player -> Methods.delDiscord(player.getUniqueId(), id -> {
+        AnyEvent.addEvent("discord.reset", AnyEvent.type.none, player -> Methods.findDiscord(player.getUniqueId(), id -> {
+            if (id == null) return;
             LangMessages.Message.Discord_Reset.sendMessage(player);
             reset(id);
         }));

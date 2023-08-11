@@ -1,7 +1,10 @@
 package org.lime.gp.block.component.data;
 
 import com.google.gson.JsonElement;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.resources.MinecraftKey;
 import net.minecraft.sounds.SoundCategory;
 import net.minecraft.sounds.SoundEffects;
 import net.minecraft.stats.StatisticList;
@@ -15,26 +18,28 @@ import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.gameevent.GameEvent;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.joml.Vector3f;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.WaitingComponent;
 import org.lime.gp.chat.ChatColorHex;
-import org.lime.gp.craft.RecipesBook;
-import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.book.ContainerWorkbenchBook;
+import org.lime.gp.craft.book.RecipesBook;
+import org.lime.gp.craft.book.Recipes;
+import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.WaitingRecipe;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
+import org.lime.gp.module.DrawText;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
@@ -237,7 +242,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
     }
     private EnumInteractionResult openWorkbench(EntityHuman player) {
         String type = component().type;
-        return RecipesBook.openCustomWorkbench(player, metadata(), Recipes.WAITING, type, Recipes.WAITING.getAllRecipes().stream().filter(v -> v.waiting_type.equals(type)).toList());
+        return ContainerWorkbenchBook.open(player, metadata(), Recipes.WAITING, type, Recipes.WAITING.getAllRecipes().stream().filter(v -> v.waiting_type.equals(type)).toList());
     }
 
     private UUID last_click = null;
@@ -288,8 +293,65 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         return ReadonlyInventory.ofNMS(items, metadata().location());
     }
 
+    private Optional<WaitingRecipe> currentRecipe() {
+        if (last_click == null) return Optional.empty();
+        WaitingComponent component = component();
+        String waiting_type = component.type;
+        Perms.ICanData canData = Perms.getCanData(last_click);
+        World world = metadata().skull.getLevel();
+        ReadonlyInventory readonlyInventory = createReadonly();
+        return Recipes.WAITING.getAllRecipes(canData)
+                .filter(v -> v.waiting_type.equals(waiting_type))
+                .filter(v -> v.matches(readonlyInventory, world))
+                .findFirst();
+    }
+    private void updateDebug() {
+        WaitingComponent component = component();
+        String id = this.unique() + ":DEBUG";
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(startTime);
+        String startTimeDisplay = system.formatCalendar(calendar, true);
+        calendar.setTimeInMillis(endTime);
+        String endTimeDisplay = system.formatCalendar(calendar, true);
+
+        long currentTime = System.currentTimeMillis();
+
+        int progress;
+        if (startTime == 0 || endTime == 0) {
+            progress = -1;
+        } else {
+            double currentDelta = currentTime - startTime;
+            double totalDelta = endTime - startTime;
+
+            progress = (int)Math.ceil(currentDelta * 100 / totalDelta);
+        }
+
+        Component text = Component.join(JoinConfiguration.newlines(),
+                Component.text("Start: " + startTimeDisplay),
+                Component.text("End: " + endTimeDisplay),
+                Component.text("Progress: " + lastShowProgress + " / " + component.progress + " (" + progress + "%)"),
+                Component.text("Owner: " + Optional.ofNullable(last_click).map(Bukkit::getOfflinePlayer).map(OfflinePlayer::getName).orElse("NAN")),
+                Component.text("Recipe: " + currentRecipe().map(AbstractRecipe::getId).map(MinecraftKey::toString).orElse("NAN"))
+        );
+
+        Vector3f scale = new Vector3f(0.5f, 0.5f, 0.5f);
+        Location location = metadata().location(0.5, 1.5, 0.5);
+
+        DrawText.show(new DrawText.IShowTimed(0.1) {
+            @Override public String getID() { return id; }
+            @Override public boolean filter(Player player) { return true; }
+            @Override public Component text(Player player) { return text; }
+            @Override public Location location() { return location; }
+            @Override public double distance() { return 10; }
+            @Override public Vector3f scale() { return scale; }
+        });
+    }
+
     private int ticks = 0;
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
+        WaitingComponent component = component();
+
+        if (component.debug) updateDebug();
         if (endTime == 0 || startTime == 0) {
             if (lastShowProgress != 0) {
                 lastShowProgress = 0;
@@ -309,8 +371,6 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         double currentDelta = currentTime - startTime;
         double totalDelta = endTime - startTime;
 
-        WaitingComponent component = component();
-
         int showProgress = Math.min(Math.max((int)Math.ceil(currentDelta * component.progress / totalDelta), 1), component.progress);
         if (showProgress != lastShowProgress) {
             lastShowProgress = showProgress;
@@ -319,7 +379,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         if (currentDelta >= totalDelta) {
             syncRecipe("TIME_END", false).ifPresent(recipe -> {
                 ItemStack item = recipe.assemble(createReadonly(), event.getWorld().registryAccess(), IOutputVariable.of(last_click));
-                LevelModule.onCraft(last_click, CraftItemStack.asCraftMirror(item));
+                LevelModule.onCraft(last_click, recipe.getId());
                 if (DEBUG) lime.logOP("Result: " + item);
                 if (item.isEmpty()) input = new EmptyInput();
                 else if (Items.has(ThirstSetting.class, item)) input = new WaterInput(item);

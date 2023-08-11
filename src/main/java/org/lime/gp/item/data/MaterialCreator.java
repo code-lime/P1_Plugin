@@ -1,5 +1,6 @@
 package org.lime.gp.item.data;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.bukkit.Material;
@@ -13,6 +14,7 @@ public class MaterialCreator extends IItemCreator {
     @Override public String getKey() { return Items.getMaterialKey(material); }
     @Override public int getID() { return 0; }
     @Override public Stream<Material> getWhitelist() { return Stream.of(material); }
+    @Override public Optional<Integer> tryGetMaxStackSize() { return Optional.ofNullable(material).map(Material::getMaxStackSize); }
 
     public MaterialCreator(Material material) { this.material = material; }
 

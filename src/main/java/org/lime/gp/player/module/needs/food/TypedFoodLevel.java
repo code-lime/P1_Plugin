@@ -20,14 +20,16 @@ public class TypedFoodLevel implements IFoodLevel {
         return values.getOrDefault(type, 0f);
     }
 
-    @Override public void addLevel(FoodType type, float level) {
-        system.Toast1<Boolean> isChanged = system.toast(false);
+    @Override public boolean addLevel(FoodType type, float level) {
+        system.Toast2<Boolean, Boolean> isChanged = system.toast(false, false);
         values.computeIfPresent(type, (_type, value) -> {
             float _value = IFoodLevel.limit(_type, value + level);
             if (_value != value) isChanged.val0 = true;
+            isChanged.val1 = true;
             return _value;
         });
         if (isChanged.val0) onChange.invoke();
+        return isChanged.val1;
     }
     @Override public float totalLevel() {
         float total = 0;

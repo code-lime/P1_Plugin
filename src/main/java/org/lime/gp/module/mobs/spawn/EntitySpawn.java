@@ -19,6 +19,7 @@ import org.lime.display.ext.JsonNBT;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.loot.ILoot;
+import org.lime.gp.lime;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.module.mobs.DespawnData;
@@ -130,7 +131,7 @@ public class EntitySpawn implements ISpawn {
                     EnumItemSlot slot = EntityLiving.getEquipmentSlotForItem(itemStack);
                     switch (slot) {
                         case HEAD, CHEST, LEGS, FEET -> {
-                            if (!living.getItemBySlot(slot).isEmpty()) break;
+                            //if (!living.getItemBySlot(slot).isEmpty()) break;
                             entity.setItemSlot(slot, itemStack);
                             return;
                         }

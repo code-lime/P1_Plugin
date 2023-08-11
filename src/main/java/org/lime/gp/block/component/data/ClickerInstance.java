@@ -1,13 +1,16 @@
 package org.lime.gp.block.component.data;
 
+import com.mojang.math.Transformation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.Vector3f;
 import net.minecraft.world.EnumInteractionResult;
+import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
@@ -30,12 +33,13 @@ import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
-import org.lime.gp.craft.RecipesBook;
+import org.lime.gp.craft.book.ContainerWorkbenchBook;
+import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.recipe.ClickerRecipe;
-import org.lime.gp.craft.recipe.Recipes;
+import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
@@ -49,6 +53,7 @@ import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClickerInstance extends BlockInstance implements CustomTileMetadata.Lootable, CustomTileMetadata.Tickable, BlockDisplay.Displayable, CustomTileMetadata.Damageable, CustomTileMetadata.Interactable {
     @Override public ClickerComponent component() { return (ClickerComponent)super.component(); }
@@ -63,10 +68,10 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     private int clicks;
     private int damage;
     private final system.LockToast1<Model> model = system.<Model>toast(null).lock();
-    private static LocalLocation ofHeight(int height) {
+    /*private static LocalLocation ofHeight(int height) {
         return new LocalLocation(0.5, -0.4 + height * 0.025, 0, 0, 0);
-    }
-    private static final Builder builder_item = lime.models.builder(EntityTypes.ARMOR_STAND)
+    }*/
+    /*private static final Builder builder_item = lime.models.builder(EntityTypes.ARMOR_STAND)
             .nbt(() -> {
                 EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                 stand.setNoBasePlate(true);
@@ -76,7 +81,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
                 stand.setMarker(true);
                 stand.setHeadPose(new Vector3f(90, 90, 0));
                 return stand;
-            });
+            });*/
 
     private boolean tryAddItem(ItemStack item) {
         int maxStackSize = item.getMaxStackSize();
@@ -121,11 +126,16 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             return;
         }
         Builder builder = lime.models.builder();
-        LocalLocation offset = component().show;
-        for (int i = 0; i < items.size(); i++) builder = builder.addChild(builder_item.local(ofHeight(i).add(offset)).addEquipment(EnumItemSlot.HEAD, Optional.of(items.get(i)).map(item -> Items.getOptional(TableDisplaySetting.class, item)
-                .flatMap(v -> v.of(TableDisplaySetting.TableType.clicker, component().type))
-                .map(v -> v.display(item))
-                .orElseGet(() -> CraftItemStack.asNMSCopy(item))).orElseThrow()));
+        ClickerComponent component = component();
+        Transformation offsetFore = component.show;
+        Transformation offsetBack = component.show;
+        boolean isFore = true;
+        for (ItemStack item : items) {
+            builder = builder.addChild(TableDisplaySetting.builderItem(item, isFore ? offsetFore : offsetBack, TableDisplaySetting.TableType.clicker, component.type));
+            isFore = !isFore;
+            if (isFore) offsetFore = offsetFore.compose(component.step_fore);
+            else offsetBack = offsetBack.compose(component.step_back);
+        }
         model.set0(builder.build());
         metadata()
             .list(DisplayInstance.class)
@@ -247,10 +257,10 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             if (!recipe.matches(readonlyInventory, world)) continue;
             can = true;
             if (recipe.clicks > clicks) continue;
-            List<ItemStack> drop = new ArrayList<>();
-            ItemStack result = CraftItemStack.asBukkitCopy(recipe.assemble(readonlyInventory, world.registryAccess(), IOutputVariable.of(player)));
-            drop.add(result);
-            LevelModule.onCraft(player.getUniqueId(), result);
+            List<ItemStack> drop = recipe.assembleList(readonlyInventory, world.registryAccess(), IOutputVariable.of(player))
+                    .map(CraftItemStack::asBukkitCopy)
+                    .collect(Collectors.toList());
+            LevelModule.onCraft(player.getUniqueId(), recipe.getId());
             Perms.onRecipeUse(recipe, player.getUniqueId(), canData);
             recipe.getRemainingItems(readonlyInventory).forEach(_item -> drop.add(CraftItemStack.asBukkitCopy(_item)));
             Items.dropGiveItem(player, drop, true);
@@ -279,7 +289,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         String clicker_type = component().type;
-        return RecipesBook.openCustomWorkbench(event.player(), metadata, Recipes.CLICKER, clicker_type, Recipes.CLICKER.getAllRecipes().stream().filter(v -> v.clicker_type.equals(clicker_type)).toList());
+        return ContainerWorkbenchBook.open(event.player(), metadata, Recipes.CLICKER, clicker_type, Recipes.CLICKER.getAllRecipes().stream().filter(v -> v.clicker_type.equals(clicker_type)).toList());
     }
 
     private void syncDisplayVariable() {

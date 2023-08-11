@@ -103,13 +103,13 @@ public class LevelStep {
             double mutate = LevelModule.levelMutate(uuid);
             double mutate_exp = exp * mutate;
             if (LevelModule.DEBUG) {
-                String current = LevelRow.getBy(user.id, data.work).map(v -> (v.exp * total) + "["+v.level+"]").orElse("0[0]");
+                String current = LevelRow.getBy(user.id, data.work).map(v -> system.getDouble(v.exp * total, 4) + "["+v.level+"]").orElse("0[0]");
                 lime.logOP("Exp " + Optional.ofNullable(Bukkit.getPlayer(uuid))
                         .map(Player::getName)
                         .orElse(uuid.toString()) + ": " + current + " / " + total
                         + " ("
-                            + (exp >= 0 ? "+" : "-") + Math.abs(exp)
-                            + (mutate != 1 ? (" * " + mutate + " = " + (mutate_exp >= 0 ? "+" : "-") + Math.abs(mutate_exp)) : "")
+                            + (exp >= 0 ? "+" : "-") + system.getDouble(Math.abs(exp), 2)
+                            + (mutate != 1 ? (" * " + mutate + " = " + (mutate_exp >= 0 ? "+" : "-") + system.getDouble(Math.abs(mutate_exp), 2)) : "")
                         + ")"
                 );
             }

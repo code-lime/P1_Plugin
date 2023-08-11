@@ -26,6 +26,7 @@ public abstract class RecipeSlot {
         @Override public Optional<Integer> split(ItemStack item) { return Optional.empty(); }
         @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
         @Override public Stream<String> getWhitelistKeys() { return Stream.empty(); }
+        @Override public boolean checkCrafting() { return true; }
     };
 
     protected RecipeSlot() { }
@@ -34,6 +35,8 @@ public abstract class RecipeSlot {
     public abstract Optional<Integer> split(net.minecraft.world.item.ItemStack item);
     public abstract net.minecraft.world.item.ItemStack result(int count);
     public abstract Stream<String> getWhitelistKeys();
+    public abstract boolean checkCrafting();
+
     public RecipeItemStack getRecipeSlotNMS() { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(IDisplayRecipe::genericItem)); }
     public RecipeItemStack getRecipeSlotNMS(system.Func1<ItemStack, ItemStack> map) { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(map)); }
     public Stream<ItemStack> getWhitelistIngredientsShow() {
@@ -82,6 +85,7 @@ public abstract class RecipeSlot {
             }
             @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
             @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
+            @Override public boolean checkCrafting() { return true; }
         };
     }
     public static RecipeSlot of(Checker checker, system.Func0<net.minecraft.world.item.ItemStack> result) {
@@ -94,10 +98,18 @@ public abstract class RecipeSlot {
             }
             @Override public net.minecraft.world.item.ItemStack result(int count) {
                 net.minecraft.world.item.ItemStack item = result.invoke();
+                if (item.isEmpty()) return item;
                 item.setCount(count);
                 return item;
             }
             @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
+            @Override public boolean checkCrafting() {
+                return checker.getWhitelistCreators()
+                        .allMatch(v -> v.tryGetMaxStackSize()
+                                .map(_v -> _v == 1)
+                                .orElse(false)
+                        );
+            }
         };
     }
 }

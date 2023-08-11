@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AnyEvent {
     public static core.element create() {
@@ -155,7 +156,11 @@ public class AnyEvent {
 
     private static Collection<String> executeOtherTab(CommandSender sender, String[] args) {
         int length = args.length;
-        if (length == 1) return Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId).map(UUID::toString).collect(Collectors.toList());
+        if (length == 1) return Stream.concat(Bukkit.getOnlinePlayers()
+                .stream()
+                .map(Entity::getUniqueId)
+                .map(UUID::toString), Stream.of(".self"))
+                .collect(Collectors.toList());
         if (length == 2) return events.entrySet().stream().filter(v -> v.getValue().other == type.other).map(Map.Entry::getKey).map(v -> v.val0).collect(Collectors.toList());
 
         return events.entrySet()
@@ -171,7 +176,7 @@ public class AnyEvent {
         if (args.length < 2) return false;
         Player other;
         try {
-            other = Bukkit.getPlayer(UUID.fromString(args[0]));
+            other = args[0].equals(".self") && sender instanceof Player self ? self : Bukkit.getPlayer(UUID.fromString(args[0]));
         } catch (Exception e) {
             lime.log("Execute other."+args[1]+" of " + args[0] + " with " + system.json.by(args).build());
             lime.logStackTrace(e);
