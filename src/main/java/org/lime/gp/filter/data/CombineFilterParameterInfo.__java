@@ -1,7 +1,7 @@
 package org.lime.gp.filter.data;
 
 import net.minecraft.world.level.World;
-import org.lime.system;
+import org.lime._system;
 
 public class CombineFilterParameterInfo<TData extends IFilterData<TData>, TValueA, TValueB> implements IFilterParameterInfo<TData, system.Toast2<TValueA, TValueB>> {
     public final String name;

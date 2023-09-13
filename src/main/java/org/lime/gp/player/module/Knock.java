@@ -10,6 +10,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
@@ -30,8 +31,8 @@ import java.util.UUID;
 
 public class Knock implements Listener {
     private static final long KNOCK_TIME_MS = 10 * 1000;
-    public static core.element create() {
-        return core.element.create(Knock.class)
+    public static CoreElement create() {
+        return CoreElement.create(Knock.class)
                 .withInit(Knock::init)
                 .withInstance();
     }

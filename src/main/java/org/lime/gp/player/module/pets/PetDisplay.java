@@ -10,7 +10,8 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.display.ObjectDisplay;
-import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.display.BaseChildDisplay;
+import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.database.rows.PetsRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
@@ -29,7 +30,7 @@ public class PetDisplay extends ObjectDisplay<PetsRow, Marker> {
     private final PetsRow row;
 
     private final AbstractPet pet;
-    private final ChildDisplay<PetsRow> model;
+    private final BaseChildDisplay<?, ?, ?> model;
     private final Map<String, Object> data = new HashMap<>();
     private int step;
     private final double speed;
@@ -82,7 +83,7 @@ public class PetDisplay extends ObjectDisplay<PetsRow, Marker> {
         this.maxSteps = pet.steps;
         this.step = system.rand(0, maxSteps);
 
-        this.model = preInitDisplay(pet.model().display(this));
+        this.model = preInitDisplay(pet.model().<PetsRow>display(this));
         postInit();
     }
 

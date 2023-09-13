@@ -3,6 +3,7 @@ package org.lime.gp.item.elemental;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.item.elemental.step.IStep;
@@ -11,8 +12,8 @@ import org.lime.gp.lime;
 import java.util.HashMap;
 
 public class Elemental {
-    public static core.element create() {
-        return core.element.create(Elemental.class)
+    public static CoreElement create() {
+        return CoreElement.create(Elemental.class)
                 .withInit(Elemental::init)
                 .<JsonObject>addConfig("elemental", v -> v
                         .withInvoke(Elemental::config)

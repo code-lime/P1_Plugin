@@ -3,6 +3,7 @@ package org.lime.gp.admin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -15,8 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AnyEvent {
-    public static core.element create() {
-        return core.element.create(AnyEvent.class)
+    public static CoreElement create() {
+        return CoreElement.create(AnyEvent.class)
                 .addCommand("any.event", v -> v
                         .withExecutor(AnyEvent::execute)
                         .withTab(AnyEvent::executeTab)

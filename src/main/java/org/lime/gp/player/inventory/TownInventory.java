@@ -31,10 +31,8 @@ import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.permissions.ServerOperator;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
-import org.lime.core;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.ObjectDisplay;
@@ -45,12 +43,12 @@ import org.lime.gp.database.rows.AnyRow;
 import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
-import org.lime.gp.lime;
 import org.lime.gp.extension.Zone;
+import org.lime.gp.lime;
 import org.lime.gp.module.DrawMap;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.selector.ZoneSelector;
-import org.lime.gp.player.ui.ScoreboardUI;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 import javax.imageio.ImageIO;
@@ -61,7 +59,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -152,8 +149,8 @@ public class TownInventory implements Listener {
         return files;
     }
 
-    public static core.element create() {
-        return core.element.create(TownInventory.class)
+    public static CoreElement create() {
+        return CoreElement.create(TownInventory.class)
                 .withInit(TownInventory::init)
                 .withInstance()
                 .<JsonPrimitive>addConfig("config", v -> v
@@ -244,7 +241,7 @@ public class TownInventory implements Listener {
     public static void init() {
         Displays.initDisplay(HOME_MANAGER);
 
-        lime.repeat(() -> {
+        /*lime.repeat(() -> {
             if (!debug) return;
             List<? extends Player> players = Bukkit.getOnlinePlayers().stream().filter(ServerOperator::isOp).toList();
             if (players.size() == 0) return;
@@ -266,7 +263,7 @@ public class TownInventory implements Listener {
                     ScoreboardUI.SendFakeScoreboard(player, color + "Home private", map);
                 });
             });
-        }, 1);
+        }, 1);*/
         lime.repeat(() -> {
             openList.values().removeIf(uuid -> {
                 Player player = Bukkit.getPlayer(uuid);

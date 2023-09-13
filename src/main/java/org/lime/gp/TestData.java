@@ -2,6 +2,7 @@ package org.lime.gp;
 
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 import java.util.Arrays;
@@ -23,8 +24,8 @@ public class TestData {
 
     public static final system.LockToast1<DataType> ENABLE_TYPE = system.toast(DataType.Off).lock();
 
-    public static core.element create() {
-        return core.element.create(TestData.class)
+    public static CoreElement create() {
+        return CoreElement.create(TestData.class)
                 .addCommand("test.data", v -> v
                         .withCheck(ServerOperator::isOp)
                         .withUsage("/test.data ["+Arrays.stream(DataType.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.joining("|"))+"]")

@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.EditedDataWatcher;
@@ -30,8 +31,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DrawText {
-    public static core.element create() {
-        return core.element.create(DrawText.class)
+    public static CoreElement create() {
+        return CoreElement.create(DrawText.class)
                 .withInit(DrawText::init);
     }
     private static final TextManager TEXT_MANAGER = new TextManager();

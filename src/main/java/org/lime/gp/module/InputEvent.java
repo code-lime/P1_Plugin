@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 import java.util.UUID;
@@ -20,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InputEvent extends Event {
     public static final InputEvent EMPTY = new InputEvent(Axis.None, Axis.None, false, false, null);
     private static final ConcurrentHashMap<UUID, system.Toast2<InputEvent, Long>> last_inputs = new ConcurrentHashMap<>();
-    public static core.element create() {
-        return core.element.create(InputEvent.class)
+    public static CoreElement create() {
+        return CoreElement.create(InputEvent.class)
                 .withInit(InputEvent::init);
     }
     public static void init() {

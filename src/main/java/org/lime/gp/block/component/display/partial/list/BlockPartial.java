@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.jetbrains.annotations.Nullable;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.block.BlockInfo;
@@ -81,7 +84,7 @@ public class BlockPartial extends Partial implements CustomTileMetadata.Shapeabl
     }
 
     @Override public PartialEnum type() { return PartialEnum.Block; }
-    @Override public String toString() { return blockData + "" + (nbt == null ? "" : GameProfileSerializer.structureToSnbt(nbt.build(Collections.emptyMap())))+super.toString(); }
+    @Override public String toString() { return blockData + (nbt == null ? "" : GameProfileSerializer.structureToSnbt(nbt.build(Collections.emptyMap())))+super.toString(); }
 
     @Override public @Nullable VoxelShape onShape(CustomTileMetadata metadata, BlockSkullShapeInfo event) {
         return this.hasCollision ? blockData.getShape(event.world(), event.pos(), event.context()) : VoxelShapes.empty();
@@ -102,4 +105,28 @@ public class BlockPartial extends Partial implements CustomTileMetadata.Shapeabl
                 ? IBlock.of(blockData)
                 : ITileBlock.of(blockData, ReflectionAccess.init_PacketPlayOutTileEntityData.newInstance(position, type, ofVariable(variable)));
     }
+
+    public static JObject docs(IDocsLink docs, IIndexDocs variable) {
+        return Partial.docs(docs, variable).addFirst(
+                JProperty.require(IName.raw("material"), IJElement.link(docs.vanillaMaterial()), IComment.raw("Отображаемый блок")),
+                JProperty.optional(IName.raw("states"), IJElement.anyObject(
+                        JProperty.require(IName.raw("BLOCK_STATE_KEY"), IJElement.raw("BLOCK_STATE_VALUE"))
+                ), IComment.text("Параметры отображаемого блока. Узнать параметры блока можно в F3")),
+                JProperty.optional(IName.raw("nbt"), IJElement.link(docs.dynamicNbt()), IComment.empty()
+                        .append(IComment.text("NBT блока с передаваемыми параметрами: "))
+                        .append(IComment.raw("{color}"))),
+                JProperty.optional(IName.raw("has_collision"), IJElement.bool(), IComment.text("Указывает, просчитывать ли колизию для блока или оставить просчет только на стороне клиента"))
+        );
+    }
 }
+
+
+
+
+
+
+
+
+
+
+

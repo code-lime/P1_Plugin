@@ -13,6 +13,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
@@ -25,8 +26,8 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class ItemFrameRecipe extends AbstractRecipe {
-    public static core.element create() {
-        return core.element.create(ItemFrameRecipe.class)
+    public static CoreElement create() {
+        return CoreElement.create(ItemFrameRecipe.class)
                 .withInit(ItemFrameRecipe::init);
     }
     public static void init() {

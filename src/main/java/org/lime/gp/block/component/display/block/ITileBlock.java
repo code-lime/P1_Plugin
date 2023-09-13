@@ -4,12 +4,12 @@ import java.util.Optional;
 
 import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
 import net.minecraft.world.level.block.state.IBlockData;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.IBuilder;
 
 public interface ITileBlock extends IBlock {
     Optional<PacketPlayOutTileEntityData> packet();
 
-    @Override default ITileModelBlock withModel(Model model, int distanceChunk, double distanceModel) { return ITileModelBlock.of(data().orElse(null), packet().orElse(null), model, distanceChunk, distanceModel); }
+    @Override default ITileModelBlock withModel(IBuilder model, int distanceChunk, double distanceModel) { return ITileModelBlock.of(data().orElse(null), packet().orElse(null), model, distanceChunk, distanceModel); }
 
     static ITileBlock of(IBlockData data, PacketPlayOutTileEntityData packet) {
         return new ITileBlock() {

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.lime;
 
@@ -42,5 +45,11 @@ public final class Variable {
     }
     @Override public String toString() {
         return values.stream().map(kv -> kv.val0+"="+String.join(",",kv.val1)).collect(Collectors.joining(","));
+    }
+
+    public static JObject docs(IDocsLink docs, IIndexDocs partial) {
+        return JObject.of(
+                JProperty.require(IName.raw("result"), IJElement.link(partial), IComment.text("Итоговый элемент отображения. Объеденен с объектом родителя"))
+        );
     }
 }

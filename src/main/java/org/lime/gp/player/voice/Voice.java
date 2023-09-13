@@ -43,6 +43,9 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.lime.core;
+import org.lime.gp.player.module.Death;
+import org.lime.plugin.CoreElement;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RadioInstance;
@@ -93,8 +96,8 @@ public class Voice implements VoicechatPlugin {
 
     private static final Voice Instance = new Voice();
     private static PlayerStateManager PLAYER_STATE_MANAGER;
-    public static core.element create() {
-        return core.element.create(Voice.class)
+    public static CoreElement create() {
+        return CoreElement.create(Voice.class)
                 .withInit(Voice::init)
                 .withUninit(Voice::uninit)
                 .addCommand("voice", v -> v
@@ -252,7 +255,7 @@ public class Voice implements VoicechatPlugin {
         Cooldown.setCooldown(uuid, "voice.mute", 5);
     }
     public static boolean isMute(UUID uuid) {
-        return Cooldown.hasCooldown(uuid, "voice.mute");
+        return Cooldown.hasCooldown(uuid, "voice.mute") || Death.isDeathMute(uuid);
     }
     public static boolean isConnected(Player player) {
         return VoicechatConnectionImpl.fromPlayer(player) != null;
@@ -331,7 +334,7 @@ public class Voice implements VoicechatPlugin {
             UUID uuid = player.getUniqueId();
             if (isMute(uuid)) {
                 if (!Cooldown.hasCooldown(uuid, "voice.mute.display")) {
-                    MenuCreator.show(player, "lang.chat", Apply.of().add("text", "."));
+                    MenuCreator.showLang(player, LangEnum.CHAT, Apply.of().add("text", "."));
                     Cooldown.setCooldown(uuid, "voice.mute.display", 5);
                 }
                 event.cancel();

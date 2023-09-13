@@ -25,6 +25,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Recipe;
 import org.jetbrains.annotations.NotNull;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.craft.recipe.*;
 import org.lime.gp.extension.PacketManager;
@@ -37,8 +38,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.item.crafting.Recipes<T> {
-    public static core.element create() {
-        return core.element.create(Recipes.class);
+    public static CoreElement create() {
+        return CoreElement.create(Recipes.class);
     }
 
     private static String createStaticPrefix() {

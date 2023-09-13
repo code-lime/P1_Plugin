@@ -115,9 +115,9 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
         MenuCreator.show(player, "radio.block.menu", Apply.of()
                 .add(radioData.map())
                 .add(distanceData.map())
-                .add("x", pos.getX() + "")
-                .add("y", pos.getY() + "")
-                .add("z", pos.getZ() + "")
+                .add("x", String.valueOf(pos.getX()))
+                .add("y", String.valueOf(pos.getY()))
+                .add("z", String.valueOf(pos.getZ()))
         );
     }
 }

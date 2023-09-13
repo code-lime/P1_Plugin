@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -18,8 +19,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HideCommands implements Listener {
-    public static core.element create() {
-        return core.element.create(HideCommands.class)
+    public static CoreElement create() {
+        return CoreElement.create(HideCommands.class)
                 .withInstance()
                 .<JsonObject>addConfig("commands", v -> v
                         .withInvoke(j -> lime.nextTick(() -> HideCommands.config(j)))
@@ -34,7 +35,7 @@ public class HideCommands implements Listener {
 
         Map<String, Command> commands = Bukkit.getCommandMap().getKnownCommands();
         Map<String, String[]> aliases = Bukkit.getServer().getCommandAliases();
-        Map<String, Command> replace_command = Stream.of("me", "ban", "ban-ip", "pardon", "pardon-ip", "banlist").collect(Collectors.toMap(cmd -> cmd, cmd -> commands.get("lime:" + cmd)));
+        Map<String, Command> replace_command = Stream.of("ban", "ban-ip", "pardon", "pardon-ip", "banlist").collect(Collectors.toMap(cmd -> cmd, cmd -> commands.get("lime:" + cmd)));
         hides.clear();
         commands.entrySet()
                 .stream()

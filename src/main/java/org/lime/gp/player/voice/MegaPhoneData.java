@@ -8,7 +8,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.IUpdate;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.item.data.UpdateType;
 import org.lime.gp.item.settings.list.MegaPhoneSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
@@ -29,9 +31,9 @@ public class MegaPhoneData extends DistanceData {
         super(min_distance, max_distance, def_distance);
     }
 
-    public List<Component> createLore(ItemCreator itemCreator) {
+    /*public List<Component> createLore(ItemCreator itemCreator) {
         return itemCreator.createLore(Apply.of().add(map()));
-    }
+    }*/
     public static Optional<MegaPhoneData> getData(ItemStack item) {
         return Items.getOptional(MegaPhoneSetting.class, item).map(setting -> {
             ItemMeta meta = item.getItemMeta();
@@ -57,7 +59,8 @@ public class MegaPhoneData extends DistanceData {
                 .ifPresent(data::read);
         modify.invoke(data);
         JManager.set(container, "megaphone.data", data.write().build());
-        meta.lore(data.createLore(setting.creator()));
+        setting.creator().update(meta, Apply.of().add(data.map()), IUpdate.of(UpdateType.LORE));
+        //meta.lore(data.createLore(setting.creator()));
     }
 
     @Override public HashMap<String, String> map() {

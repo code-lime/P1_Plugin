@@ -18,6 +18,7 @@ import org.bukkit.permissions.ServerOperator;
 import org.jetbrains.annotations.Nullable;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -48,8 +49,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class CustomTileMetadata extends TileMetadata {
     public static Position DEBUG_BLOCK = null;
-    public static core.element create() {
-        return core.element.create(CustomTileMetadata.class)
+    public static CoreElement create() {
+        return CoreElement.create(CustomTileMetadata.class)
                 .addCommand("tmp.block.debug", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~]")
                         .withTab((sender, args) -> switch(args.length) {

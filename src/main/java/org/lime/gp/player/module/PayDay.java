@@ -3,6 +3,7 @@ package org.lime.gp.player.module;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
@@ -13,8 +14,8 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class PayDay {
-    public static core.element create() {
-        return core.element.create(PayDay.class)
+    public static CoreElement create() {
+        return CoreElement.create(PayDay.class)
                 .withInit(PayDay::init);
     }
 

@@ -1,8 +1,8 @@
 package org.lime.gp.player.module.pets;
 
 import com.google.gson.JsonObject;
-import org.lime.display.models.ChildDisplay;
-import org.lime.display.models.Model;
+import org.lime.display.models.display.BaseChildDisplay;
+import org.lime.display.models.shadow.IBuilder;
 
 import java.util.Map;
 
@@ -11,9 +11,9 @@ public abstract class AbstractPet {
     public final double speed;
     public final int steps;
 
-    public abstract Model model();
+    public abstract IBuilder model();
 
-    public abstract void tick(ChildDisplay<?> model, Map<String, Object> data);
+    public abstract void tick(BaseChildDisplay<?, ?, ?> model, Map<String, Object> data);
 
     protected AbstractPet(String key, JsonObject json) {
         this.key = key;

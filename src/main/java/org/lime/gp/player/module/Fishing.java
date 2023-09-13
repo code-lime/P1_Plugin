@@ -1,6 +1,7 @@
 package org.lime.gp.player.module;
 
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -20,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Fishing implements Listener {
-    public static core.element create() {
-        return core.element.create(Fishing.class)
+    public static CoreElement create() {
+        return CoreElement.create(Fishing.class)
                 .withInstance();
     }
     @EventHandler(priority = EventPriority.HIGH) public static void on(PlayerFishEvent e) {

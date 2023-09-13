@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.lime;
@@ -28,8 +29,8 @@ import org.lime.gp.player.ui.ImageBuilder;
 import java.util.*;
 
 public class MobSaturation implements Listener {
-    public static core.element create() {
-        return core.element.create(MobSaturation.class)
+    public static CoreElement create() {
+        return CoreElement.create(MobSaturation.class)
                 .disable()
                 .withInstance()
                 .withInit(MobSaturation::init)

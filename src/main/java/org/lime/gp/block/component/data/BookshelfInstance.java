@@ -23,6 +23,7 @@ import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
@@ -42,13 +43,13 @@ import org.lime.system;
 import java.util.*;
 
 public class BookshelfInstance extends BlockInstance implements CustomTileMetadata.Tickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable, CustomTileMetadata.Shapeable {
-    public static core.element create() {
+    public static CoreElement create() {
         Blocks.addDefaultBlocks(new BlockInfo("bookshelf")
                 .add(v -> InfoComponent.GenericDynamicComponent.of("bookshelf", v, BookshelfInstance::new))
                 .add(v -> new LootComponent(v, List.of(Material.BOOKSHELF)))
                 .addReplace(Material.BOOKSHELF)
         );
-        return core.element.create(BookshelfInstance.class);
+        return CoreElement.create(BookshelfInstance.class);
     }
     public CraftInventory inventory;
     private ItemStack[] oldTick = new ItemStack[0];

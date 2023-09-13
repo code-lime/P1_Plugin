@@ -15,14 +15,27 @@ import org.bukkit.projectiles.ProjectileSource;
 import org.lime.gp.lime;
 import org.lime.system;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
 public class ExtMethods {
     public static Optional<LivingEntity> damagerEntity(EntityDamageEvent e) {
-        if (!(e instanceof EntityDamageByEntityEvent _e)) return Optional.empty();
-        Entity damager = _e.getDamager();
+        return e instanceof EntityDamageByEntityEvent _e
+                ? damagerEntity(_e.getDamager())
+                : Optional.empty();
+    }
+    public static Optional<LivingEntity> damagerEntity(Entity damager) {
+        if (damager == null) return Optional.empty();
+
+        Set<String> tags = damager.getScoreboardTags();
+        for (String tag : tags)
+            if (tag.startsWith("owner:"))
+                if (Bukkit.getEntity(UUID.fromString(tag.substring(6))) instanceof LivingEntity livingEntity)
+                    return Optional.of(livingEntity);
+
         if (damager instanceof Projectile projectile) {
             ProjectileSource source = projectile.getShooter();
             if (!(source instanceof Entity)) return Optional.empty();
@@ -32,6 +45,9 @@ public class ExtMethods {
     }
     public static Optional<Player> damagerPlayer(EntityDamageEvent e) {
         return damagerEntity(e).map(v -> v instanceof Player player ? player : null);
+    }
+    public static Optional<Player> damagerPlayer(Entity damager) {
+        return damagerEntity(damager).map(v -> v instanceof Player player ? player : null);
     }
     public static void executeCommand(String cmd) {
         Bukkit.getCommandMap().dispatch(Bukkit.getConsoleSender(), cmd);
@@ -71,15 +87,18 @@ public class ExtMethods {
         catch (Exception e) { return Optional.empty(); }
     }
 
-    public static <T> Predicate<T> filterLog(system.Func1<T, String> action) {
+    public static <T> Predicate<T> filterLogExecute(system.Action1<String> execute, system.Func1<T, String> action) {
         return t -> {
-            lime.logOP(action.invoke(t));
+            execute.invoke(action.invoke(t));
             return true;
         };
     }
-    public static <T> Predicate<T> filterLog(String text) {
-        return filterLog(v -> text.replace("{0}", v + ""));
+    public static <T> Predicate<T> filterLogExecute(system.Action1<String> execute, String text) {
+        return filterLogExecute(execute, v -> text.replace("{0}", String.valueOf(v)));
     }
+
+    public static <T> Predicate<T> filterLog(system.Func1<T, String> action) { return filterLogExecute(lime::logOP, action); }
+    public static <T> Predicate<T> filterLog(String text) { return filterLogExecute(lime::logOP, text); }
 }
 
 

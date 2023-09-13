@@ -25,6 +25,8 @@ import com.mojang.authlib.GameProfile;
 
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.lime.core;
+import org.lime.plugin.CoreData;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.chat.IChatBaseComponent;
@@ -57,8 +59,8 @@ public class TabManager implements Listener {
     private static boolean tab_debug;
     private static String sql_query;
     private static final List<Integer> see_ids = new ArrayList<>();
-    public static core.element create() {
-        return core.element.create(TabManager.class)
+    public static CoreElement create() {
+        return CoreElement.create(TabManager.class)
                 .withInit(TabManager::init)
                 .withInstance(Instance)
                 .<JsonObject>addConfig("config", v -> v
@@ -71,7 +73,7 @@ public class TabManager implements Listener {
                             see_ids.clear();
                         })
                 )
-                .addFile("tab.sql", "tab.sql", core.element.data.text().withInvoke(sql -> sql_query = sql))
+                .addFile("tab.sql", "tab.sql", CoreData.text().withInvoke(sql -> sql_query = sql))
                 .addCommand("id", _v -> _v.withCheck(v -> v instanceof Player).withExecutor(v -> {
                     Player player = (Player)v;
                     Integer id = getPayerIDorNull(player.getUniqueId());
@@ -126,7 +128,7 @@ public class TabManager implements Listener {
     private static Team getSortTeam(int index) {
         Team team = sortTeams.getOrDefault(index, null);
         if (team == null) {
-            String key = StringUtils.leftPad(String.valueOf(index), 3, '0');
+            String key = StringUtils.leftPad(String.valueOf(index), 4, '0');
             team = scoreboard.getTeam(key);
             if (team != null) team.unregister();
             team = scoreboard.registerNewTeam(key);
@@ -138,7 +140,7 @@ public class TabManager implements Listener {
 
     private static int getNewIndex(UUID uuid) {
         return Optional.ofNullable(donates.get(uuid))
-            .flatMap(v -> v.staticId())
+            .flatMap(DonateInfo::staticId)
             .filter(v -> !PlayerData.isExistIndex(v))
             .orElseGet(() -> {
                 int index = 0;

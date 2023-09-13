@@ -23,16 +23,20 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.display.models.Builder;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.display.models.shadow.NoneBuilder;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.ClickerComponent;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
+import org.lime.gp.block.component.list.ConverterComponent;
+import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.craft.book.ContainerWorkbenchBook;
 import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.slot.output.IOutputVariable;
@@ -55,7 +59,7 @@ import org.lime.system;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ClickerInstance extends BlockInstance implements CustomTileMetadata.Lootable, CustomTileMetadata.Tickable, BlockDisplay.Displayable, CustomTileMetadata.Damageable, CustomTileMetadata.Interactable {
+public class ClickerInstance extends BlockInstance implements CustomTileMetadata.Lootable, CustomTileMetadata.Tickable, /*BlockDisplay.Displayable, */CustomTileMetadata.Damageable, CustomTileMetadata.Interactable, IDisplayVariable {
     @Override public ClickerComponent component() { return (ClickerComponent)super.component(); }
     public ClickerInstance(ClickerComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
@@ -67,7 +71,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     private final ReadonlyInventory readonlyInventory = ReadonlyInventory.ofBukkit(items, metadata().location());
     private int clicks;
     private int damage;
-    private final system.LockToast1<Model> model = system.<Model>toast(null).lock();
+    //private final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
     /*private static LocalLocation ofHeight(int height) {
         return new LocalLocation(0.5, -0.4 + height * 0.025, 0, 0, 0);
     }*/
@@ -118,14 +122,15 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         return true;
     }
     private void updateModel() {
-        if (items.isEmpty()) {
+        syncDisplayVariable();
+        /*if (items.isEmpty()) {
             model.set0(null);
             metadata()
                 .list(DisplayInstance.class)
                 .forEach(DisplayInstance::variableDirty);
             return;
         }
-        Builder builder = lime.models.builder();
+        NoneBuilder builder = lime.models.builder().none();
         ClickerComponent component = component();
         Transformation offsetFore = component.show;
         Transformation offsetBack = component.show;
@@ -136,10 +141,10 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             if (isFore) offsetFore = offsetFore.compose(component.step_fore);
             else offsetBack = offsetBack.compose(component.step_back);
         }
-        model.set0(builder.build());
+        model.set0(builder);
         metadata()
             .list(DisplayInstance.class)
-            .forEach(DisplayInstance::variableDirty);
+            .forEach(DisplayInstance::variableDirty);*/
     }
 
     private static int hurt(ItemStack damageItem) {
@@ -190,12 +195,12 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             updateModel();
         }
     }
-    @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        Model model = this.model.get0();
+    /*@Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
+        IBuilder model = this.model.get0();
         return model == null
                 ? Optional.empty()
                 : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(5), Double.POSITIVE_INFINITY));
-    }
+    }*/
     @Override public void onDamage(CustomTileMetadata metadata, BlockDamageEvent event) {
         Player player = event.getPlayer();
         if (player.isSneaking()) {
@@ -216,7 +221,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         if (isHand) {
             if (!isCanHand) return;
         } else {
-            if (Items.getOptional(ClickerSetting.class, clicker).map(v -> v.type).filter(v -> v.equals(clicker_type)).isEmpty()) {
+            if (Items.getOptional(ClickerSetting.class, clicker).filter(v -> v.types.contains(clicker_type)).isEmpty()) {
                 DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
                 return;
             }
@@ -292,10 +297,18 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         return ContainerWorkbenchBook.open(event.player(), metadata, Recipes.CLICKER, clicker_type, Recipes.CLICKER.getAllRecipes().stream().filter(v -> v.clicker_type.equals(clicker_type)).toList());
     }
 
-    private void syncDisplayVariable() {
-        metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
-            display.set("clicker_damage", String.valueOf(damage));
-        });
+    @Override public final void syncDisplayVariable() {
+        metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
+            map.put("clicker_damage", String.valueOf(damage));
+
+            ClickerComponent component = component();
+            int length = items.size();
+            display.set("clicker.items.count", String.valueOf(length));
+            for (int i = 0; i < length; i++)
+                DisplayComponent.putItem(map, "clicker.items["+i+"]", TableDisplaySetting.builderItem(items.get(i), TableDisplaySetting.TableType.clicker, component.type));
+
+            return true;
+        }));
     }
 }
 

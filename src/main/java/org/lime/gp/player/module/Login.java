@@ -28,6 +28,7 @@ import org.bukkit.permissions.ServerOperator;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.UserRow;
@@ -51,8 +52,8 @@ public class Login implements Listener {
     private static Location main;
     private static boolean only_op;
 
-    public static core.element create() {
-        return core.element.create(Login.class)
+    public static CoreElement create() {
+        return CoreElement.create(Login.class)
                 .withInstance()
                 .withInit(Login::init)
                 .addCommand("sync.login", v -> v.withCheck(ServerOperator::isOp).withTab().withExecutor(sender -> {

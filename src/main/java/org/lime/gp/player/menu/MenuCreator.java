@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.lime;
@@ -19,8 +20,8 @@ import java.util.*;
 import javax.annotation.Nullable;
 
 public class MenuCreator {
-    public static core.element create() {
-        return core.element.create(MenuCreator.class)
+    public static CoreElement create() {
+        return CoreElement.create(MenuCreator.class)
                 .withInit(MenuCreator::init)
                 .<JsonObject>addConfig("menu", v -> v
                         .withInvoke(MenuCreator::config)
@@ -129,6 +130,17 @@ public class MenuCreator {
     }
     public static boolean show(String menu, String page, Apply apply) {
         return show(menu, JavaScript.getJsInt(page).orElse(0), apply);
+    }
+
+
+    public static boolean showLang(Player player, LangEnum lang) {
+        return show(player, "lang", 0, Apply.of().add("lang", lang.key()));
+    }
+    public static boolean showLang(Player player, LangEnum lang, Apply apply) {
+        return show(player, "lang", 0, apply.add("lang", lang.key()));
+    }
+    public static boolean showLang(LangEnum lang, Apply apply) {
+        return show("lang", 0, apply.add("lang", lang.key()));
     }
 }
 

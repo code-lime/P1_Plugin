@@ -1,11 +1,14 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.SafeBoxInstance;
+import org.lime.gp.docs.IDocsLink;
 
 @InfoComponent.Component(name = "safe_box")
 public final class SafeBoxComponent extends ComponentDynamic<JsonObject, SafeBoxInstance> {
@@ -26,8 +29,7 @@ public final class SafeBoxComponent extends ComponentDynamic<JsonObject, SafeBox
         this.sound_open = json.has("sound_open") ? json.get("sound_open").getAsString() : null;
     }
 
-    @Override
-    public SafeBoxInstance createInstance(CustomTileMetadata metadata) {
-        return new SafeBoxInstance(this, metadata);
-    }
+    @Override public SafeBoxInstance createInstance(CustomTileMetadata metadata) { return new SafeBoxInstance(this, metadata); }
+    @Override public Class<SafeBoxInstance> classInstance() { return SafeBoxInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

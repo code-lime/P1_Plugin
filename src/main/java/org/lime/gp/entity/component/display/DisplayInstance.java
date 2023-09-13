@@ -6,7 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityInstance;
 import org.lime.gp.entity.component.Components;
@@ -51,9 +51,9 @@ public final class DisplayInstance extends EntityInstance implements CustomEntit
         }
     }
 
-    public record DisplayObject(Location location, List<UUID> viewers, Model model, Map<String, Object> data) {
+    public record DisplayObject(Location location, List<UUID> viewers, IBuilder model, Map<String, Object> data) {
         public boolean hasViewer(UUID uuid) { return viewers.contains(uuid); }
-        public static DisplayObject of(Location location, List<UUID> viewers, Model model, Map<String, Object> data) {
+        public static DisplayObject of(Location location, List<UUID> viewers, IBuilder model, Map<String, Object> data) {
             return new DisplayObject(location, viewers, model, data);
         }
     }
@@ -78,7 +78,7 @@ public final class DisplayInstance extends EntityInstance implements CustomEntit
                         .forEach(displayable -> displayable.onDisplay(player, marker)
                                 .flatMap(EntityDisplay.IEntity::data)
                                 .map(model -> map.computeIfAbsent(
-                                        new EntityModelDisplay.EntityModelKey(marker.getUUID(), model.unique, displayable.unique()),
+                                        new EntityModelDisplay.EntityModelKey(marker.getUUID(), model.unique(), displayable.unique()),
                                         k -> DisplayObject.of(pos.toLocation(world, yaw, pitch), new ArrayList<>(), model, animationData))
                                 )
                                 .ifPresent(v -> v.viewers.add(player.getUniqueId()))

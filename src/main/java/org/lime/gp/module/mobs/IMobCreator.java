@@ -4,6 +4,8 @@ import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3D;
 
+import javax.annotation.Nullable;
+
 public interface IMobCreator {
-    Entity spawn(WorldServer worldserver, Vec3D pos);
+    @Nullable Entity spawn(WorldServer worldserver, Vec3D pos);
 }

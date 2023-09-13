@@ -16,10 +16,11 @@ import org.lime.gp.lime;
 
 import com.destroystokyo.paper.event.player.PlayerStartSpectatingEntityEvent;
 import com.destroystokyo.paper.event.player.PlayerStopSpectatingEntityEvent;
+import org.lime.plugin.CoreElement;
 
 public class Ghost implements Listener {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(Ghost.class)
+    public static CoreElement create() {
+        return CoreElement.create(Ghost.class)
                 .withInit(Ghost::init)
                 .withInstance();
     }

@@ -5,10 +5,11 @@ import org.lime.*;
 import org.bukkit.entity.Player;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
+import org.lime.plugin.CoreElement;
 
 public class Settings {
-    public static core.element create() {
-        return core.element.create(Settings.class)
+    public static CoreElement create() {
+        return CoreElement.create(Settings.class)
                 .withInit(Settings::Init);
     }
 

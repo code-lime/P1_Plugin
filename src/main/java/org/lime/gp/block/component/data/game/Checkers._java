@@ -5,7 +5,8 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.lime.Position;
 import org.lime.core;
-import org.lime.system;
+import org.lime.plugin.CoreElement;
+import org.lime._system;
 import AnyEvent;
 import p1.ItemManager;
 import DrawMap;
@@ -15,8 +16,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Checkers {
-    public static core.element create() {
-        return core.element.create(Checkers.class)
+    public static CoreElement create() {
+        return CoreElement.create(Checkers.class)
                 .withInstance()
                 .withInit(Checkers::init);
     }

@@ -21,6 +21,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
@@ -33,8 +34,8 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class TargetMove implements Listener {
-    public static core.element create() {
-        return core.element.create(TargetMove.class)
+    public static CoreElement create() {
+        return CoreElement.create(TargetMove.class)
                 .withInstance()
                 .withInit(TargetMove::init);
     }
@@ -65,8 +66,8 @@ public class TargetMove implements Listener {
         });
         lime.repeatTicks(TargetMove::update, 1);
     }
-    public static final PotionEffect SLOW = PotionEffectType.SLOW.createEffect(5, 3).withAmbient(false).withIcon(false).withParticles(false);
-    public static final PotionEffect ROTATE_SLOW = PotionEffectType.SLOW.createEffect(5, 4).withAmbient(false).withIcon(false).withParticles(false);
+    public static final PotionEffect SLOW = PotionEffectType.SLOW.createEffect(10, 3).withAmbient(false).withIcon(false).withParticles(false);
+    public static final PotionEffect ROTATE_SLOW = PotionEffectType.SLOW.createEffect(10, 4).withAmbient(false).withIcon(false).withParticles(false);
 
     public static void update() {
         targets.entrySet().removeIf(kv -> {

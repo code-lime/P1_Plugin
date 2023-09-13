@@ -39,6 +39,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
@@ -52,8 +53,8 @@ import java.time.Duration;
 import java.util.*;
 
 public class Bullets implements Listener {
-    public static core.element create() {
-        return core.element.create(Bullets.class)
+    public static CoreElement create() {
+        return CoreElement.create(Bullets.class)
                 .withInstance()
                 .withInit(Bullets::init);
     }

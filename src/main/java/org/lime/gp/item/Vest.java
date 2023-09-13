@@ -23,6 +23,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.ItemCreator;
@@ -41,8 +42,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Vest implements Listener {
-    public static core.element create() {
-        return core.element.create(Vest.class)
+    public static CoreElement create() {
+        return CoreElement.create(Vest.class)
                 .withInit(Vest::init)
                 .withInstance()
                 .withUninit(Vest::uninit);

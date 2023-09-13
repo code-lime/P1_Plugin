@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Blocks;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.display.partial.Variable;
@@ -25,8 +26,8 @@ import org.lime.system;
 import java.util.List;
 
 public class test {
-    public static core.element create() {
-        return core.element.create(test.class)
+    public static CoreElement create() {
+        return CoreElement.create(test.class)
                 .withInit(test::init);
     }
 

@@ -1,6 +1,5 @@
 package org.lime.gp.player.module.needs.food;
 
-import org.lime.*;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
@@ -8,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.lime.display.Displays;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.plugin.CoreElement;
 
 import java.util.*;
 
@@ -15,8 +15,8 @@ public class FoodUI implements CustomUI.IUI {
     private static final FoodUI Instance = new FoodUI();
     private FoodUI() {}
 
-    public static core.element create() {
-        return core.element.create(FoodUI.class)
+    public static CoreElement create() {
+        return CoreElement.create(FoodUI.class)
                 .withInit(FoodUI::init)
                 .withInstance(Instance);
     }

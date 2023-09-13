@@ -19,6 +19,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.filter.data.IFilterParameter;
 import org.lime.reflection;
@@ -52,8 +53,8 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
         @Override public void fill(IInventory inventory, LootTableInfo context) { base_of_proxy.fill(inventory, context); }
         @Override public LootContextParameterSet getParamSet() { return base_of_proxy.getParamSet(); }
     }
-    public static core.element create() {
-        return core.element.create(PopulateLootEvent.class)
+    public static CoreElement create() {
+        return CoreElement.create(PopulateLootEvent.class)
                 .withInit(PopulateLootEvent::init);
     }
     

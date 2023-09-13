@@ -6,14 +6,18 @@ import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.lime.Position;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.InfoComponent.Rotation.Value;
+import org.lime.gp.block.component.data.MFPInstance;
 import org.lime.gp.block.component.data.MultiBlockInstance;
 import org.lime.gp.coreprotect.CoreProtectHandle;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.system.Toast3;
 
@@ -75,8 +79,7 @@ public final class MultiBlockComponent extends ComponentDynamic<JsonObject, Mult
         return true;
     }
 
-    @Override
-    public MultiBlockInstance createInstance(CustomTileMetadata metadata) {
-        return new MultiBlockInstance(this, metadata);
-    }
+    @Override public MultiBlockInstance createInstance(CustomTileMetadata metadata) { return new MultiBlockInstance(this, metadata); }
+    @Override public Class<MultiBlockInstance> classInstance() { return MultiBlockInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

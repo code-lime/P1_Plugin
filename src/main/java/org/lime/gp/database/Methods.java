@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.ChatHelper;
@@ -33,8 +34,8 @@ import java.util.stream.Collectors;
 public class Methods {
     public static MySql SQL = null;
 
-    public static core.element create() {
-        return core.element.create(Methods.class)
+    public static CoreElement create() {
+        return CoreElement.create(Methods.class)
                 .withInit(Methods::init)
                 .<JsonObject>addConfig("database", v -> v.withInvoke(json -> {
                     SQL = new MySql(
@@ -70,6 +71,7 @@ public class Methods {
             lime.logOP("Dump of " + dump.size() + " calls:\n   " + String.join("\n   ", dump));
         });
         lime.repeat(Methods::update, 1);
+        lime.repeat(Methods::updateCityStatus, 1, 10);
 
         for (int i = 0; i < 5; i++)
             threads.add(new Thread(Methods::threadAction));
@@ -80,8 +82,16 @@ public class Methods {
         SQL.close();
         threads.forEach(Thread::stop);
     }
+    private static boolean CITY_ENABLE = false;
     public static void update() {
         SQL.Async.rawSql("SELECT OnUpdate()", () -> {});
+    }
+    public static void updateCityStatus() {
+        SQL.Async.rawSqlOnce(
+                "SELECT COUNT(1) FROM information_schema.tables WHERE `table_schema` = DATABASE() AND `table_name` = 'city'",
+                Integer.class,
+                status -> CITY_ENABLE = status > 0
+        );
     }
 
     public static Vector readPosition(ResultSet set, String prefix) {
@@ -241,26 +251,59 @@ public class Methods {
         SQL.Async.rawSqlOnce("SELECT discord_id FROM discord WHERE discord.uuid = '"+uuid+"'", Long.class, callback);
     }
     public static void discordRoleList(system.Action1<Map<Long, Object>> callback) {
-        SQL.Async.rawSqlQuery("SELECT roles.discord_role FROM roles WHERE roles.discord_role IS NOT NULL GROUP BY roles.discord_role UNION SELECT role_groups.discord_role FROM role_groups WHERE role_groups.discord_role IS NOT NULL GROUP BY role_groups.discord_role", Long.class, list -> callback.invoke(system.map.<Long, Object>of().add(list, new Object()).build()));
+        List<String> unions = new ArrayList<>();
+        unions.add("SELECT roles.discord_role FROM roles WHERE roles.discord_role IS NOT NULL GROUP BY roles.discord_role");
+        unions.add("SELECT role_groups.discord_role FROM role_groups WHERE role_groups.discord_role IS NOT NULL GROUP BY role_groups.discord_role");
+        if (CITY_ENABLE) unions.add("SELECT city.discord_role FROM city WHERE city.discord_role IS NOT NULL GROUP BY city.discord_role");
+        SQL.Async.rawSqlQuery(String.join(" UNION ", unions), Long.class, list -> callback.invoke(system.map.<Long, Object>of().add(list, new Object()).build()));
     }
-    private static final String discordUpdateSQL = "SELECT discord.discord_id, users.uuid, CONCAT(users.first_name, \" \", users.last_name) AS user_name, roles.discord_role AS discord_role, role_groups.discord_role AS discord_group_role FROM users INNER JOIN discord ON users.uuid = discord.uuid LEFT JOIN roles ON roles.id = users.role LEFT JOIN role_groups ON role_groups.id = roles.id_group";
-    public static void discordUpdate(system.Action5<Long, String, Long, Long, UUID> callback, system.Action0 end) {
-        discordUpdate(discordUpdateSQL, callback, end);
+
+    private static final String discordUpdateSQL = String.join(" ",
+            "SELECT",
+                    String.join(", ",
+                            "discord.discord_id",
+                            "users.uuid",
+                            "CONCAT(users.first_name, ' ', users.last_name) AS user_name",
+                            "roles.discord_role AS discord_role",
+                            "role_groups.discord_role AS discord_group_role",
+                            "{CITY_FIELDS}"
+                    ),
+                    "FROM users",
+                    "INNER JOIN discord ON users.uuid = discord.uuid",
+                    "LEFT JOIN roles ON roles.id = users.role",
+                    "LEFT JOIN role_groups ON role_groups.id = roles.id_group"
+    );
+    private static final String discordUpdateSQL_City = " LEFT JOIN city ON city.id = role_groups.id_city";
+    private static final String discordUpdateSQL_City_Fields = String.join(",",
+            "city.discord_role AS discord_city_role"
+    );
+    private static final String discordUpdateSQL_City_None_Fields = String.join(",",
+            "NULL AS discord_city_role"
+    );
+
+    public static void discordUpdate(system.Action4<Long, String, Long[], UUID> callback, system.Action0 end) {
+        discordUpdate(discordUpdateSQL
+                .replace("{CITY_FIELDS}", CITY_ENABLE ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
+                + (CITY_ENABLE ? discordUpdateSQL_City : ""), callback, end);
     }
-    public static void discordUpdateSingle(UUID uuid, system.Action5<Long, String, Long, Long, UUID> callback, system.Action0 end) {
-        discordUpdate(discordUpdateSQL + " WHERE users.uuid = '" + uuid + "'", callback, end);
+    public static void discordUpdateSingle(UUID uuid, system.Action4<Long, String, Long[], UUID> callback, system.Action0 end) {
+        discordUpdate(discordUpdateSQL
+                .replace("{CITY_FIELDS}", CITY_ENABLE ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
+                + (CITY_ENABLE ? discordUpdateSQL_City : "")
+                + " WHERE users.uuid = '" + uuid + "'", callback, end);
     }
-    private static void discordUpdate(String sql, system.Action5<Long, String, Long, Long, UUID> callback, system.Action0 end) {
+    private static void discordUpdate(String sql, system.Action4<Long, String, Long[], UUID> callback, system.Action0 end) {
         SQL.Async.rawSqlQuery(sql,
                 v -> system.toast(
                         MySql.readObject(v, "discord_id", Long.class),
                         MySql.readObject(v, "uuid", String.class),
                         MySql.readObject(v, "user_name", String.class),
                         MySql.readObject(v, "discord_role", Long.class),
-                        MySql.readObject(v, "discord_group_role", Long.class)
+                        MySql.readObject(v, "discord_group_role", Long.class),
+                        MySql.readObject(v, "discord_city_role", Long.class)
                 ),
                 list -> {
-                    list.forEach(t -> callback.invoke(t.val0, t.val2, t.val3, t.val4, UUID.fromString(t.val1)));
+                    list.forEach(t -> callback.invoke(t.val0, t.val2, new Long[] { t.val3, t.val4, t.val5 }, UUID.fromString(t.val1)));
                     end.invoke();
                 });
     }

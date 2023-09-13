@@ -3,11 +3,12 @@ package org.lime.gp.module;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 
 public class StriderDisable {
-    public static core.element create() {
-        return core.element.create(StriderDisable.class)
+    public static CoreElement create() {
+        return CoreElement.create(StriderDisable.class)
                 .withInit(StriderDisable::init);
     }
     

@@ -2,6 +2,7 @@ package org.lime.gp.module;
 
 import com.google.gson.JsonObject;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.TestData;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -11,9 +12,9 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class ThreadPool {
-    public static core.element create() {
-        return core.element.create(ThreadPool.class)
-                .sortType(core.element.SortType.First)
+    public static CoreElement create() {
+        return CoreElement.create(ThreadPool.class)
+                .sortType(CoreElement.SortType.First)
                 .<JsonObject>addConfig("thread_pool", v -> v
                         .withDefault(system.json.object()
                                 //.add("database", 10)

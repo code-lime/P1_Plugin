@@ -12,6 +12,7 @@ import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.Logged;
 import org.lime.system;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,8 +27,8 @@ public interface ISlot extends Logged.ILoggedDelete {
             @Override public void delete() { deleteHandle.delete(); }
 
             @Override public boolean tryIsShow(Apply apply) { return true; }
-            @Override public system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
-                return system.toast(new HashMap<>(), Items.getItemCreator(ChatHelper.formatText(json.getAsString(), apply)).map(v -> v.createItem(1, apply)).orElseGet(() -> new ItemStack(Material.BARRIER)));
+            @Override public system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
+                return system.toast(new ArrayList<>(), new HashMap<>(), Items.getItemCreator(ChatHelper.formatText(json.getAsString(), apply)).map(v -> v.createItem(1, apply)).orElseGet(() -> new ItemStack(Material.BARRIER)));
             }
         };
         JsonObject jsonObject = json.getAsJsonObject();
@@ -37,7 +38,7 @@ public interface ISlot extends Logged.ILoggedDelete {
 
     boolean tryIsShow(Apply apply);
 
-    system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply);
+    system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply);
 
     static Apply createArgs(List<system.Toast2<String, String>> args, Apply apply) {
         Apply _apply = apply.copy();

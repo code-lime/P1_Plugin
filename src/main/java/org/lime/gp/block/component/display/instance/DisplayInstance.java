@@ -17,6 +17,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.InfoComponent;
@@ -51,8 +52,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class DisplayInstance extends BlockInstance implements CustomTileMetadata.Shapeable, CustomTileMetadata.Tickable, CustomTileMetadata.AsyncTickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable {
     static int TIMEOUT_TICKS = 20;
-    public static core.element create() {
-        return core.element.create(DisplayInstance.class)
+    public static CoreElement create() {
+        return CoreElement.create(DisplayInstance.class)
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("display.timeout")
                         .withDefault(new JsonPrimitive(20))
@@ -70,7 +71,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     private final system.LockToast1<InfoComponent.Rotation.Value> rotationCache = system.<InfoComponent.Rotation.Value>toast(null).lock();
 
     public void variableDirty() {
-        variableIndex.edit0(v -> v + 1);
+        variables.put(".index", String.valueOf(variableIndex.edit0(v -> v + 1)));
         rotationCache.set0(get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle).orElse(null));
         saveData();
     }
@@ -260,7 +261,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                         if (partial instanceof FramePartial frame && frame.show()) frameMap.put(uuid, ItemFrameDisplayObject.of(pos.toLocation(world), frame.nms(variables), frame.rotation(), frame.uuid()));
                         if (partial instanceof ViewPartial view && view.show()) viewMap.put(uuid, ItemDisplayObject.of(pos.toLocation(world), view.nms(variables), view));
                         if (partial instanceof IModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
-                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.val0.unique, unique()),
+                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.val0.unique(), unique()),
                                 _k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model.val0, animationData, _model.val1)
                         ).addViewer(uuid));
                         shows.put(player, distanceChunk);
@@ -285,7 +286,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                         .filter(v -> distanceChunk <= v.distanceChunk())
                         .flatMap(IModelBlock::model)
                         .ifPresent(_model -> modelMap.computeIfAbsent(
-                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.val0.unique, displayable.unique()),
+                                new BlockModelDisplay.BlockModelKey(metadata.key.uuid(), metadata.position(), _model.val0.unique(), displayable.unique()),
                                 k -> ModelDisplayObject.of(pos.toLocation(world, angle, 0), _model.val0, animationData, _model.val1)
                         ).addViewer(player.getUniqueId()))
                 ));

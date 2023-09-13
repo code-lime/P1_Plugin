@@ -7,6 +7,7 @@ import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.settings.list.DurabilitySetting;
 
@@ -16,8 +17,8 @@ import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class ItemDamageShow {
-    public static core.element create() {
-        return core.element.create(ItemDamageShow.class)
+    public static CoreElement create() {
+        return CoreElement.create(ItemDamageShow.class)
                 .withInit(ItemDamageShow::init);
     }
 

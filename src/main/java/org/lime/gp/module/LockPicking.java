@@ -7,6 +7,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Openable;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.system;
@@ -14,8 +15,8 @@ import org.lime.system;
 import javax.annotation.Nullable;
 
 public class LockPicking {
-    public static core.element create() {
-        return core.element.create(LockPicking.class)
+    public static CoreElement create() {
+        return CoreElement.create(LockPicking.class)
                 .withInit(LockPicking::init);
     }
 

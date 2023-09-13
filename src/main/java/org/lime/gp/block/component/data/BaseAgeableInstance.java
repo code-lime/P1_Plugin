@@ -5,6 +5,7 @@ import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.lime;
 import org.lime.gp.module.RandomTickSpeed;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> extends BlockComponentInstance<T> implements CustomTileMetadata.Tickable {
+public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> extends BlockComponentInstance<T> implements CustomTileMetadata.Tickable, IDisplayVariable {
     public interface AgeableData {
         double tickAgeModify();
         int limitAge();
@@ -70,7 +71,7 @@ public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> exte
         return true;
     }
 
-    protected final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(this::modifyDisplayVariable);
         });

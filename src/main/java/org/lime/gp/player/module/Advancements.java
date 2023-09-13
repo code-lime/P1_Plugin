@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
@@ -29,8 +30,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Advancements implements Listener {
-    public static core.element create() {
-        return core.element.create(Advancements.class)
+    public static CoreElement create() {
+        return CoreElement.create(Advancements.class)
                 .withInit(Advancements::init)
                 .withUninit(Advancements::uninit)
                 .withInstance()

@@ -1,15 +1,16 @@
-package org.lime.gp.module.biome.time.weather;
+package org.lime.gp.module.biome.weather;
 
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.level.biome.BiomeFog;
 import org.lime.gp.extension.JsonNBT;
+import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
 import java.util.Optional;
 
-public record BiomeColors(
+public record BiomeData(
         Optional<Integer> fog,
         Optional<Integer> water,
 
@@ -19,10 +20,12 @@ public record BiomeColors(
         Optional<Integer> foliage,
         Optional<Integer> grass,
 
-        Optional<BiomeFog.GrassColor> grassModifier
+        Optional<BiomeFog.GrassColor> grassModifier,
+
+        Optional<Boolean> snow
 ) {
-    private BiomeColors() {
-        this(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    private BiomeData() {
+        this(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     private static BiomeFog.GrassColor getGrassColor(String name) {
@@ -32,10 +35,10 @@ public record BiomeColors(
         throw new IllegalArgumentException("No grass modifier type " + name);
     }
 
-    public static BiomeColors parseElement(NBTTagCompound element) {
-        if (!element.contains("effects")) return new BiomeColors();
+    public static BiomeData parseElement(NBTTagCompound element) {
+        if (!element.contains("effects")) return new BiomeData();
         JsonObjectOptional json = JsonObjectOptional.of(JsonNBT.toJson(element.get("effects")).getAsJsonObject());
-        return new BiomeColors(
+        return new BiomeData(
                 json.getAsInt("fog_color"),
                 json.getAsInt("water_color"),
 
@@ -45,12 +48,14 @@ public record BiomeColors(
                 json.getAsInt("foliage_color"),
                 json.getAsInt("grass_color"),
 
-                json.getAsString("grass_color_modifier").map(BiomeColors::getGrassColor)
+                json.getAsString("grass_color_modifier").map(BiomeData::getGrassColor),
+
+                Optional.empty()
         );
     }
 
-    public static BiomeColors parseJson(JsonObjectOptional json) {
-        return new BiomeColors(
+    public static BiomeData parseJson(JsonObjectOptional json) {
+        return new BiomeData(
                 json.getAsString("fog_color").map(TextColor::fromHexString).map(TextColor::value),
                 json.getAsString("water_color").map(TextColor::fromHexString).map(TextColor::value),
 
@@ -60,7 +65,9 @@ public record BiomeColors(
                 json.getAsString("foliage_color").map(TextColor::fromHexString).map(TextColor::value),
                 json.getAsString("grass_color").map(TextColor::fromHexString).map(TextColor::value),
 
-                json.getAsString("grass_color_modifier").map(BiomeColors::getGrassColor)
+                json.getAsString("grass_color_modifier").map(BiomeData::getGrassColor),
+
+                json.getAsBoolean("snow")
         );
     }
 
@@ -76,6 +83,7 @@ public record BiomeColors(
         foliage.ifPresent(value -> effects.putInt("foliage_color", value));
         grass.ifPresent(value -> effects.putInt("grass_color", value));
         grassModifier.ifPresent(value -> effects.putString("grass_color_modifier", value.getName()));
+        snow.ifPresent(value -> SeasonKey.setTemperature(element, value ? -0.5f : 0.8f));
     }
 
     public system.json.builder.object saveJson() {
@@ -88,11 +96,12 @@ public record BiomeColors(
         foliage.map(TextColor::color).map(TextColor::asHexString).ifPresent(value -> raw.add("foliage_color", value));
         grass.map(TextColor::color).map(TextColor::asHexString).ifPresent(value -> raw.add("grass_color", value));
         grassModifier.ifPresent(value -> raw.add("grass_color_modifier", value.getName()));
+        snow.ifPresent(value -> raw.add("snow", value));
 
         return raw;
     }
 
-    public static BiomeColors empty() {
-        return new BiomeColors();
+    public static BiomeData empty() {
+        return new BiomeData();
     }
 }

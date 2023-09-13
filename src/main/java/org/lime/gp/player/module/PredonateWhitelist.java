@@ -9,6 +9,7 @@ import net.minecraft.server.players.WhiteList;
 import net.minecraft.server.players.WhiteListEntry;
 import org.apache.commons.lang.StringUtils;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.PreDonateRow;
 import org.lime.gp.database.tables.KeyedTable;
@@ -21,8 +22,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class PredonateWhitelist {
-    public static core.element create() {
-        return core.element.create(PredonateWhitelist.class)
+    public static CoreElement create() {
+        return CoreElement.create(PredonateWhitelist.class)
                 .disable()
                 .withInit(PredonateWhitelist::init);
     }

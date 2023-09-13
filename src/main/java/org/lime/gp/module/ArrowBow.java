@@ -23,14 +23,15 @@ import org.lime.gp.player.module.HandCuffs;
 import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.plugin.CoreElement;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class ArrowBow implements Listener {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(ArrowBow.class)
+    public static CoreElement create() {
+        return CoreElement.create(ArrowBow.class)
                 .withInstance()
                 .withInit(ArrowBow::init);
     }

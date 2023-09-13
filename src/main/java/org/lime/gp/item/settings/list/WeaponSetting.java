@@ -1,9 +1,6 @@
 package org.lime.gp.item.settings.list;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -12,6 +9,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
@@ -119,12 +119,16 @@ import net.kyori.adventure.text.format.TextColor;
         sound_pose = json.has("sound_pose") ? json.get("sound_pose").getAsString() : null;
         sound_state = json.has("sound_state") ? json.get("sound_state").getAsString() : null;
 
-        display = json.has("display") ? json.get("display").getAsString() : ("" + creator.getID());
+        display = json.has("display") ? json.get("display").getAsString() : String.valueOf(creator.getID());
     }
 
     public static Optional<ItemStack> getMagazine(ItemStack weapon) {
         return Optional.of(weapon)
                 .map(ItemStack::getItemMeta)
+                .flatMap(WeaponSetting::getMagazine);
+    }
+    public static Optional<ItemStack> getMagazine(ItemMeta weapon) {
+        return Optional.of(weapon)
                 .map(PersistentDataHolder::getPersistentDataContainer)
                 .map(v -> v.get(MAGAZINE_KEY, PersistentDataType.STRING))
                 .map(system::loadItem);
@@ -144,8 +148,8 @@ import net.kyori.adventure.text.format.TextColor;
                 .ifPresent(v -> v.apply(weapon));
     }
 
-    @Override public void appendArgs(ItemStack weapon, Apply apply) {
-        apply.add("magazine_type", getMagazine(weapon)
+    @Override public void appendArgs(ItemMeta meta, Apply apply) {
+        apply.add("magazine_type", getMagazine(meta)
                 .flatMap(magazine -> Items.getOptional(MagazineSetting.class, magazine))
                 .map(v -> v.magazine_type)
                 .orElse("")
@@ -153,10 +157,66 @@ import net.kyori.adventure.text.format.TextColor;
     }
 
     public int weaponDisplay(WeaponData.Pose pose, Integer magazine_id, int bullet_count) {
-        return JavaScript.getJsInt(display
-                .replace("{pose}", pose.name())
-                .replace("{magazine_id}", magazine_id == null ? "" : ("" + magazine_id))
-                .replace("{bullet_count}", bullet_count + "")
-        ).orElseGet(() -> creator().getID());
+        Map<String, Object> args = Map.of(
+                "pose", pose.name(),
+                "magazine_id", magazine_id == null ? "" : String.valueOf(magazine_id),
+                "bullet_count", String.valueOf(bullet_count)
+        );
+        String _display = display;
+        for (var kv : args.entrySet()) _display = _display.replace("{" + kv.getKey() + "}", kv.getValue().toString());
+        return JavaScript.getJsInt(_display, args).orElseGet(() -> creator().getID());
+    }
+
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup weapon_state = JsonEnumInfo.of("WEAPON_STATE", "weapon_state", WeaponData.State.class);
+        IIndexGroup weapon_pose = JsonEnumInfo.of("WEAPON_POSE", "weapon_pose", WeaponData.Pose.class);
+        IIndexGroup weapon_pose_info = JsonGroup.of("WEAPON_POSE_INFO", "weapon_pose_info", JObject.of(
+                JProperty.require(IName.raw("offset"), IJElement.link(docs.vector()), IComment.text("Относительная точка вылета пули")),
+                JProperty.require(IName.raw("range"), IJElement.raw(1.0), IComment.text("Уровень разброса")),
+                JProperty.require(IName.raw("range_max"), IJElement.raw(1.0), IComment.text("Максимальный уровень разброса"))
+        ));
+        IIndexGroup weapon_ui_frame = JsonGroup.of("WEAPON_UI_FRAME", "weapon_ui_frame", JObject.of(
+                JProperty.require(IName.raw("image"), IJElement.link(docs.formattedChat()), IComment.text("Отображаемое изображение")),
+                JProperty.require(IName.raw("size"), IJElement.raw(10), IComment.empty()
+                        .append(IComment.text("Ширина "))
+                        .append(IComment.field("image"))
+                        .append(IComment.text(" пикселей"))),
+                JProperty.optional(IName.raw("offset"), IJElement.raw(10), IComment.text("Сдвиг изображения в пикселях")),
+                JProperty.optional(IName.raw("color"), IJElement.raw("#FFFFFF"), IComment.text("Цвет изображения"))
+        ));
+        IIndexGroup weapon_ui = JsonGroup.of("WEAPON_UI", "weapon_ui", IJElement.anyList(IJElement.link(weapon_ui_frame)), "Набор кадров анимации")
+                .withChild(weapon_ui_frame);
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.require(IName.raw("bullet_speed"), IJElement.raw(1.0), IComment.raw("Скорость пули")),
+                JProperty.require(IName.raw("bullet_down"), IJElement.raw(1.0), IComment.raw("Скорость падения пули")),
+                JProperty.optional(IName.raw("magazine_type"), IJElement.raw("MAGAZINE_TYPE"), IComment.text("Пользвательский тип магазина. Если не указан - само оружие содержит магазин")),
+                JProperty.require(IName.raw("recoil"), IJElement.raw(1.0), IComment.text("Максимальная отдача")),
+                JProperty.require(IName.raw("recoil_speed"), IJElement.raw(1.0), IComment.text("Скорость увеличения отдачи")),
+                JProperty.require(IName.raw("damage_scale"), IJElement.raw(1.0), IComment.text("Множитель урона")),
+                JProperty.require(IName.raw("tick_speed"), IJElement.raw(5), IComment.text("Количество тиков между выстрелами")),
+                JProperty.optional(IName.raw("init_sec"), IJElement.raw(2.5), IComment.text("Время в секундах. Скорость готовности оружия")),
+                JProperty.require(IName.raw("states"), IJElement.anyList(IJElement.link(weapon_state)), IComment.text("Список возможных типов стрельбы")),
+                JProperty.require(IName.raw("poses"), IJElement.anyObject(
+                        JProperty.require(IName.link(weapon_pose), IJElement.link(weapon_pose_info))
+                ), IComment.text("Список поз стрельбы")),
+                JProperty.optional(IName.raw("ui"), IJElement.anyObject(
+                        JProperty.require(IName.link(weapon_state), IJElement.link(weapon_ui))
+                ), IComment.text("Отображаемый прогресс перезарядки для возможных типов стрельбы")),
+                JProperty.optional(IName.raw("sound_shoot"), IJElement.link(docs.sound()), IComment.text("Звук выстрела")),
+                JProperty.optional(IName.raw("sound_load"), IJElement.link(docs.sound()), IComment.text("Звук установки магазина")),
+                JProperty.optional(IName.raw("sound_unload"), IJElement.link(docs.sound()), IComment.text("Звук доставания магазина")),
+                JProperty.optional(IName.raw("sound_pose"), IJElement.link(docs.sound()), IComment.text("Звук смены позы")),
+                JProperty.optional(IName.raw("sound_state"), IJElement.link(docs.sound()), IComment.text("Звук смены типа стрельбы")),
+                JProperty.optional(IName.raw("display"), IJElement.link(docs.js()), IComment.empty()
+                        .append(IComment.text("Изменение "))
+                        .append(IComment.raw("id"))
+                        .append(IComment.text(" предмета через JavaScript. Передаваемые параметры: "))
+                        .append(IComment.raw("pose"))
+                        .append(IComment.text(", "))
+                        .append(IComment.raw("magazine_id"))
+                        .append(IComment.text(", "))
+                        .append(IComment.raw("bullet_count")))
+        ));
     }
 }

@@ -4,6 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 import org.lime.gp.player.module.needs.thirst.Thirst;
@@ -14,8 +15,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public class NeedSystem {
-    public static core.element create() {
-        return core.element.create(NeedSystem.class)
+    public static CoreElement create() {
+        return CoreElement.create(NeedSystem.class)
                 .withInit(NeedSystem::init);
     }
 

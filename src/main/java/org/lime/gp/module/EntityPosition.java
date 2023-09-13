@@ -9,6 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -17,8 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class EntityPosition {
-    public static core.element create() {
-        return core.element.create(EntityPosition.class)
+    public static CoreElement create() {
+        return CoreElement.create(EntityPosition.class)
                 .withInit(EntityPosition::init);
     }
     public static void init() {

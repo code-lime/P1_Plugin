@@ -11,6 +11,7 @@ import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.ContainerChest;
 import net.minecraft.world.inventory.Containers;
+import net.minecraft.world.inventory.InventoryClickType;
 import net.minecraft.world.inventory.Slot;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,9 +20,11 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
@@ -35,6 +38,7 @@ import org.lime.gp.item.data.Checker;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.system;
 
@@ -42,8 +46,8 @@ import java.util.*;
 
 public class Search implements Listener {
     private static Checker checker = Checker.empty();
-    public static core.element create() {
-        return core.element.create(Search.class)
+    public static CoreElement create() {
+        return CoreElement.create(Search.class)
                 .withInit(Search::init)
                 .<JsonArray>addConfig("config", v -> v
                         .withParent("weapon.search")
@@ -65,7 +69,7 @@ public class Search implements Listener {
 
     public static void search(Player player, Player other, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         Apply _other = Apply.of().add("other_uuid", other.getUniqueId().toString());
-        MenuCreator.show(player, "lang.search", _other);
+        MenuCreator.showLang(player, LangEnum.SEARCH, _other);
 
         ReadonlyInventory view = ReadonlyInventory.ofNMS(NonNullList.withSize(4 * 9, net.minecraft.world.item.ItemStack.EMPTY));
 
@@ -121,7 +125,7 @@ public class Search implements Listener {
                 ItemStack move_item = item.asBukkitCopy();
                 CoreProtectHandle.logDrop(location, other, move_item);
                 Items.dropGiveItem(player, move_item, true);
-                MenuCreator.show(player, "lang.search.item", _other);
+                MenuCreator.showLang(player, LangEnum.SEARCH_ITEM, _other);
                 item.setCount(0);
                 return false;
             }
@@ -131,7 +135,7 @@ public class Search implements Listener {
                 ItemStack move_item = item.asBukkitCopy();
                 CoreProtectHandle.logDrop(location, other, move_item);
                 Items.dropGiveItem(player, move_item, true);
-                MenuCreator.show(player, "lang.search.item", _other);
+                MenuCreator.showLang(player, LangEnum.SEARCH_ITEM, _other);
                 return true;
             }
             private net.minecraft.world.item.ItemStack itemFilter(net.minecraft.world.item.ItemStack item) {
@@ -163,7 +167,9 @@ public class Search implements Listener {
                                 default -> NONE_SLOT;
                             };
                         }
-                        @Override public boolean mayPickup(EntityHuman playerEntity) {
+                        @Override public boolean isPacketOnly() { return true; }
+
+                        @Override public void onSlotClick(EntityHuman human, InventoryClickType type, ClickType click) {
                             switch (getRowY()) {
                                 case 0 -> {
                                     switch (getRowX()) {
@@ -185,8 +191,9 @@ public class Search implements Listener {
                                 case 2 -> clickDrop(target_inventory.items.get(getRowX() + 9 * 3), readonly);
                                 case 3 -> clickDrop(target_inventory.items.get(getRowX()), readonly);
                             }
-                            return false;
                         }
+
+                        @Override public boolean mayPickup(EntityHuman human) { return false; }
                         @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                     });
                 }
@@ -248,6 +255,8 @@ public class Search implements Listener {
             @Override protected Slot addSlot(Slot slot) {
                 if (slot.container == view) {
                     return super.addSlot(new InterfaceManager.AbstractBaseSlot(slot) {
+                        @Override public boolean isPacketOnly() { return true; }
+
                         @Override public net.minecraft.world.item.ItemStack getItem() {
                             return switch (getRowY()) {
                                 case 0 -> switch (getRowX()) {
@@ -261,7 +270,8 @@ public class Search implements Listener {
                                 default -> NONE_SLOT;
                             };
                         }
-                        @Override public boolean mayPickup(EntityHuman playerEntity) {
+
+                        @Override public void onSlotClick(EntityHuman human, InventoryClickType type, ClickType click) {
                             lime.once(() -> {
                                 switch (getRowY()) {
                                     case 0 -> {
@@ -275,8 +285,9 @@ public class Search implements Listener {
                                     }
                                 }
                             }, 0.1);
-                            return false;
                         }
+
+                        @Override public boolean mayPickup(EntityHuman human) { return false; }
                         @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                     });
                 }

@@ -4,12 +4,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.settings.list.BlockEyesSetting;
 import org.lime.gp.lime;
 
 public class BlockEyes {
-    public static core.element create() {
-        return core.element.create(BlockEyes.class)
+    public static CoreElement create() {
+        return CoreElement.create(BlockEyes.class)
                 .withInit(BlockEyes::init);
     }
 

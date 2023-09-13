@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.lime;
@@ -21,8 +22,8 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class Thirst implements Listener {
-    public static core.element create() {
-        return core.element.create(Thirst.class)
+    public static CoreElement create() {
+        return CoreElement.create(Thirst.class)
                 .withInstance()
                 .withInit(Thirst::init)
                 .<JsonObject>addConfig("thirst", v -> v.withInvoke(Thirst::config).withDefault(new JsonObject()));

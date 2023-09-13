@@ -11,6 +11,7 @@ import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
@@ -20,8 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class DisplayHand {
-    public static core.element create() {
-        return core.element.create(DisplayHand.class)
+    public static CoreElement create() {
+        return CoreElement.create(DisplayHand.class)
                 .withInit(DisplayHand::init);
     }
     public static void init() {

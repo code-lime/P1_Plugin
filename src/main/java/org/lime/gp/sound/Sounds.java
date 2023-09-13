@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -17,8 +18,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Sounds {
-    public static core.element create() {
-        return core.element.create(Sounds.class)
+    public static CoreElement create() {
+        return CoreElement.create(Sounds.class)
                 .withInit(Sounds::init)
                 .<JsonObject>addConfig("sounds.json", v -> v.withInvoke(Sounds::config).withDefault(new JsonObject()));
     }

@@ -27,6 +27,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.chat.Apply;
@@ -57,8 +58,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Perms implements Listener {
-    public static core.element create() {
-        return core.element.create(Perms.class)
+    public static CoreElement create() {
+        return CoreElement.create(Perms.class)
                 .withInstance();
     }
 

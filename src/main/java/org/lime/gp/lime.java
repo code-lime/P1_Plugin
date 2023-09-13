@@ -9,16 +9,15 @@ import dev.geco.gsit.objects.IGPoseSeat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
-import org.bukkit.WorldCreator;
-import org.bukkit.WorldType;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.models.Models;
+import org.lime.display.models.shadow.BaseBuilder;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.Blocks;
@@ -64,12 +63,18 @@ import org.lime.gp.sound.Sounds;
 import org.lime.gp.town.ChurchManager;
 import org.lime.gp.town.Prison;
 import org.lime.invokable.IInvokable;
+import org.lime.plugin.IConfig;
+import org.lime.plugin.TimerBuilder;
+import org.lime.plugin.Timers;
 import org.lime.system;
+import org.lime.web;
 import patch.Patcher;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class lime extends core {
     public static lime _plugin;
@@ -91,22 +96,21 @@ public class lime extends core {
     public static void logWithoutPrefix(String log) { _plugin._logWithoutPrefix(log);}
     public static void logStackTrace(Throwable exception) { _plugin._logStackTrace(exception); }
     public static void logStackTrace() { _plugin._logStackTrace(); }
+
     public static TimerBuilder timer() { return _plugin._timer(); }
-
-    public static BukkitTask nextTick(ITimers.IRunnable callback) { return _plugin._nextTick(callback); }
-    public static BukkitTask onceNoCheck(ITimers.IRunnable callback, double sec) { return _plugin._onceNoCheck(callback, sec); }
-    public static BukkitTask once(ITimers.IRunnable callback, double sec) { return _plugin._once(callback, sec); }
-    public static BukkitTask onceTicks(ITimers.IRunnable callback, long ticks) { return _plugin._onceTicks(callback, ticks); }
-    public static BukkitTask repeat(ITimers.IRunnable callback, double sec) { return _plugin._repeat(callback, sec); }
-    public static BukkitTask repeatTicks(ITimers.IRunnable callback, long ticks) { return _plugin._repeatTicks(callback, ticks); }
-    public static BukkitTask repeat(ITimers.IRunnable callback, double wait, double sec) { return _plugin._repeat(callback, wait, sec); }
-    public static BukkitTask repeatTicks(ITimers.IRunnable callback, long wait, long ticks) { return _plugin._repeatTicks(callback, wait, ticks); }
+    public static BukkitTask nextTick(Timers.IRunnable callback) { return _plugin._nextTick(callback); }
+    public static BukkitTask onceNoCheck(Timers.IRunnable callback, double sec) { return _plugin._onceNoCheck(callback, sec); }
+    public static BukkitTask once(Timers.IRunnable callback, double sec) { return _plugin._once(callback, sec); }
+    public static BukkitTask onceTicks(Timers.IRunnable callback, long ticks) { return _plugin._onceTicks(callback, ticks); }
+    public static BukkitTask repeat(Timers.IRunnable callback, double sec) { return _plugin._repeat(callback, sec); }
+    public static BukkitTask repeatTicks(Timers.IRunnable callback, long ticks) { return _plugin._repeatTicks(callback, ticks); }
+    public static BukkitTask repeat(Timers.IRunnable callback, double wait, double sec) { return _plugin._repeat(callback, wait, sec); }
+    public static BukkitTask repeatTicks(Timers.IRunnable callback, long wait, long ticks) { return _plugin._repeatTicks(callback, wait, ticks); }
     public static <T>void repeat(T[] array, system.Action1<T> callback_part, system.Action0 callback_end, double sec, int inOneStep) { _plugin._repeat(array, callback_part, callback_end, sec, inOneStep); }
-    public static BukkitTask invokeAsync(system.Action0 async, ITimers.IRunnable nextSync) { return _plugin._invokeAsync(async, nextSync); }
+    public static BukkitTask invokeAsync(system.Action0 async, Timers.IRunnable nextSync) { return _plugin._invokeAsync(async, nextSync); }
     public static <T>BukkitTask invokeAsync(system.Func0<T> async, system.Action1<T> nextSync) { return _plugin._invokeAsync(async, nextSync); }
-    public static void invokeSync(ITimers.IRunnable sync) { _plugin._invokeSync(sync); }
+    public static void invokeSync(Timers.IRunnable sync) { _plugin._invokeSync(sync); }
     public static void invokable(IInvokable invokable) { _plugin._invokable(invokable); }
-
 
     public static JsonElement combineJson(JsonElement first, JsonElement second, boolean array_join) { return _plugin._combineJson(first, second, array_join); }
     public static JsonElement combineJson(JsonElement first, JsonElement second) { return _plugin._combineJson(first, second); }
@@ -133,6 +137,7 @@ public class lime extends core {
     public static CraftWorld NetherWorld;
     public static CraftWorld LoginWorld;
     public static CraftWorld EndWorld;
+    public static CraftWorld CustomWorld;
 
     public static boolean isLay(Player player) {
         IGPoseSeat poseSeat = GSitAPI.getPose(player);
@@ -154,14 +159,25 @@ public class lime extends core {
 
     public static org.lime.autodownload autodownload;
     public static Models models;
+    private static final boolean isDevelopment = System.getProperty("org.lime.development", "false").equalsIgnoreCase("true");
 
-    @Override protected org.lime.JavaScript js() { return JavaScript.js; }
+    @Override public org.lime.JavaScript js() { return JavaScript.js; }
+
+    private enum ExitStatus {
+        NORMAL,
+        ERROR,
+        CRASH
+    }
+    private static ExitStatus exitStatus = ExitStatus.CRASH;
+
     @Override protected void init() {
         Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.NATURAL_REGENERATION, false));
         MainWorld = (CraftWorld)Bukkit.getWorlds().get(0);
         NetherWorld = (CraftWorld)Bukkit.getWorld("world_nether");
         EndWorld = (CraftWorld)Bukkit.getWorld("world_the_end");
-        Bukkit.getWorlds().add(LoginWorld = (CraftWorld)new WorldCreator("world_login").type(WorldType.FLAT).createWorld());
+        List<World> worlds = Bukkit.getWorlds();
+        worlds.add(LoginWorld = (CraftWorld)new WorldCreator("world_login").type(WorldType.FLAT).createWorld());
+        worlds.add(CustomWorld = (CraftWorld)new WorldCreator("world_custom").type(WorldType.FLAT).createWorld());
         
         add(branch.create());
         autodownload = (org.lime.autodownload) add(org.lime.autodownload.create()).element().map(v -> v.instance).orElseThrow();
@@ -169,7 +185,8 @@ public class lime extends core {
         add(Methods.create());
         JavaScript.createAdd();
         models = (Models) add(Models.create(JavaScript.js)).element().map(v -> v.instance).orElseThrow();
-        library("../libs/mp3spi-1.9.13.jar", "../libs/JDA-5.0.0-beta.12-withDependencies.jar");
+        AnyEvent.addEvent("models.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, models::keys), (p, key) -> lime.logOP("Model '" + key + "':\n" + models.get(key).map(BaseBuilder::source).map(JsonElement::toString).orElse("NULL")));
+        library(IConfig.getLibraryFiles("mp3spi-1.9.13.jar", "JDA-5.0.0-beta.12-withDependencies.jar"));
         //library("gdx-1.11.1-SNAPSHOT.jar", "gdx-jnigen-loader-2.3.1.jar", "gdx-bullet-1.11.1-SNAPSHOT.jar");
         //library("ode4j-core-0.4.1.jar");
         //add(Physics.create());
@@ -261,7 +278,7 @@ public class lime extends core {
         add(CustomUI.create());
         add(Infection.create());
         add(FoodUI.create());
-        add(ScoreboardUI.create());
+        //add(ScoreboardUI.create());
         add(EditorUI.create());
         add(Thirst.create());
 
@@ -336,6 +353,36 @@ public class lime extends core {
                         () -> lime.logOP("Element '"+loadedElement.name()+"' of class '"+loadedElement.type().toString()+"' is disabled.")
                 ), 1));*/
         add(PlayerData.create());
+
+        exitStatus = ExitStatus.NORMAL;
+    }
+
+    @Override protected void onErrorInit() {
+        exitStatus = ExitStatus.ERROR;
+        tryExit();
+    }
+
+    @Override public void onDisable() {
+        if (exitStatus == ExitStatus.CRASH) tryExit();
+        super.onDisable();
+    }
+    private static void tryExit() {
+        lime.logOP("Development: " + isDevelopment);
+        if (isDevelopment) return;
+        try {
+            if (lime.existConfig("alert")) {
+                JsonObject alert = system.json.parse(lime.readAllConfig("alert")).getAsJsonObject();
+                String webhook = alert.get("webhook").getAsString();
+                long role = alert.get("role").getAsLong();
+                String name = alert.get("name").getAsString();
+                Discord.sendMessageToWebhook(webhook, "<@&"+role+"> Внимание! Сервер **"+name+"** не смог запуститься. Проводится автоматическая перезагрузка...", false);
+            }
+            Bukkit.getOnlinePlayers().forEach(player -> player.kick(Component.text("Проблемы в работе сервера")));
+        } catch (Throwable ignore) {
+
+        } finally {
+            Bukkit.shutdown();
+        }
     }
 }
 

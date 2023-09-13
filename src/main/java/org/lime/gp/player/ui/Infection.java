@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
@@ -25,8 +26,8 @@ public class Infection implements Listener, CustomUI.IUI {
     private static double _default;
 
     public static final Infection Instance = new Infection();
-    public static core.element create() {
-        return core.element.create(Infection.class)
+    public static CoreElement create() {
+        return CoreElement.create(Infection.class)
                 .withInit(Infection::init)
                 .withInstance(Instance)
                 .<JsonObject>addConfig("config", v -> v

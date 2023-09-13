@@ -7,7 +7,7 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.display.DisplayManager;
 import org.lime.display.ObjectDisplay;
-import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.gp.module.TimeoutData;
 
 import java.util.Map;
@@ -22,20 +22,20 @@ public class EntityModelDisplay extends ObjectDisplay<DisplayInstance.DisplayObj
     public final EntityModelKey key;
 
     public DisplayInstance.DisplayObject data;
-    public ChildDisplay<DisplayInstance.DisplayObject> model;
+    public BaseChildDisplay<?, DisplayInstance.DisplayObject, ?> model;
 
     @Override public boolean isFilter(Player player) { return data.hasViewer(player.getUniqueId()); }
 
     private EntityModelDisplay(EntityModelKey key, DisplayInstance.DisplayObject data) {
         this.key = key;
         this.data = data;
-        model = preInitDisplay(data.model().display(this));
+        model = preInitDisplay(data.model().<DisplayInstance.DisplayObject>display(this));
         postInit();
     }
     @Override public void update(DisplayInstance.DisplayObject data, double delta) {
         this.data = data;
         super.update(data, delta);
-        data.model().animation.apply(model.js, data.data());
+        data.model().animation().apply(model.js, data.data());
         this.invokeAll(this::sendData);
     }
 

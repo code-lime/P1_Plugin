@@ -5,9 +5,6 @@ import net.minecraft.core.BlockPosition;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.InventorySubcontainer;
 import net.minecraft.world.TileInventory;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.ContainerAccess;
 import net.minecraft.world.inventory.ContainerChest;
@@ -20,9 +17,9 @@ import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
-import org.lime.display.models.Builder;
-import org.lime.display.models.Model;
-import org.lime.display.transform.LocalLocation;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.display.models.shadow.NoneBuilder;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
@@ -30,9 +27,8 @@ import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.InventoryComponent;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.item.settings.list.*;
+import org.lime.gp.item.settings.list.TableDisplaySetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
@@ -45,7 +41,7 @@ import java.util.*;
 public class InventoryInstance extends BlockComponentInstance<InventoryComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable, BlockDisplay.Displayable {
     private final InventorySubcontainer items_container;
     private boolean changed = true;
-    private final system.LockToast1<Model> display = system.<Model>toast(null).lock();
+    private final system.LockToast1<IBuilder> display = system.<IBuilder>toast(null).lock();
     public InventoryInstance(InventoryComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
         items_container = new InventorySubcontainer(6 * 9) {
@@ -88,7 +84,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         if (changed) {
             changed = false;
             InventoryComponent component = component();
-            Builder builder = lime.models.builder();
+            NoneBuilder builder = lime.models.builder().none();
             for (Map.Entry<Integer, Transformation> kv : component.display.entrySet()) {
                 net.minecraft.world.item.ItemStack item = items_container.getItem(kv.getKey());
                 if (item.isEmpty()) continue;
@@ -105,7 +101,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
                 );
  */
             }
-            display.set0(builder.build());
+            display.set0(builder);
             metadata()
                 .list(DisplayInstance.class)
                 .forEach(DisplayInstance::variableDirty);
@@ -154,7 +150,7 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
         return EnumInteractionResult.CONSUME;
     }
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-        Model model = display.get0();
+        IBuilder model = display.get0();
         return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
     }
 }

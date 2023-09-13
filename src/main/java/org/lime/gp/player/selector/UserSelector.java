@@ -9,14 +9,15 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
 public class UserSelector implements Listener {
-    public static core.element create() {
-        return core.element.create(UserSelector.class)
+    public static CoreElement create() {
+        return CoreElement.create(UserSelector.class)
                 .withInit(UserSelector::init)
                 .withInstance();
     }

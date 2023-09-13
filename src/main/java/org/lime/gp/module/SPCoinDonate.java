@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
@@ -27,8 +28,8 @@ import java.util.UUID;
 
 public class SPCoinDonate {
     public static final UUID Code_Lime = UUID.fromString("ce6e763f-a669-40eb-866d-019e6ddca12c");
-    public static core.element create() {
-        return core.element.create(SPCoinDonate.class)
+    public static CoreElement create() {
+        return CoreElement.create(SPCoinDonate.class)
                 .<JsonObject>addConfig("spcoin", v -> v
                         .withDefault(system.json.object()
                                 .add("api", "https://admingp.spworlds.org/spcoin")

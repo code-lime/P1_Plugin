@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.module.loot.IPopulateLoot;
 
 import com.google.gson.JsonArray;

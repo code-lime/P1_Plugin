@@ -12,6 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.Position;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
@@ -20,6 +22,7 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.chat.Apply;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.Items;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.sound.Sounds;
@@ -162,8 +165,7 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
         }
     }
 
-    @Override
-    public OpenInstance createInstance(CustomTileMetadata metadata) {
-        return new OpenInstance(this, metadata);
-    }
+    @Override public OpenInstance createInstance(CustomTileMetadata metadata) { return new OpenInstance(this, metadata); }
+    @Override public Class<OpenInstance> classInstance() { return OpenInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

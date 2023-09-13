@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -57,8 +58,8 @@ public class Nether implements Listener {
     }
     private static double infection;
 
-    public static core.element create() {
-        return core.element.create(Nether.class)
+    public static CoreElement create() {
+        return CoreElement.create(Nether.class)
                 .withInit(Nether::init)
                 .withInstance()
                 //.disable()

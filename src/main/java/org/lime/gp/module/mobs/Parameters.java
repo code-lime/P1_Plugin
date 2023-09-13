@@ -11,10 +11,11 @@ import org.bukkit.util.Vector;
 import org.lime.gp.filter.data.IFilterInfo;
 import org.lime.gp.filter.data.IFilterParameterInfo;
 import org.lime.gp.module.biome.time.SeasonKey;
-import org.lime.gp.module.biome.time.weather.WeatherType;
+import org.lime.gp.module.biome.weather.WeatherType;
 import org.lime.system;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,7 +45,10 @@ public class Parameters {
                 String[] args = s.split(" ");
                 return system.toast(system.IRange.parse(args[0]), system.IRange.parse(args[1]), system.IRange.parse(args[2]));
             }, (range, position) -> range.invokeGet((x, y, z) -> x.inRange(position.getX(), 16) && y.inRange(position.getY(), 16) && z.inRange(position.getZ(), 16))))
-            .add(ThisEntity.createInfoEqualsIgnoreCase("tags", v -> v.getTags().toString()))
+            .add(ThisEntity.createInfoFilter("tags",
+                    v -> system.json.by(v.getTags()).build().toString(),
+                    s -> List.of(s.split(",")),
+                    (tags, entity) -> entity.getTags().containsAll(tags)))
             .add(SeasonKey.createInfoEqualsIgnoreCase("season", v -> v.key))
             .add(Weather.createInfoEqualsIgnoreCase("weather", Enum::name))
             .add(SpawnReason.createInfoEqualsIgnoreCase("reason", Enum::name))

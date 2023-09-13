@@ -112,7 +112,7 @@ public record CustomPacketPlayOutLogin(
             list.add(vannila);
             list.add(lime);
         });
-        //lime.writeAllConfig("tmp.codec", system.toFormat(JsonNBT.toJson(registry)));
+        lime.writeAllConfig("tmp.codec", system.toFormat(JsonNBT.toJson(registry)));
         buf.writeNbt(registry);
 
 

@@ -2,9 +2,12 @@ package org.lime.gp.item.settings.list;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.data.ItemCreator;
@@ -32,14 +35,33 @@ import com.google.gson.JsonObject;
         on = json.get("on").getAsInt();
         off = json.get("off").getAsInt();
         is_on = !json.has("is_on") || json.get("is_on").getAsBoolean();
-        noise = json.has("noise") ? json.get("noise").getAsBoolean() : false;
+        noise = json.has("noise") && json.get("noise").getAsBoolean();
         state = json.has("state") ? RadioData.RadioState.valueOf(json.get("state").getAsString()) : RadioData.RadioState.all;
     }
 
-    @Override public void apply(ItemStack item, ItemMeta meta, Apply apply) {
+    @Override public void apply(ItemMeta meta, Apply apply) {
         List<system.Action1<RadioData>> modifyRadio = new ArrayList<>();
         apply.get("level").map(Integer::parseInt).ifPresent(level -> modifyRadio.add(data -> data.level = level));
         apply.get("state").map(Boolean::parseBoolean).ifPresent(state -> modifyRadio.add(data -> data.enable = state));
         if (!modifyRadio.isEmpty()) RadioData.modifyData(this, meta, data -> modifyRadio.forEach(action -> action.invoke(data)));
     }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.require(IName.raw("min_level"), IJElement.raw(10), IComment.text("Начальная волна")),
+                JProperty.require(IName.raw("def_level"), IJElement.raw(10), IComment.text("Минимальная волна")),
+                JProperty.require(IName.raw("max_level"), IJElement.raw(10), IComment.text("Максимальная волна")),
+                JProperty.require(IName.raw("total_distance"), IJElement.raw(10), IComment.text("Максимальная дистанция связи")),
+                JProperty.require(IName.raw("on"), IJElement.raw(10), IComment.text("ID включенного состояния")),
+                JProperty.require(IName.raw("off"), IJElement.raw(10), IComment.text("ID выключенного состояния")),
+                JProperty.optional(IName.raw("is_on"), IJElement.bool(), IComment.text("Состояние включения")),
+                JProperty.optional(IName.raw("noise"), IJElement.bool(), IComment.text("Есть ли шум")),
+                JProperty.optional(IName.raw("state"), IJElement.raw("STATE"), IComment.empty()
+                        .append(IComment.text("Возможные состояния: "))
+                        .append(IComment.or(Stream.of(RadioData.RadioState.values()).map(IComment::raw).toList())))
+        ), "Проигрывает или записывает звук на выбранной волне", "Читаемые `args` в предмете: `level` и `state`");
+    }
 }
+
+
+

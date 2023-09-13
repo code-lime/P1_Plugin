@@ -22,12 +22,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.system.*;
 public class ExecuteItem implements Listener {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(ExecuteItem.class)
+    public static CoreElement create() {
+        return CoreElement.create(ExecuteItem.class)
                 .withInstance()
                 .withInit(ExecuteItem::init);
     }

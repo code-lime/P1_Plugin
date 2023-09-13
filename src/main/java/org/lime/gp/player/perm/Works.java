@@ -2,6 +2,7 @@ package org.lime.gp.player.perm;
 
 import com.google.gson.JsonObject;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.database.rows.UserRow;
 
@@ -10,8 +11,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class Works {
-    public static core.element create() {
-        return core.element.create(Works.class)
+    public static CoreElement create() {
+        return CoreElement.create(Works.class)
                 .<JsonObject>addConfig("works", v -> v.withInvoke(Works::config).withDefault(new JsonObject()));
     }
     public static final HashMap<Integer, WorkData> works = new HashMap<>();

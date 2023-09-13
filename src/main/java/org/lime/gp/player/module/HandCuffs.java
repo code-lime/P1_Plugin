@@ -22,17 +22,19 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.plugin.CoreElement;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 public class HandCuffs implements Listener {
     private static final PotionEffect SLOW_DIGGING = PotionEffectType.SLOW_DIGGING.createEffect(20, 100).withIcon(false).withParticles(false).withAmbient(false);
-    public static core.element create() {
-        return core.element.create(HandCuffs.class)
+    public static CoreElement create() {
+        return CoreElement.create(HandCuffs.class)
                 .withInit(HandCuffs::init)
                 .withInstance();
     }
@@ -80,8 +82,8 @@ public class HandCuffs implements Listener {
         });
     }
     private static void showMenu(Player player, UUID owner, UUID target, boolean isOn) {
-        MenuCreator.show(player,
-                "lang.police.handcuffs",
+        MenuCreator.showLang(player,
+                LangEnum.POLICE_HANDCUFFS,
                 Apply.of().add("target_uuid", target.toString()).add("owner_uuid", owner.toString()).add("key", isOn ? "on" : "off")
         );
     }

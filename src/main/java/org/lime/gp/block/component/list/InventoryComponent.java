@@ -3,16 +3,17 @@ package org.lime.gp.block.component.list;
 import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
 import net.kyori.adventure.text.Component;
-import org.lime.display.transform.LocalLocation;
-import org.lime.display.transform.Transform;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.InventoryInstance;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.player.menu.page.Menu;
+import org.lime.gp.item.settings.list.TableDisplaySetting;
 import org.lime.system;
 
 import javax.annotation.Nullable;
@@ -35,10 +36,15 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
         this.title = ChatHelper.formatComponent(json.get("title").getAsString());
         json.getAsJsonObject("slots").entrySet().forEach(kv -> {
             Checker checker = Checker.createCheck(kv.getValue().getAsString());
-            Menu.rangeOf(kv.getKey()).forEach(slot -> this.slots.put(slot, checker));
+            //Menu.rangeOf(kv.getKey())
+            system.IRange.parse(kv.getKey()).getAllInts(this.rows * 9)
+                    .forEach(slot -> this.slots.put(slot, checker));
         });
         json.getAsJsonObject("display").entrySet().forEach(kv -> {
-            Menu.rangeOf(kv.getKey()).forEach(slot -> this.display.put(slot, system.transformation(kv.getValue())));
+            Transformation transformation = system.transformation(kv.getValue());
+            //Menu.rangeOf(kv.getKey())
+            system.IRange.parse(kv.getKey()).getAllInts(this.rows * 9)
+                    .forEach(slot -> this.display.put(slot, transformation));
         });
     }
 
@@ -52,8 +58,21 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
         this.display.putAll(display);
     }
 
-    @Override
-    public InventoryInstance createInstance(CustomTileMetadata metadata) {
-        return new InventoryInstance(this, metadata);
+    @Override public InventoryInstance createInstance(CustomTileMetadata metadata) { return new InventoryInstance(this, metadata); }
+    @Override public Class<InventoryInstance> classInstance() { return InventoryInstance.class; }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, JObject.of(
+                JProperty.optional(IName.raw("type"), IJElement.raw("TYPE"), IComment.empty()
+                        .append(IComment.text("Пользовательский тип испольуемый в связке с "))
+                        .append(IComment.link(docs.settingsLink(TableDisplaySetting.class)))),
+                JProperty.optional(IName.raw("rows"), IJElement.range(1, 6), IComment.text("Количество строк в инвентаре. По умолчанию - ").append(IComment.raw(1))),
+                JProperty.require(IName.raw("slots"), IJElement.anyObject(
+                        JProperty.require(IName.link(docs.range()), IJElement.link(docs.regexItem()))
+                ), IComment.text("Список слотов и предметов которые в него можно положить. Пропущенные слоты будут автоматически заблокированы для взаимодействия")),
+                JProperty.require(IName.raw("display"), IJElement.anyObject(
+                        JProperty.require(IName.link(docs.range()), IJElement.link(docs.transform()))
+                ), IComment.text("Список слотов и трансформация которые будут отображены. Пропущенные слоты не будут отображаться"))
+        ), "Хранит и отображает предметы");
     }
 }

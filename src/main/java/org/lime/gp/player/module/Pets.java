@@ -3,8 +3,8 @@ package org.lime.gp.player.module;
 @SuppressWarnings("unused")
 public class Pets {
     /*
-    public static core.element create() {
-        return core.element.create(Pets.class)
+    public static CoreElement create() {
+        return CoreElement.create(Pets.class)
                 //.disable()
                 .withInit(Pets::init)
                 //.withUninit(PetManager::uninit)

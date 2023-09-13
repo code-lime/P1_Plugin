@@ -25,6 +25,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.lime.core;
+import org.lime.gp.block.component.display.IDisplayVariable;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
@@ -43,10 +45,10 @@ import org.lime.system;
 import java.util.Collection;
 import java.util.Optional;
 
-public class BottleInstance extends BlockInstance implements CustomTileMetadata.Interactable {
-    public static core.element create() {
+public class BottleInstance extends BlockInstance implements CustomTileMetadata.Interactable, IDisplayVariable {
+    public static CoreElement create() {
         Blocks.addDefaultBlocks(new BlockInfo("bottle").add(v -> new BottleComponent(v, 10)));
-        return core.element.create(BottleInstance.class);
+        return CoreElement.create(BottleInstance.class);
     }
 
     @Override  public BottleComponent component() { return (BottleComponent)super.component(); }
@@ -286,10 +288,10 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                 })
                 .orElse(EnumInteractionResult.PASS);
     }
-    private void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
             map.put("water_color", ChatColorHex.toHex(Optional.ofNullable(fluid).map(IFluid::waterColor).orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1));
-            map.put("water_level", level + "");
+            map.put("water_level", String.valueOf(level));
             return true;
         }));
     }

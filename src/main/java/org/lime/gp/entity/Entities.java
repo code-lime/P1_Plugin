@@ -25,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.extension.ExtMethods;
@@ -38,8 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class Entities implements Listener {
-    public static core.element create() {
-        return core.element.create(Entities.class)
+    public static CoreElement create() {
+        return CoreElement.create(Entities.class)
                 .withInit(Entities::init)
                 .withInstance()
                 .<JsonObject>addConfig("entities", v -> v.withDefault(new JsonObject()).withInvoke(Entities::config))

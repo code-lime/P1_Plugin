@@ -17,6 +17,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
@@ -36,8 +37,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WeaponLoader implements Listener {
-    public static core.element create() {
-        return core.element.create(WeaponLoader.class)
+    public static CoreElement create() {
+        return CoreElement.create(WeaponLoader.class)
                 .withInstance()
                 .withInit(WeaponLoader::init);
     }

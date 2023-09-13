@@ -2,6 +2,7 @@ package org.lime.gp.player.module.pets;
 
 import com.google.gson.JsonObject;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
@@ -11,8 +12,8 @@ import org.lime.system;
 import java.util.HashMap;
 
 public class Pets {
-    public static core.element create() {
-        return core.element.create(Pets.class)
+    public static CoreElement create() {
+        return CoreElement.create(Pets.class)
                 .<JsonObject>addConfig("pets", v -> v
                         .withDefault(new JsonObject())
                         .withInvoke(Pets::config)

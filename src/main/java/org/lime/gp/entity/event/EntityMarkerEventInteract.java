@@ -11,7 +11,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.lime.display.Displays;
-import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.gp.entity.Entities;
 import org.lime.gp.entity.component.display.EntityModelDisplay;
 
@@ -24,10 +24,10 @@ public class EntityMarkerEventInteract extends PlayerEvent {
     private final boolean isAttack;
     private final EquipmentSlot hand;
     private final boolean isPlayerSneaking;
-    private final ChildDisplay<?> clickDisplay;
+    private final BaseChildDisplay<?, ?, ?> clickDisplay;
     private final EntityModelDisplay parentDisplay;
 
-    protected EntityMarkerEventInteract(EntityLimeMarker marker, ChildDisplay<?> clickDisplay, EntityModelDisplay parentDisplay, Player player, int entityID, boolean isAttack, EquipmentSlot hand, boolean isPlayerSneaking) {
+    protected EntityMarkerEventInteract(EntityLimeMarker marker, BaseChildDisplay<?, ?, ?> clickDisplay, EntityModelDisplay parentDisplay, Player player, int entityID, boolean isAttack, EquipmentSlot hand, boolean isPlayerSneaking) {
         super(player);
         this.marker = marker;
         this.clickDisplay = clickDisplay;
@@ -42,7 +42,7 @@ public class EntityMarkerEventInteract extends PlayerEvent {
             @Override public void onAttack() { onInteraction(EnumHand.MAIN_HAND); }
             @Override public void onInteraction(EnumHand enumHand) { onInteraction(enumHand, Vec3D.ZERO); }
             @Override public void onInteraction(EnumHand enumHand, Vec3D vec3D) {
-                Displays.byID(ChildDisplay.class, packet.getEntityId())
+                Displays.byID(BaseChildDisplay.class, packet.getEntityId())
                         .flatMap(clickDisplay -> Optional.of(clickDisplay.objectParent())
                                 .map(v -> v instanceof EntityModelDisplay emd ? emd : null)
                                 .flatMap(parentDisplay -> Optional.ofNullable(Bukkit.getEntity(parentDisplay.key.entity_uuid()))
@@ -71,7 +71,7 @@ public class EntityMarkerEventInteract extends PlayerEvent {
     public boolean isAttack() { return isAttack; }
     public EquipmentSlot getHand() { return hand; }
     public boolean isPlayerSneaking() { return isPlayerSneaking; }
-    public ChildDisplay<?> getClickDisplay() { return clickDisplay; }
+    public BaseChildDisplay<?, ?, ?> getClickDisplay() { return clickDisplay; }
     public EntityModelDisplay getParentDisplay() { return parentDisplay; }
 
     @Override public HandlerList getHandlers() { return handlers; }

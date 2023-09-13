@@ -5,6 +5,7 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import org.lime.gp.TestData;
 import org.lime.system;
 import org.objectweb.asm.*;
 
@@ -79,11 +80,27 @@ public class Native {
         field.invoke(opcode, info.owner(), info.name(), info.descriptor());
     }
 
+    private static Method getMethod(String owner, String name, String descriptor) {
+        try {
+            Class<?> _owner = Class.forName(owner.replace('/', '.'));
+            for (Method method : _owner.getMethods()) {
+                if (method.getName().equals(name) && Type.getMethodDescriptor(method).equals(descriptor))
+                    return method;
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        throw new RuntimeException("Method " + owner + "." + name + descriptor + " not founded");
+    }
+    private static Method getMethod(SerializedLambda lambda) {
+        return getMethod(lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature());
+    }
+
     public static boolean isMethod(system.ICallable callable, String owner, String name, String descriptor) {
         SerializedLambda lambda = infoFromLambda(callable);
-        return lambda.getImplClass().equals(owner)
-                && lambda.getImplMethodName().equals(name)
-                && Type.getType(lambda.getImplMethodSignature()).equals(Type.getType(descriptor));
+        if (!lambda.getImplMethodName().equals(name) || !Type.getType(lambda.getImplMethodSignature()).equals(Type.getType(descriptor))) return false;
+        if (lambda.getImplClass().equals(owner)) return true;
+        return getMethod(owner, name, descriptor).equals(getMethod(lambda));
     }
     public static boolean isField(system.ICallable callable, String owner, String name, String descriptor) {
         FieldInfo field = infoFromField(callable);

@@ -573,9 +573,12 @@ public class ChatHelper {
         return size;
     }
     public static int getTextSize(Player player, Component text) {
+        return getTextSize(player, getText(text));
+    }
+    public static String getText(Component text) {
         system.Toast1<String> onlyText = system.toast("");
         ComponentFlattener.textOnly().flatten(text, txt -> onlyText.val0 += txt);
-        return getTextSize(player, onlyText.val0);
+        return onlyText.val0;
     }
 
     public static String padLeft(Player player, int pixels, String text) {

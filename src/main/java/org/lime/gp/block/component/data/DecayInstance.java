@@ -6,8 +6,12 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
+import org.bukkit.Bukkit;
 import org.lime.gp.block.BlockComponentInstance;
+import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.DecayComponent;
 import org.lime.gp.item.Items;
@@ -15,7 +19,7 @@ import org.lime.gp.item.settings.list.DecayMutateSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
-public class DecayInstance extends BlockComponentInstance<DecayComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable {
+public class DecayInstance extends BlockComponentInstance<DecayComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable, IDisplayVariable {
     public DecayInstance(DecayComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
 
@@ -61,7 +65,8 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
             syncDisplayVariable();
         }
         if (decayValue < 1) return;
-        metadata.block().setType(component.replace);
+        Blocks.setBlock(metadata.position(), component.replace, InfoComponent.Rotation.Value.ANGLE_0);
+        //metadata.block().setType(component.replace);
     }
 
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
@@ -84,7 +89,7 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
         }).orElse(EnumInteractionResult.PASS);
     }
 
-    protected final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(map -> {
                 map.put("decay", String.valueOf(lastDisplayValue));

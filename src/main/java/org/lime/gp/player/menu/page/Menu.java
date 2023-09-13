@@ -37,13 +37,14 @@ public class Menu extends Base {
         size = json.get("size").getAsInt();
         json.get("slots").getAsJsonObject().entrySet().forEach(kv -> {
             ISlot slot = ISlot.parse(this, kv.getValue().getAsJsonObject());
-            rangeOf(kv.getKey()).forEach(i -> slots.put(i, slot));
+            system.IRange.parse(kv.getKey()).getAllInts(size).forEach(i -> slots.put(i, slot));
+            //rangeOf(kv.getKey()).forEach(i -> slots.put(i, slot));
         });
         background = json.has("background") ? StaticSlot.parse(json.get("background").getAsJsonObject()) : null;
         if (json.has("tables")) json.get("tables").getAsJsonObject().entrySet().forEach(kv -> tables.put(kv.getKey(), Table.parse(this, kv.getValue().getAsJsonObject())));
         if (json.has("rolls")) json.get("rolls").getAsJsonArray().forEach(kv -> rolls.add(Roll.parse(this, kv.getAsJsonObject())));
     }
-
+/*
     public static List<Integer> rangeOf(String range) {
         List<Integer> list = new ArrayList<>();
         for (String arg : range.split(",")) {
@@ -53,7 +54,7 @@ public class Menu extends Base {
         }
         return list;
     }
-
+*/
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
         List<system.Toast2<String, Table>> _tables = tables.entrySet().stream().map(v -> system.toast(ChatHelper.formatText(v.getKey(), apply), v.getValue())).collect(Collectors.toList());
@@ -78,7 +79,7 @@ public class Menu extends Base {
                 }
             }
             List<system.Action0> onClose = new ArrayList<>();
-            HashMap<Integer, system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, BaseRow>> onClickEvents = new HashMap<>();
+            HashMap<Integer, system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, BaseRow>> onClickEvents = new HashMap<>();
             InterfaceManager.GUI gui = InterfaceManager.create(ChatHelper.formatComponent(title, apply), size, new InterfaceManager.IGUI() {
                 @Override public void init(InterfaceManager.GUI gui) {
                     if (isDeleted()) {
@@ -88,9 +89,9 @@ public class Menu extends Base {
                     Apply init_apply = apply.copy().add(row);
                     slots.forEach((k, v) -> {
                         if (v.tryIsShow(init_apply)) {
-                            system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> _slot = v.create(init_apply);
-                            gui.inventory.setItem(k, _slot.val1);
-                            onClickEvents.put(k, system.toast(_slot.val0, row));
+                            system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> _slot = v.create(init_apply);
+                            gui.inventory.setItem(k, _slot.val2);
+                            onClickEvents.put(k, system.toast(_slot.val0, _slot.val1, row));
                         }
                     });
                     system.Toast1<Boolean> isFirst = new system.Toast1<>(true);
@@ -108,16 +109,16 @@ public class Menu extends Base {
                             int index = v.slots.get(i - startIndex);
                             if (i >= rowCount) {
                                 ISlot slot = v.adds.get(i - rowCount);
-                                system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> _slot = slot.create(init_apply);
-                                gui.inventory.setItem(index, _slot.val1);
-                                onClickEvents.put(index, system.toast(_slot.val0, row));
+                                system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> _slot = slot.create(init_apply);
+                                gui.inventory.setItem(index, _slot.val2);
+                                onClickEvents.put(index, system.toast(_slot.val0, _slot.val1, row));
                             } else {
                                 BaseRow _row = rows.get(i);
                                 Apply row_apply = init_apply.copy().add(_row);
                                 if (v.format.tryIsShow(row_apply)) {
-                                    system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> _slot = v.format.create(row_apply);
-                                    gui.inventory.setItem(index, _slot.val1);
-                                    onClickEvents.put(index, system.toast(_slot.val0, _row));
+                                    system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> _slot = v.format.create(row_apply);
+                                    gui.inventory.setItem(index, _slot.val2);
+                                    onClickEvents.put(index, system.toast(_slot.val0, _slot.val1, _row));
                                 }
                             }
                         }
@@ -129,12 +130,13 @@ public class Menu extends Base {
                         return;
                     }
                     if (inventory.getType() != InventoryType.CHEST) return;
-                    system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, BaseRow> actions = onClickEvents.getOrDefault(slot, null);
+                    system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, BaseRow> actions = onClickEvents.getOrDefault(slot, null);
                     if (actions == null) return;
-                    List<org.lime.gp.player.menu.ActionSlot> action = actions.val0.getOrDefault(click, null);
+                    List<org.lime.gp.player.menu.ActionSlot> action = actions.val1.getOrDefault(click, null);
                     if (action == null) return;
-                    Apply slot_apply = apply.copy().add(actions.val1);
-                    action.forEach(v -> v.invoke(player, slot_apply, true));
+                    Apply slot_apply = apply.copy().add(actions.val2);
+                    for (system.Toast2<String, String> kv : actions.val0) slot_apply = slot_apply.add(kv.val0, ChatHelper.formatText(kv.val1, slot_apply));
+                    for (org.lime.gp.player.menu.ActionSlot v : action) v.invoke(player, slot_apply, true);
                 }
                 @Override
                 public void onClose(InterfaceManager.GUI gui, Player player) {

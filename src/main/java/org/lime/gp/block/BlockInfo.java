@@ -8,10 +8,13 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.lime.Position;
+import org.lime.docs.IGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.data.MultiBlockInstance;
 import org.lime.gp.block.component.list.MultiBlockComponent;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 
 import java.util.*;
@@ -133,7 +136,13 @@ public final class BlockInfo {
         return state.getName(data.getValue(state));
     }
 
-    @Override public String toString() {
-        return "BlockInfo[" + Optional.ofNullable(getKey()).orElse("NULLABLE") + "]";
+    @Override public String toString() { return "BlockInfo[" + Optional.ofNullable(getKey()).orElse("NULLABLE") + "]"; }
+
+    public static IGroup docs(String title, IDocsLink docs) {
+        return JsonGroup.of(title, JObject.of(
+                JProperty.optional(IName.raw("components"), IJElement.anyObject(
+                        JProperty.require(IName.raw("COMPONENT_NAME"), IJElement.link(docs.component()))
+                ), IComment.text("Указывает список компонентов для конкретного блока"))
+        ));
     }
 }

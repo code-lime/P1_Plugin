@@ -4,12 +4,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.level.GrassColor;
 import net.minecraft.world.level.biome.BiomeFog;
 
+import java.util.Optional;
+
 public enum SeasonKey {
     Sunny(1),
-    Frosty(2, 0),
+    Frosty(2, -0.5f),
     Rainy(3);
 
-    public final Integer temperature;
+    public final Float temperature;
 
     public final int index;
     public final char prefix;
@@ -19,7 +21,7 @@ public enum SeasonKey {
     SeasonKey(int index) {
         this(index, null);
     }
-    SeasonKey(int index, Integer temperature) {
+    SeasonKey(int index, Float temperature) {
         this.index = index;
         this.prefix = Character.toUpperCase(name().charAt(0));
         this.prefixString = String.valueOf(this.prefix);
@@ -29,6 +31,10 @@ public enum SeasonKey {
 
     public void modify(NBTTagCompound element) {
         if (temperature == null || !element.contains("has_precipitation") || element.getByte("has_precipitation") == 0) return;
+        setTemperature(element, temperature);
+    }
+
+    public static void setTemperature(NBTTagCompound element, float temperature) {
         element.putFloat("temperature", temperature);
     }
 

@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.mysql.MySql;
@@ -16,8 +17,8 @@ import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
 
 public class PermissionRow extends BaseRow {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(PermissionRow.class)
+    public static CoreElement create() {
+        return CoreElement.create(PermissionRow.class)
                 .withInit(PermissionRow::_init);
     }
     private static void _init() {

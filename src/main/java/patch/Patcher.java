@@ -6,6 +6,7 @@ import net.minecraft.server.Main;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.lime.json.JsonElementOptional;
+import org.lime.reflection;
 import org.lime.system;
 
 import java.io.Closeable;
@@ -196,6 +197,25 @@ public class Patcher {
 
         Native.log("Patch status: OK");
         Native.log("Exit...");
+
         Runtime.getRuntime().halt(0);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

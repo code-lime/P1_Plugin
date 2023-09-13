@@ -51,10 +51,10 @@ public class SelectSlot implements ISlot {
                 .isPresent();
     }
 
-    public system.Toast2<HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
+    public system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
         return getSelected(apply)
                 .map(v -> v.create(apply))
-                .orElseGet(() -> system.toast(new HashMap<>(), new ItemStack(Material.AIR)));
+                .orElseGet(() -> system.toast(new ArrayList<>(), new HashMap<>(), new ItemStack(Material.AIR)));
     }
 }
 

@@ -1,7 +1,10 @@
 package org.lime.gp.item.settings.list;
 
 import com.google.gson.JsonObject;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 
@@ -29,4 +32,27 @@ import java.util.List;
         this.damage = json.has("damage") ? json.get("damage").getAsFloat() : 0;
         if (json.has("tags")) json.getAsJsonArray("tags").forEach(item -> tags.add(item.getAsString()));
     }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.require(IName.raw("speed"), IJElement.raw(1.5), IComment.text("Скорость бросаемого предмета")),
+                JProperty.require(IName.raw("divergence"), IJElement.raw(1.5), IComment.text("Разброс")),
+                JProperty.require(IName.raw("height"), IJElement.raw(1.5), IComment.text("Относительная высота места вылетания")),
+                JProperty.require(IName.raw("cooldown"), IJElement.raw(10), IComment.text("Время подготовки броска в тиках")),
+                JProperty.optional(IName.raw("pickup_owner"), IJElement.bool(), IComment.text("Возможность поднять бросаемый предмет только бросившим")),
+                JProperty.optional(IName.raw("loyalty"), IJElement.raw(2), IComment.empty()
+                        .append(IComment.text("Уровень зачарования "))
+                        .append(IComment.raw("возврат"))),
+                JProperty.optional(IName.raw("damage"), IJElement.raw(1.5), IComment.text("Урон бросаемого предмета")),
+                JProperty.optional(IName.raw("tags"), IJElement.anyList(IJElement.raw("TAG")), IComment.text("Тэги добавляемые в бросаемый предмет"))
+        ), "Бросаемый предмет");
+    }
 }
+
+
+
+
+
+
+
+

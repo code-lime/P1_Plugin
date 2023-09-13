@@ -1,9 +1,6 @@
 package org.lime.gp.item.data;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,7 +33,7 @@ public interface Checker {
                 this.creators = Items.creatorIDs.entrySet()
                     .stream()
                     .filter(v -> filter.invoke(v.getKey()))
-                    .map(v -> v.getValue())
+                    .map(Map.Entry::getValue)
                     .collect(Collectors.toSet());
                 this.keys = Items.creatorIDs.keySet()
                     .stream()
@@ -73,14 +70,10 @@ public interface Checker {
     }
 
     static Checker createCheck(Collection<String> regexList) {
-        return createCheck(value -> {
-            return regexList.stream().anyMatch(regex -> system.compareRegex(value, regex));
-        });
+        return createCheck(value -> regexList.stream().anyMatch(regex -> system.compareRegex(value, regex)));
     }
     static Checker createCheck(String regex) {
-        return createCheck(value -> {
-            return system.compareRegex(value, regex);
-        });
+        return createCheck(value -> system.compareRegex(value, regex));
     }
     static Checker empty() {
         return new Checker() {

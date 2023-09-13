@@ -6,6 +6,7 @@ import org.lime.gp.block.CustomTileMetadata.Tickable;
 import org.lime.gp.block.component.list.UsestationComponent;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
+import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.settings.list.NextSetting;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.module.TimeoutData;
@@ -23,12 +24,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.Position;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 public class UsestationInstance extends BlockComponentInstance<UsestationComponent> implements Tickable {
     public final int distance;
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(UsestationInstance.class)
+    public static CoreElement create() {
+        return CoreElement.create(UsestationInstance.class)
                 .withInit(UsestationInstance::init);
     }
 
@@ -61,7 +63,8 @@ public class UsestationInstance extends BlockComponentInstance<UsestationCompone
                 .findFirst()
                 .map(item -> {
                     Items.getOptional(NextSetting.class, item)
-                        .flatMap(v -> Items.createItem(v.next()))
+                        .flatMap(NextSetting::next)
+                        .map(IItemCreator::createItem)
                         .ifPresent(v -> Items.dropGiveItem(player, v, false));
                     item.subtract(1);
                     return true;

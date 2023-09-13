@@ -2,13 +2,14 @@ package org.lime.gp.module;
 
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 
 public class FixEquipment {
-    public static core.element create() {
-        return core.element.create(FixEquipment.class)
+    public static CoreElement create() {
+        return CoreElement.create(FixEquipment.class)
                 .withInit(FixEquipment::init);
     }
     private static boolean DEBUG = false;

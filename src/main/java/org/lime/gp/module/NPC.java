@@ -5,7 +5,10 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.display.*;
-import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.display.BaseChildDisplay;
+import org.lime.display.models.display.ChildEntityDisplay;
+import org.lime.display.models.shadow.Builder;
+import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
@@ -40,6 +43,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.plugin.CoreElement;
 
 import java.util.*;
 import java.util.List;
@@ -51,8 +55,8 @@ public class NPC {
         return UUID.fromString(uuid.substring(0,14)+'1'+uuid.substring(15));
     }
 
-    public static core.element create() {
-        return core.element.create(NPC.class)
+    public static CoreElement create() {
+        return CoreElement.create(NPC.class)
                 .withInit(NPC::init)
                 .<JsonObject>addConfig("npc", v -> v.withInvoke(NPC::config).withDefault(new JsonObject()));
     }
@@ -82,6 +86,7 @@ public class NPC {
         public final Location location;
         public final String skin;
         public final String menu;
+        public final Map<String, String> args = new HashMap<>();
         public final boolean single;
         public final List<Component> name = new ArrayList<>();
         public final boolean hide;
@@ -116,6 +121,7 @@ public class NPC {
                 else advancements.add(json.get("advancements").getAsString());
             }
             shift_menu = json.has("shift_menu") ? json.get("shift_menu").getAsString() : null;
+            if (json.has("args")) json.getAsJsonObject("args").entrySet().forEach(kv -> this.args.put(kv.getKey(), kv.getValue().getAsString()));
             if (json.has("equipment")) json.get("equipment").getAsJsonObject().entrySet().forEach(kv -> equipment.put(EnumItemSlot.byName(kv.getKey()), Items.createItem(kv.getValue().getAsString()).orElseThrow()));
         }
 
@@ -264,9 +270,9 @@ public class NPC {
         protected NPCDisplay(NPCObject npc) {
             super(npc.location);
             this.npc = npc;
-            this.equipment = ChildDisplay.toPacketData(npc.createEquipment());
-            ChildDisplay<NPCObject> sitParent;
-            if (npc.sit) sitParent = preInitDisplay(lime.models.builder(EntityTypes.BLOCK_DISPLAY).build().display(this));
+            this.equipment = ChildEntityDisplay.toPacketData(npc.createEquipment());
+            BaseChildDisplay<?, NPCObject, ?> sitParent;
+            if (npc.sit) sitParent = preInitDisplay(lime.models.builder().block().display(this));
             else sitParent = null;
             postInit();
             if (sitParent != null) Displays.addPassengerID(sitParent.entityID, this.entityID);
@@ -352,7 +358,7 @@ public class NPC {
         public void click(Player player, boolean isShift) {
             String menu = npc.menu;
             if (isShift) menu = npc.shift_menu == null ? menu : npc.shift_menu;
-            MenuCreator.show(player, menu);
+            MenuCreator.show(player, menu, Apply.of().add(npc.args));
         }
         @Override public void hide(Player player) {
             super.hide(player);

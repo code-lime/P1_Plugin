@@ -8,11 +8,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 
 public class SnowMan implements Listener {
-    public static core.element create() {
-        return core.element.create(SnowMan.class)
+    public static CoreElement create() {
+        return CoreElement.create(SnowMan.class)
                 .withInit(SnowMan::init)
                 .withInstance();
     }

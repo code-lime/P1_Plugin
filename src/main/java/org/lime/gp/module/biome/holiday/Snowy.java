@@ -27,6 +27,7 @@ import net.minecraft.world.level.levelgen.HeightMap;
 import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
 import org.bukkit.event.Listener;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.BiomeModify;
@@ -35,8 +36,8 @@ import org.lime.system;
 import java.util.Optional;
 
 public class Snowy implements Listener {
-    public static core.element create() {
-        return core.element.create(Snowy.class)
+    public static CoreElement create() {
+        return CoreElement.create(Snowy.class)
                 .withInstance()
                 .withInit(Snowy::init)
                 .disable()

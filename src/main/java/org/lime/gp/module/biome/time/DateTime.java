@@ -10,41 +10,17 @@ public class DateTime {
 
     private final long totalSeconds;
 
-    private DateTime(long totalSeconds) {
-        this.totalSeconds = totalSeconds;
-    }
+    private DateTime(long totalSeconds) { this.totalSeconds = totalSeconds; }
 
-    public static DateTime ofHours(double totalHours) {
-        return new DateTime(Math.round(totalHours * 3600));
-    }
+    public static DateTime ofHours(double totalHours) { return new DateTime(Math.round(totalHours * 3600)); }
 
-    public int getYear() {
-        return (int) getTotalYears() + 1000;
-    }
-
-    public int getSeasonIndex() {
-        return (int) (getTotalSeasons() % YEAR_TO_SEASONS) + 1;
-    }
-
-    public SeasonKey getSeasonKey() {
-        return SeasonKey.byIndex(getSeasonIndex());
-    }
-
-    public int getDay() {
-        return (int) (getTotalDays() % SEASON_TO_DAYS) + 1;
-    }
-
-    public int getHour() {
-        return (int) (getTotalHours() % DAY_TO_HOURS);
-    }
-
-    public int getMinute() {
-        return (int) (getTotalMinutes() % HOUR_TO_MINUTES);
-    }
-
-    public int getSecond() {
-        return (int) (getTotalSeconds() % MINUTE_TO_SECONDS);
-    }
+    public int getYear() { return (int) getRoundYears() + 1000; }
+    public int getSeasonIndex() { return (int) (getRoundSeasons() % YEAR_TO_SEASONS) + 1; }
+    public SeasonKey getSeasonKey() { return SeasonKey.byIndex(getSeasonIndex()); }
+    public int getDay() { return (int) (getRoundDays() % SEASON_TO_DAYS) + 1; }
+    public int getHour() { return (int) (getRoundHours() % DAY_TO_HOURS); }
+    public int getMinute() { return (int) (getRoundMinutes() % HOUR_TO_MINUTES); }
+    public int getSecond() { return (int) (getRoundSeconds() % MINUTE_TO_SECONDS); }
 
     public static final int MINUTE_TO_SECONDS = 60;
     public static final int HOUR_TO_MINUTES = 60;
@@ -52,57 +28,28 @@ public class DateTime {
     public static final int SEASON_TO_DAYS = 30;
     public static final int YEAR_TO_SEASONS = 3;
 
-    public long getTotalYears() {
-        return getTotalSeasons() / YEAR_TO_SEASONS;
-    }
+    public long getRoundYears() { return getRoundSeasons() / YEAR_TO_SEASONS; }
+    public long getRoundSeasons() { return getRoundDays() / SEASON_TO_DAYS; }
+    public long getRoundDays() { return getRoundHours() / DAY_TO_HOURS; }
+    public long getRoundHours() { return getRoundMinutes() / HOUR_TO_MINUTES; }
+    public long getRoundMinutes() { return getRoundSeconds() / MINUTE_TO_SECONDS; }
+    public long getRoundSeconds() { return totalSeconds; }
 
-    public long getTotalSeasons() {
-        return getTotalDays() / SEASON_TO_DAYS;
-    }
+    public double getTotalYears() { return getTotalSeasons() / YEAR_TO_SEASONS; }
+    public double getTotalSeasons() { return getTotalDays() / SEASON_TO_DAYS; }
+    public double getTotalDays() { return getTotalHours() / DAY_TO_HOURS; }
+    public double getTotalHours() { return getTotalMinutes() / HOUR_TO_MINUTES; }
+    public double getTotalMinutes() { return getTotalSeconds() / MINUTE_TO_SECONDS; }
+    public double getTotalSeconds() { return totalSeconds; }
 
-    public long getTotalDays() {
-        return getTotalHours() / DAY_TO_HOURS;
-    }
+    public DateTime addYears(double value) { return addSeasons(value * YEAR_TO_SEASONS); }
+    public DateTime addSeasons(double value) { return addDays(value * SEASON_TO_DAYS); }
+    public DateTime addDays(double value) { return addHours(value * DAY_TO_HOURS); }
+    public DateTime addHours(double value) { return addMinutes(value * HOUR_TO_MINUTES); }
+    public DateTime addMinutes(double value) { return addSeconds(value * MINUTE_TO_SECONDS); }
+    public DateTime addSeconds(double value) { return new DateTime(Math.round(totalSeconds + value)); }
 
-    public long getTotalHours() {
-        return getTotalMinutes() / HOUR_TO_MINUTES;
-    }
-
-    public long getTotalMinutes() {
-        return getTotalSeconds() / MINUTE_TO_SECONDS;
-    }
-
-    public long getTotalSeconds() {
-        return totalSeconds;
-    }
-
-    public DateTime addYears(double value) {
-        return addSeasons(value * YEAR_TO_SEASONS);
-    }
-
-    public DateTime addSeasons(double value) {
-        return addDays(value * SEASON_TO_DAYS);
-    }
-
-    public DateTime addDays(double value) {
-        return addHours(value * DAY_TO_HOURS);
-    }
-
-    public DateTime addHours(double value) {
-        return addMinutes(value * HOUR_TO_MINUTES);
-    }
-
-    public DateTime addMinutes(double value) {
-        return addSeconds(value * MINUTE_TO_SECONDS);
-    }
-
-    public DateTime addSeconds(double value) {
-        return new DateTime(Math.round(totalSeconds + value));
-    }
-
-    public DateTime parse(String value) {
-        return throwParse(value);
-    }
+    public DateTime parse(String value) { return throwParse(value); }
 
     private static String appendFormat(String output, String prefix, int value) {
         return output

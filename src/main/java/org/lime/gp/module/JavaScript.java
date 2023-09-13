@@ -1,12 +1,16 @@
 package org.lime.gp.module;
 
+import com.mojang.math.Transformation;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.chat.ChatMessages;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.mysql.MySqlAsync;
@@ -15,6 +19,9 @@ import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.json.JsonElementOptional;
+import org.lime.json.JsonObjectOptional;
+import org.lime.reflection;
 import org.lime.system;
 
 import java.sql.ResultSet;
@@ -71,6 +78,8 @@ public class JavaScript {
 
         public List<String> shows_npc(String uuid) { return NPC.shows(UUID.fromString(uuid)); }
 
+        public Vector getCoord(String uuid) { return Bukkit.getPlayer(UUID.fromString(uuid)).getLocation().toVector(); }
+
         public void target_npc(String uuid, String npc) {}
         public void untarget_npc(String uuid, String npc) {}
         public List<String> targets_npc(String uuid) { return Collections.emptyList(); }
@@ -126,6 +135,14 @@ public class JavaScript {
             Player player = Bukkit.getPlayer(UUID.fromString(uuid));
             return player != null && player.removeScoreboardTag(tag);
         }
+
+        public void showHeadText(String uuid, String text) {
+            ChatMessages.showHeadText(UUID.fromString(uuid), text);
+        }
+
+        public Transformation createTransformation(Object dat) { return system.transformation(system.json.by(dat).build()); }
+        public Map<String, Object> objectTransformation(Transformation transformation) { return JsonObjectOptional.of(system.transformation(transformation)).createObject(); }
+        public Transformation composeTransformation(Transformation a, Transformation b) { return a.compose(b); }
     }
 
     public static Optional<Boolean> isJsTrue(String js) { return JavaScript.js.isJsTrue(js); }
@@ -133,6 +150,12 @@ public class JavaScript {
     public static Optional<Integer> getJsInt(String js) { return JavaScript.js.getJsInt(js); }
     public static Optional<Double> getJsDouble(String js) { return JavaScript.js.getJsDouble(js); }
     public static Optional<String> getJsString(String js) { return JavaScript.js.getJsString(js); }
+
+    public static Optional<Boolean> isJsTrue(String js, Map<String, Object> values) { return JavaScript.js.isJsTrue(js, values); }
+    public static Optional<Number> getJsNumber(String js, Map<String, Object> values) { return JavaScript.js.getJsNumber(js, values); }
+    public static Optional<Integer> getJsInt(String js, Map<String, Object> values) { return JavaScript.js.getJsInt(js, values); }
+    public static Optional<Double> getJsDouble(String js, Map<String, Object> values) { return JavaScript.js.getJsDouble(js, values); }
+    public static Optional<String> getJsString(String js, Map<String, Object> values) { return JavaScript.js.getJsString(js, values); }
 
     public static void getJsStringNext(String js, system.Action1<String> callback) { JavaScript.js.getJsStringNext(js, callback); }
 

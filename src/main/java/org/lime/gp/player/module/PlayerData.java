@@ -13,6 +13,7 @@ import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -23,8 +24,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PlayerData {
-    public static core.element create() {
-        return core.element.create(PlayerData.class)
+    public static CoreElement create() {
+        return CoreElement.create(PlayerData.class)
                 .withInit(PlayerData::init)
                 .withUninit(PlayerData::uninit);
     }

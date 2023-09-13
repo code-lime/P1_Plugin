@@ -114,7 +114,7 @@ public class ActionSlot implements Logged.ILoggedDelete {
                 if (arg.val0.equals("*")) {
                     apply.list().forEach((k, v) -> {
                         if (system.compareRegex(k, arg.val1))
-                            localArgs.put(k, arg.val1);
+                            localArgs.put(k, v);
                     });
                 } else {
                     localArgs.put(arg.val0, ChatHelper.formatText(arg.val1, apply));

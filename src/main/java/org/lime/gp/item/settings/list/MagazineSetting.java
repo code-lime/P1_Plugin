@@ -12,6 +12,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
@@ -44,6 +47,10 @@ import com.google.gson.JsonObject;
     public static Optional<List<ItemStack>> getBullets(ItemStack magazine) {
         return Optional.of(magazine)
                 .map(ItemStack::getItemMeta)
+                .flatMap(MagazineSetting::getBullets);
+    }
+    public static Optional<List<ItemStack>> getBullets(ItemMeta magazine) {
+        return Optional.of(magazine)
                 .map(PersistentDataHolder::getPersistentDataContainer)
                 .map(v -> v.get(BULLETS_KEY, PersistentDataType.STRING))
                 .map(v -> v.split(" "))
@@ -62,9 +69,9 @@ import com.google.gson.JsonObject;
                 .ifPresent(v -> v.apply(magazine));
     }
 
-    @Override public void appendArgs(ItemStack magazine, Apply apply) {
-        List<ItemStack> bullets = getBullets(magazine).orElseGet(Collections::emptyList);
-        apply.add("bullet_count", bullets.size() + "");
+    @Override public void appendArgs(ItemMeta meta, Apply apply) {
+        List<ItemStack> bullets = getBullets(meta).orElseGet(Collections::emptyList);
+        apply.add("bullet_count", String.valueOf(bullets.size()));
         apply.add("bullets", system.json.array()
                 .add(bullets, item -> Optional.ofNullable(item)
                         .flatMap(v -> Items.getOptional(BulletSetting.class, v))
@@ -79,4 +86,26 @@ import com.google.gson.JsonObject;
                 .toString()
         );
     }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.optional(IName.raw("magazine_type"), IJElement.raw("MAGAZINE_TYPE"), IComment.text("Пользвательский тип магазина. Если не указан - само оружие содержит магазин")),
+                JProperty.require(IName.raw("bullet_type"), IJElement.raw("BULLET_TYPE"), IComment.text("Пользвательский тип патрона")),
+                JProperty.require(IName.raw("size"), IJElement.raw(10), IComment.text("Количество хранимых патронов")),
+                JProperty.optional(IName.raw("sound_load"), IJElement.link(docs.sound()), IComment.text("Устанавливает звук добавления патрона")),
+                JProperty.optional(IName.raw("sound_unload"), IJElement.link(docs.sound()), IComment.text("Устанавливает звук доставания патрона"))
+        ), "Используется в меню " + docs.menuInsert().link(), "Передаваемые `args` в предмет: `bullet_count` и `bullets`");
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+

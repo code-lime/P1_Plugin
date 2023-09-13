@@ -13,8 +13,10 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.Vector;
-import org.lime.display.models.Builder;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.EntityBuilder;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.system;
 import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
@@ -43,10 +45,11 @@ import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
 
-public class MFPInstance extends BlockComponentInstance<MFPComponent> implements CustomTileMetadata.Damageable, CustomTileMetadata.Tickable, BlockDisplay.Displayable, CustomTileMetadata.Lootable {
+public class MFPInstance extends BlockComponentInstance<MFPComponent> implements CustomTileMetadata.Damageable, CustomTileMetadata.Tickable, BlockDisplay.Displayable, CustomTileMetadata.Lootable, IDisplayVariable {
     public MFPInstance(MFPComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
-        builder = lime.models.builder(EntityTypes.ARMOR_STAND)
+        builder = lime.models.builder().entity()
+                .entity(EntityTypes.ARMOR_STAND)
                 .local(new LocalLocation(component.offset).add(0, -0.4, -0.5, 0, 0))
                 .nbt(() -> {
                     EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
@@ -61,9 +64,9 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
         setItem(null, false);
     }
 
-    private final Builder builder;
+    private final EntityBuilder builder;
 
-    public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
+    public final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
     private ItemStack head;
 
     public void setItem(ItemStack item, boolean save) {
@@ -73,7 +76,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                 .flatMap(v -> v.of(TableDisplaySetting.TableType.converter, null))
                 .map(v -> v.display(head))
                 .orElseGet(() -> CraftItemStack.asNMSCopy(head))
-        ).build());
+        ));
         if (save) saveData();
         syncDisplayVariable();
     }
@@ -116,7 +119,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     }
     
     private static final Pattern REMOVE_FORMATS = Pattern.compile("§.");
-    private void syncDisplayVariable() {
+    public final void syncDisplayVariable() {
         MFPComponent component = component();
         Optional<system.Toast4<String, Optional<String>, Optional<String>, Integer>> text = Optional.ofNullable(head)
             .filter(ItemStack::hasItemMeta)

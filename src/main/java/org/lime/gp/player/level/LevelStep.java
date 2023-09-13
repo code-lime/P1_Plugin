@@ -25,7 +25,7 @@ public class LevelStep {
     public final LevelData data;
     public final double total;
 
-    public final HashMap<ExperienceAction<?, ?>, HashMap<?, system.IRange>> variable = new HashMap<>();
+    public final HashMap<ExperienceAction<?, ?>, List<ExperienceGetter<?, ?>>> variable = new HashMap<>();
     public final LinkedHashMap<String, system.Toast2<ILoot, LootModifyAction>> modifyLootTable = new LinkedHashMap<>();
     public final ICanData canData;
 
@@ -34,11 +34,11 @@ public class LevelStep {
         this.data = data;
         this.total = json.get("total").getAsDouble();
         if (json.has("actions")) json.get("actions").getAsJsonObject().entrySet().forEach(kv -> {
-            ExperienceAction<?, ?> action = ExperienceAction.getByName(kv.getKey());
-            if (kv.getValue().isJsonObject()) {
-                this.variable.put(action, createVariable(action, kv.getValue().getAsJsonObject()));
-            } else {
-                this.variable.put(action, createVariable(action, kv.getValue().getAsJsonPrimitive()));
+            try {
+                ExperienceAction<?, ?> action = ExperienceAction.getByName(kv.getKey());
+                this.variable.put(action, action.createVariable(kv.getValue()));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Error in work " + data.work + " in level " + level + " in action " + kv.getKey() + " with json " + kv.getValue(), e);
             }
         });
         if (json.has("loot")) json.get("loot")
@@ -52,7 +52,6 @@ public class LevelStep {
         if (json.has("perm")) canData = new CanData(json.get("perm").getAsJsonObject());
         else canData = ICanData.getNothing();
     }
-
 
     public boolean tryModifyLoot(PopulateLootEvent e) {
         String key = e.getKey().getPath();
@@ -75,35 +74,35 @@ public class LevelStep {
         }
         return loot == null ? Optional.empty() : Optional.of(loot.val1.changeLoot(base, loot.val0));
     }
-
-    private static <TValue, TCompare>HashMap<TCompare, system.IRange> createVariable(ExperienceAction<TValue, TCompare> action, JsonObject values) {
-        HashMap<TCompare, system.IRange> list = new HashMap<>();
-        values.entrySet().forEach(kv -> list.put(action.parse(kv.getKey()), system.IRange.parse(kv.getValue().getAsString())));
-        return list;
-    }
-    private static <TValue, TCompare>HashMap<TCompare, system.IRange> createVariable(ExperienceAction<TValue, TCompare> action, JsonPrimitive value) {
-        HashMap<TCompare, system.IRange> list = new HashMap<>();
-        list.put(action.parse(null), system.IRange.parse(value.getAsString()));
-        return list;
-    }
     
     @SuppressWarnings("unchecked")
-    public <TValue, TCompare>Optional<Double> getExpValue(ExperienceAction<TValue, TCompare> type, TValue value) {
-        HashMap<?, system.IRange> list = variable.getOrDefault(type, null);
+    public <TValue, TCompare>Optional<Double> executeExpValue(UUID uuid, ExperienceAction<TValue, TCompare> type, TValue value) {
+        List<ExperienceGetter<?, ?>> list = variable.getOrDefault(type, null);
         if (list == null) return Optional.empty();
-        for (Map.Entry<TCompare, system.IRange> item : ((HashMap<TCompare, system.IRange>)list).entrySet()) {
-            if (type.compare(value, item.getKey()))
-                return Optional.of(item.getValue().getValue(total));
+        boolean isDuplicate = false;
+        double exp = 0;
+        for (ExperienceGetter<?, ?> _getter : list) {
+            ExperienceGetter<TValue, TCompare> getter = (ExperienceGetter<TValue, TCompare>)_getter;
+            if (isDuplicate) {
+                if (getter.duplicate() && type.compare(value, getter.compare())) {
+                    exp += getter.execute(uuid, value, total);
+                }
+            } else if (type.compare(value, getter.compare())) {
+                isDuplicate = true;
+                exp = getter.execute(uuid, value, total);
+            }
         }
-        return Optional.empty();
+        return isDuplicate ? Optional.of(exp) : Optional.empty();
     }
 
     public <TValue, TCompare>void deltaExp(UUID uuid, ExperienceAction<TValue, TCompare> type, TValue value) {
-        getExpValue(type, value).ifPresent(exp -> UserRow.getBy(uuid).ifPresent(user -> {
+        executeExpValue(uuid, type, value).ifPresent(exp -> UserRow.getBy(uuid).ifPresent(user -> {
             double mutate = LevelModule.levelMutate(uuid);
             double mutate_exp = exp * mutate;
             if (LevelModule.DEBUG) {
                 String current = LevelRow.getBy(user.id, data.work).map(v -> system.getDouble(v.exp * total, 4) + "["+v.level+"]").orElse("0[0]");
+                String debugValue = type.debug(value);
+                if (!debugValue.isEmpty()) debugValue = " | " + debugValue;
                 lime.logOP("Exp " + Optional.ofNullable(Bukkit.getPlayer(uuid))
                         .map(Player::getName)
                         .orElse(uuid.toString()) + ": " + current + " / " + total
@@ -111,6 +110,7 @@ public class LevelStep {
                             + (exp >= 0 ? "+" : "-") + system.getDouble(Math.abs(exp), 2)
                             + (mutate != 1 ? (" * " + mutate + " = " + (mutate_exp >= 0 ? "+" : "-") + system.getDouble(Math.abs(mutate_exp), 2)) : "")
                         + ")"
+                        + debugValue
                 );
             }
             double delta = mutate_exp / total;

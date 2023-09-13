@@ -21,6 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.ReJoinRow;
@@ -36,8 +37,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 public class ReJoin implements Listener {
-    public static core.element create() {
-        return core.element.create(ReJoin.class)
+    public static CoreElement create() {
+        return CoreElement.create(ReJoin.class)
                 .withInit(ReJoin::init)
                 .withInstance()
                 .addCommand("rejoin", v -> v

@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.google.common.collect.Streams;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 import org.lime.gp.admin.AnyEvent;
@@ -34,8 +35,8 @@ public class PacketLogger {
         }
     };
     private static boolean isAdded = false;
-    public static core.element create() {
-        return core.element.create(PacketLogger.class)
+    public static CoreElement create() {
+        return CoreElement.create(PacketLogger.class)
                 .withInit(PacketLogger::init);
     }
     public static void init() {

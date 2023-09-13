@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.module.Discord;
@@ -11,8 +12,8 @@ import org.lime.gp.module.Discord;
 import com.google.gson.JsonObject;
 
 public class AutoRestart {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(AutoRestart.class)
+    public static CoreElement create() {
+        return CoreElement.create(AutoRestart.class)
                 .withInit(AutoRestart::init)
                 .<JsonObject>addConfig("autorestart", v -> v
                         .withDefault(system.json.object()

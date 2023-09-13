@@ -6,6 +6,7 @@ import com.google.gson.JsonPrimitive;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -41,8 +42,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class BookPaper implements Listener {
-    public static core.element create() {
-        return core.element.create(BookPaper.class)
+    public static CoreElement create() {
+        return CoreElement.create(BookPaper.class)
                 .withInit(BookPaper::init)
                 .withInstance();
     }
@@ -88,7 +89,7 @@ public class BookPaper implements Listener {
         int count = getPageCount(meta);
         
         PersistentDataContainer data = meta.getPersistentDataContainer();
-        String author_name = meta.hasAuthor() ? Optional.ofNullable(data.getOrDefault(AUTHOR_KEY, PersistentDataType.INTEGER, null))
+        String author_name = meta.hasAuthor() ? Optional.ofNullable(data.get(AUTHOR_KEY, PersistentDataType.INTEGER))
             .flatMap(UserRow::getBy)
             .map(v -> ChatColor.AQUA + v.firstName + " " + v.lastName + " " + ChatColor.GREEN + Integer.toHexString(0xFFFF - v.id).toUpperCase())
             .orElseGet(() -> ChatColor.RED + "Неизвестно") : null;

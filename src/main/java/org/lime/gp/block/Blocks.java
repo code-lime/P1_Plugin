@@ -35,6 +35,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.InfoComponent;
@@ -63,8 +64,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class Blocks implements Listener {
-    public static core.element create() {
-        return core.element.create(Blocks.class)
+    public static CoreElement create() {
+        return CoreElement.create(Blocks.class)
                 .withInstance()
                 .withInit(Blocks::init)
                 .<JsonObject>addConfig("blocks", v -> v.withDefault(new JsonObject()).withInvoke(Blocks::config))
@@ -382,6 +383,10 @@ public class Blocks implements Listener {
     private static final ConcurrentHashMap<String, NamespacedKey> keys = new ConcurrentHashMap<>();
     public static NamespacedKey ofKey(String key) {
         return keys.compute(key, (k,v) -> v == null ? new NamespacedKey(lime._plugin, k) : v);
+    }
+
+    public static void setBlock(Position position, String block, InfoComponent.Rotation.Value rotation) {
+        Items.getMaterialKey(block).ifPresentOrElse(material -> position.getBlock().setType(material), () -> Blocks.creator(block).ifPresent(v -> v.setBlock(position, rotation)));
     }
 
     public static TileEntityLimeSkull setBlock(Position position, BlockInfo type) {

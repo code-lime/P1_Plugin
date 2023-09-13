@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
@@ -174,7 +175,9 @@ public class UnLock extends Base {
                 @Override protected Slot addSlot(Slot slot) {
                     if (slot.container == view) {
                         return super.addSlot(new InterfaceManager.AbstractBaseSlot(slot) {
-                            @Override public void onSlotClick(EntityHuman player) {
+                            @Override public boolean isPacketOnly() { return true; }
+
+                            @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
                                 if (Cooldown.hasOrSetCooldown(player.getUUID(), "safe_box.click", 0.1)) return;
                                 int x = getRowX();
                                 int y = getRowY();

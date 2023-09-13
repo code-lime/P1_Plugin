@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.entity.TileEntityBanner;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.item.settings.list.DyeColorSetting;
 
@@ -29,8 +30,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public interface CauldronBlockInteraction {
-    static core.element create() {
-        return core.element.create(CauldronBlockInteraction.class)
+    static CoreElement create() {
+        return CoreElement.create(CauldronBlockInteraction.class)
                 .withInit(CauldronBlockInteraction::bootStrap);
     }
     Map<Item, CauldronBlockInteraction> EMPTY = CauldronBlockInteraction.newInteractionMap();

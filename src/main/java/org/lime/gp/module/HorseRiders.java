@@ -5,6 +5,7 @@ import com.google.gson.JsonPrimitive;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -28,8 +29,8 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 import java.util.*;
 
 public class HorseRiders implements Listener {
-    public static core.element create() {
-        return core.element.create(HorseRiders.class)
+    public static CoreElement create() {
+        return CoreElement.create(HorseRiders.class)
                 .withInstance()
                 .withInit(HorseRiders::init);
 

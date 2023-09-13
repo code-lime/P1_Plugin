@@ -18,9 +18,7 @@ public class SingleLoot implements ILoot {
     public Checker item;
     public system.IRange amount;
 
-    public SingleLoot(JsonPrimitive json) {
-        String value = json.getAsString();
-
+    public SingleLoot(String value) {
         String[] key = value.split("\\*");
         String type = Arrays.stream(key).limit(key.length - 1).collect(Collectors.joining("*"));
 

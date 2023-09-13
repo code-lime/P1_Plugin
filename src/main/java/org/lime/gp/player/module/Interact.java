@@ -6,6 +6,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.MenuCreator;
@@ -13,8 +14,8 @@ import org.lime.gp.player.menu.MenuCreator;
 import java.util.UUID;
 
 public class Interact implements Listener {
-    public static core.element create() {
-        return core.element.create(Interact.class)
+    public static CoreElement create() {
+        return CoreElement.create(Interact.class)
                 .withInstance();
     }
     @EventHandler(ignoreCancelled = true) public static void on(PlayerInteractEntityEvent event) {

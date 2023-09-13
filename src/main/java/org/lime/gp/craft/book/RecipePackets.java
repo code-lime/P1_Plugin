@@ -21,6 +21,7 @@ import org.bukkit.craftbukkit.v1_19_R3.util.CraftNamespacedKey;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
 import org.lime.gp.extension.PacketManager;
@@ -33,8 +34,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class RecipePackets {
-    public static core.element create() {
-        return core.element.create(RecipePackets.class)
+    public static CoreElement create() {
+        return CoreElement.create(RecipePackets.class)
                 .withInit(RecipePackets::init);
     }
 

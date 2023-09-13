@@ -8,6 +8,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventory;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.extension.LimePersistentDataType;
@@ -26,8 +27,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 public final class WalletInventory implements Listener {
-    public static core.element create() {
-        return core.element.create(WalletInventory.class)
+    public static CoreElement create() {
+        return CoreElement.create(WalletInventory.class)
                 .withInstance()
                 .withInit(WalletInventory::init)
                 .withUninit(WalletInventory::uninit);

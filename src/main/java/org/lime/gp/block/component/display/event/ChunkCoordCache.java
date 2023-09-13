@@ -15,10 +15,11 @@ import org.lime.gp.lime;
 import org.lime.gp.block.component.display.BlockDisplay;
 
 import net.minecraft.core.BlockPosition;
+import org.lime.plugin.CoreElement;
 
 public class ChunkCoordCache implements Listener {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(ChunkCoordCache.class)
+    public static CoreElement create() {
+        return CoreElement.create(ChunkCoordCache.class)
                 .withInstance()
                 .withInit(ChunkCoordCache::init);
     }

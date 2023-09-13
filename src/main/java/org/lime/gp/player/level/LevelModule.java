@@ -9,9 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -24,26 +22,22 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.inventory.ItemStack;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.settings.list.LevelFoodMutateSetting;
 import org.lime.gp.lime;
 import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
-import org.lime.gp.module.loot.IPopulateLoot;
-import org.lime.gp.module.loot.Parameters;
-import org.lime.gp.module.loot.PopulateLootEvent;
 
 import com.google.gson.JsonObject;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.gp.player.module.TabManager;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 public class LevelModule implements Listener {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(LevelModule.class)
+    public static CoreElement create() {
+        return CoreElement.create(LevelModule.class)
                 .withInstance()
                 .withInit(LevelModule::init)
                 .<JsonObject>addConfig("level", v -> v
@@ -142,7 +136,7 @@ public class LevelModule implements Listener {
         LevelData data = workData.get(workID);
         if (data == null) return Optional.empty();
         int level = LevelRow.getBy(userID, workID).map(value -> value.level).orElse(0);
-        return Optional.of(data.levels.get(level));
+        return Optional.ofNullable(data.levels.get(level));
     }
     public static Optional<LevelData> getLevelData(UUID uuid) {
         return UserRow.getBy(uuid).map(user -> workData.get(user.work));
@@ -194,7 +188,7 @@ public class LevelModule implements Listener {
 
     public static void dieAction(Player player) {
         UUID uuid = player.getUniqueId();
-        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.DIE, null));
+        getLevelStep(uuid).ifPresent(step -> step.deltaExp(uuid, ExperienceAction.SINGLE, ExperienceAction.SingleValue.DIE));
     }
 
     @EventHandler private static void onExpChange(PlayerExpChangeEvent e) {

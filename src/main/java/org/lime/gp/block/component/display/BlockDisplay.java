@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.CustomTileMetadata;
@@ -32,8 +33,8 @@ public class BlockDisplay implements Listener {
         return (int)Math.ceil((coord + 1) / BlockDisplay.CHUNK_SIZE);
     }
 
-    public static core.element create() {
-        return core.element.create(BlockDisplay.class)
+    public static CoreElement create() {
+        return CoreElement.create(BlockDisplay.class)
                 .withInit(BlockDisplay::init)
                 .withInstance();
     };

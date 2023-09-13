@@ -8,6 +8,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
@@ -24,8 +25,8 @@ import org.lime.system;
 import java.util.*;
 
 public class Insert extends Base {
-    public static core.element create() {
-        return core.element.create(Insert.class)
+    public static CoreElement create() {
+        return CoreElement.create(Insert.class)
                 .withInit(Insert::init);
     }
     public static void init() {

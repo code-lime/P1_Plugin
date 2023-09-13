@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
@@ -29,8 +30,8 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class ReadonlySync {
-    public static core.element create() {
-        return core.element.create(ReadonlySync.class)
+    public static CoreElement create() {
+        return CoreElement.create(ReadonlySync.class)
                 .withInit(ReadonlySync::init);
     }
     private static boolean ONLINE_POSITIONS_READONLY_ENABLE = false;
@@ -76,7 +77,7 @@ public class ReadonlySync {
                         data.map(v -> v.icon).orElse(null),
                         data.map(v -> v.name).orElse(null),
 
-                        player.isOp(), selector_name, Death.isDamageLay(uuid),
+                        player.isOp(), selector_name, Death.getDamageState(uuid).index,
 
                         lime.isLay(player) ? "LAY" : lime.isSit(player) ? "SIT" : "NONE",
                         HideNickSetting.isHide(player) ? 1 : 0,

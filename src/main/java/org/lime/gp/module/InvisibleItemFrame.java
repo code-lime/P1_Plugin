@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
@@ -18,8 +19,8 @@ import org.lime.gp.player.menu.MenuCreator;
 import java.util.UUID;
 
 public class InvisibleItemFrame implements Listener {
-    public static core.element create() {
-        return core.element.create(InvisibleItemFrame.class)
+    public static CoreElement create() {
+        return CoreElement.create(InvisibleItemFrame.class)
                 .withInstance()
                 .withInit(InvisibleItemFrame::init);
     }
@@ -29,7 +30,7 @@ public class InvisibleItemFrame implements Listener {
             JManager.set(itemFrame.getPersistentDataContainer(), "invisible", JsonNull.INSTANCE);
             boolean hasItem = !itemFrame.getItem().getType().isAir();
             itemFrame.setVisible(!hasItem);
-            itemFrame.setGlowing(!hasItem);
+            //itemFrame.setGlowing(!hasItem);
         });
         lime.repeat(InvisibleItemFrame::update, 0.5);
     }
@@ -39,7 +40,7 @@ public class InvisibleItemFrame implements Listener {
             boolean hasItem = !e.getItem().getType().isAir();
             if (hasItem == e.isVisible()) {
                 e.setVisible(!hasItem);
-                e.setGlowing(!hasItem);
+                //e.setGlowing(!hasItem);
             }
         }));
     }

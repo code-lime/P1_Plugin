@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
@@ -33,8 +34,8 @@ import java.util.*;
 public class WeaponData {
     private static boolean WEAPON_SIT_LOCK = true;
 
-    public static core.element create() {
-        return core.element.create(WeaponData.class)
+    public static CoreElement create() {
+        return CoreElement.create(WeaponData.class)
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("weapon_sit")
                         .withDefault(new JsonPrimitive(WEAPON_SIT_LOCK))

@@ -12,11 +12,14 @@ import org.bukkit.entity.Pose;
 import org.bukkit.util.Vector;
 import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
 import org.lime.gp.module.SingleModules;
 import org.lime.system;
@@ -34,8 +37,7 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
         sitAtBlock = !json.has("sit_at_block") || json.get("sit_at_block").getAsBoolean();
     }
 
-    @Override
-    public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+    @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         if (!(event.player() instanceof EntityPlayer eplayer)) return EnumInteractionResult.PASS;
         Player bukkitPlayer = eplayer.getBukkitEntity();
         if (!GSitAPI.getSeats(metadata.block()).isEmpty() || lime.isSit(bukkitPlayer) || lime.isLay(bukkitPlayer))
@@ -56,5 +58,13 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
 
         IGPoseSeat pose = GSitAPI.createPose(metadata.block(), eplayer.getBukkitEntity(), Pose.SLEEPING, rotated_offset.getX(), rotated_offset.getY(), rotated_offset.getZ(), (float) rotation, sitAtBlock);
         return pose == null ? EnumInteractionResult.PASS : EnumInteractionResult.CONSUME;
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, JObject.of(
+                JProperty.optional(IName.raw("rotation"), IJElement.raw(10.0), IComment.text("Относительный угол поворота")),
+                JProperty.optional(IName.raw("offset"), IJElement.link(docs.vector()), IComment.text("Относительная позиция")),
+                JProperty.optional(IName.raw("sit_at_block"), IJElement.bool(), IComment.text("Привязываться ли к высоте блока"))
+        ), "На блок можно лечь");
     }
 }

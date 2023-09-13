@@ -22,8 +22,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPanda;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftTropicalFish;
 import org.bukkit.entity.*;
-import org.lime.display.models.ChildDisplay;
-import org.lime.display.models.Model;
+import org.lime.display.models.display.BaseChildDisplay;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -34,18 +35,12 @@ public class VariablePet extends AbstractPet {
     public final EntityTypes<? extends EntityLiving> type;
     public final system.Action1<Entity> variable;
     public final boolean baby;
-    public final Model model;
+    public final IBuilder model;
 
     private static final ConcurrentHashMap<EntityTypes<? extends Entity>, Class<? extends Entity>> entityTypes = new ConcurrentHashMap<>();
 
-    @Override
-    public Model model() {
-        return model;
-    }
-
-    @Override
-    public void tick(ChildDisplay<?> model, Map<String, Object> data) {
-    }
+    @Override public IBuilder model() { return model; }
+    @Override public void tick(BaseChildDisplay<?, ?, ?> model, Map<String, Object> data) { }
 
     @SuppressWarnings("all")
     protected VariablePet(String key, JsonObject json) {
@@ -56,10 +51,7 @@ public class VariablePet extends AbstractPet {
         Class<? extends Entity> tClass = entityTypes.computeIfAbsent(this.type, _type -> _type.create(lime.MainWorld.getHandle()).getClass());
         this.variable = variableApply(tClass, json.has("variable") && !json.get("variable").isJsonNull() ? json.get("variable").getAsString() : null);
 
-        this.model = lime.models.builder(this.type)
-                .nbt(createEntity())
-                .collision(false)
-                .build();
+        this.model = lime.models.builder().entity().entity(this.type).nbt(createEntity()).noCollision(true);
     }
 
     private static MinecraftKey of(NamespacedKey key) {

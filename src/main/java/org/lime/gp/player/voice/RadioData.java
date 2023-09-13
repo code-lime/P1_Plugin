@@ -13,7 +13,9 @@ import org.lime.gp.block.component.list.RadioComponent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.IUpdate;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.item.data.UpdateType;
 import org.lime.gp.item.settings.list.RadioSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
@@ -79,9 +81,9 @@ public class RadioData {
                 .add("volume", String.valueOf(volume))
                 .build();
     }
-    public List<Component> createLore(ItemCreator itemCreator) {
+    /*public List<Component> createLore(ItemCreator itemCreator) {
         return itemCreator.createLore(Apply.of().add(map()));
-    }
+    }*/
 
     public static Optional<RadioData> getData(ItemStack item) {
         return Items.getOptional(RadioSetting.class, item).map(setting -> {
@@ -109,7 +111,8 @@ public class RadioData {
         modify.invoke(data);
         data.level = data.clampLevel(data.level);
         JManager.set(container, "radio.data", data.write().build());
-        meta.lore(data.createLore(setting.creator()));
+        setting.creator().update(meta, Apply.of().add(data.map()), IUpdate.of(UpdateType.LORE));
+        //meta.lore(data.createLore(setting.creator()));
         meta.setCustomModelData(data.enable ? setting.on : setting.off);
     }
     public static Optional<RadioData> getData(Block block) {

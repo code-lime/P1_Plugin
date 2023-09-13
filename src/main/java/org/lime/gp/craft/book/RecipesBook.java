@@ -18,6 +18,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRecipeDiscoverEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
@@ -29,8 +30,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class RecipesBook implements Listener {
-    public static core.element create() {
-        return core.element.create(RecipesBook.class)
+    public static CoreElement create() {
+        return CoreElement.create(RecipesBook.class)
                 .withInit(RecipesBook::init)
                 .<JsonObject>addConfig("recipe_book", v -> v
                         .withDefault(new JsonObject())
@@ -128,8 +129,8 @@ public class RecipesBook implements Listener {
     public static <T extends AbstractRecipe>Optional<Component> getCustomWorkbenchName(Recipes<T> recipes) {
         return Optional.ofNullable(recipesBooks.get(recipes.id())).map(v -> v.adventure$title);
     }
-    public static Optional<IChatBaseComponent> getCustomWorkbenchName(String id) {
-        return Optional.ofNullable(recipesBooks.get(id)).map(v -> v.title);
+    public static Optional<Component> getCustomWorkbenchName(String id) {
+        return Optional.ofNullable(recipesBooks.get(id)).map(v -> v.adventure$title);
     }
 }
 

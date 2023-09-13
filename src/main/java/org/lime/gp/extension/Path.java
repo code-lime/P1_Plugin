@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.lime;
 import org.lime.system;
@@ -72,8 +73,8 @@ public class Path {
         }
     }
 
-    public static core.element create() {
-        return core.element.create(Path.class)
+    public static CoreElement create() {
+        return CoreElement.create(Path.class)
                 .disable()
                 .withInstance(new Listener())
                 .withInit(Path::init)

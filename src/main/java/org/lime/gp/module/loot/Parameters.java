@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.projectile.IProjectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.World;
+import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.block.entity.TileEntity;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.block.state.IBlockDataHolder;
@@ -26,9 +27,11 @@ import org.lime.gp.filter.data.IFilterParameterInfo;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.module.ArrowBow;
+import org.lime.gp.module.biome.weather.BiomeChecker;
 import org.lime.system;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,15 +84,13 @@ public class Parameters {
                 }
                 @Override public IFilter<IPopulateLoot> createFilter(String rawValue, FilterParameterInfo<IPopulateLoot, Entity> info) {
                     Checker checker = Checker.createCheck(rawValue);
-                    return loot -> {
-                        return loot.getOptional(info.type).map(v -> {
-                            if (v instanceof IProjectile projectile)
-                                return ArrowBow.getBowItem(projectile);
-                            else if (v instanceof EntityLiving player)
-                                return player.getItemInHand(EnumHand.MAIN_HAND);
-                            return null;
-                        }).map(checker::check).orElse(false);
-                    };
+                    return loot -> loot.getOptional(info.type).map(v -> {
+                        if (v instanceof IProjectile projectile)
+                            return ArrowBow.getBowItem(projectile);
+                        else if (v instanceof EntityLiving player)
+                            return player.getItemInHand(EnumHand.MAIN_HAND);
+                        return null;
+                    }).map(checker::check).orElse(false);
                 }
             }))
             .add(LastDamagePlayer.createInfoEqualsIgnoreCase("damage.player", v -> ""))
@@ -98,12 +99,23 @@ public class Parameters {
             .add(Tool.createInfoFilter("tool", v -> Items.getGlobalKeyByItem(v).orElse("NULL"), Checker::createCheck, Checker::check))
             .add(ExplosionRadius.createInfoFilter("explosion", system::getDouble, system.IRange::parse, (range, value) -> range.inRange(value, 16)))
             .add(LootingMod.createInfoFilter("looting", system::getDouble, system.IRange::parse, (range, value) -> range.inRange(value, 3)))
-            .add(Origin.createInfoEqualsIgnoreCase("biome", (v, world) -> world.getBiome(new BlockPosition((int)v.x, (int)v.y, (int)v.z)).unwrapKey().map(ResourceKey::location).map(MinecraftKey::toString).orElse("NULL")))
+            .add(Origin.createInfoWorldFilter("biome",
+                    (v, world) -> world.getBiome(new BlockPosition((int)v.x, (int)v.y, (int)v.z))
+                            .unwrapKey()
+                            .map(ResourceKey::location)
+                            .map(MinecraftKey::toString)
+                            .orElse("NULL"),
+                    BiomeChecker::createCheck,
+                    (checker, v, world) -> checker.check(world.getBiome(new BlockPosition((int)v.x, (int)v.y, (int)v.z)).value())
+            ))
             .add(Origin.createInfoFilter("position", v -> system.getDouble(v.x) + " " + system.getDouble(v.y) + " " + system.getDouble(v.z), s -> {
                 String[] args = s.split(" ");
                 return system.toast(system.IRange.parse(args[0]), system.IRange.parse(args[1]), system.IRange.parse(args[2]));
             }, (range, position) -> range.invokeGet((x, y, z) -> x.inRange(position.x, 16) && y.inRange(position.y, 16) && z.inRange(position.z, 16))))
-            .add(ThisEntity.createInfoEqualsIgnoreCase("tags", v -> v.getTags().toString()))
+            .add(ThisEntity.createInfoFilter("tags",
+                    v -> system.json.by(v.getTags()).build().toString(),
+                    s -> List.of(s.split(",")),
+                    (tags, entity) -> entity.getTags().containsAll(tags)))
             .build()
             .collect(Collectors.toMap(IFilterParameterInfo::name, v -> v));
 

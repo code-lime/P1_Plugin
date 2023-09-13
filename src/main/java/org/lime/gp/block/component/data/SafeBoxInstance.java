@@ -18,11 +18,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.Position;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.CustomTileMetadata.Tickable;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.SafeBoxComponent;
 import org.lime.gp.chat.ChatHelper;
@@ -47,7 +49,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> implements CustomTileMetadata.Interactable, Tickable, CustomTileMetadata.Removeable {
+public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> implements CustomTileMetadata.Interactable, Tickable, CustomTileMetadata.Removeable, IDisplayVariable {
     public final InventorySubcontainer items_container = new InventorySubcontainer(3 * 9);
     public SafeBoxInstance(SafeBoxComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
@@ -149,12 +151,9 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                 protected Slot addSlot(Slot slot) {
                     if (slot.container == items_container) {
                         return super.addSlot(new InterfaceManager.AbstractBaseSlot(slot) {
-                            @Override public boolean mayPickup(EntityHuman playerEntity) {
-                                return true;
-                            }
-                            @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) {
-                                return false;
-                            }
+                            @Override public boolean isPacketOnly() { return false; }
+                            @Override public boolean mayPickup(EntityHuman playerEntity) { return true; }
+                            @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                         });
                     }
                     return super.addSlot(slot);
@@ -227,7 +226,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                     @Override protected Slot addSlot(Slot slot) {
                         if (slot.container == view) {
                             return super.addSlot(new InterfaceManager.AbstractBaseSlot(slot) {
-                                @Override public void onSlotClick(EntityHuman player) {
+                                @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
                                     if (Cooldown.hasOrSetCooldown(player.getUUID(), "safe_box.click", 0.1)) return;
                                     int x = getRowX();
                                     int y = getRowY();
@@ -255,6 +254,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                                     }
                                     return ItemStack.EMPTY;
                                 }
+                                @Override public boolean isPacketOnly() { return true; }
                                 @Override public boolean mayPickup(EntityHuman playerEntity) { return false; }
                                 @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                             });
@@ -318,7 +318,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         });
         return EnumInteractionResult.CONSUME;
     }
-    private void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         if (!component().small) return;
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.set("open_state", timeToClose == null ? "false" : "true"));
     }

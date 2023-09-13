@@ -20,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
@@ -36,8 +37,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Skins implements Listener {
-    public static core.element create() {
-        return core.element.create(Skins.class)
+    public static CoreElement create() {
+        return CoreElement.create(Skins.class)
                 .withInit(Skins::init)
                 .withInstance();
     }

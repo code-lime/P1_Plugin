@@ -8,6 +8,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.data.ItemCreator;
@@ -18,8 +19,8 @@ import java.util.HashMap;
 import java.util.Optional;
 
 public class CartographyBucket extends system.IJson.ILoad<JsonObject> implements system.IJson<JsonObject> {
-    public static core.element create() {
-        return core.element.create(CartographyBucket.class)
+    public static CoreElement create() {
+        return CoreElement.create(CartographyBucket.class)
                 .withInstance(new Listener() {
                     private system.Toast3<Integer, Integer, Integer> ofColor(int x, int y, int z) {
                         x = x == 0 ? 1 : x;

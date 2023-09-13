@@ -4,12 +4,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.lime;
 
 public class HasteDonate {
-    public static core.element create() {
-        return core.element.create(HasteDonate.class)
+    public static CoreElement create() {
+        return CoreElement.create(HasteDonate.class)
                 .withInit(HasteDonate::init);
     }
 

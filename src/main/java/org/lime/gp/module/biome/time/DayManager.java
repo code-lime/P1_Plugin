@@ -7,6 +7,7 @@ import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
@@ -17,8 +18,8 @@ import java.util.Collections;
 
 public class DayManager {
     private static double timeSlownessMultiplier;
-    public static core.element create() {
-        return core.element.create(DayManager.class)
+    public static CoreElement create() {
+        return CoreElement.create(DayManager.class)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("time")
                         .withDefault(system.json.object()

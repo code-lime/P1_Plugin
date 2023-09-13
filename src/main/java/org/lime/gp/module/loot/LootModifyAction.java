@@ -14,7 +14,9 @@ public enum LootModifyAction {
     APPEND("a"),
     REPLACE("r"),
     APPEND_IF_NOT_EMPTY("ane"),
-    REPLACE_IF_NOT_EMPTY("rne");
+    REPLACE_IF_NOT_EMPTY("rne"),
+    APPEND_IF_EMPTY("ae"),
+    REPLACE_IF_EMPTY("re");
 
     public final String fastPrefix;
 
@@ -31,10 +33,16 @@ public enum LootModifyAction {
         List<ItemStack> items = loot.generateLoot(e);
         switch (this) {
             case APPEND -> e.addItems(items);
+            case APPEND_IF_EMPTY -> {
+                if (items.isEmpty()) e.addItems(items);
+            }
             case APPEND_IF_NOT_EMPTY -> {
                 if (!items.isEmpty()) e.addItems(items);
             }
             case REPLACE -> e.setItems(items);
+            case REPLACE_IF_EMPTY -> {
+                if (items.isEmpty()) e.setItems(items);
+            }
             case REPLACE_IF_NOT_EMPTY -> {
                 if (!items.isEmpty()) e.setItems(items);
             }
@@ -46,12 +54,21 @@ public enum LootModifyAction {
     public ILoot changeLoot(ILoot base, ILoot other) {
         return switch (this) {
             case APPEND -> new MultiLoot(List.of(base, other));
+            case APPEND_IF_EMPTY -> loot -> {
+                List<ItemStack> items = new ArrayList<>(base.generateLoot(loot));
+                if (items.isEmpty()) items.addAll(other.generateLoot(loot));
+                return items;
+            };
             case APPEND_IF_NOT_EMPTY -> loot -> {
                 List<ItemStack> items = new ArrayList<>(base.generateLoot(loot));
                 if (!items.isEmpty()) items.addAll(other.generateLoot(loot));
                 return items;
             };
             case REPLACE -> other;
+            case REPLACE_IF_EMPTY -> loot -> {
+                List<ItemStack> items = new ArrayList<>(base.generateLoot(loot));
+                return items.isEmpty() ? other.generateLoot(loot) : items;
+            };
             case REPLACE_IF_NOT_EMPTY -> loot -> {
                 List<ItemStack> items = new ArrayList<>(base.generateLoot(loot));
                 return items.isEmpty() ? items : other.generateLoot(loot);
@@ -65,7 +82,7 @@ public enum LootModifyAction {
             if (action.isPostfix(postfix))
                 return action;
         }
-        return LootModifyAction.NONE;
+        throw new IllegalArgumentException("Loot modify action '"+postfix+"' not found!");
     }
 
     public static system.Toast3<String, ILoot, LootModifyAction> parse(String key, JsonElement value) {

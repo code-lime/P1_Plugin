@@ -5,14 +5,15 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.horse.EntityHorseAbstract;
 import net.minecraft.world.level.World;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.system;
 
 import java.util.function.DoubleSupplier;
 
 public class HorseAttribute {
-    public static core.element create() {
-        return core.element.create(HorseAttribute.class)
+    public static CoreElement create() {
+        return CoreElement.create(HorseAttribute.class)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("horse_attribute")
                         .withDefault(system.json.object()

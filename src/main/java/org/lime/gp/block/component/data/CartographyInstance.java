@@ -26,6 +26,7 @@ import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.admin.AnyEvent.type;
@@ -57,13 +58,13 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class CartographyInstance extends MonitorInstance implements CustomTileMetadata.Interactable, CustomTileMetadata.Shapeable, CustomTileMetadata.Lootable {
-    public static core.element create() {
+    public static CoreElement create() {
         Blocks.addDefaultBlocks(new BlockInfo("cartography_table")
                 .add(v -> InfoComponent.GenericDynamicComponent.of("cartography", v, CartographyInstance::new))
                 .add(v -> new LootComponent(v, List.of(Material.CARTOGRAPHY_TABLE)))
                 .addReplace(Material.CARTOGRAPHY_TABLE)
         );
-        return core.element.create(CartographyInstance.class)
+        return CoreElement.create(CartographyInstance.class)
             .withInit(CartographyInstance::init);
     }
 

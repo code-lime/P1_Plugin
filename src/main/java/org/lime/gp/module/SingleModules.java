@@ -26,7 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.lime.Position;
-import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
@@ -40,8 +40,8 @@ import org.lime.system;
 import java.util.*;
 
 public class SingleModules implements Listener {
-    public static core.element create() {
-        return core.element.create(SingleModules.class)
+    public static CoreElement create() {
+        return CoreElement.create(SingleModules.class)
                 .withInit(SingleModules::init)
                 .withInstance()
                 .addEmpty("execute_file", () -> {
@@ -49,20 +49,43 @@ public class SingleModules implements Listener {
                     system.json.parse(lime.readAllConfig("execute")).getAsJsonArray().forEach(cmd -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.getAsString()));
                 });
     }
+    private static class MoveData {
+        public final Position position;
+        public int total = 0;
+        public long removeTime = 0;
+
+        private static final int TOTAL_COUNT = 20;
+        private static final int WAIT_TIME = 30 * 60 * 1000;
+
+        public MoveData(Position position) {
+            this.position = position;
+        }
+
+        public void onMove() {
+            total++;
+            removeTime = System.currentTimeMillis() + WAIT_TIME;
+        }
+        public boolean trySet() {
+            return total > TOTAL_COUNT;
+        }
+    }
+
+
     public static void init() {
         final HashMap<Material, Material> mapReplace = system.map.<Material, Material>of()
                 .add(Material.GRASS_BLOCK, Material.DIRT_PATH)
                 //.add(Material.ICE, Material.AIR)
                 .build();
 
-        final HashMap<Position, Material> moveLocation = new HashMap<>();
+        final HashMap<Position, MoveData> cacheMoveLocation = new HashMap<>();
         lime.repeat(() -> {
             HashMap<Position, Material> nowLocation = new HashMap<>();
             Bukkit.getOnlinePlayers().forEach(player -> {
                 Location location = player.getLocation();
                 Block path = location.clone().add(0, -1, 0).getBlock();
                 Material block_type = path.getType();
-                if (mapReplace.containsKey(block_type)) nowLocation.put(Position.of(path.getLocation()), block_type);
+                if (mapReplace.containsKey(block_type))
+                    nowLocation.put(Position.of(path.getLocation()), block_type);
 
                 if (!lime.isLay(player)) return;
                 if (!beds.containsValue(player.getUniqueId())) return;
@@ -82,16 +105,33 @@ public class SingleModules implements Listener {
                 double health = player.getHealth();
                 if (health < maxHealth) player.setHealth(Math.min(maxHealth, health + 0.5));
             });
-            moveLocation.entrySet().removeIf(kv -> {
+            nowLocation.forEach((pos, material) -> {
+                if (system.rand_is(0.1))
+                    cacheMoveLocation.computeIfAbsent(pos, MoveData::new).onMove();
+            });
+            cacheMoveLocation.entrySet().removeIf(kv -> {
+                Block block = kv.getKey().getBlock();
+                Material material = mapReplace.getOrDefault(block.getType(), null);
+                if (material == null) return true;
+                if (kv.getValue().trySet()) {
+                    block.setType(material);
+                    return true;
+                }
+                return false;
+            });
+            /*
+            cacheMoveLocation.entrySet().removeIf(kv -> {
                 Position location = kv.getKey();
                 if (nowLocation.containsKey(location)) return true;
                 Block block = location.getBlock();
                 Material material = mapReplace.getOrDefault(block.getType(), null);
                 if (material == null) return true;
-                if (system.rand_is(0.05)) block.setType(material);
+                if (system.rand_is(0.1)) kv.
+                    cacheMoveLocation.computeIfAbsent() block.setType(material);
                 return true;
             });
-            moveLocation.putAll(nowLocation);
+            cacheMoveLocation.putAll(nowLocation);
+            */
         }, 5);
         lime.repeat(() -> Bukkit.getOnlinePlayers().forEach(player -> {
             player.removePotionEffect(PotionEffectType.DOLPHINS_GRACE);
@@ -253,6 +293,12 @@ public class SingleModules implements Listener {
             case BEACON:
             case SMITHING:
             case BREWING: break;
+            case STONECUTTER:
+                if (StonecutterModule.isEnable()) return;
+                break;
+            case GRINDSTONE:
+                if (GrindstoneModule.isEnable()) return;
+                break;
             default: return;
         }
         e.setCancelled(true);

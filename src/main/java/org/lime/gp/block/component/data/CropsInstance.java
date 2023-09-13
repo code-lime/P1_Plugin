@@ -1,13 +1,8 @@
 package org.lime.gp.block.component.data;
 
-import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
-import net.minecraft.core.Vector3f;
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
@@ -17,10 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.lime.Position;
-import org.lime.display.models.Builder;
-import org.lime.display.models.Model;
-import org.lime.display.transform.LocalLocation;
+import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
@@ -28,7 +20,6 @@ import org.lime.gp.block.component.list.CropsComponent;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.CropsSetting;
 import org.lime.gp.item.settings.list.TableDisplaySetting;
-import org.lime.gp.lime;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.Parameters;
@@ -45,18 +36,6 @@ import java.util.UUID;
 public class CropsInstance extends BaseAgeableInstance<CropsComponent> implements BlockDisplay.Displayable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable {
     public CropsInstance(CropsComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
-        /*builder = lime.models.builder(EntityTypes.ARMOR_STAND)
-                .local(new LocalLocation(component.offset))
-                .nbt(() -> {
-                    EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
-                    stand.setNoBasePlate(true);
-                    stand.setSmall(true);
-                    stand.setInvisible(true);
-                    stand.setInvulnerable(true);
-                    stand.setMarker(true);
-                    stand.setHeadPose(new Vector3f(90, 0, 0));
-                    return stand;
-                });*/
         setItem(null, false);
     }
 
@@ -70,14 +49,13 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         }
     };
 
-    @Override
-    public AgeableData ageableData() {
+    @Override public AgeableData ageableData() {
         return Items.getOptional(CropsSetting.class, head).<AgeableData>map(v -> v).orElse(EMPTY);
     }
 
     //private final Builder builder;
 
-    public final system.LockToast1<Model> model = system.<Model>toast(null).lock();
+    public final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
     private org.bukkit.inventory.ItemStack head;
 
     public void setItem(org.bukkit.inventory.ItemStack item, boolean save) {
@@ -94,7 +72,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         syncDisplayVariable();
     }
     public void syncItem() {
-        model.set0(TableDisplaySetting.builderItem(head, component().offset, TableDisplaySetting.TableType.crops, String.valueOf(age())).build());
+        model.set0(TableDisplaySetting.builderItem(head, component().offset, TableDisplaySetting.TableType.crops, String.valueOf(age())));
     }
 
     @Override public void read(JsonObjectOptional json) {

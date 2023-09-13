@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.BiomeModify;
@@ -24,8 +25,8 @@ import org.lime.system;
 import java.util.*;
 
 public class Halloween implements Listener {
-    public static core.element create() {
-        return core.element.create(Halloween.class)
+    public static CoreElement create() {
+        return CoreElement.create(Halloween.class)
                 .withInit(Halloween::init)
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v

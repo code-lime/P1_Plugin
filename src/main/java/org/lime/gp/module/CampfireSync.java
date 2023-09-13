@@ -13,6 +13,7 @@ import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.lime;
 import org.lime.gp.access.ReflectionAccess;
@@ -22,8 +23,8 @@ import java.util.List;
 
 public class CampfireSync implements Listener {
     public static long CAMPFIRE_TIME_MS = 0;
-    public static core.element create() {
-        return core.element.create(CampfireSync.class)
+    public static CoreElement create() {
+        return CoreElement.create(CampfireSync.class)
                 .<JsonPrimitive>addConfig("config", v -> v.withParent("campfire_time").withDefault(new JsonPrimitive(2.0*24.0*60.0*60.0)).withInvoke(j -> CAMPFIRE_TIME_MS = Math.round(j.getAsDouble() * 1000)))
                 .withInit(CampfireSync::init)
                 .withInstance();

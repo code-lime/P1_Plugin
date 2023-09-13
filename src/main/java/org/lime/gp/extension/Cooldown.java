@@ -1,6 +1,7 @@
 package org.lime.gp.extension;
 
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -11,8 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class Cooldown {
-    public static core.element create() {
-        return core.element.create(Cooldown.class)
+    public static CoreElement create() {
+        return CoreElement.create(Cooldown.class)
                 .withInit(Cooldown::init);
     }
     public static void init() {

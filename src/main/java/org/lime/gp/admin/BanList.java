@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.BanListRow;
 import org.lime.gp.database.rows.UserRow;
@@ -29,8 +30,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BanList implements Listener {
-    public static core.element create() {
-        return core.element.create(BanList.class)
+    public static CoreElement create() {
+        return CoreElement.create(BanList.class)
                 .withInstance()
                 .withInit(BanList::init)
                 .addCommand("ban", v -> v

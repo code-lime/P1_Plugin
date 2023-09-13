@@ -12,7 +12,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.Cooldown;
+import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.settings.IItemSetting;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
@@ -28,8 +30,8 @@ import org.lime.system;
 import java.util.Optional;
 
 public class UseSetting implements Listener {
-    public static core.element create() {
-        return core.element.create(UseSetting.class)
+    public static CoreElement create() {
+        return CoreElement.create(UseSetting.class)
                 .withInstance();
     }
     public interface IUse extends IItemSetting {
@@ -152,7 +154,8 @@ public class UseSetting implements Listener {
         if (item.isDamageableItem()) {
             item.hurtAndBreak(1, player, e2 -> {
                 nextOption
-                    .flatMap(v -> Items.createItem(v.next()))
+                    .flatMap(NextSetting::next)
+                    .map(IItemCreator::createItem)
                     .ifPresentOrElse(
                         v -> Items.dropGiveItem(e2.getBukkitEntity(), v, false),
                         () -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND)
@@ -161,7 +164,8 @@ public class UseSetting implements Listener {
         } else {
             item.shrink(1);
             nextOption
-                .flatMap(v -> Items.createItem(v.next()))
+                .flatMap(NextSetting::next)
+                .map(IItemCreator::createItem)
                 .ifPresentOrElse(
                     v -> Items.dropGiveItem(player.getBukkitEntity(), v, false),
                     () -> player.broadcastBreakEvent(EnumItemSlot.MAINHAND)

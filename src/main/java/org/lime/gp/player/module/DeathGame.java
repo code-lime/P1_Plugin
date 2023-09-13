@@ -10,12 +10,13 @@ import org.lime.gp.lime;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.module.biome.time.DayManager;
+import org.lime.plugin.CoreElement;
 
 import java.util.Set;
 
 public class DeathGame {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(DeathGame.class)
+    public static CoreElement create() {
+        return CoreElement.create(DeathGame.class)
                 .withInit(DeathGame::init);
     }
     private static void init() {

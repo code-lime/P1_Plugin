@@ -1,4 +1,4 @@
-package org.lime.gp.module.biome.time.weather;
+package org.lime.gp.module.biome.weather;
 
 import net.minecraft.world.level.World;
 

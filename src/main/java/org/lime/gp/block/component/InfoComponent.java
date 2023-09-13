@@ -2,9 +2,12 @@ package org.lime.gp.block.component;
 
 import com.google.gson.*;
 import org.bukkit.util.Vector;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.Setting;
 import org.lime.system;
 
@@ -92,15 +95,14 @@ public class InfoComponent {
             this.createInstance = createInstance;
             this.name = name;
         }
-        @Override public T createInstance(CustomTileMetadata metadata) { return createInstance.invoke(this, metadata); }
         @Override public String name() { return getName(name); }
 
-        public static <T extends BlockInstance>GenericDynamicComponent<T> of(String name, BlockInfo info, system.Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) {
-            return new GenericDynamicComponent<>(name, info, createInstance);
-        }
-        public static String getName(String name) {
-            return name + ".generic";
-        }
+        @Override public T createInstance(CustomTileMetadata metadata) { return createInstance.invoke(this, metadata); }
+        @Override public Class<T> classInstance() { throw new ToDoException("CLASS COMPONENT"); }
+        @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
+
+        public static <T extends BlockInstance>GenericDynamicComponent<T> of(String name, BlockInfo info, system.Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) { return new GenericDynamicComponent<>(name, info, createInstance); }
+        public static String getName(String name) { return name + ".generic"; }
     }
 }
 

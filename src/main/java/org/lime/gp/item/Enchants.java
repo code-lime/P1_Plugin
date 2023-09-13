@@ -11,13 +11,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 import java.util.*;
 
 public class Enchants implements Listener {
-    public static core.element create() {
-        return core.element.create(Enchants.class)
+    public static CoreElement create() {
+        return CoreElement.create(Enchants.class)
                 .withInstance()
                 .withInit(Enchants::init)
                 .<JsonArray>addConfig("allow_enchants", v -> v
@@ -39,13 +40,13 @@ public class Enchants implements Listener {
     }
 
     private static final List<Enchantment> allowEnchantments = new ArrayList<>();
-    public static void config(JsonArray json) {
+    private static void config(JsonArray json) {
         List<Enchantment> allowEnchantments = new ArrayList<>();
         json.forEach(item -> allowEnchantments.add(Enchantment.getByKey(NamespacedKey.minecraft(item.getAsString()))));
         Enchants.allowEnchantments.clear();
         Enchants.allowEnchantments.addAll(allowEnchantments);
     }
-    public static void init() {
+    private static void init() {
         ExecuteItem.execute.add(Enchants::onExecute);
     }
     
@@ -62,7 +63,7 @@ public class Enchants implements Listener {
         }
         return edit;
     }
-    public static Boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
+    public static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
         ItemMeta meta = metaBox.val0;
         boolean save = removeEnchants(() -> meta.getEnchants().keySet(), meta::removeEnchant, e -> meta.addEnchant(e, 1, true), false);
         if (meta instanceof EnchantmentStorageMeta esm)

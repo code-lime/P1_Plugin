@@ -9,10 +9,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 
 public class DoorSound implements Listener {
-    public static core.element create() {
-        return core.element.create(DoorSound.class)
+    public static CoreElement create() {
+        return CoreElement.create(DoorSound.class)
                 .withInstance();
     }
 

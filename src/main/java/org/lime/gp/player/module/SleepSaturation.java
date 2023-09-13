@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.admin.Administrator;
@@ -32,8 +33,8 @@ import org.lime.gp.player.ui.ImageBuilder;
 public class SleepSaturation implements IUI {
     private static final SleepSaturation instance = new SleepSaturation();
 
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(SleepSaturation.class)
+    public static CoreElement create() {
+        return CoreElement.create(SleepSaturation.class)
                 .withInstance(instance)
                 .withInit(SleepSaturation::init)
                 .<JsonObject>addConfig("sleep_saturation", v -> v

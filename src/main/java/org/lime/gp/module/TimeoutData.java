@@ -1,6 +1,7 @@
 package org.lime.gp.module;
 
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 
 import java.util.*;
@@ -9,8 +10,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TimeoutData {
-    public static core.element create() {
-        return core.element.create(TimeoutData.class)
+    public static CoreElement create() {
+        return CoreElement.create(TimeoutData.class)
                 .withInit(TimeoutData::init);
     }
     public static void init() {

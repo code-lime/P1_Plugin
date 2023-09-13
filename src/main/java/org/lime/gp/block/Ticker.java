@@ -25,8 +25,8 @@ public class Ticker {
         public BlockPosition getPosition() { return position; }
         public TileEntity getEntity() { return entity; }
     }
-    public static core.element create() {
-        return core.element.create(Ticker.class)
+    public static CoreElement create() {
+        return CoreElement.create(Ticker.class)
                 .withInit(Ticker::init);
     }
     public static void init() {

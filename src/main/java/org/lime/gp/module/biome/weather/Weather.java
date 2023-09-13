@@ -1,4 +1,4 @@
-package org.lime.gp.module.biome.time.weather;
+package org.lime.gp.module.biome.weather;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -6,14 +6,11 @@ import com.google.gson.JsonPrimitive;
 import io.papermc.paper.chunk.PlayerChunkLoader;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.level.PlayerChunkMap;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.level.World;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
@@ -39,8 +36,8 @@ public class Weather {
 
     private static BiomeModify.ActionCloseable generateActionCloseable = null;
 
-    public static core.element create() {
-        return core.element.create(Weather.class)
+    public static CoreElement create() {
+        return CoreElement.create(Weather.class)
                 .withInit(Weather::init)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("weather")
@@ -73,9 +70,9 @@ public class Weather {
 
     private static void init() {
         AnyEvent.addEvent("biome.raw", AnyEvent.type.owner_console, v -> v, v -> {
-            HashMap<BiomeColors, system.Toast2<String, Integer>> pattern = new HashMap<>();
-            Map<String, BiomeColors> biomeMap = BiomeModify.getRawVanillaBiomes()
-                    .collect(Collectors.toMap(_v -> _v.getString("name"), _v -> BiomeColors.parseElement(_v.getCompound("element"))));
+            HashMap<BiomeData, system.Toast2<String, Integer>> pattern = new HashMap<>();
+            Map<String, BiomeData> biomeMap = BiomeModify.getRawVanillaBiomes()
+                    .collect(Collectors.toMap(_v -> _v.getString("name"), _v -> BiomeData.parseElement(_v.getCompound("element"))));
             biomeMap.forEach((key, value) -> pattern.compute(value, (_k, _v) -> {
                 if (_v == null) {
                     String[] values = NamespacedKey.fromString(key).getKey().split("_");
@@ -185,7 +182,7 @@ public class Weather {
             ReflectionAccess.lastLocX_PlayerLoaderData_PlayerChunkLoader.set(data, Double.NEGATIVE_INFINITY);
             ViewDistance.clearPlayerView(player);
         });
-        SnowModify.setSnow(seasonKey == SeasonKey.Frosty);
+        SnowModify.setBiome(seasonKey);
 
         int modifyRain = switch (seasonKey) {
             case Frosty -> 2;
@@ -200,8 +197,8 @@ public class Weather {
     private static Stream<system.Toast3<Integer, NBTTagCompound, String>> generate(int id, String key, NBTTagCompound element) {
         return WeatherBiomes.selectBiomes(key).map(biomeHolder -> {
             NBTTagCompound seasonElement = element.copy();
-            biomeHolder.biomeColors.modify(seasonElement);
             biomeHolder.seasonKey.modify(seasonElement);
+            biomeHolder.biomeData.modify(seasonElement);
             return system.toast(biomeHolder.index, seasonElement, biomeHolder.seasonKey.key);
         });
     }

@@ -7,7 +7,11 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.JObject;
+import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 
@@ -18,9 +22,7 @@ import com.google.gson.JsonObject;
         NONE,
         SHIFT;
 
-        public static PoseType getPose(Player player) {
-            return player.isSneaking() ? PoseType.SHIFT : PoseType.NONE;
-        }
+        public static PoseType getPose(Player player) { return player.isSneaking() ? PoseType.SHIFT : PoseType.NONE; }
     }
     public HashMap<PoseType, net.minecraft.world.item.ItemStack> data = new HashMap<>();
 
@@ -41,4 +43,17 @@ import com.google.gson.JsonObject;
         for (PoseType pose : PoseType.values())
             data.putIfAbsent(pose, none);
     }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(), "*Не используется");
+    }
 }
+
+
+
+
+
+
+
+
+

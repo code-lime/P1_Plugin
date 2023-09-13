@@ -3,6 +3,8 @@ package org.lime.gp.block.component.list;
 import com.google.gson.JsonObject;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -10,6 +12,7 @@ import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.BottleInstance;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.system;
 
@@ -36,4 +39,5 @@ public final class WhitelistInteractComponent extends ComponentStatic<JsonObject
                 .map(v -> EnumInteractionResult.PASS)
                 .orElse(EnumInteractionResult.CONSUME);
     }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

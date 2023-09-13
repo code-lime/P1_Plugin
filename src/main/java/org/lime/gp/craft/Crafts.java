@@ -31,6 +31,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.recipe.*;
 import org.lime.gp.craft.book.Recipes;
@@ -48,8 +49,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Crafts {
-    public static core.element create() {
-        return core.element.create(Crafts.class)
+    public static CoreElement create() {
+        return CoreElement.create(Crafts.class)
                 .withUninit(Crafts::uninit)
                 .addCommand("removed.crafts", v -> v
                         .withUsage("/removed.crafts {empty_or_regex}")
@@ -76,7 +77,7 @@ public class Crafts {
                                     ));
                                 }
                                 if (single.size() > 0) {
-                                    String clipboard = "";
+                                    List<String> clipboard = new ArrayList<>();
                                     Component showText = null;
                                     for (Map.Entry<String, String> kv : single.entrySet()) {
                                         if (showText == null) showText = Component.empty();
@@ -86,13 +87,13 @@ public class Crafts {
                                         String value = kv.getValue();
                                         if (key.equals(value)) showText = showText.append(Component.text(value).color(NamedTextColor.GOLD));
                                         else showText = showText.append(Component.text(key + " - " + value));
-                                        clipboard = key + " - " + value;
+                                        clipboard.add(key + " - " + value);
                                     }
 
                                     message = message.append(Component.text("\n").append(
                                             Component.text(" - Одиночные regex x" + single.size())
                                                     .color(NamedTextColor.AQUA)
-                                                    .clickEvent(ClickEvent.copyToClipboard(clipboard))
+                                                    .clickEvent(ClickEvent.copyToClipboard(String.join("\n", clipboard)))
                                                     .hoverEvent(HoverEvent.showText(showText))));
                                 }
                                 if (empty.size() > 0) {

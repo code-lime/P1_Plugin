@@ -2,8 +2,9 @@ package org.lime.gp.player.module.pets;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.lime.display.models.ChildDisplay;
-import org.lime.display.models.Model;
+import org.lime.display.models.display.BaseChildDisplay;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.system;
@@ -12,14 +13,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModelPet extends AbstractPet {
-    public final Model model;
+    public final IBuilder model;
     public final String animation_tick;
     public final HashMap<String, Object> animation_args = new HashMap<>();
 
-    @Override public Model model() { return model; }
+    @Override public IBuilder model() { return model; }
 
     @Override
-    public void tick(ChildDisplay<?> model, Map<String, Object> data) {
+    public void tick(BaseChildDisplay<?, ?, ?> model, Map<String, Object> data) {
         if (animation_tick == null) return;
         JavaScript.invoke(animation_tick,
                 system.map.<String, Object>of()
@@ -27,7 +28,7 @@ public class ModelPet extends AbstractPet {
                         .add("data", data)
                         .build()
         );
-        this.model.animation.apply(model.js, data);
+        this.model.animation().apply(model.js, data);
     }
 
     private static Object toObj(JsonPrimitive json) {
@@ -47,7 +48,7 @@ public class ModelPet extends AbstractPet {
         }
         this.model = lime.models.get(modelKey).orElseGet(() -> {
             lime.logOP("Model '" + modelKey + "' in pet '" + key + "' not founded!");
-            return lime.models.empty();
+            return lime.models.builder().none();
         });
     }
 }

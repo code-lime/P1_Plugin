@@ -1,10 +1,15 @@
 package org.lime.gp.item.settings.list;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
+import com.google.common.collect.ImmutableList;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.Cooldown;
@@ -51,5 +56,31 @@ import net.kyori.adventure.sound.Sound;
         this.pitch.invoke(location, pitch);
         if (this.menu != null) MenuCreator.show(player, this.menu, Apply.of().add(args));
         return false;
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        JObject base = JObject.of(
+                JProperty.require(IName.raw("arm"), IJElement.link(docs.handType()), IComment.text("Тип руки, в которой происходит взаимодействие")),
+                JProperty.optional(IName.raw("cooldown"), IJElement.raw(10), IComment.text("Время задержки повторного использования в секундах")),
+                JProperty.optional(IName.raw("menu"), IJElement.raw(10), IComment.text("Открываемая меню при взаимодействии")),
+                JProperty.optional(IName.raw("args"),
+                        IJElement.anyObject(JProperty.require(IName.raw("KEY"), IJElement.raw("VALUE"))),
+                        IComment.empty()
+                                .append(IComment.raw("args"))
+                                .append(IComment.text(" передаваемые в "))
+                                .append(IComment.field("menu")))
+        );
+        IIndexGroup note_type = JsonEnumInfo.of("NOTE_TYPE", "note_type", Arrays.stream(org.bukkit.Sound.values())
+                .map(Enum::name)
+                .filter(v -> v.startsWith("BLOCK_NOTE_BLOCK_"))
+                .map(v -> IJElement.raw(v.substring(17)))
+                .collect(ImmutableList.toImmutableList())
+        );
+
+        return JsonGroup.of(index, index, base.add(
+                JProperty.require(IName.raw("note"), IJElement.link(note_type), IComment.text("Звук нотного блока"))
+        ).or(base.add(
+                JProperty.require(IName.raw("sound"), IJElement.link(docs.sound()), IComment.text("Пользовательский звук"))
+        )), "Предмет при использовании воспроизводит звук").withChild(note_type);
     }
 }

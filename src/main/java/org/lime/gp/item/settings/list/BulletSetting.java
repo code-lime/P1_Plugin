@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.system;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
@@ -62,5 +65,32 @@ import net.minecraft.world.level.block.state.IBlockData;
     }
     public void playSound(IBlockData state, Location location) {
         Sounds.playSound(sound_hit.get(SoundMaterial.of(state)), location);
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.require(IName.raw("bullet_type"), IJElement.raw("BULLET_TYPE"), IComment.text("Пользвательский тип патрона")),
+                JProperty.optional(IName.raw("count"), IJElement.raw(1), IComment.text("Количество вылетающих пуль")),
+                JProperty.require(IName.raw("damage"), IJElement.raw(1.5), IComment.text("Урон одной вылетающей пули")),
+                JProperty.optional(IName.raw("time"),
+                        JObject.of(
+                                JProperty.require(IName.raw("sec"), IJElement.raw(1.5), IComment.text("Время, через которое будет изменен множитель")),
+                                JProperty.require(IName.raw("damage_scale"), IJElement.raw(1.5), IComment.empty()
+                                        .append(IComment.text("Итоговый множитель урона. "))
+                                        .append(IComment.field("damage"))
+                                        .append(IComment.text(" * "))
+                                        .append(IComment.field("damage_scale"))
+                                        .append(IComment.text(" = "))
+                                        .append(IComment.text("итоговый урон").bold()))),
+                        IComment.empty()
+                                .append(IComment.text("Устанавливает множитель урона по мере существования пули в мире. Линейно изменяется с "))
+                                .append(IComment.raw(1))
+                                .append(IComment.text(" до "))
+                                .append(IComment.field("damage_scale"))),
+                JProperty.optional(IName.raw("bullet_action"), IJElement.link(docs.bulletAction()), IComment.text("Тип взаимодействия патрона")),
+                JProperty.optional(IName.raw("sound_hit"),
+                        IJElement.anyObject(JProperty.require(IName.link(docs.soundMaterial()), IJElement.link(docs.sound()))),
+                        IComment.text("Устанавливает звук попадания патрона"))
+        ), "Предмет является патроном");
     }
 }

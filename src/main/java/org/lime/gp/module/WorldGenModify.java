@@ -7,6 +7,7 @@ import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.LimitedRegion;
 import org.bukkit.generator.WorldInfo;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -15,8 +16,8 @@ import java.util.Random;
 import java.util.Set;
 
 public class WorldGenModify {
-    public static core.element create() {
-        return core.element.create(WorldGenModify.class)
+    public static CoreElement create() {
+        return CoreElement.create(WorldGenModify.class)
                 .withInit(WorldGenModify::init);
     }
     private static final boolean DEBUG = false;

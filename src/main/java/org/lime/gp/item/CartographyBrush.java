@@ -10,6 +10,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.JManager;
@@ -26,8 +27,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements system.IJson<JsonObject> {
-    public static core.element create() {
-        return core.element.create(CartographyBrush.class)
+    public static CoreElement create() {
+        return CoreElement.create(CartographyBrush.class)
                 .withInstance(new Listener() {
                     @EventHandler public void on(PlayerInteractEvent e) {
                         if (e.getHand() != EquipmentSlot.HAND) return;

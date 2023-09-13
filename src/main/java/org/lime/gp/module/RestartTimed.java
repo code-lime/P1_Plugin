@@ -1,5 +1,9 @@
 package org.lime.gp.module;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonPrimitive;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.server.MinecraftServer;
@@ -7,12 +11,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.system;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -24,8 +30,10 @@ public class RestartTimed extends CustomUI.GUI {
         return Collections.singleton(ImageBuilder.of(player, restart_message.val0).withColor(restart_message.val1));
     }
 
-    public static core.element create() {
-        return core.element.create(RestartTimed.class)
+    private static Calendar autoRestart = null;
+
+    public static CoreElement create() {
+        return CoreElement.create(RestartTimed.class)
                 .withInit(RestartTimed::init)
                 .addCommand("restart.timed", v -> v
                         .withCheck(ServerOperator::isOp)
@@ -64,6 +72,22 @@ public class RestartTimed extends CustomUI.GUI {
                             }
                             return false;
                         })
+                )
+                .addConfig("config", v -> v
+                        .withParent("auto_restart")
+                        .withDefault(JsonNull.INSTANCE)
+                        .withInvoke(json -> {
+                            if (json.isJsonNull()) {
+                                autoRestart = null;
+                                return;
+                            }
+                            Calendar now = system.getMoscowNow();
+                            Calendar autoRestart = (Calendar)now.clone();
+                            system.applyTime(autoRestart, json.getAsString());
+                            while (autoRestart.getTimeInMillis() <= now.getTimeInMillis()) autoRestart.add(Calendar.HOUR, 24);
+                            RestartTimed.autoRestart = autoRestart;
+                            lime.logOP("Enabled AutoRestart! Execute date: " + system.formatCalendar(autoRestart, true));
+                        })
                 );
     }
     public static Double restart_time = null;
@@ -73,7 +97,13 @@ public class RestartTimed extends CustomUI.GUI {
         double delta = 0.5;
         CustomUI.addListener(Instance);
         lime.repeat(() -> {
-            if (restart_time == null) return;
+            if (restart_time == null) {
+                if (autoRestart == null) return;
+                Calendar now = system.getMoscowNow();
+                if (autoRestart.getTimeInMillis() > now.getTimeInMillis()) return;
+                lime.logOP("Execute autorestart...");
+                restart_time = 120.0;
+            }
             restart_time -= delta;
             color = !color;
 
@@ -83,6 +113,9 @@ public class RestartTimed extends CustomUI.GUI {
                 minecraftServer.getPlayerList().saveAll();
                 minecraftServer.saveAllChunks(true, true, true);
                 lime.once(Bukkit::shutdown, 1);
+
+                Component server_shutdown = Component.translatable("multiplayer.disconnect.server_shutdown");
+                Bukkit.getOnlinePlayers().forEach(player -> player.kick(server_shutdown));
                 return;
             }
 

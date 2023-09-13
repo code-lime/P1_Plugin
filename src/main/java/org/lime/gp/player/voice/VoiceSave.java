@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 import org.bukkit.Location;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.admin.AnyEvent;
@@ -24,8 +25,8 @@ import de.maxhenkel.voicechat.api.opus.OpusDecoder;
 
 public class VoiceSave implements RadioElement {
     private static final VoiceSave instance = new VoiceSave();
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(VoiceSave.class)
+    public static CoreElement create() {
+        return CoreElement.create(VoiceSave.class)
                 .disable()
                 .withInstance(instance)
                 .withInit(VoiceSave::init)

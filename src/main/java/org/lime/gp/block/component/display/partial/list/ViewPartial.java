@@ -9,9 +9,13 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
-import org.lime.display.models.Model;
+import org.lime.display.ItemParser;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.partial.PartialEnum;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.extension.ItemNMS;
 
 import com.google.gson.JsonElement;
@@ -41,10 +45,12 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
 
     private final String model;
     private final double modelDistance;
-    private Model generic = null;
+    private IBuilder generic = null;
 
     public ViewPartial(int distanceChunk, JsonObject json) {
         super(distanceChunk, json);
+        this.item = ItemParser.readItem(json.get("view"));
+        /*
         JsonElement item = json.get("view");
         if (item.isJsonPrimitive()) {
             String[] args = item.getAsString().split("\\^");
@@ -60,7 +66,7 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
             ItemMeta meta = this.item.getItemMeta();
             if (_item.has("id")) meta.setCustomModelData(_item.get("id").getAsInt());
             this.item.setItemMeta(meta);
-        }
+        }*/
         this.back_angle = json.has("back_angle") ? json.get("back_angle").getAsDouble() : -1;
         if (json.has("offset")) {
             JsonObject offset = json.getAsJsonObject("offset");
@@ -83,7 +89,7 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
 
     private String parseModel(JsonElement json) {
         if (json.isJsonPrimitive()) return json.getAsString();
-        generic = lime.models.parse(json.getAsJsonObject());
+        generic = lime.models.builder().parse(json);
         return "#generic";
     }
 
@@ -100,11 +106,23 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
     }
 
     @Override public PartialEnum type() { return PartialEnum.Frame; }
-    @Override public String toString() {
-        return super.toString()+ "^" + item + "R" + rotation.angle;
+    @Override public String toString() { return super.toString()+ "^" + item + "R" + rotation.angle; }
+    @Override public Optional<system.Toast2<IBuilder, Double>> model() {
+        return Optional.ofNullable(generic).or(() -> model == null ? Optional.empty() : lime.models.get(model)).map(v -> system.toast(v, modelDistance));
     }
 
-    @Override public Optional<system.Toast2<Model, Double>> model() {
-        return Optional.ofNullable(generic).or(() -> model == null ? Optional.empty() : lime.models.get(model)).map(v -> system.toast(v, modelDistance));
+    public static JObject docs(IDocsLink docs, IIndexDocs variable) {
+        return BlockPartial.docs(docs, variable).addFirst(
+                JProperty.require(IName.raw("view"), IJElement.link(docs.parseItem()), IComment.text("Отображаемый модель-предмет")),
+                JProperty.optional(IName.raw("back_angle"), IJElement.raw(10), IComment.text("Угол за спиной на который не будет отображаться модель")),
+                JProperty.optional(IName.raw("offset"), JObject.of(
+                        JProperty.optional(IName.raw("rotation"), IJElement.raw(10), IComment.text("Относительный поворот модели")),
+                        JProperty.optional(IName.raw("translation"), IJElement.link(docs.vector()), IComment.text("Относительный сдвиг")),
+                        JProperty.optional(IName.raw("scale"), IJElement.link(docs.vector()), IComment.text("Относительный размер модели"))
+                ), IComment.text("Относительное преобразование модели")),
+                JProperty.optional(IName.raw("rotation"), IJElement.link(docs.rotation()), IComment.text("Поворот модели блока")),
+                JProperty.optional(IName.raw("model"), IJElement.link(docs.model()), IComment.text("Отображемая модель")),
+                JProperty.optional(IName.raw("model_distance"), IJElement.raw(10.0), IComment.text("Максимальная дальность отображения модели"))
+        );
     }
 }

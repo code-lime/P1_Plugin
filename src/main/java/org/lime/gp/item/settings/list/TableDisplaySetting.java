@@ -1,21 +1,22 @@
 package org.lime.gp.item.settings.list;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
-import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.display.models.Builder;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.extension.ItemNMS;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 import org.lime.gp.lime;
@@ -27,18 +28,17 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@Setting(name = "table_dispaly") @Setting(name = "table_display") public class TableDisplaySetting extends ItemSetting<JsonObject> {
+@Setting(name = "table_display") @Setting(name = "table_dispaly") public class TableDisplaySetting extends ItemSetting<JsonObject> {
     public enum TableType {
         inventory,
         converter,
         laboratory,
         clicker,
         crops,
+
         all;
 
-        public static Stream<TableDisplaySetting.TableType> all() {
-            return Stream.of(TableType.inventory, TableType.converter, TableType.laboratory, TableType.clicker, TableType.crops);
-        }
+        public static Stream<TableDisplaySetting.TableType> all() { return Stream.of(TableType.inventory, TableType.converter, TableType.laboratory, TableType.clicker, TableType.crops); }
     }
 
     public record Context(ItemDisplayContext display, Transformation transformation) {
@@ -147,34 +147,54 @@ import java.util.stream.Stream;
         });
     }
 
-    public static Builder builderItem(ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
+    public static net.minecraft.world.item.ItemStack builderItem(ItemStack item, TableDisplaySetting.TableType table, @Nullable String type) {
+        return Items.getOptional(TableDisplaySetting.class, item)
+                .flatMap(v -> v.of(table, type))
+                .map(v -> v.display(item))
+                .orElseGet(() -> CraftItemStack.asNMSCopy(item));
+    }
+    public static IBuilder builderItem(ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
         return Items.getOptional(TableDisplaySetting.class, item)
                 .flatMap(v -> v.of(table, type))
                 .map(v -> system.toast(v.display(item), v.context()))
                 .orElseGet(() -> system.toast(CraftItemStack.asNMSCopy(item), Optional.empty()))
-                .invokeGet((model, context) -> lime.models.builder(EntityTypes.ITEM_DISPLAY)
-                        .nbt(() -> {
-                            Display.ItemDisplay display = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, lime.MainWorld.getHandle());
-                            display.setItemTransform(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE));
-                            display.setTransformation(base.compose(context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)));
-                            return display;
-                        })
-                        .addEquipment(EnumItemSlot.HEAD, model)
+                .invokeGet((model, context) -> lime.models.builder().item()
+                        .item(model)
+                        .context(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE))
+                        .transform(base.compose(context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)))
                 );
     }
-    public static Builder builderItem(net.minecraft.world.item.ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
+    public static IBuilder builderItem(net.minecraft.world.item.ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
         return Items.getOptional(TableDisplaySetting.class, item)
                 .flatMap(v -> v.of(table, type))
                 .map(v -> system.toast(v.display(item), v.context()))
                 .orElseGet(() -> system.toast(item.copy(), Optional.empty()))
-                .invokeGet((model, context) -> lime.models.builder(EntityTypes.ITEM_DISPLAY)
-                        .nbt(() -> {
-                            Display.ItemDisplay display = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, lime.MainWorld.getHandle());
-                            display.setItemTransform(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE));
-                            display.setTransformation(base.compose(context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)));
-                            return display;
-                        })
-                        .addEquipment(EnumItemSlot.HEAD, model)
+                .invokeGet((model, context) -> lime.models.builder().item()
+                        .item(model)
+                        .context(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE))
+                        .transform(base.compose(context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)))
                 );
     }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup table_type = JsonEnumInfo.of("TABLE_TYPE", "table_type", TableType.class);
+        IIndexGroup table_info = JsonGroup.of("TABLE_INFO", "table_info", JObject.of(
+                JProperty.optional(IName.raw("material"), IJElement.link(docs.vanillaMaterial()), IComment.text("Изменение типа предмета")),
+                JProperty.optional(IName.raw("id"), IJElement.raw(10), IComment.empty()
+                        .append(IComment.text("Изменение"))
+                        .append(IComment.raw("id"))
+                        .append(IComment.text("предмета"))),
+                JProperty.optional(IName.raw("context"), IJElement.any(), IComment.warning("Будет удалено в последующем обновлении"))
+        ));
+        IIndexGroup table_key = JsonEnumInfo.of("TABLE_KEY", "table_key", ImmutableList.of(
+                IJElement.link(table_type),
+                IJElement.link(table_type).concat(":", IJElement.text("ANY_TYPE"))
+        ));
+
+        return JsonGroup.of(index, index, IJElement.anyObject(
+                JProperty.require(IName.link(table_key), IJElement.link(table_info))
+        ), "Устанавливает статус работы урона сплешом у меча")
+                .withChilds(table_type, table_key, table_info);
+    }
 }
+

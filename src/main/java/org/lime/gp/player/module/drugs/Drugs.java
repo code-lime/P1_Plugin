@@ -16,6 +16,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.EditedDataWatcher;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.PacketManager;
@@ -33,8 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Drugs implements Listener {
     public static final HashMap<UUID, GroupEffect> players = new HashMap<>();
 
-    public static core.element create() {
-        return core.element.create(Drugs.class)
+    public static CoreElement create() {
+        return CoreElement.create(Drugs.class)
                 .withInstance()
                 .withInit(Drugs::init)
                 .withUninit(Drugs::uninit);

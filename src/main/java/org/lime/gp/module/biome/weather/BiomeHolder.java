@@ -1,4 +1,4 @@
-package org.lime.gp.module.biome.time.weather;
+package org.lime.gp.module.biome.weather;
 
 import com.mojang.datafixers.util.Either;
 import net.minecraft.core.Holder;
@@ -17,13 +17,13 @@ public class BiomeHolder implements Holder<BiomeBase> {
     public final int index;
     public final String vanillaKey;
     public final SeasonKey seasonKey;
-    public final BiomeColors biomeColors;
+    public final BiomeData biomeData;
 
-    public BiomeHolder(int index, String vanillaKey, SeasonKey seasonKey, BiomeColors biomeColors) {
+    public BiomeHolder(int index, String vanillaKey, SeasonKey seasonKey, BiomeData biomeData) {
         this.index = index;
         this.vanillaKey = vanillaKey;
         this.seasonKey = seasonKey;
-        this.biomeColors = biomeColors;
+        this.biomeData = biomeData;
     }
 
     @Override public BiomeBase value() { return null; }
@@ -42,4 +42,6 @@ public class BiomeHolder implements Holder<BiomeBase> {
 
     @Override public b kind() { return b.DIRECT; }
     @Override public boolean canSerializeIn(HolderOwner<BiomeBase> owner) { return true; }
+
+    @Override public String toString() { return index + ":" + vanillaKey + "#" + seasonKey.key; }
 }

@@ -1,12 +1,15 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.BaseAgeableInstance;
 import org.lime.gp.block.component.data.ShrubInstance;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.system;
 
@@ -26,16 +29,12 @@ import org.lime.system;
         loot = ILoot.parse(json.get("loot"));
     }
 
-    @Override public ShrubInstance createInstance(CustomTileMetadata metadata) {
-        return new ShrubInstance(this, metadata);
-    }
+    @Override public double tickAgeModify() { return 1 / ageStepTicks.getValue(100.0); }
+    @Override public int limitAge() { return ageCount; }
 
-    @Override public double tickAgeModify() {
-        return 1 / ageStepTicks.getValue(100.0);
-    }
-    @Override public int limitAge() {
-        return ageCount;
-    }
+    @Override public ShrubInstance createInstance(CustomTileMetadata metadata) { return new ShrubInstance(this, metadata); }
+    @Override public Class<ShrubInstance> classInstance() { return ShrubInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }
 
 

@@ -27,13 +27,14 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.RemoteExecuteSetting;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.plugin.CoreElement;
 
 import java.util.*;
 
 @SuppressWarnings("unused")
 public class CustomUI implements Listener {
-    public static core.element create() {
-        return core.element.create(CustomUI.class)
+    public static CoreElement create() {
+        return CoreElement.create(CustomUI.class)
                 .withInit(CustomUI::init)
                 .withInstance()
                 .addEmpty("rp-up", CustomUI::up)

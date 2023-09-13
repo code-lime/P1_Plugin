@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.lime.Position;
 import org.lime.display.DisplayManager;
 import org.lime.display.ObjectDisplay;
-import org.lime.display.models.ChildDisplay;
+import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.instance.list.ModelDisplayObject;
 import org.lime.gp.module.TimeoutData;
@@ -25,7 +25,7 @@ public class BlockModelDisplay extends ObjectDisplay<ModelDisplayObject, Marker>
     public final BlockModelKey key;
 
     public ModelDisplayObject data;
-    public ChildDisplay<ModelDisplayObject> model;
+    public BaseChildDisplay<?, ModelDisplayObject, ?> model;
 
     @Override public boolean isFilter(Player player) {
         return data.hasViewer(player.getUniqueId());
@@ -34,13 +34,14 @@ public class BlockModelDisplay extends ObjectDisplay<ModelDisplayObject, Marker>
     private BlockModelDisplay(BlockModelKey key, ModelDisplayObject data) {
         this.key = key;
         this.data = data;
-        model = preInitDisplay(data.model().display(this));
+        model = data.model().display(this);
+        preInitDisplay(model);
         postInit();
     }
     @Override public void update(ModelDisplayObject data, double delta) {
         this.data = data;
         super.update(data, delta);
-        data.model().animation.apply(model.js, data.data());
+        data.model().animation().apply(model.js, data.data());
         this.invokeAll(this::sendData);
     }
 

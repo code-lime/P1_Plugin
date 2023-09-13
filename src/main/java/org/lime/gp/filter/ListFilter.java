@@ -12,15 +12,19 @@ public abstract class ListFilter<T extends IFilterData<T>> implements IFilter<T>
 
     public ListFilter(IFilterInfo<T> filterInfo, String argLine) {
         String[] argArray = argLine.split(Pattern.quote(";"));
+        if (argArray.length == 1 && argArray[0].isEmpty()) return;
         for (String argItem : argArray) {
             String[] kv = argItem.split(Pattern.quote("="), 2);
             String key = kv[0];
             String value = kv.length > 1 ? kv[1] : "";
             boolean negate = key.startsWith("!");
             if (negate) key = key.substring(1);
+            String _key = key;
             filterInfo.getParamInfo(key)
                     .<IFilter<T>>map(info -> negate ? info::emptyKey : info.createVariableFilter(value))
-                    .ifPresent(filters::add);
+                    .ifPresentOrElse(filters::add, () -> {
+                        throw new IllegalArgumentException("Filter key '"+_key+"' "+(negate ? "with negative " : "")+"not founded");
+                    });
 
             /*switch (key) {
                 case "this" -> filters.add(e -> e.getOptional(LootContextParameters.THIS_ENTITY)

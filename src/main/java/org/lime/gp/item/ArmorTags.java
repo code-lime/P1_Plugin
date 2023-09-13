@@ -2,6 +2,7 @@ package org.lime.gp.item;
 
 import org.bukkit.Bukkit;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.settings.list.ArmorTagSetting;
 import org.lime.gp.lime;
 
@@ -11,8 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ArmorTags {
-    public static core.element create() {
-        return core.element.create(ArmorTags.class)
+    public static CoreElement create() {
+        return CoreElement.create(ArmorTags.class)
                 .withInit(ArmorTags::init);
     }
 

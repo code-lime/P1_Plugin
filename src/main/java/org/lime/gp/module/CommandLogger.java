@@ -6,11 +6,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 
 public class CommandLogger implements Listener {
-    public static core.element create() {
-        return core.element.create(CommandLogger.class)
+    public static CoreElement create() {
+        return CoreElement.create(CommandLogger.class)
                 .withInstance();
     }
     @EventHandler(ignoreCancelled = true) public static void on(PlayerCommandPreprocessEvent event) {

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.bukkit.command.CommandSender;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 import com.google.gson.JsonObject;
@@ -21,7 +22,7 @@ public class branch {
                     .getAsJsonObject()
                     .entrySet()
                     .stream()
-                    .collect(Collectors.toMap(_kv -> _kv.getKey(), _kv -> _kv.getValue().getAsString()))));
+                    .collect(Collectors.toMap(Map.Entry::getKey, _kv -> _kv.getValue().getAsString()))));
             });
             return out;
         }
@@ -47,8 +48,8 @@ public class branch {
         }
     }
 
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(branch.class)
+    public static CoreElement create() {
+        return CoreElement.create(branch.class)
             .addCommand("branch.swap", v -> v
                 .withCheck(CommandSender::isOp)
                 .withTab((sender, args) -> args.length == 1 

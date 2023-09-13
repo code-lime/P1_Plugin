@@ -12,6 +12,7 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftOfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.rows.UserRow;
@@ -35,8 +36,8 @@ public class ResetUser {
         return value;
     }
 
-    public static core.element create() {
-        return core.element.create(ResetUser.class)
+    public static CoreElement create() {
+        return CoreElement.create(ResetUser.class)
                 .withInit(ResetUser::init)
                 .addCommand("reset.user", v -> v
                         .withUsage("/reset.user [uuid or dsid]")

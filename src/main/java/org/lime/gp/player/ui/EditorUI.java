@@ -1,5 +1,6 @@
 package org.lime.gp.player.ui;
 
+import io.papermc.paper.adventure.AdventureComponent;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.nbt.NBTTagCompound;
@@ -8,6 +9,10 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.EnumHand;
+import net.minecraft.world.TileInventory;
+import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.inventory.Container;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import org.bukkit.ChatColor;
@@ -19,19 +24,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.system;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 public final class EditorUI {
-    public static core.element create() {
-        return core.element.create(EditorUI.class)
+    public static CoreElement create() {
+        return CoreElement.create(EditorUI.class)
                 .withInit(EditorUI::init);
     }
 
@@ -55,17 +62,19 @@ public final class EditorUI {
 
     private static final HashMap<Player, IEditor<?>> inputs = new HashMap<>();
 
-    public static void update() {
-        inputs.entrySet().removeIf((kv)->!kv.getKey().isOnline());
-    }
+    public static void update() { inputs.entrySet().removeIf((kv)->!kv.getKey().isOnline()); }
 
+    public static void openInput(Player player, Component title, system.Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
+        openInput(((CraftPlayer)player).getHandle(), title, init);
+    }
+    public static void openInput(EntityHuman player, Component title, system.Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
+        player.openMenu(new TileInventory(init::invoke, new AdventureComponent(title)));
+    }
     public static void openSign(Player player, List<String> lines, system.Action1<List<String>> callback){
         new SignEditor(player, lines).callback(callback).open();
     }
-    public static void openBook(Player player, List<Component> pages){
-        new BookEditor(player, pages, false).open();
-    }
-    public static void openBook(Player player, List<Component> pages, system.Action1<List<String>> callback){
+    public static void openBook(Player player, List<Component> pages){ new BookEditor(player, pages, false).open(); }
+    public static void openBook(Player player, List<Component> pages, system.Action1<List<String>> callback) {
         new BookEditor(player, pages, true).callback(callback).open();
     }
 

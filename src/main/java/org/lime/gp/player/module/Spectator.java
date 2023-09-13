@@ -7,11 +7,12 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 
 public class Spectator {
-    public static core.element create() {
-        return core.element.create(Spectator.class)
+    public static CoreElement create() {
+        return CoreElement.create(Spectator.class)
                 .withInit(Spectator::init);
     }
     public static void init() {

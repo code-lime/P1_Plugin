@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.JsonNBT;
 import org.lime.gp.lime;
@@ -91,8 +92,8 @@ public class ProxyFoodMetaData extends FoodMetaData {
     @Override public void setExhaustion(float exhaustion) { mutate.setExhaustion(exhaustion); }
 
 
-    public static core.element create() {
-        return core.element.create(ProxyFoodMetaData.class)
+    public static CoreElement create() {
+        return CoreElement.create(ProxyFoodMetaData.class)
                 .withInit(ProxyFoodMetaData::init);
     }
     private static void init() {

@@ -3,6 +3,9 @@ package org.lime.gp.player.module.needs.food;
 import com.google.gson.JsonObject;
 import org.bukkit.Material;
 import org.lime.core;
+import org.lime.gp.item.data.Checker;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.settings.list.FoodSetting;
 import org.lime.gp.player.module.needs.INeedEffect;
 import org.lime.system;
@@ -57,8 +60,8 @@ public enum FoodType {
         throw new IllegalArgumentException("No enum constant " + FoodType.class.getCanonicalName() + "." + name);
     }
 
-    public static core.element create() {
-        return core.element.create(FoodType.class)
+    public static CoreElement create() {
+        return CoreElement.create(FoodType.class)
                 .<JsonObject>addConfig("food", v -> v
                         .withDefault(system.json.object()
                                 .add("vanilla", IsVanilla)
@@ -91,12 +94,21 @@ public enum FoodType {
                             Map<Material, Map<FoodType, FoodSetting.Info>> materialFood = new HashMap<>();
                             if (json.has("default")) json.getAsJsonObject("default")
                                     .entrySet()
-                                    .forEach(kv -> materialFood.put(Material.valueOf(kv.getKey()), kv.getValue()
-                                            .getAsJsonObject()
-                                            .entrySet()
-                                            .stream()
-                                            .collect(Collectors.toMap(_v -> FoodType.parse(_v.getKey()), _v -> FoodSetting.Info.of(_v.getValue().getAsJsonObject())))
-                                    ));
+                                    .forEach(kv -> {
+                                        Map<FoodType, FoodSetting.Info> info = kv.getValue()
+                                                .getAsJsonObject()
+                                                .entrySet()
+                                                .stream()
+                                                .collect(Collectors.toMap(_v -> FoodType.parse(_v.getKey()), _v -> FoodSetting.Info.of(_v.getValue().getAsJsonObject())));
+                                        system.Toast1<Boolean> isEmpty = system.toast(true);
+                                        Arrays.stream(Material.values())
+                                                .filter(system.<Material>filterRegex(Enum::name, kv.getKey())::invoke)
+                                                .forEach(material -> {
+                                                    isEmpty.val0 = false;
+                                                    materialFood.put(material, info);
+                                                });
+                                        if (isEmpty.val0) lime.logOP("Materials in '"+kv.getKey()+"' is EMPTY! Maybe error...");
+                                    });
 
                             Map<system.IRange, List<INeedEffect<?>>> needs = new HashMap<>();
                             if (json.has("needs")) json.get("needs").getAsJsonObject().entrySet().forEach(kv -> {

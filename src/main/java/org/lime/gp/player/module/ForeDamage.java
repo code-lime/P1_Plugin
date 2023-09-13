@@ -8,13 +8,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 
 public class ForeDamage implements Listener {
     private static double fore_damage = 1;
-    public static core.element create() {
-        return core.element.create(ForeDamage.class)
+    public static CoreElement create() {
+        return CoreElement.create(ForeDamage.class)
                 .withInstance()
                 .<JsonPrimitive>addConfig("config", v -> v.withParent("fore_damage").withDefault(new JsonPrimitive(0.25)).withInvoke(_v -> fore_damage = _v.getAsDouble()));
     }

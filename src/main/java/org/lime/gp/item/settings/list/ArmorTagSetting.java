@@ -1,7 +1,10 @@
 package org.lime.gp.item.settings.list;
 
 import com.google.gson.JsonElement;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 
@@ -15,5 +18,9 @@ import java.util.List;
         super(creator, json);
         if (json.isJsonArray()) json.getAsJsonArray().forEach(item -> tags.add(item.getAsString()));
         else tags.add(json.getAsString());
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw("TAG")), "Добавляет указанный список тэгов с префиксом `armor.` игроку при ношении");
     }
 }

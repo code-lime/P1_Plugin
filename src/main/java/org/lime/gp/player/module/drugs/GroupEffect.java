@@ -67,6 +67,10 @@ public class GroupEffect {
         double modifyDelta = delta * (health_timer > 0 ? 4 : 1);
         effects.values().removeIf(type -> type.tickRemove(player, modifyDelta));
         if (addiction_timer > 0) addiction_timer -= modifyDelta;
+
+        if (health_timer > 0) health_timer -= delta;
+        else if (health_timer < 0) health_timer = 0;
+
         return addiction_timer <= 0 && effects.isEmpty();
     }
 

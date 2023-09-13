@@ -18,6 +18,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
+import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
@@ -36,8 +39,8 @@ import org.lime.gp.player.voice.Voice;
 import net.kyori.adventure.text.Component;
 
 public class ChatMessages implements Listener {
-    public static core.element create() {
-        return core.element.create(ChatMessages.class)
+    public static CoreElement create() {
+        return CoreElement.create(ChatMessages.class)
                 .withInstance()
                 .withInit(ChatMessages::init)
                 .addCommand("sms", v -> v
@@ -54,41 +57,41 @@ public class ChatMessages implements Listener {
                 )
                 .addCommand("do", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.do", Apply.of().add("text", String.join(" ", args))))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.DO, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("me", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.me", Apply.of().add("text", String.join(" ", args))))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.ME, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("news", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.news", Apply.of().add("text", String.join(" ", args))))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.NEWS, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[сообщение]")
                 )
                 .addCommand("news.test", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.news.test", Apply.of().add("text", String.join(" ", args))))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.NEWS_TEST, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[сообщение]")
                 )
                 .addCommand("now", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.time"))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.TIME))
                 )
                 .addCommand("try", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.try", Apply.of().add("text", String.join(" ", args))))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.TRY, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("trydo", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.show((Player) sender, "lang.trydo", Apply.of().add("text", String.join(" ", args))))
+                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.TRYDO, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("stats", v -> v
                         .withCheck(_v -> _v instanceof Player)
-                        .withExecutor(sender -> MenuCreator.show((Player) sender, "lang.stats"))
+                        .withExecutor(sender -> MenuCreator.showLang((Player) sender, LangEnum.STATS))
                 )
                 .addCommand("chat.test", v -> v
                         .withCheck(ServerOperator::isOp)
@@ -188,6 +191,10 @@ public class ChatMessages implements Listener {
                 );
     }
 
+    public static void showHeadText(UUID uuid, String message) {
+        sendList.put(uuid, new ChatMessages.SendData(message));
+    }
+
     @EventHandler
     @Deprecated
     public static void on(org.bukkit.event.player.PlayerChatEvent e) {
@@ -196,17 +203,16 @@ public class ChatMessages implements Listener {
         String message = e.getMessage();
         Player owner = e.getPlayer();
         UUID uuid = owner.getUniqueId();
-        MenuCreator.show(owner, "lang.chat", Apply.of().add("text", message));
+        MenuCreator.showLang(owner, LangEnum.CHAT, Apply.of().add("text", message));
         if (Voice.isMute(uuid)) return;
         lime.log("[CHAT] " + owner.getName() + ": " + message);
         RadioData.getData(owner.getInventory().getItemInMainHand()).filter(v -> v.enable).filter(v -> v.state.isInput).ifPresent(radio -> {
-            MenuCreator.show(owner, "lang.radio", Apply.of()
+            MenuCreator.showLang(owner, LangEnum.RADIO, Apply.of()
                     .add("text", message)
                     .add("radio_level", String.valueOf(radio.level))
                     .add("radio_distance", String.valueOf(radio.total_distance))
             );
         });
-        sendList.put(uuid, new SendData(message));
     }
 
     public static void smsFast(Player player, UserRow user, int phone, Methods.CallType type, String message) {
@@ -227,10 +233,10 @@ public class ChatMessages implements Listener {
             return;
         }
         Cooldown.setCooldown(uuid, key, 90);
-        MenuCreator.show(player, "lang.sms.display");
+        MenuCreator.showLang(player, LangEnum.SMS_DISPLAY);
         lime.once(() -> {
             LangMessages.Message.Sms_Done.sendMessage(player, Apply.of().add("phone", String.valueOf(phone)));
-            Methods.callLog(user.id, type, message, log_id -> MenuCreator.show("lang.sms.call", Apply.of().add("log_id", String.valueOf(log_id))));
+            Methods.callLog(user.id, type, message, log_id -> MenuCreator.showLang(LangEnum.SMS_CALL, Apply.of().add("log_id", String.valueOf(log_id))));
         }, 1);
     }
     public static boolean sms(CommandSender sender, Command command, String label, String[] args) {
@@ -273,8 +279,8 @@ public class ChatMessages implements Listener {
                             LangMessages.Message.Sms_Error_Ignore.sendMessage(player, Apply.of().add(row));
                             return;
                         }
-                        MenuCreator.show(player, "lang.sms.display");
-                        lime.once(() -> Methods.smsLog(user.id, row.id, message, message_id -> MenuCreator.show(player, "lang.sms", Apply.of().add("message_id", String.valueOf(message_id)))), 1);
+                        MenuCreator.showLang(player, LangEnum.SMS_DISPLAY);
+                        lime.once(() -> Methods.smsLog(user.id, row.id, message, message_id -> MenuCreator.showLang(player, LangEnum.SMS, Apply.of().add("message_id", String.valueOf(message_id)))), 1);
                     });
                 }, () -> LangMessages.Message.Sms_Error_PhoneNotFounded.sendMessage(player));
             };

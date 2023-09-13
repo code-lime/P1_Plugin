@@ -30,24 +30,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.lime.display.models.Builder;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.EntityBuilder;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.display.models.shadow.NoneBuilder;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.event.BlockMarkerEventInteract;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.LaboratoryComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.craft.book.ContainerWorkbenchBook;
-import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.settings.list.*;
+import org.lime.gp.item.settings.list.TableDisplaySetting;
+import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
@@ -59,9 +62,9 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Displayable, BlockDisplay.Interactable, CustomTileMetadata.Interactable, CustomTileMetadata.Childable, CustomTileMetadata.Tickable, CustomTileMetadata.Damageable, CustomTileMetadata.Lootable {
+public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Displayable, BlockDisplay.Interactable, CustomTileMetadata.Interactable, CustomTileMetadata.Childable, CustomTileMetadata.Tickable, CustomTileMetadata.Damageable, CustomTileMetadata.Lootable, IDisplayVariable {
     @Override public LaboratoryComponent component() { return (LaboratoryComponent)super.component(); }
-    private final Model model_interact;
+    private final IBuilder model_interact;
     public LaboratoryInstance(LaboratoryComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
         this.model_interact = component.model_interact;
@@ -69,8 +72,8 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         items = Arrays.stream(SlotType.values()).collect(ImmutableMap.toImmutableMap(type -> type, type -> system.func(type.thirst ? WaterLaboratorySlot::new : ItemLaboratorySlot::new).invoke(component(), type)));
     }
 
-    public static Model createInteract(LaboratoryComponent component) {
-        Builder builder = lime.models.builder();
+    public static IBuilder createInteract(LaboratoryComponent component) {
+        NoneBuilder builder = lime.models.builder().none();
         List<LocalLocation> input_thirst = component.input_thirst;
         for (int i = 0; i < Math.min(3, input_thirst.size()); i++) {
             SlotType type = SlotType.slotOfIndex(i, true);
@@ -80,10 +83,11 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                             .local(input_thirst.get(i))
                     );
         }
-        return builder.build();
+        return builder;
     }
 
-    private static final Builder builder_interact = lime.models.builder(EntityTypes.ARMOR_STAND)
+    private static final EntityBuilder builder_interact = lime.models.builder().entity()
+            .entity(EntityTypes.ARMOR_STAND)
             .nbt(() -> {
                 EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                 stand.setNoBasePlate(true);
@@ -99,14 +103,14 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
     @Override public Stream<? extends CustomTileMetadata.Element> childs() { return items.values().stream(); }
 
     private class ItemLaboratorySlot extends LaboratorySlot implements BlockDisplay.Displayable {
-        private system.LockToast1<Model> model;
+        private system.LockToast1<IBuilder> model;
         public ItemLaboratorySlot(LaboratoryComponent component, SlotType type) {
             super(component, type);
         }
         @Override public ItemLaboratorySlot set(ItemStack item) {
             super.set(item);
-            if (model == null) model = system.<Model>toast(null).lock();
-            this.model.set0(lime.models.builder()
+            if (model == null) model = system.<IBuilder>toast(null).lock();
+            this.model.set0(lime.models.builder().none()
                     .local(local)
                     .addChild(builder_interact
                             .nbt(v -> v.putBoolean("Invulnerable", true))
@@ -115,8 +119,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                                     .flatMap(v -> v.of(TableDisplaySetting.TableType.laboratory, null))
                                     .map(v -> v.display(item))
                                     .orElseGet(() -> CraftItemStack.asNMSCopy(item)))
-                    )
-                    .build());
+                    ));
             LaboratoryInstance.this.metadata()
                 .list(DisplayInstance.class)
                 .forEach(DisplayInstance::variableDirty);
@@ -207,7 +210,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             this.thirst = thirst;
         }
 
-        public static Optional<SlotType> slotOf(List<String> keys) {
+        public static Optional<SlotType> slotOf(Collection<String> keys) {
             for (SlotType type : SlotType.values())
                 if (keys.contains(type.key))
                     return Optional.of(type);
@@ -402,7 +405,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         });
         syncDisplayVariable();
     }
-    private void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
             for (LaboratorySlot slot : items.values())
                 if (slot instanceof WaterLaboratorySlot waterSlot)

@@ -5,11 +5,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 
 public class TreeGenerator implements Listener {
-    public static core.element create() {
-        return core.element.create(TreeGenerator.class)
+    public static CoreElement create() {
+        return CoreElement.create(TreeGenerator.class)
                 .withInstance();
     }
 

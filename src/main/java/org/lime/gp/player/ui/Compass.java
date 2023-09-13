@@ -8,13 +8,14 @@ import org.bukkit.util.Vector;
 import org.lime.gp.lime;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.module.EntityPosition;
+import org.lime.plugin.CoreElement;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Compass {
-    public static core.element create() {
-        return core.element.create(Compass.class)
+    public static CoreElement create() {
+        return CoreElement.create(Compass.class)
                 .withInit(Compass::init);
     }
 

@@ -16,6 +16,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutLogin;
 import net.minecraft.server.MinecraftServer;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
@@ -28,8 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class BiomeModify {
-    public static core.element create() {
-        return core.element.create(BiomeModify.class)
+    public static CoreElement create() {
+        return CoreElement.create(BiomeModify.class)
                 .withInit(BiomeModify::init);
     }
 

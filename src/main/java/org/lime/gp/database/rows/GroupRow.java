@@ -1,6 +1,5 @@
 package org.lime.gp.database.rows;
 
-import net.kyori.adventure.text.format.TextColor;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 
@@ -17,5 +16,5 @@ public class GroupRow extends BaseRow {
         city = MySql.readObjectOptional(set, "id_city", Integer.class);
     }
 
-    public static Optional<GroupRow> getBy(int group) { return Tables.GROUPS_TABLE.get(group + ""); }
+    public static Optional<GroupRow> getBy(int group) { return Tables.GROUPS_TABLE.get(String.valueOf(group)); }
 }

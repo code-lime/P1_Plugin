@@ -12,6 +12,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.potion.PotionEffect;
 import org.lime.display.Displays;
 import org.lime.gp.admin.Administrator;
@@ -21,6 +22,7 @@ import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.entity.component.data.BackPackInstance;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.UseSetting;
 import org.lime.gp.item.Vest;
@@ -31,6 +33,7 @@ import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.level.LevelModule;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.player.module.drugs.Drugs;
@@ -48,6 +51,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -64,21 +68,24 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.system;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class Death implements Listener {
     private static Location DEFAULT_SPAWN_LOCATION;
     private static Map<Integer, Location> SPAWN_LOCATIONS = new HashMap<>();
+    private static boolean DEATH_VOICE_ENABLE = true;
 
     public static Location getSpawnLocation(UUID uuid) {
+        //UserRow.getBy(uuid).flatMap(UserRow::getCityID).ifPresentOrElse(city -> lime.logOP("CITY: " + city), () -> lime.logOP("CITY: EMPTY"));
         return UserRow.getBy(uuid).flatMap(UserRow::getCityID).map(SPAWN_LOCATIONS::get).orElse(DEFAULT_SPAWN_LOCATION);
     }
     public static Location getSpawnLocation(Player player) {
         return getSpawnLocation(player.getUniqueId());
     }
 
-    public static core.element create() {
-        return core.element.create(Death.class)
+    public static CoreElement create() {
+        return CoreElement.create(Death.class)
                 .withInit(Death::init)
                 .withUninit(Death::uninit)
                 .addConfig("config", v -> v
@@ -102,6 +109,11 @@ public class Death implements Listener {
                             }
                         })
                 )
+                .<JsonPrimitive>addConfig("config", v -> v
+                        .withParent("death_voice")
+                        .withDefault(new JsonPrimitive(DEATH_VOICE_ENABLE))
+                        .withInvoke(json -> DEATH_VOICE_ENABLE = json.getAsBoolean())
+                )
                 .withInstance();
     }
 
@@ -109,14 +121,16 @@ public class Death implements Listener {
         public final Player player;
         public final Location location;
         public final long dieTime;
+        public final Entity killer;
         public long showTimes;
         private static final long showTimesTotal = 60 * 1000;
         public boolean canKill = false;
 
-        public DieInfo(Player player) {
+        public DieInfo(Player player, @Nullable Entity killer) {
             this.player = player;
             this.location = player.getLocation().clone();
             this.dieTime = System.currentTimeMillis();
+            this.killer = killer;
 
             showTimes = dieTime;
         }
@@ -125,7 +139,7 @@ public class Death implements Listener {
             long now = System.currentTimeMillis();
             if (now <= showTimes) return;
             long time = (showTimes - dieTime) / 1000;
-            MenuCreator.show(player, "lang.die_timer", Apply.of().add("time", String.valueOf(time)));
+            MenuCreator.showLang(player, LangEnum.DIE_TIMER, Apply.of().add("time", String.valueOf(time)));
             showTimes = showTimesTotal + now;
         }
         public boolean canKill() { return canKill; }
@@ -133,8 +147,26 @@ public class Death implements Listener {
         public void up() { lime.unLay(player); }
     }
     private static final HashMap<UUID, DieInfo> dieCooldown = new HashMap<>();
+    public enum State {
+        NONE(0),
+        CANT_DIE(1),
+        CAN_DIE(2);
+
+        public final int index;
+
+        State(int index) {
+            this.index = index;
+        }
+    }
+    public static State getDamageState(UUID uuid) {
+        DieInfo info = dieCooldown.get(uuid);
+        return info == null ? State.NONE : info.canKill ? State.CAN_DIE : State.CANT_DIE;
+    }
     public static boolean isDamageLay(UUID uuid) {
         return dieCooldown.containsKey(uuid);
+    }
+    public static boolean isDeathMute(UUID uuid) {
+        return !DEATH_VOICE_ENABLE && dieCooldown.containsKey(uuid);
     }
 
     private static final HashSet<UUID> nextSets = new HashSet<>();
@@ -170,7 +202,7 @@ public class Death implements Listener {
             Player other = Bukkit.getPlayer(other_uuid);
             if (other == null) return;
             UseSetting.timeUse(player, other, 10 * 20, (_player, _other) -> dieCooldown.containsKey(other_uuid), (_player, _other) -> {
-                if (up(other))
+                if (up(other) != null)
                     _other.setHealth(4);
             }, (_player, _other) -> {});
         });
@@ -247,8 +279,8 @@ public class Death implements Listener {
         return builder.append(system.json.builder.byObject(item.getItemMeta().serialize()).build().toString());
     }
     public static void kill(Player player, Reason reason) {
+        DieInfo dieInfo = up(player);
         Knock.unKnock(player);
-        up(player);
         HandCuffs.unLockAny(player);
         TargetMove.unTarget(player.getUniqueId());
 
@@ -314,7 +346,7 @@ public class Death implements Listener {
             if (!dropped.isEmpty()) BackPackInstance.dropItems(player, location, dropped);
         }
         inventory.clear();
-        player.setHealth(2);
+        player.setHealth(6);
         player.setExp(0);
         player.setLevel(0);
         player.setFireTicks(0);
@@ -328,7 +360,7 @@ public class Death implements Listener {
         Thirst.thirstValue(player, 6*2);
         Thirst.thirstStateReset(player);
         LevelModule.dieAction(player);
-        JavaScript.invoke("player_die('"+player.getUniqueId()+"')");
+        JavaScript.invoke("player_die('"+player.getUniqueId()+"',"+Optional.ofNullable(dieInfo).map(v -> v.killer).map(Entity::getUniqueId).map(v -> "'" + v + "'").orElse("null")+")");
         Infection.clear_kill(player);
         player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
         dieCooldown.remove(player.getUniqueId());
@@ -338,13 +370,13 @@ public class Death implements Listener {
         for (int i = 0; i < 5; i++) lime.onceTicks(() -> player.teleport(spawnLocation), i * 2);
         lime.once(() -> LangMessages.Message.Medic_Teleport_Die.sendMessage(player), 2);
     }
-    public static boolean up(UUID player) {
+    public static @Nullable DieInfo up(UUID player) {
         DieInfo dieInfo = dieCooldown.remove(player);
-        if (dieInfo == null) return false;
+        if (dieInfo == null) return null;
         dieInfo.up();
-        return true;
+        return dieInfo;
     }
-    public static boolean up(Player player) {
+    public static @Nullable DieInfo up(Player player) {
         return up(player.getUniqueId());
     }
     private static final ParticleBuilder BLOOD = Particle.BLOCK_CRACK
@@ -352,7 +384,8 @@ public class Death implements Listener {
             .data(Material.REDSTONE_BLOCK.createBlockData())
             .count(10)
             .offset(0.1, 0.1, 0.1);
-    private static final PotionEffect BLINDNESS = PotionEffectType.BLINDNESS.createEffect(40, 1).withParticles(false).withAmbient(false).withIcon(false);
+    private static final PotionEffect BLINDNESS = PotionEffectType.BLINDNESS.createEffect(60, 1).withParticles(false).withAmbient(false).withIcon(false);
+    private static final PotionEffect DARKNESS = PotionEffectType.DARKNESS.createEffect(60, 1).withParticles(false).withAmbient(false).withIcon(false);
     //private static final PotionEffect INVISIBILITY = PotionEffectType.INVISIBILITY.createEffect(20, 1).withParticles(false).withAmbient(false).withIcon(false);
 
     public static void updateLock() {
@@ -377,6 +410,7 @@ public class Death implements Listener {
             Location location = info.location.clone();
             location.add(0, 1, 0);
             location.setY(TargetMove.getHeight(location.getBlock()));
+            lime.unSit(player);
             GSitAPI.createPose(location.getBlock(), player, Pose.SLEEPING, location.getX() % 1, location.getY() % 1 + 0.5, location.getZ() % 1, location.getYaw(), false);
             return false;
         });
@@ -384,6 +418,7 @@ public class Death implements Listener {
             if (!(Bukkit.getPlayer(kv.getKey()) instanceof CraftPlayer player)) return true;
             if (kv.setValue(kv.getValue() - 1) > 0) return false;
             player.addPotionEffect(BLINDNESS);
+            player.addPotionEffect(DARKNESS);
             return true;
         });
         Bukkit.getOnlinePlayers().forEach(player -> {
@@ -428,20 +463,23 @@ public class Death implements Listener {
     }
     @EventHandler public static void on(PlayerQuitEvent e) {
         Player player = e.getPlayer();
-        if (dieCooldown.remove(player.getUniqueId()) == null) return;
+        if (!dieCooldown.containsKey(player.getUniqueId())) return;
         kill(player, Reason.DISCONNECT);
     }
     @EventHandler public static void on(PlayerDeathEvent e) {
         Player player = e.getEntity();
         UUID uuid = player.getUniqueId();
         e.setCancelled(true);
-        if (dieCooldown.remove(uuid) == null) {
+        if (!dieCooldown.containsKey(uuid)) {
             EntityDamageEvent damage = player.getLastDamageCause();
+            Entity killer = null;
             if (damage != null) {
-                if (damage instanceof EntityDamageByEntityEvent ee && ee.getDamager() instanceof Mob mob)
+                if (damage instanceof EntityDamageByEntityEvent ee && (killer = ee.getDamager()) instanceof Mob mob)
                     mob.setTarget(null);
             }
-            dieCooldown.put(uuid, new DieInfo(player));
+            //lime.logOP("Killer: " + killer);
+            //lime.logOP("PlayerKiller: " + ExtMethods.damagerPlayer(killer).orElse(null));
+            dieCooldown.put(uuid, new DieInfo(player, ExtMethods.damagerPlayer(killer).orElse(null)));
             return;
         }
         kill(player, Reason.KILL);
@@ -469,7 +507,7 @@ public class Death implements Listener {
                 if (damage > 1) damage = 1;
                 if (damage > 0 && system.rand_is((damage + 0.2) / 1.2) && player.getWorld() == lime.MainWorld) {
                     player.addScoreboardTag("leg.broken");
-                    MenuCreator.show(player, "lang.me", Apply.of().add("key", "LEG_BROKEN"));
+                    MenuCreator.showLang(player, LangEnum.ME, Apply.of().add("key", "LEG_BROKEN"));
                 }
                 break;
             default:

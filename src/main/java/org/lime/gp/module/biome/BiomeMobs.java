@@ -1,6 +1,5 @@
 package org.lime.gp.module.biome;
 
-import com.destroystokyo.paper.event.entity.PreCreatureSpawnEvent;
 import com.google.gson.JsonObject;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -24,12 +23,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.util.Vector;
-import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.lime;
-import org.lime.gp.module.biome.time.weather.Weather;
-import org.lime.gp.module.biome.time.weather.WeatherType;
+import org.lime.gp.module.biome.weather.Weather;
+import org.lime.gp.module.biome.weather.WeatherType;
 import org.lime.gp.module.mobs.DespawnData;
 import org.lime.gp.module.mobs.IPopulateSpawn;
 import org.lime.gp.module.mobs.Parameters;
@@ -41,9 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class BiomeMobs implements Listener {
-    public static core.element create() {
+    public static CoreElement create() {
         ReflectionAccess.category_EntityTypes.set(EntityTypes.WOLF, EnumCreatureType.MONSTER);
-        return core.element.create(BiomeMobs.class)
+        return CoreElement.create(BiomeMobs.class)
                 .withInstance()
                 .withInit(BiomeMobs::init)
                 .<JsonObject>addConfig("biomes", v -> v
@@ -188,7 +187,7 @@ public class BiomeMobs implements Listener {
         spawn.generateMob(populate).ifPresent(creator -> lime.nextTick(() -> {
             if (e.isCancelled()) return;
             Entity spawned = creator.spawn(world, new Vec3D(pos.getX(), pos.getY(), pos.getZ()));
-            spawned.spawnReason = handle.spawnReason;
+            if (spawned != null) spawned.spawnReason = handle.spawnReason;
             e.getEntity().remove();
         }));
     }

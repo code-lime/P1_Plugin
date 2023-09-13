@@ -13,7 +13,10 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
 import net.minecraft.world.entity.monster.EntityStrider;
 import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.entity.player.PlayerArrowCriticalEvent;
+import net.minecraft.world.entity.player.PlayerAttackMultiplyCriticalEvent;
 import net.minecraft.world.entity.player.PlayerAttackStrengthResetEvent;
+import net.minecraft.world.entity.projectile.EntityArrow;
 import net.minecraft.world.entity.projectile.EntityThrownTrident;
 import net.minecraft.world.entity.projectile.EntityTridentBaseDamageEvent;
 import net.minecraft.world.food.FoodMetaData;
@@ -21,6 +24,8 @@ import net.minecraft.world.food.IFoodNative;
 import net.minecraft.world.inventory.ContainerGrindstone;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeRepair;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.SnowAccumulationHeightEvent;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.BiomeTemperatureEvent;
 import net.minecraft.world.level.block.BlockSkull;
@@ -257,7 +262,7 @@ class MutatePatcher {
                 .patchMethod(IMethodFilter.of(system.action(EntityHuman::attack)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int index = 0;
-                            private  int var_flag = 0;
+                            private int var_flag = 0;
                             @Override public void visitLineNumber(int line, Label start) {
                                 super.visitLineNumber(line, start);
                                 if (index == 2) {
@@ -265,15 +270,8 @@ class MutatePatcher {
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
                                     super.visitVarInsn(Opcodes.ILOAD, var_flag);
                                     Native.writeMethod(system.func(EntityAttackSweepEvent::execute), super::visitMethodInsn);
-                                    /*super.visitMethodInsn(
-                                            Opcodes.INVOKESTATIC,
-                                            "net/minecraft/world/entity/EntityAttackSweepEvent",
-                                            "execute",
-                                            Type.getMethodDescriptor(Type.BOOLEAN_TYPE, Type.getType(EntityHuman.class), Type.BOOLEAN_TYPE),
-                                            false
-                                    );*/
                                     super.visitVarInsn(Opcodes.ISTORE, var_flag);
-                                    Native.log("Event added");
+                                    Native.log("Event added `EntityAttackSweepEvent`");
                                 }
                             }
                             @Override public void visitVarInsn(int opcode, int var) {
@@ -286,6 +284,25 @@ class MutatePatcher {
                             @Override public void visitTypeInsn(int opcode, String type) {
                                 if (opcode == Opcodes.INSTANCEOF && index == 0 && type.equals(Type.getInternalName(ItemSword.class))) index++;
                                 super.visitTypeInsn(opcode, type);
+                            }
+
+                            private int critical = 0;
+                            @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                                if (critical == 0 && Native.isMethod(system.func(EntityHuman::isSprinting), owner, name, descriptor)) {
+                                    critical = 1;
+                                }
+                            }
+
+                            @Override public void visitLdcInsn(Object value) {
+                                super.visitLdcInsn(value);
+                                if (critical == 1 && value instanceof Float raw && raw == 1.5) {
+                                    critical = 2;
+                                    super.visitVarInsn(Opcodes.ALOAD, 0);
+                                    super.visitVarInsn(Opcodes.ALOAD, 1);
+                                    Native.writeMethod(system.func(PlayerAttackMultiplyCriticalEvent::execute), super::visitMethodInsn);
+                                    Native.log("Event added `PlayerAttackMultiplyCriticalEvent`");
+                                }
                             }
                         }))
                 .patchMethod(IMethodFilter.of(system.action(EntityHuman::tick)),
@@ -487,14 +504,44 @@ class MutatePatcher {
                         }))
                 .patchMethod(IMethodFilter.of(system.action(WorldServer::tickChunk)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                            private int snowAccumulation = 0;
                             @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-                                if (opcode == Opcodes.GETSTATIC && Native.isField(system.func(() -> Blocks.ICE), owner, name, descriptor)) {
-                                    Native.FieldInfo FROSTED_ICE = Native.infoFromField(system.func(() -> Blocks.FROSTED_ICE));
-                                    super.visitFieldInsn(opcode, FROSTED_ICE.owner(), FROSTED_ICE.name(), FROSTED_ICE.descriptor());
-                                    Native.log("Replace ice");
-                                    return;
+                                if (opcode == Opcodes.GETSTATIC) {
+                                    if (Native.isField(system.func(() -> Blocks.ICE), owner, name, descriptor)) {
+                                        Native.FieldInfo FROSTED_ICE = Native.infoFromField(system.func(() -> Blocks.FROSTED_ICE));
+                                        super.visitFieldInsn(opcode, FROSTED_ICE.owner(), FROSTED_ICE.name(), FROSTED_ICE.descriptor());
+                                        Native.log("Replace ice");
+                                        return;
+                                    } else if (snowAccumulation == 0 && Native.isField(system.func(() -> GameRules.RULE_SNOW_ACCUMULATION_HEIGHT), owner, name, descriptor)) {
+                                        snowAccumulation = 1;
+                                        Native.log("SnowAccumulation: 0 -> 1");
+                                    }
                                 }
                                 super.visitFieldInsn(opcode, owner, name, descriptor);
+                            }
+
+                            private int maxHeightVar = -1;
+                            @Override public void visitVarInsn(int opcode, int varIndex) {
+                                if (snowAccumulation == 1 && opcode == Opcodes.ISTORE) {
+                                    maxHeightVar = varIndex;
+                                    snowAccumulation = 2;
+                                    Native.log("SnowAccumulation: 1 -> 2");
+                                }
+                                super.visitVarInsn(opcode, varIndex);
+                            }
+                            @Override public void visitInsn(int opcode) {
+                                if (snowAccumulation == 2 && opcode == Opcodes.POP) {
+                                    super.visitIntInsn(Opcodes.ALOAD, 0);
+                                    super.visitIntInsn(Opcodes.ALOAD, 1);
+                                    super.visitIntInsn(Opcodes.ILOAD, maxHeightVar);
+                                    Native.writeMethod(system.action(SnowAccumulationHeightEvent::execute), super::visitMethodInsn);
+                                    super.visitIntInsn(Opcodes.ISTORE, maxHeightVar);
+                                    snowAccumulation = 3;
+                                    Native.log("SnowAccumulation: 2 -> 3");
+                                    Native.log("Event SnowAccumulationHeightEvent added");
+                                    return;
+                                }
+                                super.visitInsn(opcode);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(system.func(BiomeBase::getTemperature)),
@@ -579,6 +626,75 @@ class MutatePatcher {
                                 }
                                 super.visitLdcInsn(value);
                             }
+                        }))
+                .patchMethod(IMethodFilter.of(EntityArrow.class, "onHitEntity", Type.getMethodType(Type.VOID_TYPE, Type.getType(MovingObjectPositionEntity.class)), true),
+                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                            int critical = 0;
+                            int var_damage = -1;
+                            @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                                if (critical == 0 && Native.isMethod(system.func(EntityArrow::isCritArrow), owner, name, descriptor))
+                                    critical = 1;
+                            }
+
+                            @Override public void visitJumpInsn(int opcode, Label label) {
+                                if (critical == 1 && opcode == Opcodes.IFEQ) {
+                                    critical = 2;
+                                    opcode = Opcodes.GOTO;
+                                }
+                                super.visitJumpInsn(opcode, label);
+                            }
+
+                            @Override public void visitVarInsn(int opcode, int varIndex) {
+                                if (critical == 2 && opcode == Opcodes.ISTORE) {
+                                    critical = 3;
+                                    var_damage = varIndex;
+                                }
+                                super.visitVarInsn(opcode, varIndex);
+                            }
+                            @Override public void visitLineNumber(int line, Label start) {
+                                super.visitLineNumber(line, start);
+                                if (critical == 3) {
+                                    critical = 4;
+                                    super.visitVarInsn(Opcodes.ILOAD, var_damage);
+                                    super.visitVarInsn(Opcodes.ALOAD, 0);
+                                    super.visitVarInsn(Opcodes.ALOAD, 1);
+                                    Native.writeMethod(system.func(PlayerArrowCriticalEvent::execute), super::visitMethodInsn);
+                                    Native.log("Event added `PlayerArrowCriticalEvent`");
+                                    super.visitVarInsn(Opcodes.ISTORE, var_damage);
+                                }
+                            }
+                            /*
+FRAME SAME
+    ALOAD 0
+    INVOKEVIRTUAL net/minecraft/world/entity/projectile/EntityArrow.isCritArrow ()Z
+    IFEQ L14
+L15
+    LINENUMBER 371 L15
+    ALOAD 0
+    GETFIELD net/minecraft/world/entity/Entity.random : Lnet/minecraft/util/RandomSource;
+    ILOAD 4
+    ICONST_2
+    IDIV
+    ICONST_2
+    IADD
+    INVOKEINTERFACE net/minecraft/util/RandomSource.nextInt (I)I (itf)
+    I2L
+    LSTORE 5
+L16
+    LINENUMBER 373 L16
+    LLOAD 5
+    ILOAD 4
+    I2L
+    LADD
+    LDC 2147483647
+    INVOKESTATIC java/lang/Math.min (JJ)J
+    L2I
+    ISTORE 4
+L14
+    LINENUMBER 376 L14
+FRAME SAME
+                            */
                         }))
                 .patchMethod(IMethodFilter.of(system.func(EntityStrider::getControllingPassenger)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {

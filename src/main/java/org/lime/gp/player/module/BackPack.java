@@ -8,8 +8,10 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
-import org.lime.display.models.ChildDisplay;
-import org.lime.display.models.Model;
+import org.lime.display.models.display.ChildEntityDisplay;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.EntityBuilder;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
@@ -26,24 +28,24 @@ import net.minecraft.world.entity.decoration.EntityArmorStand;
 import net.minecraft.world.item.ItemStack;
 
 public class BackPack {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(BackPack.class)
+    public static CoreElement create() {
+        return CoreElement.create(BackPack.class)
                 .withInit(BackPack::init);
     }
     private static final BackPackManager manager = new BackPackManager();
-    private static final Model model = lime.models.builder(EntityTypes.ARMOR_STAND)
-        .nbt(() -> {
-            EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
-            stand.setNoBasePlate(true);
-            stand.setSmall(true);
-            stand.setInvisible(true);
-            stand.setInvulnerable(true);
-            stand.setMarker(true);
-            stand.setHeadPose(new Vector3f(0, 0, 0));
-            return stand;
-        })
-        .addEquipment(EnumItemSlot.HEAD, net.minecraft.world.item.ItemStack.EMPTY)
-        .build();
+    private static final EntityBuilder model = lime.models.builder().entity()
+            .entity(EntityTypes.ARMOR_STAND)
+            .nbt(() -> {
+                EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
+                stand.setNoBasePlate(true);
+                stand.setSmall(true);
+                stand.setInvisible(true);
+                stand.setInvulnerable(true);
+                stand.setMarker(true);
+                stand.setHeadPose(new Vector3f(0, 0, 0));
+                return stand;
+            })
+            .addEquipment(EnumItemSlot.HEAD, net.minecraft.world.item.ItemStack.EMPTY);
     public static void init() {
         Displays.initDisplay(manager);
     }
@@ -55,7 +57,7 @@ public class BackPack {
         private final Player player;
 
         public ItemStack data;
-        public ChildDisplay<ItemStack> model;
+        public ChildEntityDisplay<ItemStack> model;
     
         protected BackPackDisplay(Player player, ItemStack data) {
             super(player.getLocation());

@@ -9,6 +9,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.system;
 
@@ -19,8 +20,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ModifyLootTableOld implements Listener {
-    public static core.element create() {
-        return core.element.create(ModifyLootTableOld.class)
+    public static CoreElement create() {
+        return CoreElement.create(ModifyLootTableOld.class)
                 .disable()
                 .withInstance()
                 .<JsonObject>addConfig("loottable", v -> v.withInvoke(ModifyLootTableOld::config).withDefault(new JsonObject()));

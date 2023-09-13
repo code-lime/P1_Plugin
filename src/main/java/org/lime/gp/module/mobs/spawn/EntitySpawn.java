@@ -10,6 +10,7 @@ import net.minecraft.world.phys.Vec3D;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -30,9 +31,10 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public class EntitySpawn implements ISpawn {
-    public final EntityTypes<?> type;
+    public final @Nullable EntityTypes<?> type;
     public final @Nullable String name;
     public final List<String> tags = new ArrayList<>();
+    public final boolean slotsEmpty;
     public final @Nullable ILoot slots;
     public final List<PotionEffect> effects = new ArrayList<>();
     public final @Nullable DespawnData despawn;
@@ -84,10 +86,12 @@ public class EntitySpawn implements ISpawn {
 }
     */
     public EntitySpawn(JsonObject json) {
-        this.type = EntityTypes.byString(EntityType.valueOf(json.get("type").getAsString()).key().asString()).orElseThrow();
+        String type = json.get("type").getAsString();
+        this.type = type.equals("EMPTY") ? null : EntityTypes.byString(EntityType.valueOf(type).key().asString()).orElseThrow();
         this.name = json.has("name") ? json.get("name").getAsString() : null;
         if (json.has("tags")) json.getAsJsonArray("tags")
                 .forEach(item -> tags.add(item.getAsString()));
+        this.slotsEmpty = json.has("slots_empty") && json.get("slots_empty").getAsBoolean();
         this.slots = json.has("slots") ? ILoot.parse(json.get("slots")) : null;
         if (json.has("effects")) json.getAsJsonArray("effects")
                 .forEach(item -> effects.add(Items.parseEffect(item.getAsJsonObject())));
@@ -115,12 +119,17 @@ public class EntitySpawn implements ISpawn {
     */
     @Override public Optional<IMobCreator> generateMob(IPopulateSpawn populate) {
         return Optional.of((world, pos) -> {
+            if (type == null) return null;
             Entity entity = createEntity(world, type, pos, nbt, true);
             CraftEntity craftEntity = entity.getBukkitEntity();
             Component showName = name == null ? null : ChatHelper.formatComponent(name);
             craftEntity.customName(showName);
             craftEntity.setCustomNameVisible(showName != null);
             craftEntity.getScoreboardTags().addAll(tags);
+            if (slotsEmpty && entity instanceof EntityLiving living) {
+                for (EnumItemSlot slot : EnumItemSlot.values())
+                    living.setItemSlot(slot, ItemStack.EMPTY);
+            }
             if (slots != null && entity instanceof EntityLiving living) {
                 IPopulateLoot loot = IPopulateLoot.of(world, List.of(
                         IPopulateLoot.var(Parameters.ThisEntity, entity),
@@ -140,6 +149,10 @@ public class EntitySpawn implements ISpawn {
                             ? EnumItemSlot.MAINHAND
                             : EnumItemSlot.OFFHAND, itemStack);
                 });
+                if (living instanceof EntityInsentient insentient) {
+                    Arrays.fill(insentient.handDropChances, 0);
+                    Arrays.fill(insentient.armorDropChances, 0);
+                }
             }
             if (craftEntity instanceof LivingEntity living) {
                 attributes.forEach((attribute, value) -> {

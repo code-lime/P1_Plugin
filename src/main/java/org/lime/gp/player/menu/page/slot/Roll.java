@@ -77,7 +77,7 @@ public class Roll implements Logged.ILoggedDelete {
         return roll;
     }
 
-    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast2<HashMap<ClickType, List<ActionSlot>>, BaseRow>> onClickEvents) {
+    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<ActionSlot>>, BaseRow>> onClickEvents) {
         List<system.Toast2<HashMap<String, String>, Integer>> array = new ArrayList<>();
         system.Toast1<Integer> scale = system.toast(0);
         system.json.parse(JavaScript.getJsString(apply.apply(data)).orElseThrow()).getAsJsonArray().forEach(item -> {
@@ -91,7 +91,7 @@ public class Roll implements Logged.ILoggedDelete {
         Map<ItemStack, system.Toast2<Integer, Apply>> values = new HashMap<>();
         array.forEach(kv -> {
             Apply _apply = apply.copy().add(kv.val0);
-            values.put(format.create(_apply).val1, system.toast(kv.val1, _apply));
+            values.put(format.create(_apply).val2, system.toast(kv.val1, _apply));
         });
         int size = values.size();
         if (size == 0) throw new IllegalArgumentException("ROLL.SIZE_ZERO");

@@ -7,9 +7,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.component.display.partial.list.*;
 
 import com.google.gson.JsonObject;
+import org.lime.gp.docs.IDocsLink;
+import org.lime.system;
+import org.openjdk.nashorn.internal.scripts.JO;
 
 public abstract class Partial {
     private final UUID uuid;
@@ -62,6 +68,30 @@ public abstract class Partial {
         else if (json.has("item")) return new FramePartial(distanceChunk, json);
         else if (json.has("material")) return new BlockPartial(distanceChunk, json);
         else return new NonePartial(distanceChunk, json);
+    }
+
+    public static JObject docs(IDocsLink docs, IIndexDocs variable) {
+        return JObject.of(
+                JProperty.optional(IName.raw("variable"), IJElement.anyList(IJElement.link(variable)), IComment.text("Список вариантов в зависимости от значений"))
+        );
+    }
+    public static IIndexGroup allDocs(String title, IDocsLink docs) {
+        system.Toast1<IIndexGroup> partial = system.toast(null);
+        IIndexGroup variable = JsonGroup.of("VARIABLE", Variable.docs(docs, IIndexDocs.remote(() -> partial.val0)));
+
+        IIndexGroup viewPartial = JsonGroup.of("VIEW_PARTIAL", ViewPartial.docs(docs, variable));
+        IIndexGroup modelPartial = JsonGroup.of("MODEL_PARTIAL", ModelPartial.docs(docs, variable));
+        IIndexGroup framePartial = JsonGroup.of("FRAME_PARTIAL", FramePartial.docs(docs, variable));
+        IIndexGroup blockPartial = JsonGroup.of("BLOCK_PARTIAL", BlockPartial.docs(docs, variable));
+        IIndexGroup nonePartial = JsonGroup.of("NONE_PARTIAL", NonePartial.docs(docs, variable));
+
+        return partial.val0 = JsonGroup.of(title, IJElement.or(
+                IJElement.link(viewPartial),
+                IJElement.link(modelPartial),
+                IJElement.link(framePartial),
+                IJElement.link(blockPartial),
+                IJElement.link(nonePartial)
+        )).withChilds(variable, viewPartial, modelPartial, framePartial, blockPartial, nonePartial);
     }
 }
 

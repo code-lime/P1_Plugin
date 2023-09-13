@@ -18,6 +18,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
@@ -32,9 +33,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class WaterRecyclerInstance extends BlockInstance implements CustomTileMetadata.Interactable, CustomTileMetadata.Tickable {
-    public static core.element create() {
+    public static CoreElement create() {
         Blocks.addDefaultBlocks(new BlockInfo("water_recycler").add(v -> new WaterRecyclerComponent(v, 20, 10, 1/20.0)));
-        return core.element.create(WaterRecyclerInstance.class);
+        return CoreElement.create(WaterRecyclerInstance.class);
     }
 
     @Override public WaterRecyclerComponent component() { return (WaterRecyclerComponent)super.component(); }

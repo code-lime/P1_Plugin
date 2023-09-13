@@ -5,10 +5,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 
 public class ArmorStandArms implements Listener {
-    public static core.element create() {
-        return core.element.create(ArmorStandArms.class)
+    public static CoreElement create() {
+        return CoreElement.create(ArmorStandArms.class)
                 .withInstance();
     }
     @EventHandler public static void on(EntitySpawnEvent e) {

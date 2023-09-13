@@ -29,7 +29,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.PacketManager;
@@ -47,8 +49,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProjectileItem implements Listener {
-    public static core.element create() {
-        return core.element.create(ProjectileItem.class)
+    public static CoreElement create() {
+        return CoreElement.create(ProjectileItem.class)
                 .withInstance()
                 .withInit(ProjectileItem::init);
     }
@@ -128,7 +130,9 @@ public class ProjectileItem implements Listener {
         float y = -MathHelper.sin((pitch + roll) * ((float)Math.PI / 180));
         float z = MathHelper.cos(yaw * ((float)Math.PI / 180)) * MathHelper.cos(pitch * ((float)Math.PI / 180));
 
-        projectile.getTags().addAll(tags);
+        Set<String> _tags = projectile.getTags();
+        _tags.addAll(tags);
+        if (owner != null) _tags.add("owner:" + owner.getUUID());
         projectile.shoot(x, y, z, speed, divergence);
         world.addFreshEntity(projectile);
 

@@ -6,34 +6,32 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.world.ITileInventory;
 import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
-import net.minecraft.world.inventory.ContainerAnvil;
 import net.minecraft.world.inventory.ContainerChest;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.state.IBlockData;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.core;
+import org.lime.gp.player.ui.ContainerInput;
+import org.lime.gp.player.ui.EditorUI;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
-import org.lime.gp.player.inventory.InterfaceManager;
 
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class NameTag implements Listener {
-    public static core.element create() {
-        return core.element.create(NameTag.class)
+    public static CoreElement create() {
+        return CoreElement.create(NameTag.class)
                 .withInstance();
     }
 
@@ -42,7 +40,8 @@ public class NameTag implements Listener {
             PlayerInventory inventory = e.getPlayer().getInventory();
             ItemStack name_tag = inventory.getItemInMainHand();
             if (name_tag.getType() != Material.NAME_TAG) return;
-            player.getHandle().openMenu(getInventory());
+            EditorUI.openInput(player, RecipesBook.getCustomWorkbenchName("nametag").orElse(Component.empty()), NameTag::containerInit);
+            //player.getHandle().openMenu(getInventory());
         }
     }
     @EventHandler public static void onClick(InventoryClickEvent e) {
@@ -74,6 +73,48 @@ public class NameTag implements Listener {
             .match(Pattern.compile("§."))
             .build();
 
+    private static ContainerInput containerInit(int syncId, net.minecraft.world.entity.player.PlayerInventory inventory, EntityHuman player) {
+        return new ContainerInput(syncId, inventory) {
+            public net.minecraft.world.item.ItemStack OUT = inventory.getSelected().copy();
+
+            @Override public boolean isValid() { return inventory.getSelected().is(Items.NAME_TAG); }
+            @Override public net.minecraft.world.item.ItemStack getInput() {
+                net.minecraft.world.item.ItemStack item = inventory.getSelected().copy();
+                CraftItemStack bukkit = CraftItemStack.asCraftMirror(item);
+                ItemMeta meta = bukkit.getItemMeta();
+                if (meta == null) return net.minecraft.world.item.ItemStack.EMPTY;
+                Optional.ofNullable(meta.displayName())
+                        .map(_v -> _v.replaceText(REMOVE_FORMATS))
+                        .ifPresent(name -> {
+                            meta.displayName(name);
+                            bukkit.setItemMeta(meta);
+                        });
+                return item;
+            }
+            @Override public net.minecraft.world.item.ItemStack getCenter() { return net.minecraft.world.item.ItemStack.EMPTY; }
+            @Override public net.minecraft.world.item.ItemStack getOutput() { return OUT; }
+            @Override public void input(String line) {
+                ItemStack name_tag = new ItemStack(Material.NAME_TAG);
+                if (!line.isEmpty()) {
+                    ItemMeta meta = name_tag.getItemMeta();
+                    meta.displayName(PREFIX.append(Component.text(itemName)));
+                    name_tag.setItemMeta(meta);
+                }
+                OUT = CraftItemStack.asNMSCopy(name_tag);
+            }
+
+            @Override public void clickOutput(EntityHuman human, ClickType click) {
+                if (inventory.getSelected().is(Items.NAME_TAG)) {
+                    net.minecraft.world.item.ItemStack out = OUT.copy();
+                    out.setCount(inventory.getSelected().getCount());
+                    inventory.items.set(inventory.selected, out);
+                }
+                human.closeContainer();
+            }
+        };
+    }
+
+/*
     private static ITileInventory getInventory() {
         IChatBaseComponent component = RecipesBook.getCustomWorkbenchName("nametag").orElse(IChatBaseComponent.empty());
         return new TileInventory((syncId, inventory, player) -> new ContainerAnvil(syncId, inventory) {
@@ -134,7 +175,7 @@ public class NameTag implements Listener {
             @Override protected boolean isValidBlock(IBlockData state) { return inventory.getSelected().is(Items.NAME_TAG); }
         }, component);
     }
-
+*/
 }
 
 

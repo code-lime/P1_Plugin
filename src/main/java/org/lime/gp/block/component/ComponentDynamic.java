@@ -9,4 +9,5 @@ public abstract class ComponentDynamic<T extends JsonElement, I extends BlockIns
     public ComponentDynamic(BlockInfo info) { super(info); }
     public ComponentDynamic(BlockInfo info, T json) { super(info, json); }
     public abstract I createInstance(CustomTileMetadata metadata);
+    public abstract Class<I> classInstance();
 }

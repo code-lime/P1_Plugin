@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.map.MapPalette;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.gp.map.MapMonitor;
@@ -146,8 +147,8 @@ public final class DrawMap {
         }
     }
     private final static ConcurrentHashMap<Images, Images.Data> images = new ConcurrentHashMap<>();
-    public static core.element create() {
-        return core.element.create(DrawMap.class)
+    public static CoreElement create() {
+        return CoreElement.create(DrawMap.class)
                 .withInstance(new CacheBuffer())
                 .withInit(DrawMap::init)
                 .<JsonObject>addConfig("images", v -> v.withInvoke(DrawMap::config).withDefault(() -> {

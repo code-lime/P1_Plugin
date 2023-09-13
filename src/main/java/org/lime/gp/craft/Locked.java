@@ -21,6 +21,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
@@ -29,8 +30,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class Locked implements Listener {
-    public static core.element create() {
-        return core.element.create(Locked.class)
+    public static CoreElement create() {
+        return CoreElement.create(Locked.class)
                 .withInstance();
     }
 

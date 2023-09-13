@@ -6,9 +6,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -35,5 +38,13 @@ import com.google.gson.JsonObject;
 
         type = json.get("type").getAsString();
         color = json.has("color") ? ChatColorHex.of(json.get("color").getAsString()).toBukkitColor() : null;
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.require(IName.raw("type"), IJElement.raw("THIRST_TYPE"), IComment.text("Пользовательский тип жидкости")),
+                JProperty.optional(IName.raw("color"), IJElement.raw("#FFFFFF"), IComment.text("Цвет жидкости"))
+        ), "Устанавливает статус работы урона сплешом у меча", "",
+                "<warning>ВНИМАНИЕ! Обязательное существование предмета `Potion.Clear_Water`</warning>");
     }
 }

@@ -7,8 +7,12 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.display.ItemParser;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.partial.PartialEnum;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.extension.ItemNMS;
 
 import com.google.gson.JsonElement;
@@ -28,22 +32,7 @@ public class FramePartial extends BlockPartial {
     public FramePartial(int distanceChunk, JsonObject json) {
         super(distanceChunk, json);
         if (json.has("item")) {
-            JsonElement item = json.get("item");
-            if (item.isJsonPrimitive()) {
-                String[] args = item.getAsString().split("\\^");
-                this.item = new ItemStack(Material.valueOf(args[0]));
-                if (args.length >= 2) {
-                    ItemMeta meta = this.item.getItemMeta();
-                    meta.setCustomModelData(Integer.parseInt(args[1]));
-                    this.item.setItemMeta(meta);
-                }
-            } else {
-                JsonObject _item = item.getAsJsonObject();
-                this.item = new ItemStack(Material.valueOf(_item.get("material").getAsString()));
-                ItemMeta meta = this.item.getItemMeta();
-                if (_item.has("id")) meta.setCustomModelData(_item.get("id").getAsInt());
-                this.item.setItemMeta(meta);
-            }
+            this.item = ItemParser.readItem(json.get("item"));
             rotation = json.has("rotation") ? InfoComponent.Rotation.Value.ofAngle(json.get("rotation").getAsInt()) : InfoComponent.Rotation.Value.ANGLE_0;
             nms_item = CraftItemStack.asNMSCopy(this.item);
             show = true;
@@ -70,5 +59,12 @@ public class FramePartial extends BlockPartial {
     @Override public PartialEnum type() { return PartialEnum.Frame; }
     @Override public String toString() {
         return super.toString()+ "^" + item + "R" + rotation.angle;
+    }
+
+    public static JObject docs(IDocsLink docs, IIndexDocs variable, boolean isTop) {
+        return BlockPartial.docs(docs, variable).addFirst(
+                JProperty.property(isTop, IName.raw("item"), IJElement.link(docs.parseItem()), IComment.text("Отображаемый предмет в рамке")),
+                JProperty.optional(IName.raw("rotation"), IJElement.link(docs.rotation()), IComment.text("Поворот модели блока"))
+        );
     }
 }

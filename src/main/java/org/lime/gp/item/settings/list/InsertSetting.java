@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bukkit.inventory.ItemStack;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
@@ -38,5 +41,12 @@ import com.google.gson.JsonObject;
         }
         list.forEach((k,v) -> items.add(k.createItem(v)));
         return items;
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, JObject.of(
+                JProperty.require(IName.raw("type"), IJElement.raw("INSERT_TYPE"), IComment.text("Пользвательский тип предмета для расчетов в меню")),
+                JProperty.require(IName.raw("weight"), IJElement.raw(10), IComment.text("Значение веса однго предмета для расчетов в меню"))
+        ), "Используется в меню " + docs.menuInsert().link());
     }
 }

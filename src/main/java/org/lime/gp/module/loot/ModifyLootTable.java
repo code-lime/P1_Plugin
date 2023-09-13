@@ -6,6 +6,7 @@ import org.bukkit.entity.FishHook;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.system;
@@ -15,8 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class ModifyLootTable implements Listener {
-    public static core.element create() {
-        return core.element.create(ModifyLootTable.class)
+    public static CoreElement create() {
+        return CoreElement.create(ModifyLootTable.class)
                 .withInstance()
                 .<JsonObject>addConfig("loottable", v -> v.withInvoke(ModifyLootTable::config).withDefault(new JsonObject()));
     }

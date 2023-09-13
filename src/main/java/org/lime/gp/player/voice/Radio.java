@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.MapUUID;
 import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Radio {
-    public static core.element create() {
-        return core.element.create(Radio.class)
+    public static CoreElement create() {
+        return CoreElement.create(Radio.class)
                 .withInit(Radio::init);
     }
     public static void init() {

@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.util.BlockIterator;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.block.component.data.OtherGenericInstance;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IBlock;
@@ -31,8 +32,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 public class CreativeInteract implements Listener {
-    public static core.element create() {
-        return core.element.create(CreativeInteract.class)
+    public static CoreElement create() {
+        return CoreElement.create(CreativeInteract.class)
                 .withInstance();
     }
 

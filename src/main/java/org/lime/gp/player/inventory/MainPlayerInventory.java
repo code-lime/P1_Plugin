@@ -1,6 +1,13 @@
 package org.lime.gp.player.inventory;
 
 import com.google.gson.JsonObject;
+import net.kyori.adventure.key.Keyed;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.GameMode;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.event.inventory.ClickType;
 import org.lime.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,26 +27,43 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.cinv.CreativeInventory;
+import org.lime.gp.item.cinv.ViewContainer;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Ghost;
 import org.lime.gp.extension.Cooldown;
+import org.lime.plugin.CoreElement;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 public final class MainPlayerInventory implements Listener {
-    public static core.element create() {
-        return core.element.create(MainPlayerInventory.class)
+    public static CoreElement create() {
+        return CoreElement.create(MainPlayerInventory.class)
                 .withInit(MainPlayerInventory::init)
                 .withInstance()
                 .<JsonObject>addConfig("slot_counter", v -> v.withInvoke(MainPlayerInventory::reloadConfig).withDefault(new JsonObject()));
     }
 
     private static final HashMap<Material, Integer> slotCounter = new HashMap<>();
+    private static final ItemStack CINV = CraftItemStack.asBukkitCopy(ViewContainer.of(
+                    Component.text("CINV")
+                            .decoration(TextDecoration.ITALIC, false)
+                            .color(NamedTextColor.YELLOW),
+                    1,
+                    Component.text("[ЛКМ] - Открыть список")
+                            .decoration(TextDecoration.ITALIC, false)
+                            .color(NamedTextColor.GOLD),
+                    Component.text("[Q] - Открыть поиск")
+                            .decoration(TextDecoration.ITALIC, false)
+                            .color(NamedTextColor.GOLD)
+            )
+    );
     private static boolean isCooldown(Player player) {
         UUID uuid = player.getUniqueId();
         if (Cooldown.hasCooldown(uuid, "MainPlayerInventory.click")) return true;
@@ -62,6 +86,13 @@ public final class MainPlayerInventory implements Listener {
                         : MainPlayerInventory.createBarrier(false);
             }
         });
+        clickData.put(23, new ClickSlot(Items.createItem("phone.cinv").orElse(CINV), (player, clickType) -> {
+            if (isCooldown(player)) return;
+            lime.nextTick(() -> {
+                if (clickType == ClickType.DROP) CreativeInventory.openSearch(player);
+                else CreativeInventory.open(player);
+            });
+        }));
         clickData.put(24, new ClickSlot(Items.createItem("phone.off").orElseThrow(), player -> {
             if (isCooldown(player)) return;
             lime.nextTick(() -> {
@@ -74,7 +105,7 @@ public final class MainPlayerInventory implements Listener {
             lime.nextTick(() -> {
                 player.closeInventory();
                 if (MenuCreator.show(player, "phone.main")) {
-                    MenuCreator.show(player,"lang.me", Apply.of().add("key", "PHONE"));
+                    MenuCreator.showLang(player, LangEnum.ME, Apply.of().add("key", "PHONE"));
                 }
             });
         }));
@@ -82,7 +113,7 @@ public final class MainPlayerInventory implements Listener {
             if (isCooldown(player)) return;
             lime.nextTick(() -> {
                 if (WalletInventory.openWallet(player)) {
-                    MenuCreator.show(player,"lang.me", Apply.of().add("key", "WALLET"));
+                    MenuCreator.showLang(player, LangEnum.ME, Apply.of().add("key", "WALLET"));
                 }
             });
         }));
@@ -110,17 +141,16 @@ public final class MainPlayerInventory implements Listener {
     private static final HashMap<Integer, ClickSlot> clickData = new HashMap<>();
     private static class ClickSlot {
         private final ItemStack item;
-        private final system.Action1<Player> callback;
+        private final system.Action2<Player, ClickType> callback;
         public ClickSlot(ItemStack item, system.Action1<Player> callback) {
+            this(item, (p,c) -> callback.invoke(p));
+        }
+        public ClickSlot(ItemStack item, system.Action2<Player, ClickType> callback) {
             this.item = item;
             this.callback = callback;
         }
-        public ItemStack create(Player player) {
-            return item.clone();
-        }
-        public void onClick(Player player) {
-            callback.invoke(player);
-        }
+        public ItemStack create(Player player) { return item.clone(); }
+        public void onClick(Player player, ClickType clickType) { callback.invoke(player, clickType); }
     }
     private static int getSlotCounter(ItemStack item) {
         if (item == null) return 0;
@@ -155,7 +185,7 @@ public final class MainPlayerInventory implements Listener {
         ILockSlot lock_slot = (slot, item, isBarrier, player, slots) -> {
             if (Ghost.isGhost(player)) return isBarrier ? null : MainPlayerInventory.createBarrier(false);
 
-            if (slot == 24) return player.isOp() ? clickData.get(slot).create(player) : (isBarrier ? null : MainPlayerInventory.createBarrier(false));
+            if (slot == 23 || slot == 24) return player.isOp() ? clickData.get(slot).create(player) : (isBarrier ? null : MainPlayerInventory.createBarrier(false));
             ClickSlot _slot = clickData.getOrDefault(slot, null);
             if (_slot == null || !UserRow.hasBy(player.getUniqueId())) {
                 return isBarrier ? null : MainPlayerInventory.createBarrier(false);
@@ -232,7 +262,16 @@ public final class MainPlayerInventory implements Listener {
             e.setCancelled(true);
     }
     @EventHandler public void onDrop(PlayerDropItemEvent e) {
-        if (checkBarrier(e.getItemDrop().getItemStack())) e.setCancelled(true);
+        if (checkBarrier(e.getItemDrop().getItemStack())) {
+            e.setCancelled(true);
+            return;
+        }
+        Player player = e.getPlayer();
+        if (player.isOp() && e.getItemDrop().getItemStack().isSimilar(CINV)) {
+            e.getItemDrop().remove();
+            CreativeInventory.openSearch(player);
+            isCooldown(player);
+        }
     }
     @EventHandler public void onClick(InventoryClickEvent e) {
         if (checkBarrier(e.getCurrentItem())) {
@@ -249,7 +288,7 @@ public final class MainPlayerInventory implements Listener {
             ISlot _slot = slots.getOrDefault(slot, null);
             if (_slot instanceof ILockSlot) {
                 ClickSlot clickSlot = clickData.getOrDefault(slot, null);
-                if (clickSlot != null) clickSlot.onClick(player);
+                if (clickSlot != null) clickSlot.onClick(player, e.getClick());
                 e.setCancelled(true);
             }
         }

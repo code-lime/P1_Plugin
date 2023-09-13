@@ -1,8 +1,12 @@
 package org.lime.gp.item.settings.list;
 
 import org.bukkit.Material;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IJElement;
+import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonArray;
@@ -16,5 +20,9 @@ import com.google.gson.JsonArray;
             Items.creatorNamesIDs.put(id, creator.getKey());
             try { Items.creatorMaterials.put(id, Material.valueOf(creator.item)); } catch (Exception ignored) { }
         });
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw(10)), "Связывает текущий предмет с указанными ID-шниками отображения");
     }
 }

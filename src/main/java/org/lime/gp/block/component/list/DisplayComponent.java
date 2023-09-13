@@ -1,7 +1,18 @@
 package org.lime.gp.block.component.list;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.lime.display.models.ExecutorJavaScript;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -9,8 +20,10 @@ import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.display.partial.Partial;
 import org.lime.gp.block.component.display.partial.PartialLoader;
+import org.lime.gp.chat.ChatColorHex;
+import org.lime.gp.docs.IDocsLink;
+import org.lime.gp.item.Items;
 import org.lime.gp.module.JavaScript;
-import org.lime.system;
 
 import java.util.*;
 
@@ -20,43 +33,27 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
     public final Map<UUID, Partial> partialMap = new HashMap<>();
     public final double maxDistanceSquared;
 
-    public final String animation_tick;
-    public final HashMap<String, Object> animation_args = new HashMap<>();
+    public final ExecutorJavaScript animation;
 
     public void animationTick(Map<String, String> variable, Map<String, String> display_variable, Map<String, Object> data) {
-        if (animation_tick == null) return;
-        JavaScript.invoke(animation_tick,
-                system.map.<String, Object>of()
-                        .add(animation_args, k -> k, v -> v)
-                        .add("variable", variable)
-                        .add("display_variable", display_variable)
-                        .add("data", data)
-                        .build()
-        );
-    }
-
-    private static Object toObj(JsonPrimitive json) {
-        return json.isNumber() ? json.getAsNumber() : json.isBoolean() ? json.getAsBoolean() : json.getAsString();
+        animation.execute(Map.of("variable", variable, "display_variable", display_variable, "data", data));
     }
 
     public DisplayComponent(BlockInfo info, JsonObject json) {
         super(info, json);
         if (json.has("animation")) {
             JsonObject animation = json.getAsJsonObject("animation");
-            animation_tick = animation.has("tick") ? animation.get("tick").getAsString() : null;
-            if (animation.has("args"))
-                animation.getAsJsonObject("args").entrySet().forEach(kv -> animation_args.put(kv.getKey(), toObj(kv.getValue().getAsJsonPrimitive())));
+            this.animation = new ExecutorJavaScript("tick", animation, JavaScript.js);
         } else {
-            animation_tick = null;
+            this.animation = ExecutorJavaScript.empty();
         }
         LinkedList<Partial> partials = new LinkedList<>();
         maxDistanceSquared = PartialLoader.load(info, json, partials, this.partialMap);
         this.partials = createPartials(info, partials);
     }
-
     public DisplayComponent(BlockInfo info, List<Partial> partials) {
         super(info);
-        animation_tick = null;
+        this.animation = ExecutorJavaScript.empty();
         LinkedList<Partial> _partials = new LinkedList<>();
         maxDistanceSquared = PartialLoader.loadStatic(info, partials, _partials, this.partialMap);
         this.partials = createPartials(info, _partials);
@@ -81,10 +78,8 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
         return outPartials;
     }
     
-    @Override
-    public DisplayInstance createInstance(CustomTileMetadata metadata) {
-        return new DisplayInstance(this, metadata);
-    }
+    @Override public DisplayInstance createInstance(CustomTileMetadata metadata) { return new DisplayInstance(this, metadata); }
+    @Override public Class<DisplayInstance> classInstance() { return DisplayInstance.class; }
 
     private static class HashMapWithDefault<Key,Value> extends HashMap<Key, Value> {
         private final Value defaultValue;
@@ -95,5 +90,60 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
         @Override public Value get(Object key) {
             return super.getOrDefault(key, defaultValue);
         }
+    }
+
+    private static final String AIR_KEY = Items.getMaterialKey(Material.AIR);
+
+    public static void putItem(Map<String, String> map, String prefixKey, ItemStack item) {
+        if (item == null) item = new ItemStack(Material.AIR);
+        map.put(prefixKey + ".key", Items.getGlobalKeyByItem(item).orElse(AIR_KEY));
+        map.put(prefixKey + ".id", String.valueOf(Items.getIDByItem(item).orElse(0)));
+        Color color = null;
+        if (item.hasItemMeta()) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta instanceof PotionMeta potion && potion.hasColor()) color = potion.getColor();
+            if (meta instanceof LeatherArmorMeta leather) color = leather.getColor();
+        }
+        map.put(prefixKey + ".color", color == null ? "#FFFFFF" : ChatColorHex.toHex(color));
+        map.put(prefixKey + ".type", item.getType().name());
+        map.put(prefixKey + ".count", String.valueOf(item.getAmount()));
+    }
+    public static void putItem(Map<String, String> map, String prefixKey, net.minecraft.world.item.ItemStack item) {
+        putItem(map, prefixKey, CraftItemStack.asCraftMirror(item));
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup animation_tick = ExecutorJavaScript.docs("ANIMATION_TICK", "animation_tick", docs.js(), docs.json(), "tick");
+        IIndexGroup arg_field = JsonEnumInfo.of("ARG_FIELD", ImmutableList.of(
+                IJElement.text("ARG_KEY").concat("=", IJElement.concat(",",
+                        IJElement.text("ARG_VALUE"),
+                        IJElement.text("ARG_VALUE"),
+                        IJElement.any(),
+                        IJElement.text("ARG_VALUE")
+                ))
+        ));
+        IIndexGroup distance_key = JsonEnumInfo.of("DISTANCE_KEY", ImmutableList.of(
+                IJElement.raw(10),
+                IJElement.raw(10).concat("?", IJElement.concat("&",
+                        IJElement.link(arg_field),
+                        IJElement.link(arg_field),
+                        IJElement.any(),
+                        IJElement.link(arg_field)
+                ))
+        ));
+        IIndexGroup partial = Partial.allDocs("PARTIAL", docs);
+        JProperty part = JProperty.optional(IName.link(distance_key), IJElement.link(partial));
+        return JsonGroup.of(index, JObject.of(
+                JProperty.optional(IName.raw("animation"), IJElement.link(animation_tick), IComment.empty()
+                        .append(IComment.text("JavaScript метод вызываемый каждый тик. Передаваемые параметры: "))
+                        .append(IComment.raw("variable"))
+                        .append(IComment.text(", "))
+                        .append(IComment.raw("display_variable"))
+                        .append(IComment.text(", "))
+                        .append(IComment.raw("data"))),
+                part,
+                part,
+                IJProperty.any()
+        ), "Отображает элемент в зависимости от параметров").withChilds(arg_field, distance_key, animation_tick, partial);
     }
 }

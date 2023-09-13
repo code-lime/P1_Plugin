@@ -11,6 +11,10 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.internal.JDAImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +23,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.Apply;
@@ -171,8 +176,8 @@ public class Discord implements Listener {
     private static long gift_role;
     private static final ConcurrentHashMap<Long, Object> role_list = new ConcurrentHashMap<>();
 
-    public static core.element create() {
-        return core.element.create(Discord.class)
+    public static CoreElement create() {
+        return CoreElement.create(Discord.class)
                 .withInstance()
                 .withInit(Discord::init)
                 .withUninit(Discord::uninit)
@@ -190,6 +195,20 @@ public class Discord implements Listener {
                             if (jda != null) jda.shutdown();
                             if (token.isEmpty()) return;
                             jda = JDABuilder.createDefault(token)
+                                    .enableCache(
+                                            CacheFlag.ACTIVITY,
+                                            CacheFlag.VOICE_STATE,
+                                            CacheFlag.EMOJI,
+                                            CacheFlag.STICKER,
+                                            CacheFlag.CLIENT_STATUS,
+                                            CacheFlag.MEMBER_OVERRIDES,
+                                            CacheFlag.ROLE_TAGS,
+                                            CacheFlag.FORUM_TAGS,
+                                            CacheFlag.ONLINE_STATUS,
+                                            CacheFlag.SCHEDULED_EVENTS
+                                    )
+                                    .setChunkingFilter(ChunkingFilter.ALL)
+                                    .setMemberCachePolicy(MemberCachePolicy.ALL)
                                     .enableIntents(
                                             GatewayIntent.GUILD_MEMBERS,
                                             GatewayIntent.GUILD_MODERATION,
@@ -311,13 +330,14 @@ public class Discord implements Listener {
         String main_prefix = main_guild + ":";
         jda.getGuilds().forEach(guild -> {
             String prefix = guild.getId() + ":";
-            update(guild, discord_id, user_name, prefix.equals(main_prefix) ? discord_roles : Collections.emptyList(), uuid)
+            boolean isMain = prefix.equals(main_prefix);
+            update(guild, discord_id, user_name, isMain, isMain ? discord_roles : Collections.emptyList(), uuid)
                     .forEach((k,v) -> actions.put(prefix + k, v));
         });
         return actions;
     }
-    private static Map<String, RestAction<Void>> update(Guild guild, long discord_id, String user_name, List<Long> discord_roles, UUID uuid) {
-        boolean log = debug && discord_id == 291179227754266624L && discord_roles.size() > 0;
+    private static Map<String, RestAction<Void>> update(Guild guild, long discord_id, String user_name, boolean isMain, List<Long> discord_roles, UUID uuid) {
+        boolean log = debug && discord_id == 291179227754266624L && isMain;
         if (log) lime.logOP("UPDATE." +discord_id + ": " + user_name + "[" + discord_roles.stream().map(String::valueOf).collect(Collectors.joining(",")) + "]");
         Member member = guild.getMemberById(discord_id);
         if (member == null) return Collections.emptyMap();
@@ -409,7 +429,7 @@ public class Discord implements Listener {
         if (debug) lime.logOP("UPDATE.ALL");
         Map<String, RestAction<Void>> queue = new HashMap<>();
         Methods.discordUpdate(
-                (discord_id, user_name, discord_role, discord_group_role, uuid) -> queue.putAll(Discord.update(discord_id, user_name, roleList(discord_role, discord_group_role), uuid)),
+                (discord_id, user_name, discord_roles, uuid) -> queue.putAll(Discord.update(discord_id, user_name, roleList(discord_roles), uuid)),
                 () -> {
                     if (debug) lime.logOP("UPDATE.ALL.COUNT: " + queue.size());
                     RestAction<Void> action = combine(queue.values());
@@ -428,7 +448,7 @@ public class Discord implements Listener {
         if (debug) lime.logOP("UPDATE.SINGLE");
         Map<String, RestAction<Void>> queue = new HashMap<>();
         Methods.discordUpdateSingle(uuid,
-                (discord_id, user_name, discord_role, discord_group_role, _uuid) -> queue.putAll(Discord.update(discord_id, user_name, roleList(discord_role, discord_group_role), _uuid)),
+                (discord_id, user_name, discord_roles, _uuid) -> queue.putAll(Discord.update(discord_id, user_name, roleList(discord_roles), _uuid)),
                 () -> {
                     if (debug) lime.logOP("UPDATE.SINGLE.COUNT: " + queue.size());
                     RestAction<Void> action = combine(queue.values());
@@ -456,10 +476,14 @@ public class Discord implements Listener {
     }
 
     public static void sendMessageToWebhook(String webhook, String message) {
-        web.method.POST.create(webhook, system.json.object().add("content", message).build().toString())
+        sendMessageToWebhook(webhook, message, true);
+    }
+    public static void sendMessageToWebhook(String webhook, String message, boolean async) {
+        var executor = web.method.POST.create(webhook, system.json.object().add("content", message).build().toString())
                 .header("Content-Type", "application/json")
-                .none()
-                .executeAsync((v,a) -> {});
+                .none();
+        if (async) executor.executeAsync((v,a) -> {});
+        else executor.execute();
     }
 }
 

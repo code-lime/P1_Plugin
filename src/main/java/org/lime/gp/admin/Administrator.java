@@ -24,12 +24,14 @@ import org.bukkit.permissions.ServerOperator;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
+import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.module.*;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
@@ -77,8 +79,8 @@ public class Administrator implements Listener {
     public static final ConcurrentHashMap<UUID, Integer> target_list = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<UUID, Location> back_locations = new ConcurrentHashMap<>();
 
-    public static core.element create() {
-        return core.element.create(Administrator.class)
+    public static CoreElement create() {
+        return CoreElement.create(Administrator.class)
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("aban")
@@ -358,7 +360,7 @@ public class Administrator implements Listener {
                         .withCheck(v -> v.isOp() && v instanceof Player)
                         .withTab("[сообщение]")
                         .withExecutor((sender, args) -> {
-                            MenuCreator.show((Player) sender, "lang.chat.tell_all", Apply.of().add("text", String.join(" ", args)));
+                            MenuCreator.showLang((Player) sender, LangEnum.CHAT_TELL_ALL, Apply.of().add("text", String.join(" ", args)));
                             return true;
                         })
                 )

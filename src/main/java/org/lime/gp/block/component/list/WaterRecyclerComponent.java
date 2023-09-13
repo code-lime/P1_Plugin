@@ -1,11 +1,14 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.WaterRecyclerInstance;
+import org.lime.gp.docs.IDocsLink;
 
 @InfoComponent.Component(name = "water_recycler")
 public final class WaterRecyclerComponent extends ComponentDynamic<JsonObject, WaterRecyclerInstance> {
@@ -27,8 +30,8 @@ public final class WaterRecyclerComponent extends ComponentDynamic<JsonObject, W
         inTickLevel = json.has("in_tick_level") ? json.get("in_tick_level").getAsDouble() : 0;
     }
 
-    @Override
-    public WaterRecyclerInstance createInstance(CustomTileMetadata metadata) {
-        return new WaterRecyclerInstance(this, metadata);
-    }
+    @Override public WaterRecyclerInstance createInstance(CustomTileMetadata metadata) { return new WaterRecyclerInstance(this, metadata); }
+    @Override public Class<WaterRecyclerInstance> classInstance() { return WaterRecyclerInstance.class; }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

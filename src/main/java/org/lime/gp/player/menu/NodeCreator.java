@@ -3,6 +3,7 @@ package org.lime.gp.player.menu;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.global.RunNode;
@@ -13,8 +14,8 @@ import org.lime.system;
 import java.util.*;
 
 public class NodeCreator {
-    public static core.element create() {
-        return core.element.create(NodeCreator.class)
+    public static CoreElement create() {
+        return CoreElement.create(NodeCreator.class)
                 .withInit(NodeCreator::init)
                 .<JsonObject>addConfig("node", v -> v
                         .withInvoke(NodeCreator::config)

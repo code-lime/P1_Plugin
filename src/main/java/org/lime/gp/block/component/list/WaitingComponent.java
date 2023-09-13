@@ -1,11 +1,14 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.WaitingInstance;
+import org.lime.gp.docs.IDocsLink;
 
 @InfoComponent.Component(name = "waiting") public class WaitingComponent extends ComponentDynamic<JsonObject, WaitingInstance> {
     public final int progress;
@@ -22,7 +25,7 @@ import org.lime.gp.block.component.data.WaitingInstance;
         debug = json.has("debug") && json.get("debug").getAsBoolean();
     }
 
-    @Override public WaitingInstance createInstance(CustomTileMetadata metadata) {
-        return new WaitingInstance(this, metadata);
-    }
+    @Override public WaitingInstance createInstance(CustomTileMetadata metadata) { return new WaitingInstance(this, metadata); }
+    @Override public Class<WaitingInstance> classInstance() { return WaitingInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

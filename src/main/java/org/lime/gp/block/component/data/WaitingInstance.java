@@ -26,11 +26,11 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.joml.Vector3f;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.WaitingComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.craft.book.ContainerWorkbenchBook;
-import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.WaitingRecipe;
@@ -47,10 +47,9 @@ import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
 
-import java.util.List;
 import java.util.*;
 
-public class WaitingInstance extends BlockComponentInstance<WaitingComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable, CustomTileMetadata.Damageable, CustomTileMetadata.Lootable {
+public class WaitingInstance extends BlockComponentInstance<WaitingComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable, CustomTileMetadata.Damageable, CustomTileMetadata.Lootable, IDisplayVariable {
     public WaitingInstance(WaitingComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
     }
@@ -136,7 +135,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             EnumHand enumhand = event.hand();
             BlockPosition blockposition = metadata.skull.getBlockPos();
             World world = metadata.skull.getLevel();
-            net.minecraft.world.item.ItemStack itemstack = entityhuman.getItemInHand(enumhand);
+            ItemStack itemstack = entityhuman.getItemInHand(enumhand);
             if (itemstack.isEmpty()) return system.toast(this, instance.openWorkbench(entityhuman));
             if (ItemStack.isSameItemSameTags(itemstack, item)) {
                 if (item.getCount() >= instance.component().max_count) return system.toast(this, EnumInteractionResult.PASS);
@@ -184,7 +183,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 item.grow(1);
                 setDirty();
 
-                entityhuman.setItemInHand(enumhand, ItemLiquidUtil.createFilledResult(itemstack, entityhuman, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE)));
+                entityhuman.setItemInHand(enumhand, ItemLiquidUtil.createFilledResult(itemstack, entityhuman, new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE)));
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.gameEvent(null, GameEvent.FLUID_PLACE, blockposition);
@@ -211,13 +210,13 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             EnumHand enumhand = event.hand();
             BlockPosition blockposition = metadata.skull.getBlockPos();
             World world = metadata.skull.getLevel();
-            net.minecraft.world.item.ItemStack itemstack = entityhuman.getItemInHand(enumhand);
+            ItemStack itemstack = entityhuman.getItemInHand(enumhand);
             if (itemstack.isEmpty()) return system.toast(this, instance.openWorkbench(entityhuman));
             if (!instance.isWhitelistItem(itemstack)) return system.toast(this, EnumInteractionResult.PASS);
             BaseInput input;
             if (Items.has(ThirstSetting.class, itemstack)) {
                 input = new WaterInput(itemstack);
-                entityhuman.setItemInHand(enumhand, ItemLiquidUtil.createFilledResult(itemstack, entityhuman, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE)));
+                entityhuman.setItemInHand(enumhand, ItemLiquidUtil.createFilledResult(itemstack, entityhuman, new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE)));
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.gameEvent(null, GameEvent.FLUID_PLACE, blockposition);
@@ -270,11 +269,21 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 .ifPresent(arr -> arr.forEach(element -> element.getAsString()
                         .map(system::loadItem)
                         .map(CraftItemStack::asNMSCopy)
+                        .filter(item -> {
+                            if (item.isEmpty()) {
+                                lime.logOP("!!!WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
+                                return false;
+                            }
+                            return true;
+                        })
                         .ifPresent(items::add)
                 ));
         syncRecipe("READ", false);
     }
     @Override public system.json.builder.object write() {
+        if (items.removeIf(Objects::isNull)) {
+            lime.logOP("!!!WARNING!!! FOUND EMPTY ITEMS IN WAITING INSTANCE");
+        }
         return system.json.object()
                 .add("input", input.save())
                 .addArray("items", v -> v.add(items.stream()
@@ -377,17 +386,22 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             syncDisplayVariable();
         }
         if (currentDelta >= totalDelta) {
-            syncRecipe("TIME_END", false).ifPresent(recipe -> {
-                ItemStack item = recipe.assemble(createReadonly(), event.getWorld().registryAccess(), IOutputVariable.of(last_click));
-                LevelModule.onCraft(last_click, recipe.getId());
-                if (DEBUG) lime.logOP("Result: " + item);
-                if (item.isEmpty()) input = new EmptyInput();
-                else if (Items.has(ThirstSetting.class, item)) input = new WaterInput(item);
-                else input = new ItemInput(item);
-                items.clear();
-                syncRecipe("TIME_END_RESYNC", true);
-                saveData();
-            });
+            syncRecipe("TIME_END", false)
+                    .ifPresent(recipe -> recipe
+                            .assembleWithCount(createReadonly(), event.getWorld().registryAccess(), IOutputVariable.of(last_click))
+                            .invoke((item, count) -> {
+                                for (int i = 0; i < count; i++)
+                                    LevelModule.onCraft(last_click, recipe.getId());
+
+                                if (DEBUG) lime.logOP("Result: " + item);
+                                if (item.isEmpty()) input = new EmptyInput();
+                                else if (Items.has(ThirstSetting.class, item)) input = new WaterInput(item);
+                                else input = new ItemInput(item);
+                                items.clear();
+                                syncRecipe("TIME_END_RESYNC", true);
+                                saveData();
+                            })
+                    );
         }
     }
 
@@ -512,7 +526,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         event.addItems(items);
     }
 
-    protected final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(map -> {
                 int size = items.size();

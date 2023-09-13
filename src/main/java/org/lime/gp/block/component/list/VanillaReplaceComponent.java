@@ -5,9 +5,12 @@ import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -65,4 +68,5 @@ public final class VanillaReplaceComponent extends ComponentStatic<JsonObject> {
             });
         });
     }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

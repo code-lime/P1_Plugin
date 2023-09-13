@@ -1,11 +1,14 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.voice.RadioInstance;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.player.voice.RadioData;
 
 @InfoComponent.Component(name = "radio")
@@ -54,8 +57,7 @@ public final class RadioComponent extends ComponentDynamic<JsonObject, RadioInst
         state = json.has("state") ? RadioData.RadioState.valueOf(json.get("state").getAsString()) : RadioData.RadioState.all;
     }
 
-    @Override
-    public RadioInstance createInstance(CustomTileMetadata metadata) {
-        return new RadioInstance(this, metadata);
-    }
+    @Override public RadioInstance createInstance(CustomTileMetadata metadata) { return new RadioInstance(this, metadata); }
+    @Override public Class<RadioInstance> classInstance() { return RadioInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.chat.Apply;
@@ -23,8 +24,8 @@ import org.lime.gp.player.voice.Radio;
 import org.lime.gp.player.voice.RadioData;
 
 public class RadioLoader implements Listener {
-    public static core.element create() {
-        return core.element.create(RadioLoader.class)
+    public static CoreElement create() {
+        return CoreElement.create(RadioLoader.class)
                 .withInstance()
                 .withInit(RadioLoader::init);
     }

@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.util.Vector;
+import org.lime.plugin.CoreElement;
 import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.item.Items;
@@ -31,8 +32,8 @@ import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
 
 public class Easter implements Listener {
-    public static org.lime.core.element create() {
-        return org.lime.core.element.create(Easter.class)
+    public static CoreElement create() {
+        return CoreElement.create(Easter.class)
                 .withInit(Easter::init)
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v

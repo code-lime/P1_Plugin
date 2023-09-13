@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.ChatMessages;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.module.DrawText;
@@ -20,8 +21,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 public class NickName {
-    public static core.element create() {
-        return core.element.create(NickName.class)
+    public static CoreElement create() {
+        return CoreElement.create(NickName.class)
                 .withInit(NickName::init);
     }
     public static void init() {

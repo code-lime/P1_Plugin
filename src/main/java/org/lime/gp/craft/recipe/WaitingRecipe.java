@@ -74,9 +74,13 @@ public class WaitingRecipe extends AbstractRecipe {
         }).orElse(false);
     }
     @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
+        return assembleWithCount(inventory, custom, variable).val0;
+    }
+    public system.Toast2<ItemStack, Integer> assembleWithCount(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
         ItemStack output = this.output.create(false, variable);
-        input.split(inventory.getItem(0)).ifPresent(count -> output.setCount(output.getCount() * count));
-        return output;
+        int count = input.split(inventory.getItem(0)).orElse(1);
+        output.setCount(output.getCount() * count);
+        return system.toast(output, count);
     }
     @Override public Stream<String> getWhitelistKeys() {
         return Streams.concat(

@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
@@ -33,8 +34,8 @@ public class ChurchManager implements Listener {
     public static double applyAdder(int count) {
         return Math.pow(count, func_pow) / func_div;
     }
-    public static core.element create() {
-        return core.element.create(ChurchManager.class)
+    public static CoreElement create() {
+        return CoreElement.create(ChurchManager.class)
                 .withInit(ChurchManager::init)
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v

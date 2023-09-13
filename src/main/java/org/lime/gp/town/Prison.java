@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.HouseRow;
@@ -15,8 +16,8 @@ import org.lime.gp.module.EntityPosition;
 import org.lime.system;
 
 public class Prison implements Listener {
-    public static core.element create() {
-        return core.element.create(Prison.class)
+    public static CoreElement create() {
+        return CoreElement.create(Prison.class)
                 .withInit(Prison::init)
                 .withInstance();
     }

@@ -10,6 +10,8 @@ import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import org.apache.commons.lang.StringUtils;
 import org.lime.core;
+import org.lime.gp.block.component.display.IDisplayVariable;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.BlockInstance;
@@ -34,9 +36,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 
-public class RecorderInstance extends BlockComponentInstance<RecorderComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Removeable, CustomTileMetadata.FirstTickable {
-    public static core.element create() {
-        return core.element.create(RecorderInstance.class)
+public class RecorderInstance extends BlockComponentInstance<RecorderComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Removeable, CustomTileMetadata.FirstTickable, IDisplayVariable {
+    public static CoreElement create() {
+        return CoreElement.create(RecorderInstance.class)
                 .withInit(RecorderInstance::init);
     }
     public static final system.LockToast2<Long, Long> nextAsyncTimes = system.toast(0L, 0L).lock();
@@ -386,7 +388,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
                     syncDisplayVariable();
                 });
     }
-    private void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.set("recorder_connected", connectionUUID == null ? "false" : "true");
             display.set("recorder_sound", musicPlayer == null ? "null" : musicPlayer.sound + "");

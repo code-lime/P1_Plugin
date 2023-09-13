@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
@@ -42,8 +43,8 @@ public class MapMonitor implements Listener {
         }
     }
 
-    public static core.element create() {
-        return core.element.create(MapMonitor.class)
+    public static CoreElement create() {
+        return CoreElement.create(MapMonitor.class)
                 .withInstance()
                 .withInit(MapMonitor::init);
     }

@@ -2,6 +2,7 @@ package org.lime.gp.player.perm;
 
 import com.google.gson.JsonObject;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.database.rows.RolesRow;
 import org.lime.gp.database.rows.UserRow;
@@ -11,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class Grants {
-    public static core.element create() {
-        return core.element.create(Grants.class)
+    public static CoreElement create() {
+        return CoreElement.create(Grants.class)
                 .<JsonObject>addConfig("grants", v -> v.withInvoke(Grants::config).withDefault(new JsonObject()));
     }
 

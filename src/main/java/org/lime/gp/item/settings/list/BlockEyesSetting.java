@@ -1,13 +1,15 @@
 package org.lime.gp.item.settings.list;
 
 import com.google.gson.JsonPrimitive;
-import net.minecraft.world.entity.animal.horse.EntityHorse;
-import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IJElement;
+import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 
@@ -27,5 +29,9 @@ import java.util.List;
             if (Items.getOptional(BlockEyesSetting.class, inventory.getItem(slot)).filter(v -> v.isBlock).isPresent())
                 return true;
         return false;
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, IJElement.bool(), "При надевании дает эффект слепоты и тьмы");
     }
 }

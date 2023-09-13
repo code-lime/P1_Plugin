@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.rows.UserFlagsRow;
@@ -29,8 +30,8 @@ import java.util.*;
 
 public class BackPackInstance extends EntityInstance implements CustomEntityMetadata.Interactable, CustomEntityMetadata.Tickable {
     public static double LOCK_TIME = 10 * 60;
-    public static core.element create() {
-        return core.element.create(BackPackInstance.class)
+    public static CoreElement create() {
+        return CoreElement.create(BackPackInstance.class)
                 .<JsonPrimitive>addConfig("config", v -> v.withParent("backpack_lock_time").withDefault(new JsonPrimitive(LOCK_TIME)).withInvoke(_v -> LOCK_TIME = _v.getAsDouble()));
     }
 

@@ -6,6 +6,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.JoinConfiguration;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.system;
 import net.kyori.adventure.text.Component;
@@ -16,8 +17,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class LangMessages {
-    public static core.element create() {
-        return core.element.create(LangMessages.class)
+    public static CoreElement create() {
+        return CoreElement.create(LangMessages.class)
                 .<JsonObject>addConfig("lang", v -> v.withInvoke(LangMessages::config).withDefault(() -> {
                     JsonObject def = new JsonObject();
                     for (Message msg : Message.values()) msg.addDefault(def);

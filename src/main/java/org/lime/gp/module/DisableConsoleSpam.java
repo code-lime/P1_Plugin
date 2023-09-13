@@ -3,14 +3,15 @@ package org.lime.gp.module;
 import net.minecraft.server.network.LoginListener;
 import net.minecraft.server.network.PlayerConnection;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.reflection;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
 public class DisableConsoleSpam {
-    public static core.element create() {
-        return core.element.create(DisableConsoleSpam.class)
+    public static CoreElement create() {
+        return CoreElement.create(DisableConsoleSpam.class)
                 .withInit(DisableConsoleSpam::init);
     }
 

@@ -9,7 +9,7 @@ import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.InfoComponent;
-import org.lime.system;
+import org.lime._system;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -23,6 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.lime.Position;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
@@ -35,8 +36,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CoreProtectHandle implements Listener {
-    public static core.element create() {
-        return core.element.create(CoreProtectHandle.class)
+    public static CoreElement create() {
+        return CoreElement.create(CoreProtectHandle.class)
                 .withInit(CoreProtectHandle::init)
                 .withUninit(CoreProtectHandle::uninit)
                 .<JsonArray>addConfig("inspecting", v -> v.withDefault(system.json.array().add("coreprotect.lookup").build()).withInvoke(CoreProtectHandle::config))

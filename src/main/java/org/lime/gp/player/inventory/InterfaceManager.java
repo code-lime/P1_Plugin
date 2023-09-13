@@ -1,14 +1,17 @@
 package org.lime.gp.player.inventory;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayInWindowClick;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow;
+import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
 import net.minecraft.world.inventory.Container;
+import net.minecraft.world.inventory.InventoryClickType;
 import net.minecraft.world.inventory.Slot;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
@@ -17,6 +20,7 @@ import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventory;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.PacketManager;
 import org.lime.gp.lime;
 import org.lime.reflection;
@@ -38,8 +42,8 @@ import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class InterfaceManager implements Listener {
-    public static core.element create() {
-        return core.element.create(InterfaceManager.class)
+    public static CoreElement create() {
+        return CoreElement.create(InterfaceManager.class)
                 .withInstance()
                 .withInit(InterfaceManager::init);
     }
@@ -48,43 +52,99 @@ public class InterfaceManager implements Listener {
         PacketManager.adapter()
                 .add(PacketPlayInWindowClick.class, (packet, event) -> {
                     if (event.isCancelled()) return;
-                    PlayerConnection connection = ((CraftPlayer)event.getPlayer()).getHandle().connection;
-                    if (connection.player.isImmobile()) return;
-                    if (connection.player.containerMenu.containerId == packet.getContainerId()) {
+                    if (!(event.getPlayer() instanceof CraftPlayer craftPlayer)) return;
+                    EntityPlayer player = craftPlayer.getHandle();
+                    PlayerConnection connection = player.connection;
+                    if (player.isImmobile()) return;
+                    if (player.containerMenu.containerId == packet.getContainerId()) {
                         int i2 = packet.getSlotNum();
-                        if (!connection.player.containerMenu.isValidSlotIndex(i2)) return;
+                        if (!player.containerMenu.isValidSlotIndex(i2)) return;
                         if (packet.getSlotNum() < -1 && packet.getSlotNum() != -999) return;
+                        ClickType click = ClickType.UNKNOWN;
+                        Slot slot = switch (packet.getClickType()) {
+                            case PICKUP -> {
+                                click = switch (packet.getButtonNum()) {
+                                    case 0 -> ClickType.LEFT;
+                                    case 1 -> ClickType.RIGHT;
+                                    default -> ClickType.UNKNOWN;
+                                };
+                                if (click == ClickType.UNKNOWN) yield null;
+                                if (packet.getSlotNum() == -999) yield null;
+                                if (packet.getSlotNum() < 0) yield null;
+                                yield player.containerMenu.getSlot(packet.getSlotNum());
+                            }
+                            case QUICK_MOVE -> {
+                                click = switch (packet.getButtonNum()) {
+                                    case 0 -> ClickType.SHIFT_LEFT;
+                                    case 1 -> ClickType.SHIFT_RIGHT;
+                                    default -> ClickType.UNKNOWN;
+                                };
+                                if (click == ClickType.UNKNOWN) yield null;
+                                if (packet.getSlotNum() < 0) yield null;
+                                yield player.containerMenu.getSlot(packet.getSlotNum());
+                            }
+                            case SWAP -> {
+                                if ((packet.getButtonNum() < 0 || packet.getButtonNum() >= 9) && packet.getButtonNum() != 40) yield null;
+                                click = packet.getButtonNum() == 40 ? ClickType.SWAP_OFFHAND : ClickType.NUMBER_KEY;
+                                yield player.containerMenu.getSlot(packet.getSlotNum());
+                            }
+                            case THROW -> {
+                                if (packet.getSlotNum() < 0) yield null;
+                                if (packet.getButtonNum() == 0) {
+                                    click = ClickType.DROP;
+                                    yield player.containerMenu.getSlot(packet.getSlotNum());
+                                }
+                                if (packet.getButtonNum() != 1) yield null;
+                                click = ClickType.CONTROL_DROP;
+                                yield player.containerMenu.getSlot(packet.getSlotNum());
+                            }
+                            default -> null;
+                        };
+                        if (slot instanceof AbstractSlot abstractSlot) {
+                            abstractSlot.onSlotClickAsync(player, packet.getClickType(), click);
+                            if (abstractSlot.isPacketOnly()) {
+                                event.setCancelled(true);
+                                lime.invokeSync(() -> player.containerMenu.sendAllDataToRemote());
+                            }
+                        }
+                        /*
                         switch (packet.getClickType()) {
                             case PICKUP -> {
                                 if (packet.getButtonNum() != 0 && packet.getButtonNum() != 1) break;
                                 if (packet.getSlotNum() == -999) break;
                                 if (packet.getSlotNum() < 0) break;
                                 Slot slot = connection.player.containerMenu.getSlot(packet.getSlotNum());
-                                if (slot instanceof AbstractSlot aslot) aslot.onSlotClickAsync(connection.player);
+                                if (slot instanceof AbstractSlot aslot)
+                                    aslot.onSlotClickAsync(connection.player, click);
                             }
                             case QUICK_MOVE -> {
                                 if (packet.getButtonNum() != 0 && packet.getButtonNum() != 1) break;
                                 if (packet.getSlotNum() < 0) break;
                                 Slot slot = connection.player.containerMenu.getSlot(packet.getSlotNum());
-                                if (slot instanceof AbstractSlot aslot) aslot.onSlotClickAsync(connection.player);
+                                if (slot instanceof AbstractSlot aslot)
+                                    aslot.onSlotClickAsync(connection.player, click);
                             }
                             case SWAP -> {
                                 if ((packet.getButtonNum() < 0 || packet.getButtonNum() >= 9) && packet.getButtonNum() != 40) break;
                                 Slot slot = connection.player.containerMenu.getSlot(packet.getSlotNum());
-                                if (slot instanceof AbstractSlot aslot) aslot.onSlotClickAsync(connection.player);
+                                if (slot instanceof AbstractSlot aslot)
+                                    aslot.onSlotClickAsync(connection.player, click);
                             }
                             case THROW -> {
                                 if (packet.getSlotNum() >= 0) {
                                     if (packet.getButtonNum() == 0) {
-                                        if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot) aslot.onSlotClickAsync(connection.player);
+                                        if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot)
+                                            aslot.onSlotClickAsync(connection.player, click);
                                         break;
                                     }
                                     if (packet.getButtonNum() != 1) break;
-                                    if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot) aslot.onSlotClickAsync(connection.player);
+                                    if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot)
+                                        aslot.onSlotClickAsync(connection.player, click);
                                 }
                             }
                             default -> {}
                         }
+                         */
                     }
                 })
                 .listen();
@@ -218,17 +278,20 @@ public class InterfaceManager implements Listener {
         public int getRowX() { return index % 9; }
         public int getRowY() { return index / 9; }
 
-        public void onSlotClick(EntityHuman player) { }
-        public void onSlotClickAsync(EntityHuman player) {
+        public abstract boolean isPacketOnly();
+
+        public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) { }
+        public void onSlotClickAsync(EntityHuman player, InventoryClickType type, ClickType click) {
             lime.invokeSync(() -> {
                 if (player.containerMenu.stillValid(player))
-                    onSlotClick(player);
+                    onSlotClick(player, type, click);
             });
         }
 
         public static AbstractSlot noneSlot(Slot slot) {
             net.minecraft.world.item.ItemStack ITEM = CraftItemStack.asNMSCopy(MainPlayerInventory.createBarrier(false));
             return new AbstractSlot(slot) {
+                @Override public boolean isPacketOnly() { return true; }
                 @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                 @Override public boolean mayPickup(EntityHuman playerEntity) { return false; }
                 @Override public net.minecraft.world.item.ItemStack getItem() { return ITEM; }
@@ -236,6 +299,7 @@ public class InterfaceManager implements Listener {
         }
         public static AbstractSlot noneInteractSlot(Slot slot) {
             return new AbstractSlot(slot) {
+                @Override public boolean isPacketOnly() { return true; }
                 @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                 @Override public boolean mayPickup(EntityHuman playerEntity) { return false; }
             };
@@ -295,6 +359,23 @@ public class InterfaceManager implements Listener {
     }
     public static Builder of(EntityHuman player, CraftInventory inventory) {
         return new Builder((EntityPlayer)player, inventory);
+    }
+
+    public static void changeTitle(EntityPlayer player, Container container, IChatBaseComponent title) {
+        if (container != player.containerMenu) return;
+        player.connection.send(new PacketPlayOutOpenWindow(container.containerId, container.getType(), title));
+        container.broadcastFullState();
+    }
+    public static void changeTitle(EntityPlayer player, Container container, IChatBaseComponent title, boolean force) {
+        boolean callInit = false;
+        if (container != player.containerMenu) {
+            if (!force) return;
+            callInit = true;
+            player.containerMenu = container;
+        }
+        player.connection.send(new PacketPlayOutOpenWindow(container.containerId, container.getType(), title));
+        if (callInit) player.initMenu(container);
+        container.broadcastFullState();
     }
 
     public static boolean openInventory(Player player, CraftInventory inventory, system.Func3<Integer, PlayerInventory, IInventory, Container> creator) {

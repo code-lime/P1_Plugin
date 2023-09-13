@@ -12,7 +12,7 @@ public interface ILoot {
     List<ItemStack> generateLoot(IPopulateLoot loot);
 
     static ILoot parse(JsonElement json) {
-        if (json.isJsonPrimitive()) return new SingleLoot(json.getAsJsonPrimitive());
+        if (json.isJsonPrimitive()) return new SingleLoot(json.getAsString());
         else if (json.isJsonArray()) return new MultiLoot(json.getAsJsonArray());
         else if (json.isJsonNull()) return EmptyLoot.Instance;
         else if (json.isJsonObject()) {
@@ -20,6 +20,7 @@ public interface ILoot {
             return obj.has("type") ? switch (obj.get("type").getAsString()) {
                 case "random" -> new RandomLoot(obj);
                 case "js" -> new JavaScriptLoot(obj);
+                case "variable" -> new VariableLoot(obj);
                 default -> throw new IllegalArgumentException("[LOOT] Type '"+obj.get("type").getAsString()+"' not supported");
             } : new FilterLoot(obj);
         }

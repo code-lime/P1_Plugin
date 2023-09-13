@@ -1,6 +1,7 @@
 package org.lime.gp.database.tables;
 
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.admin.BanList;
 import org.lime.gp.craft.book.RecipesBook;
@@ -21,8 +22,8 @@ public class Tables {
         return v == null ? "" : String.valueOf(v);
     }
 
-    public static core.element create() {
-        return core.element.create(Tables.class)
+    public static CoreElement create() {
+        return CoreElement.create(Tables.class)
                 .withInit(Tables::init);
     }
 

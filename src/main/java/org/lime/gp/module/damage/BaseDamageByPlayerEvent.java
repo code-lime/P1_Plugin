@@ -14,6 +14,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 
@@ -21,8 +22,8 @@ import java.util.Optional;
 
 @SuppressWarnings("deprecation")
 public abstract class BaseDamageByPlayerEvent extends Event {
-    public static core.element create() {
-        return core.element.create(BaseDamageByPlayerEvent.class)
+    public static CoreElement create() {
+        return CoreElement.create(BaseDamageByPlayerEvent.class)
                 .withInstance(new Listener() {
                     @EventHandler public void on(EntityDamageByEntityEvent base) {
                         ExtMethods.damagerPlayer(base)

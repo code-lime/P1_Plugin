@@ -9,11 +9,12 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 
 public class FixCursorSlot implements Listener {
-    public static core.element create() {
-        return core.element.create(FixCursorSlot.class)
+    public static CoreElement create() {
+        return CoreElement.create(FixCursorSlot.class)
                 .withInstance();
     }
 

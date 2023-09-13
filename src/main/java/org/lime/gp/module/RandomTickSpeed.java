@@ -5,6 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameRules;
 import org.bukkit.GameRule;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
 import org.lime.json.JsonObjectOptional;
@@ -17,8 +18,8 @@ public class RandomTickSpeed {
     private static int value = 3;
     private static boolean fraction = false;
 
-    public static core.element create() {
-        return core.element.create(RandomTickSpeed.class)
+    public static CoreElement create() {
+        return CoreElement.create(RandomTickSpeed.class)
                 .withInit(RandomTickSpeed::init)
                 .<JsonObject>addConfig("randomTickSpeed", v -> v
                         .withDefault(system.json.object()

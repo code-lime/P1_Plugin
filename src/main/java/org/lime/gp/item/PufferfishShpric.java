@@ -7,11 +7,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 
 public class PufferfishShpric implements Listener {
-    public static core.element create() {
-        return core.element.create(PufferfishShpric.class)
+    public static CoreElement create() {
+        return CoreElement.create(PufferfishShpric.class)
                 .withInstance();
     }
 

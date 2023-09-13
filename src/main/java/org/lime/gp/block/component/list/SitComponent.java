@@ -8,11 +8,14 @@ import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
 import org.lime.system;
 
@@ -47,4 +50,5 @@ public final class SitComponent extends ComponentStatic<JsonObject> implements C
         GSeat seat = GSitAPI.createSeat(metadata.block(), eplayer.getBukkitEntity(), isRotated, offset.getX(), offset.getY(), offset.getZ(), (float) rotation, sitAtBlock);
         return seat == null ? EnumInteractionResult.PASS : EnumInteractionResult.CONSUME;
     }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

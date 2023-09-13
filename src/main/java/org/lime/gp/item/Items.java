@@ -1,14 +1,14 @@
 package org.lime.gp.item;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import com.destroystokyo.paper.event.player.PlayerJumpEvent;
+import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import io.papermc.paper.adventure.PaperAdventure;
 import net.coreprotect.event.AsyncItemInfoEvent;
 import net.minecraft.ResourceKeyInvalidException;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.protocol.game.PacketPlayOutOpenBook;
 import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
@@ -21,9 +21,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.effect.MobEffectList;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.entity.player.PlayerArrowCriticalEvent;
+import net.minecraft.world.entity.player.PlayerAttackMultiplyCriticalEvent;
 import net.minecraft.world.entity.player.PlayerAttackStrengthResetEvent;
 import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.entity.projectile.EntityArrow;
 import net.minecraft.world.entity.projectile.EntityProjectile;
 import net.minecraft.world.entity.projectile.EntityThrownTrident;
 import net.minecraft.world.item.*;
@@ -34,16 +36,16 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftTrident;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -51,9 +53,9 @@ import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.chat.Apply;
-import org.lime.gp.extension.ItemNMS;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.ArrowBow;
@@ -73,16 +75,17 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("deprecation")
 public class Items implements Listener {
-    public static core.element create() {
-        return core.element.create(Items.class)
+    public static CoreElement create() {
+        return CoreElement.create(Items.class)
                 .withInstance()
                 .withInit(Items::init)
                 .<JsonObject>addConfig("items", v -> v.withInvoke(Items::config).withDefault(new JsonObject()));
     }
-    private static UUID toUUID(double value, Attribute attribute, AttributeModifier.Operation operation, EquipmentSlot slot) {
+    /*private static UUID toUUID(double value, Attribute attribute, AttributeModifier.Operation operation, EquipmentSlot slot) {
         int _value = (int)Math.round(value * 10000);
         if (_value > 999999999) _value = 999999999;
         else if (_value < -999999999) _value = -999999999;
@@ -97,9 +100,9 @@ public class Items implements Listener {
         data[5] = _operation;
         data[6] = _slot;
         return new UUID(2030, ByteBuffer.wrap(data).getLong());
-    }
+    }*/
     public static AttributeModifier generate(Attribute attribute, double amount, AttributeModifier.Operation operation, EquipmentSlot slot) {
-        return new AttributeModifier(toUUID(amount, attribute, operation, slot), attribute.name().toLowerCase().replace('_', '.'), amount, operation, slot);
+        return new AttributeModifier(UUID.randomUUID() /*toUUID(amount, attribute, operation, slot)*/, attribute.getKey().getKey() /*attribute.name().toLowerCase().replace('_', '.')*/, amount, operation, slot);
     }
 
     public static ItemStack empty() {
@@ -236,9 +239,9 @@ public class Items implements Listener {
                 json.get("duration").getAsInt(),
                 json.get("amplifier").getAsInt());
 
-        if (json.has("ambient")) effect.withAmbient(json.get("ambient").getAsBoolean());
-        if (json.has("icon")) effect.withIcon(json.get("icon").getAsBoolean());
-        if (json.has("particles")) effect.withParticles(json.get("particles").getAsBoolean());
+        if (json.has("ambient")) effect = effect.withAmbient(json.get("ambient").getAsBoolean());
+        if (json.has("icon")) effect = effect.withIcon(json.get("icon").getAsBoolean());
+        if (json.has("particles")) effect = effect.withParticles(json.get("particles").getAsBoolean());
         return effect;
     }
 
@@ -250,7 +253,7 @@ public class Items implements Listener {
         e.setDisplayName(name);
     }
 
-    public static List<ItemStack> byMaxStack(ItemStack item) {
+    /*public static List<ItemStack> byMaxStack(ItemStack item) {
         int maxStack = item.getMaxStackSize();
         if (maxStack <= 0) return Collections.singletonList(item);
         int count = item.getAmount();
@@ -261,6 +264,50 @@ public class Items implements Listener {
         }
         if (count > 0) items.add(item.asQuantity(count));
         return items;
+    }*/
+    public static Stream<ItemStack> splitOptimize(ItemStack item) {
+        int maxCount = item.getMaxStackSize();
+        int currentCount = item.getAmount();
+        if (maxCount <= 0 || currentCount <= maxCount) return Stream.of(item);
+        return Streams.stream(new Iterator<>() {
+            int count = currentCount;
+            @Override public boolean hasNext() {
+                return count > 0;
+            }
+            @Override public ItemStack next() {
+                ItemStack out;
+                if (count > maxCount) {
+                    out = item.asQuantity(maxCount);
+                    count -= maxCount;
+                } else {
+                    out = item.asQuantity(count);
+                    count = 0;
+                }
+                return out;
+            }
+        });
+    }
+    public static Stream<net.minecraft.world.item.ItemStack> splitOptimize(net.minecraft.world.item.ItemStack item) {
+        int maxCount = item.getMaxStackSize();
+        int currentCount = item.getCount();
+        if (maxCount <= 0 || currentCount <= maxCount) return Stream.of(item);
+        return Streams.stream(new Iterator<>() {
+            int count = currentCount;
+            @Override public boolean hasNext() {
+                return count > 0;
+            }
+            @Override public net.minecraft.world.item.ItemStack next() {
+                net.minecraft.world.item.ItemStack out;
+                if (count > maxCount) {
+                    out = item.copyWithCount(maxCount);
+                    count -= maxCount;
+                } else {
+                    out = item.copyWithCount(count);
+                    count = 0;
+                }
+                return out;
+            }
+        });
     }
 
     public static void dropGiveItem(Player player, List<ItemStack> items, boolean log) {
@@ -268,22 +315,24 @@ public class Items implements Listener {
     }
     public static void dropGiveItem(Player player, ItemStack item, boolean log) {
         if (isAir(item)) return;
-        EntityPlayer serverPlayer = ((CraftPlayer)player).getHandle();
-        net.minecraft.world.item.ItemStack itemStack = CraftItemStack.asNMSCopy(item);
-        boolean bl = serverPlayer.getInventory().add(itemStack);
-        Location location = player.getLocation();
-        if (log) CoreProtectHandle.logPickUp(location, player, item);
-        if (bl && itemStack.isEmpty()) {
-            serverPlayer.level.playSound(null, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), SoundEffects.ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((serverPlayer.getRandom().nextFloat() - serverPlayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-            serverPlayer.containerMenu.broadcastChanges();
-        } else {
-            ItemStack _item = CraftItemStack.asBukkitCopy(itemStack);
-            List<ItemStack> out = WalletInventory.tryAddToWallet(player, _item);
-            if (!out.isEmpty()) lime.once(() -> {
-                out.forEach(__item -> CoreProtectHandle.logDrop(location, player, __item));
-                dropItem(location, out);
-            }, 1);
-        }
+        splitOptimize(item).forEach(singleItem -> {
+            EntityPlayer serverPlayer = ((CraftPlayer)player).getHandle();
+            net.minecraft.world.item.ItemStack itemStack = CraftItemStack.asNMSCopy(singleItem);
+            boolean bl = serverPlayer.getInventory().add(itemStack);
+            Location location = player.getLocation();
+            if (log) CoreProtectHandle.logPickUp(location, player, singleItem);
+            if (bl && itemStack.isEmpty()) {
+                serverPlayer.level.playSound(null, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), SoundEffects.ITEM_PICKUP, SoundCategory.PLAYERS, 0.2F, ((serverPlayer.getRandom().nextFloat() - serverPlayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                serverPlayer.containerMenu.broadcastChanges();
+            } else {
+                ItemStack _item = CraftItemStack.asBukkitCopy(itemStack);
+                List<ItemStack> out = WalletInventory.tryAddToWallet(player, _item);
+                if (!out.isEmpty()) lime.once(() -> {
+                    out.forEach(__item -> CoreProtectHandle.logDrop(location, player, __item));
+                    dropItem(location, out);
+                }, 1);
+            }
+        });
     }
 
     @SuppressWarnings("all")
@@ -311,19 +360,22 @@ public class Items implements Listener {
     }
     public static void dropItem(Location location, ItemStack item) {
         if (isAir(item)) return;
-        location.getWorld().dropItemNaturally(location, item);
+        World world = location.getWorld();
+        splitOptimize(item).forEach(splitItem -> world.dropItemNaturally(location, splitItem));
     }
     public static void dropBlockItem(Location location, List<ItemStack> items) {
         World world = location.getWorld();
         Location dropLoc = dropBlockPosition(location);
-        items.forEach(item -> {
+        items.stream().flatMap(Items::splitOptimize).forEach(item -> {
             if (isAir(item)) return;
             world.dropItem(dropLoc, item);
         });
     }
     public static void dropBlockItem(Location location, ItemStack item) {
         if (isAir(item)) return;
-        location.getWorld().dropItem(dropBlockPosition(location), item);
+        World world = location.getWorld();
+        Location dropLoc = dropBlockPosition(location);
+        splitOptimize(item).forEach(splitItem -> world.dropItem(dropLoc, splitItem));
     }
 
     public static Optional<Material> getMaterialKey(String key) {
@@ -351,8 +403,8 @@ public class Items implements Listener {
     public static Optional<String> getGlobalKeyByItem(net.minecraft.world.item.ItemStack item) {
         if (item == null) return Optional.empty();
         return getIDByItem(item)
-                .map(v -> Optional.ofNullable(creatorNamesIDs.get(v)))
-                .orElseGet(() -> Optional.of(CraftMagicNumbers.getMaterial(item.getItem())).map(Items::getMaterialKey));
+                .map(creatorNamesIDs::get)
+                .or(() -> Optional.of(CraftMagicNumbers.getMaterial(item.getItem())).map(Items::getMaterialKey));
     }
     public static Optional<String> getKeyByItem(ItemStack item) {
         return getIDByItem(item).map(creatorNamesIDs::get);
@@ -555,6 +607,7 @@ public class Items implements Listener {
         if (!(e.getPlayer() instanceof CraftPlayer player)) return;
         lime.once(player::updateInventory, 0.5);
     }
+    /*
     @EventHandler public static void on(PlayerAttackStrengthResetEvent e) {
         if (!(e.getHuman() instanceof EntityPlayer player)) return;
         net.minecraft.world.item.ItemStack itemstack = player.getMainHandItem();
@@ -571,6 +624,7 @@ public class Items implements Listener {
         connection.send(new PacketPlayOutSetSlot(0, stateId, slot, net.minecraft.world.item.ItemStack.EMPTY));
         lime.nextTick(player.inventoryMenu::broadcastFullState);
     }
+    */
 
     @EventHandler private static void on(DamageSourceBlockEvent e) {
         if (!e.isBlocking()) return;
@@ -584,6 +638,32 @@ public class Items implements Listener {
         if (attack.getUseAnimation() == EnumAnimation.BLOCK) attack = net.minecraft.world.item.ItemStack.EMPTY;
         double chance = Items.getOptional(ShieldIgnoreSetting.class, shield).map(v -> v.chance).orElse(1.0) * Items.getOptional(ShieldIgnoreSetting.class, attack).map(v -> v.chance).orElse(0.0);
         if (system.rand_is(chance)) e.setBlocking(false);
+    }
+    @EventHandler private static void on(EntityShootBowEvent e) {
+        Items.getOptional(ArrowSetting.class, e.getBow())
+                .ifPresent(v -> {
+                    if (!(e.getProjectile() instanceof CraftEntity ce) || !(ce.getHandle() instanceof EntityArrow arrow)) return;
+                    arrow.setBaseDamage(arrow.getBaseDamage() * v.damageMultiply);
+                });
+    }
+
+    @EventHandler private static void on(PlayerAttackMultiplyCriticalEvent e) {
+        e.setMultiply(1);
+    }
+    @EventHandler private static void on(PlayerArrowCriticalEvent e) {
+        e.setCriticalAppend(0);
+        if (e.isCritical()) return;
+        e.setDamage(Math.round((e.getDamage() * 2f - 4f) / 3f));
+    }
+    @EventHandler private static void on(PlayerJumpEvent e) {
+        Player player = e.getPlayer();
+        org.bukkit.inventory.PlayerInventory inventory = player.getInventory();
+        for (ItemStack item : inventory.getArmorContents()) {
+            Items.getOptional(ArmorFoodSetting.class, item).ifPresent(armor -> armor.change(player));
+        }
+        for (ItemStack item : List.of(inventory.getItem(EquipmentSlot.HAND), inventory.getItem(EquipmentSlot.OFF_HAND))) {
+            Items.getOptional(ArmorFoodSetting.class, item).filter(v -> v.inHand).ifPresent(armor -> armor.change(player));
+        }
     }
 }
 

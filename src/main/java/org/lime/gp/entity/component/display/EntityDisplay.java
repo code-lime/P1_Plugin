@@ -5,8 +5,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Marker;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.Entities;
@@ -15,8 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class EntityDisplay {
-    public static core.element create() {
-        return core.element.create(EntityDisplay.class)
+    public static CoreElement create() {
+        return CoreElement.create(EntityDisplay.class)
                 .withInit(EntityDisplay::init);
     }
     public static final EntityModelDisplay.EntityModelManager MODEL_MANAGER = EntityModelDisplay.manager();
@@ -36,8 +37,8 @@ public class EntityDisplay {
     }
 
     public interface IEntity {
-        Optional<Model> data();
-        static IEntity of(Model model) {
+        Optional<IBuilder> data();
+        static IEntity of(IBuilder model) {
             return () -> Optional.ofNullable(model);
         }
     }

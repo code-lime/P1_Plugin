@@ -12,12 +12,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.lime.core;
+import org.lime.plugin.CoreElement;
 import org.lime.gp.module.biome.holiday.Snowy;
 import org.lime.system;
 
 public class SnowballHit implements Listener {
-    public static core.element create() {
-        return core.element.create(SnowballHit.class)
+    public static CoreElement create() {
+        return CoreElement.create(SnowballHit.class)
                 .withInstance();
     }
     @EventHandler public static void on(ProjectileHitEvent e) {

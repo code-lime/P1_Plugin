@@ -1,16 +1,9 @@
 package org.lime.gp.block.component.data;
 
-import com.google.common.primitives.Floats;
-import com.google.gson.JsonElement;
 import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
@@ -19,7 +12,6 @@ import net.minecraft.world.phys.AxisAlignedBB;
 import net.minecraft.world.phys.shapes.OperatorBoolean;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.VoxelShapes;
-import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -30,8 +22,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.joml.Vector3f;
-import org.lime.display.models.Builder;
-import org.lime.display.models.Model;
+import org.lime.display.models.shadow.Builder;
+import org.lime.display.models.shadow.IBuilder;
+import org.lime.display.models.shadow.ItemBuilder;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -40,23 +33,20 @@ import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.craft.book.ContainerWorkbenchBook;
-import org.lime.gp.craft.slot.output.IOutputVariable;
-import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.craft.book.Recipes;
+import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.PacketManager;
+import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
-import org.lime.gp.module.JavaScript;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -274,8 +264,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     .stream()
                     .map(kv -> Items.getItemCreator(kv.val0).map(v -> v.createItem(kv.val1)))
                     .flatMap(Optional::stream)
-                    .map(Items::byMaxStack)
-                    .flatMap(Collection::stream);
+                    .flatMap(Items::splitOptimize);
         }
 
         private void dropNotRecipeReset(Location center) {
@@ -448,13 +437,14 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     stand.setXRot(0);
                     return stand;
                 });*/
-        private static final Builder builder = lime.models.builder(EntityTypes.ITEM_DISPLAY)
-                .nbt(() -> {
-                    Display.ItemDisplay display = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, lime.MainWorld.getHandle());
-                    display.setTransformation(new Transformation(new Vector3f(0, 0.001f, 0), null, new Vector3f(1f, 1f, 1f), null));
-                    return display;
-                });
-        private final system.LockToast1<Model> model = system.<Model>toast(null).lock();
+        private static final ItemBuilder builder = lime.models.builder().item()
+                .transform(new Transformation(
+                        new Vector3f(0, 0.001f, 0),
+                        null,
+                        new Vector3f(1f, 1f, 1f),
+                        null
+                ));
+        private final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
 
         private void refreshDisplay() {
             this.model.set0(Items.getOptional(ThirstSetting.class, result)
@@ -472,16 +462,15 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                         meta.setColor(color);
                         meta.setCustomModelData(cmd);
                         item.setItemMeta(meta);
-                        return builder.addEquipment(EnumItemSlot.HEAD, CraftItemStack.asNMSCopy(item));
+                        return builder.item(CraftItemStack.asNMSCopy(item));
                     })
-                    .map(Builder::build)
                     .orElse(null));
             CauldronInstance.this.metadata()
                 .list(DisplayInstance.class)
                 .forEach(DisplayInstance::variableDirty);
         }
         @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
-            Model model = this.model.get0();
+            IBuilder model = this.model.get0();
             return model == null ? Optional.empty() : Optional.of(IModelBlock.of(null, model, BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
         }
     }

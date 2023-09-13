@@ -5,8 +5,12 @@ import java.util.List;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IJElement;
+import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonPrimitive;
@@ -25,5 +29,9 @@ import com.google.gson.JsonPrimitive;
             if (Items.getOptional(HideNickSetting.class, inventory.getItem(slot)).filter(v -> v.isHide).isPresent())
                 return true;
         return false;
+    }
+
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, index, IJElement.bool(), "Указывает, скрывать ли ник игрока при надевании");
     }
 }
