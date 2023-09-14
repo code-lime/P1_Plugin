@@ -14,7 +14,9 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +57,8 @@ public class ItemElement {
 
     public boolean isSearch(String search) {
         return search.startsWith("!")
-                ? system.compareRegex(key(), search.substring(1))
-                : system.filterRegex(searchList, String::toLowerCase, search.toLowerCase(), true).findAny().isPresent();
+                ? Regex.compareRegex(key(), search.substring(1))
+                : Regex.filterRegex(searchList, String::toLowerCase, search.toLowerCase(), true).findAny().isPresent();
     }
 
     protected ItemStack createWithoutThrow(List<String> searchList) {

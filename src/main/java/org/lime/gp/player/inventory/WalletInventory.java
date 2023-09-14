@@ -16,13 +16,15 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.WalletSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PlayerData;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
 
@@ -40,7 +42,7 @@ public final class WalletInventory implements Listener {
     public static boolean filterWallet(net.minecraft.world.item.ItemStack item) {
         return item.is(net.minecraft.world.item.Items.PAPER) || Items.has(WalletSetting.class, CraftItemStack.asBukkitCopy(item));
     }
-    private static boolean openFilterInventory(Player player, CraftInventory inventory, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
+    private static boolean openFilterInventory(Player player, CraftInventory inventory, boolean readonly, Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
         player.closeInventory();
         return InterfaceManager.of(player, inventory)
                 .slots(slot -> {
@@ -63,12 +65,12 @@ public final class WalletInventory implements Listener {
     private static JsonArray saveItems(List<ItemStack> items) {
         JsonArray arr = new JsonArray();
         for (ItemStack item : items)
-            arr.add(item != null && item.getType() != Material.AIR ? system.saveItem(item) : null);
+            arr.add(item != null && item.getType() != Material.AIR ? ItemUtils.saveItem(item) : null);
         return arr;
     }
     private static List<ItemStack> loadItems(JsonArray json) {
         List<ItemStack> items = new ArrayList<>();
-        json.forEach(item -> items.add(item == null || item.isJsonNull() ? new ItemStack(Material.AIR) : system.loadItem(item.getAsString())));
+        json.forEach(item -> items.add(item == null || item.isJsonNull() ? new ItemStack(Material.AIR) : ItemUtils.loadItem(item.getAsString())));
         int size = items.size();
         for (int i = 0; i < 9 - size; i++) items.add(new ItemStack(Material.AIR));
         return items;
@@ -109,7 +111,7 @@ public final class WalletInventory implements Listener {
     public static boolean openWallet(Player player, UUID wallet) {
         return openWalletTarget(player, wallet, false, item -> item, item -> false);
     }
-    public static boolean openWalletTarget(Player player, UUID wallet, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
+    public static boolean openWalletTarget(Player player, UUID wallet, boolean readonly, Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
         return openFilterInventory(player, inventoryWallets.compute(wallet, (uuid, inv) -> inv == null ? readWallet(uuid) : inv), readonly, filter, click);
     }
 
@@ -132,7 +134,7 @@ public final class WalletInventory implements Listener {
         writeWallet(uuid, inventory);
         return out;
     }
-    public static boolean dropDieItems(Player player, Location location, system.Action1<ItemStack> callback) {
+    public static boolean dropDieItems(Player player, Location location, Action1<ItemStack> callback) {
         return false;
     }
 }

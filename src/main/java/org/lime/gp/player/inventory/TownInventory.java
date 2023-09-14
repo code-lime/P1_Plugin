@@ -49,7 +49,12 @@ import org.lime.gp.module.DrawMap;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.selector.ZoneSelector;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.EnumFlag;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ParseUtils;
+import org.lime.system.utils.RandomUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -67,7 +72,7 @@ public class TownInventory implements Listener {
 
     private static class DisplayHtml {
         public final String sql;
-        public final List<system.Toast2<String, String>> args = new ArrayList<>();
+        public final List<Toast2<String, String>> args = new ArrayList<>();
         public final String file;
         public final String html;
 
@@ -75,30 +80,30 @@ public class TownInventory implements Listener {
 
         public DisplayHtml(JsonObject json) {
             sql = json.get("sql").getAsString();
-            if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(kv -> args.add(system.toast(kv.getKey(), kv.getValue().getAsString())));
+            if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(kv -> args.add(Toast.of(kv.getKey(), kv.getValue().getAsString())));
             file = json.get("file").getAsString();
             html = lime.existConfig(file, ".html") ? lime.readAllConfig(file, ".html") : HTML_EMPTY;
         }
 
-        public void generate(system.Action1<HashMap<Integer, String>> callback) {
+        public void generate(Action1<HashMap<Integer, String>> callback) {
             Methods.SQL.Async.rawSqlQuery(sql, AnyRow::of, list -> lime.invokeAsync(() -> {
                 HashMap<Integer, String> map = new HashMap<>();
                 list.forEach(v -> {
                     int house_id = Integer.parseInt(v.columns.get("house_id"));
                     String _html = html;
-                    for (system.Toast2<String, String> arg : args) _html = _html.replace("{" + arg.val0 + "}", v.applyToString(arg.val1));
+                    for (Toast2<String, String> arg : args) _html = _html.replace("{" + arg.val0 + "}", v.applyToString(arg.val1));
                     map.put(house_id, v.applyToString(_html));
                 });
                 return map;
             }, callback));
         }
-        public void generateMap(system.Action1<HashMap<Integer, byte[]>> callback) {
+        public void generateMap(Action1<HashMap<Integer, byte[]>> callback) {
             generate(html -> generateMap(html, callback));
         }
-        private static final ConcurrentHashMap<String, system.Toast2<byte[], Integer>> buffer = new ConcurrentHashMap<>();
+        private static final ConcurrentHashMap<String, Toast2<byte[], Integer>> buffer = new ConcurrentHashMap<>();
         @SuppressWarnings("unused")
-        public static void generateMap(String html, system.Action1<byte[]> callback) {
-            system.Toast2<byte[], Integer> data = buffer.getOrDefault(html, null);
+        public static void generateMap(String html, Action1<byte[]> callback) {
+            Toast2<byte[], Integer> data = buffer.getOrDefault(html, null);
             if (data != null) {
                 if (data.val1-- <= 0) buffer.remove(html);
                 callback.invoke(data.val0);
@@ -112,15 +117,15 @@ public class TownInventory implements Listener {
                 jep.print(graphics);
                 return DrawMap.of().fill(image).save();
             }, bytes -> {
-                buffer.put(html, system.toast(bytes, system.rand(15, 20)));
+                buffer.put(html, Toast.of(bytes, RandomUtils.rand(15, 20)));
                 callback.invoke(bytes);
             });
         }
-        public static void generateMap(HashMap<Integer, String> htmls, system.Action1<HashMap<Integer,byte[]>> callback) {
+        public static void generateMap(HashMap<Integer, String> htmls, Action1<HashMap<Integer,byte[]>> callback) {
             HashMap<Integer, byte[]> _data = new HashMap<>();
             htmls.entrySet().removeIf(kv -> {
                 String html = kv.getValue();
-                system.Toast2<byte[], Integer> data = buffer.getOrDefault(html, null);
+                Toast2<byte[], Integer> data = buffer.getOrDefault(html, null);
                 if (data == null) return false;
                 if (data.val1-- <= 0) buffer.remove(html);
                 _data.put(kv.getKey(), data.val0);
@@ -135,10 +140,10 @@ public class TownInventory implements Listener {
                 jep.print(graphics);
                 byte[] bytes = DrawMap.of().fill(image).save();
                 _data.put(house_id, bytes);
-                buffer.put(html, system.toast(bytes, system.rand(15, 20)));
+                buffer.put(html, Toast.of(bytes, RandomUtils.rand(15, 20)));
             }), () -> callback.invoke(_data));
         }
-        public static void generateAllMap(system.Action1<HashMap<Integer, byte[]>> callback) {
+        public static void generateAllMap(Action1<HashMap<Integer, byte[]>> callback) {
             ImmutableList.copyOf(displays.values()).forEach(displayHtml -> displayHtml.generateMap(callback));
         }
     }
@@ -179,9 +184,9 @@ public class TownInventory implements Listener {
     public enum HtmlType {
         HOME("home", row -> true);
 
-        private final system.Func1<HouseRow, Boolean> isUse;
+        private final Func1<HouseRow, Boolean> isUse;
         public final String key;
-        HtmlType(String key, system.Func1<HouseRow, Boolean> isUse) {
+        HtmlType(String key, Func1<HouseRow, Boolean> isUse) {
             this.isUse = isUse;
             this.key = key;
         }
@@ -199,7 +204,7 @@ public class TownInventory implements Listener {
     }
     private static final HomeManager HOME_MANAGER = new HomeManager();
 
-    public static class PrivatePattern extends system.Enum {
+    public static class PrivatePattern extends EnumFlag {
         private static final HashMap<String, PrivatePattern> patternBreaks = new HashMap<>();
         private static final HashMap<String, PrivatePattern> patternBlocks = new HashMap<>();
         private static final HashMap<EntityType, PrivatePattern> patternEntities = new HashMap<>();
@@ -221,9 +226,9 @@ public class TownInventory implements Listener {
             return new PrivatePattern(
                     index,
                     name,
-                    system.parseGet(json, "breaks", Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v),
-                    system.parseGet(json, "blocks", Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v),
-                    system.parseGet(json, "entities", Arrays.asList(EntityType.values()), Enum::name));
+                    ParseUtils.parseGet(json, "breaks", Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v),
+                    ParseUtils.parseGet(json, "blocks", Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v),
+                    ParseUtils.parseGet(json, "entities", List.of(EntityType.values()), Enum::name));
         }
         private void addToPatterns() {
             this.breaks.forEach(m -> patternBreaks.put(m, this));
@@ -252,7 +257,7 @@ public class TownInventory implements Listener {
                 UserRow.getBy(player.getUniqueId()).ifPresent(user -> {
                     Boolean state = null;
                     for (HomePerm home : homes) {
-                        system.Toast2<List<String>, Boolean> _state = home.display(PrivatePattern.patternBreaks.get(Material.CHEST.name()), loc, user, true);
+                        Toast2<List<String>, Boolean> _state = home.display(PrivatePattern.patternBreaks.get(Material.CHEST.name()), loc, user, true);
                         map.addAll(_state.val0);
                         if (state == null || state) state = _state.val1 == null ? state : _state.val1;
                         else state = false;
@@ -419,12 +424,12 @@ public class TownInventory implements Listener {
         public Boolean isCan(PrivatePattern privateType, Location pos, UserRow user) {
             return display(privateType, pos, user, false).val1;
         }
-        public system.Toast2<List<String>, Boolean> display(PrivatePattern privateType, Location pos, UserRow user, boolean createList) {
+        public Toast2<List<String>, Boolean> display(PrivatePattern privateType, Location pos, UserRow user, boolean createList) {
             String prefix = StringUtils.leftPad(String.valueOf(row.id), 2, '0');
             List<String> list = createList ? new ArrayList<>() : null;
             Boolean state = null;
             for (HomePerm perm : perms) {
-                system.Toast2<List<String>, Boolean> _state = perm.display(privateType, pos, user, createList);
+                Toast2<List<String>, Boolean> _state = perm.display(privateType, pos, user, createList);
                 if (createList) _state.val0.forEach(line -> list.add(" - " + line));
                 if (state == null || state) state = _state.val1 == null ? state : _state.val1;
                 else state = false;
@@ -445,10 +450,10 @@ public class TownInventory implements Listener {
                 }
                 else if (createList) list.add(prefix + ": NONE");
             }
-            return system.toast(list, state);
+            return Toast.of(list, state);
         }
         public static List<HomePerm> getAll() {
-            HashMap<Integer, HouseRow> rows = system.map.<Integer, HouseRow>of()
+            HashMap<Integer, HouseRow> rows = map.<Integer, HouseRow>of()
                     .add(Tables.HOUSE_TABLE.getRows(), kv -> kv.id, kv -> kv)
                     .build();
 

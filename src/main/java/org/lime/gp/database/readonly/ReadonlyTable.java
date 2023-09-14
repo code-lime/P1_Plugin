@@ -10,7 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 
@@ -21,10 +22,10 @@ public class ReadonlyTable<T> {
     private final String table;
     private final String key;
     private final Class<?> tKeyClass;
-    private final system.Func1<Object, T> from;
+    private final Func1<Object, T> from;
     private final List<String> keys;
-    private final system.Func0<Map<T, List<Object>>> data;
-    private final system.Action1<String> debug;
+    private final Func0<Map<T, List<Object>>> data;
+    private final Action1<String> debug;
 
     private final ConcurrentHashMap<Object, Integer> cooldowns = new ConcurrentHashMap<>();
 
@@ -40,7 +41,7 @@ public class ReadonlyTable<T> {
         tables.add(this);
     }
 
-    private static boolean compare(List<String> line1, List<String> line2, system.Action1<String> debug) {
+    private static boolean compare(List<String> line1, List<String> line2, Action1<String> debug) {
         int length = line1.size();
         if (length != line2.size()) return false;
         for (int i = 0; i < length; i++) {
@@ -57,7 +58,7 @@ public class ReadonlyTable<T> {
             int size = MySql.columnsCount(reader);
             List<String> args = new ArrayList<>();
             for (int i = 2; i <= size; i++) args.add(MySql.toSqlObject(MySql.readObject(reader, i)));
-            return system.toast(from.invoke(MySql.readObject(reader, 1, tKeyClass)), args);
+            return Toast.of(from.invoke(MySql.readObject(reader, 1, tKeyClass)), args);
         }, (callback) -> {
             Map<T, List<Object>> data = this.data.invoke();
             List<String> remove = new ArrayList<>();
@@ -107,12 +108,12 @@ public class ReadonlyTable<T> {
         private final String table;
         private final String key;
         private final Class<?> tKeyClass;
-        private final system.Func1<Object, T> from;
+        private final Func1<Object, T> from;
         private final List<String> keys;
-        private final system.Func0<Map<T, List<Object>>> data;
-        private final system.Action1<String> debug;
+        private final Func0<Map<T, List<Object>>> data;
+        private final Action1<String> debug;
 
-        private Builder(String table, String key, Class<?> tKeyClass, system.Func1<Object, T> from, List<String> keys, system.Func0<Map<T, List<Object>>> data, system.Action1<String> debug) {
+        private Builder(String table, String key, Class<?> tKeyClass, Func1<Object, T> from, List<String> keys, Func0<Map<T, List<Object>>> data, Action1<String> debug) {
             this.table = table;
             this.key = key;
             this.tKeyClass = tKeyClass;
@@ -125,14 +126,14 @@ public class ReadonlyTable<T> {
         public static <T>ReadonlyTable.Builder<T> of(String table, String key) { return new ReadonlyTable.Builder<>(table, key, null, null, null, null, null); }
 
         @SuppressWarnings("unchecked")
-        public <TKey>ReadonlyTable.Builder<T> withKey(Class<TKey> tKeyClass, system.Func1<TKey, T> from) {
+        public <TKey>ReadonlyTable.Builder<T> withKey(Class<TKey> tKeyClass, Func1<TKey, T> from) {
             return new ReadonlyTable.Builder<T>(table, key, tKeyClass, v -> from.invoke((TKey)v), keys, data, debug);
         }
         public ReadonlyTable.Builder<T> withKey(Class<T> tKeyClass) { return withKey(tKeyClass, v -> v); }
         public ReadonlyTable.Builder<T> withKeys(List<String> keys) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
         public ReadonlyTable.Builder<T> withKeys(String... keys) { return withKeys(Arrays.asList(keys)); }
-        public ReadonlyTable.Builder<T> withData(system.Func0<Map<T, List<Object>>> data) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
-        public ReadonlyTable.Builder<T> withDebug(system.Action1<String> debug) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
+        public ReadonlyTable.Builder<T> withData(Func0<Map<T, List<Object>>> data) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
+        public ReadonlyTable.Builder<T> withDebug(Action1<String> debug) { return new ReadonlyTable.Builder<>(table, key, tKeyClass, from, keys, data, debug); }
 
         public ReadonlyTable<T> build() { return new ReadonlyTable<>(this); }
     }

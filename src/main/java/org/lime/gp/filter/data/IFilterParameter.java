@@ -2,14 +2,15 @@ package org.lime.gp.filter.data;
 
 import net.minecraft.world.level.World;
 import org.lime.gp.filter.IFilter;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Optional;
 
 public interface IFilterParameter<TData extends IFilterData<TData>, TValue> {
     String name();
 
-    default IFilterParameterInfo<TData, TValue> createInfoEqualsIgnoreCase(String name, system.Func1<TValue, String> convert) {
+    default IFilterParameterInfo<TData, TValue> createInfoEqualsIgnoreCase(String name, Func1<TValue, String> convert) {
         return createInfo(name, new FilterParameterInfo.IAction<>() {
             @Override public String convert(TValue value, World world) { return convert.invoke(value); }
             @Override public IFilter<TData> createFilter(String rawValue, FilterParameterInfo<TData, TValue> info) {
@@ -17,7 +18,7 @@ public interface IFilterParameter<TData extends IFilterData<TData>, TValue> {
             }
         });
     }
-    default IFilterParameterInfo<TData, TValue> createInfoEqualsIgnoreCase(String name, system.Func2<TValue, World, String> convert) {
+    default IFilterParameterInfo<TData, TValue> createInfoEqualsIgnoreCase(String name, Func2<TValue, World, String> convert) {
         return createInfo(name, new FilterParameterInfo.IAction<>() {
             @Override public String convert(TValue value, World world) { return convert.invoke(value, world); }
             @Override public IFilter<TData> createFilter(String rawValue, FilterParameterInfo<TData, TValue> info) {
@@ -25,7 +26,7 @@ public interface IFilterParameter<TData extends IFilterData<TData>, TValue> {
             }
         });
     }
-    default <TFilter>IFilterParameterInfo<TData, TValue> createInfoWorldFilter(String name, system.Func2<TValue, World, String> convert, system.Func1<String, TFilter> createFilter, system.Func3<TFilter, TValue, World, Boolean> filter) {
+    default <TFilter>IFilterParameterInfo<TData, TValue> createInfoWorldFilter(String name, Func2<TValue, World, String> convert, Func1<String, TFilter> createFilter, Func3<TFilter, TValue, World, Boolean> filter) {
         return createInfo(name, new FilterParameterInfo.IAction<>() {
             @Override public String convert(TValue value, World world) { return convert.invoke(value, world); }
             @Override public IFilter<TData> createFilter(String rawValue, FilterParameterInfo<TData, TValue> info) {
@@ -34,7 +35,7 @@ public interface IFilterParameter<TData extends IFilterData<TData>, TValue> {
             }
         });
     }
-    default <TFilter>IFilterParameterInfo<TData, TValue> createInfoFilter(String name, system.Func1<TValue, String> convert, system.Func1<String, TFilter> createFilter, system.Func2<TFilter, TValue, Boolean> filter) {
+    default <TFilter>IFilterParameterInfo<TData, TValue> createInfoFilter(String name, Func1<TValue, String> convert, Func1<String, TFilter> createFilter, Func2<TFilter, TValue, Boolean> filter) {
         return createInfo(name, new FilterParameterInfo.IAction<>() {
             @Override public String convert(TValue value, World world) { return convert.invoke(value); }
             @Override public IFilter<TData> createFilter(String rawValue, FilterParameterInfo<TData, TValue> info) {

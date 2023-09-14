@@ -9,23 +9,24 @@ import java.util.stream.Collectors;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 
 import com.google.gson.JsonObject;
 
 public final class Variable {
-    public final List<system.Toast2<String, List<String>>> values = new ArrayList<>();
+    public final List<Toast2<String, List<String>>> values = new ArrayList<>();
     public final Partial partial;
 
     public Variable(int distanceChunk, JsonObject owner, JsonObject child) {
         child.entrySet().forEach(kv -> {
             if (kv.getKey().equals("result")) return;
-            values.add(system.toast(kv.getKey(), Collections.singletonList(kv.getValue().getAsString())));
+            values.add(Toast.of(kv.getKey(), Collections.singletonList(kv.getValue().getAsString())));
         });
         partial = Partial.parse(distanceChunk, lime.combineJson(owner, child.get("result"), false).getAsJsonObject());
     }
-    public Variable(Partial partial, List<system.Toast2<String, List<String>>> variable) {
+    public Variable(Partial partial, List<Toast2<String, List<String>>> variable) {
         this.partial = partial;
         this.values.addAll(variable);
     }
@@ -33,11 +34,11 @@ public final class Variable {
         this.partial = partial;
     }
     public Variable add(String key, String value) {
-        this.values.add(system.toast(key, new ArrayList<>(List.of(value))));
+        this.values.add(Toast.of(key, new ArrayList<>(List.of(value))));
         return this;
     }
     public boolean is(Map<String, String> values) {
-        for (system.Toast2<String, List<String>> kv : this.values) {
+        for (Toast2<String, List<String>> kv : this.values) {
             String str = values.getOrDefault(kv.val0, null);
             if (!kv.val1.contains(str)) return false;
         }

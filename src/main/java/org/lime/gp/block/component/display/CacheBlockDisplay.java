@@ -3,8 +3,9 @@ package org.lime.gp.block.component.display;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import net.minecraft.world.level.block.state.IBlockData;
-import org.lime.system;
 import org.lime.gp.block.component.display.block.IBlock;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -23,14 +24,14 @@ public class CacheBlockDisplay {
         static ICacheInfo of(IBlock data) { return uuid -> data; }
         static ICacheInfo of(IBlockData data) { return of(IBlock.of(data)); }
     }
-    private static final ConcurrentHashMap<system.Toast2<BlockPosition, UUID>, ICacheInfo> cacheBlocks = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Toast2<BlockPosition, UUID>, ICacheInfo> cacheBlocks = new ConcurrentHashMap<>();
 
     @SuppressWarnings("all")
     public static boolean trySetCacheBlock(TileEntityLimeSkull skull, ICacheInfo info) {
         return trySetCacheBlock(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid, info);
     }
     public static boolean trySetCacheBlock(BlockPosition position, UUID worldUUID, ICacheInfo info) {
-        return cacheBlocks.putIfAbsent(system.toast(position, worldUUID), info) != info;
+        return cacheBlocks.putIfAbsent(Toast.of(position, worldUUID), info) != info;
     }
 
     @SuppressWarnings("all")
@@ -38,7 +39,7 @@ public class CacheBlockDisplay {
         return replaceCacheBlock(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid, info);
     }
     public static boolean replaceCacheBlock(BlockPosition position, UUID worldUUID, ICacheInfo info) {
-        return cacheBlocks.put(system.toast(position, worldUUID), info) != info;
+        return cacheBlocks.put(Toast.of(position, worldUUID), info) != info;
     }
 
     @SuppressWarnings("all")
@@ -46,10 +47,10 @@ public class CacheBlockDisplay {
         resetCacheBlock(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid);
     }
     public static void resetCacheBlock(BlockPosition position, UUID worldUUID) {
-        cacheBlocks.remove(system.toast(position, worldUUID));
+        cacheBlocks.remove(Toast.of(position, worldUUID));
     }
     public static Optional<ICacheInfo> getCacheBlock(BlockPosition position, UUID worldUUID) {
-        return Optional.ofNullable(cacheBlocks.get(system.toast(position, worldUUID)));
+        return Optional.ofNullable(cacheBlocks.get(Toast.of(position, worldUUID)));
     }
     
     @SuppressWarnings("all")
@@ -57,7 +58,7 @@ public class CacheBlockDisplay {
         return isConcurrent(skull.getBlockPos(), skull.getLevel().getMinecraftWorld().uuid);
     }
     public static boolean isConcurrent(BlockPosition position, UUID worldUUID) {
-        ICacheInfo info = cacheBlocks.get(system.toast(position, worldUUID));
+        ICacheInfo info = cacheBlocks.get(Toast.of(position, worldUUID));
         return info != null && info.isConcurrent();
     }
 

@@ -11,12 +11,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.display.ObjectDisplay;
 import org.lime.display.models.display.BaseChildDisplay;
-import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.database.rows.PetsRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
 import org.lime.gp.module.EntityPosition;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,9 +78,9 @@ public class PetDisplay extends ObjectDisplay<PetsRow, Marker> {
     protected PetDisplay(AbstractPet pet, PetsRow row) {
         this.pet = pet;
         this.row = row;
-        this.speed = pet.speed == 0 ? 0 : (pet.speed + system.rand(0, pet.speed * 0.05) * (system.rand() ? 1 : -1));
+        this.speed = pet.speed == 0 ? 0 : (pet.speed + RandomUtils.rand(0, pet.speed * 0.05) * (RandomUtils.rand() ? 1 : -1));
         this.maxSteps = pet.steps;
-        this.step = system.rand(0, maxSteps);
+        this.step = RandomUtils.rand(0, maxSteps);
 
         this.model = preInitDisplay(pet.model().<PetsRow>display(this));
         postInit();

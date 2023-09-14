@@ -23,7 +23,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -123,8 +124,8 @@ public abstract class ViewContainer extends ContainerChest {
         }),
         None(NoneSlot::new);
 
-        private final system.Func4<Slot, ViewData, SlotType, Integer, BaseActionSlot> creator;
-        SlotType(system.Func4<Slot, ViewData, SlotType, Integer, BaseActionSlot> creator) { this.creator = creator; }
+        private final Func4<Slot, ViewData, SlotType, Integer, BaseActionSlot> creator;
+        SlotType(Func4<Slot, ViewData, SlotType, Integer, BaseActionSlot> creator) { this.creator = creator; }
         public BaseActionSlot createSlot(Slot slot, ViewData view, int slotTypeIndex) { return this.creator.invoke(slot, view, this, slotTypeIndex); }
 
         public int nextSlotTypeIndex(Iterable<Slot> slots) {

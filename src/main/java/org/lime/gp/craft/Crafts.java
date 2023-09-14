@@ -41,7 +41,10 @@ import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -158,7 +161,7 @@ public class Crafts {
                     String value = key.getPath();
                     boolean remove = false;
                     for (String regex : regexList) {
-                        if (system.compareRegex(value, regex)) {
+                        if (Regex.compareRegex(value, regex)) {
                             //if (keyed.key().toString().contains("armor_dye")) lime.logOP("ARMOR_DYE_COLOR REMOVE IN REGEX '"+regex+"'");
                             removeCraftList.get(regex).add(value);
                             remove = true;
@@ -183,7 +186,7 @@ public class Crafts {
             String unique = "REGEX." + regex + "." + index;
             ImmutableSet<String> crafts = Streams.stream(Bukkit.getServer().recipeIterator())
                     .map(v -> ((Keyed) v).getKey().getKey())
-                    .filter(v -> system.compareRegex(v, regex))
+                    .filter(v -> Regex.compareRegex(v, regex))
                     .distinct()
                     .collect(ImmutableSet.toImmutableSet());
             return new Perms.ICanData() {
@@ -235,8 +238,8 @@ public class Crafts {
             return input.test(inventory.getItem(0));
         }
 
-        private final system.Func7<MinecraftKey, String, CookingBookCategory, IOutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init;
-        CookingType(system.Func7<MinecraftKey, String, CookingBookCategory, IOutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init) {
+        private final Func7<MinecraftKey, String, CookingBookCategory, IOutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init;
+        CookingType(Func7<MinecraftKey, String, CookingBookCategory, IOutputSlot, RecipeSlot, Float, Integer, RecipeCooking> init) {
             this.init = init;
         }
 
@@ -270,14 +273,14 @@ public class Crafts {
         }
 
         public Optional<HashMap<Integer, RecipeSlot>> craft(InventoryCrafting inventory) {
-            ArrayList<system.Toast2<net.minecraft.world.item.ItemStack, Integer>> providedItems = new ArrayList<>();
+            ArrayList<Toast2<net.minecraft.world.item.ItemStack, Integer>> providedItems = new ArrayList<>();
             Counter<net.minecraft.world.item.ItemStack> matchedProvided = new Counter<>();
             Counter<RecipeSlot> matchedIngredients = new Counter<>();
             for (int j2 = 0; j2 < inventory.getContainerSize(); ++j2) {
                 net.minecraft.world.item.ItemStack itemstack = inventory.getItem(j2);
                 if (itemstack.isEmpty()) continue;
                 itemstack = itemstack.copy(true);
-                providedItems.add(system.toast(itemstack, j2));
+                providedItems.add(Toast.of(itemstack, j2));
                 for (RecipeSlot ingredient : recipes) {
                     if (!ingredient.test(itemstack)) continue;
                     matchedProvided.increment(itemstack);
@@ -286,10 +289,10 @@ public class Crafts {
             }
             if (matchedProvided.isEmpty() || matchedIngredients.isEmpty()) return Optional.empty();
             ArrayList<RecipeSlot> ingredients = new ArrayList<>(recipes);
-            providedItems.sort(Comparator.<system.Toast2<net.minecraft.world.item.ItemStack, Integer>>comparingInt(c2 -> (int)matchedProvided.getCount(c2.val0)).reversed());
+            providedItems.sort(Comparator.<Toast2<net.minecraft.world.item.ItemStack, Integer>>comparingInt(c2 -> (int)matchedProvided.getCount(c2.val0)).reversed());
             ingredients.sort(Comparator.comparingInt(c2 -> (int)matchedIngredients.getCount(c2)));
             HashMap<Integer, RecipeSlot> output = new HashMap<>();
-            block2: for (system.Toast2<net.minecraft.world.item.ItemStack, Integer> provided : providedItems) {
+            block2: for (Toast2<net.minecraft.world.item.ItemStack, Integer> provided : providedItems) {
                 Iterator<RecipeSlot> itIngredient = ingredients.iterator();
                 while (itIngredient.hasNext()) {
                     RecipeSlot ingredient = itIngredient.next();
@@ -351,14 +354,14 @@ public class Crafts {
         public Optional<HashMap<Integer, RecipeSlot>> craft(InventoryCrafting inventory) {
             Iterable<RecipeSlot> recipeSlots = Iterables.concat(Collections.singleton(modifySlot), otherSlots);
 
-            ArrayList<system.Toast2<net.minecraft.world.item.ItemStack, Integer>> providedItems = new ArrayList<>();
+            ArrayList<Toast2<net.minecraft.world.item.ItemStack, Integer>> providedItems = new ArrayList<>();
             Counter<net.minecraft.world.item.ItemStack> matchedProvided = new Counter<>();
             Counter<RecipeSlot> matchedIngredients = new Counter<>();
             for (int j2 = 0; j2 < inventory.getContainerSize(); ++j2) {
                 net.minecraft.world.item.ItemStack itemstack = inventory.getItem(j2);
                 if (itemstack.isEmpty()) continue;
                 itemstack = itemstack.copy(true);
-                providedItems.add(system.toast(itemstack, j2));
+                providedItems.add(Toast.of(itemstack, j2));
                 for (RecipeSlot ingredient : recipeSlots) {
                     if (!ingredient.test(itemstack)) continue;
                     matchedProvided.increment(itemstack);
@@ -368,10 +371,10 @@ public class Crafts {
             if (matchedProvided.isEmpty() || matchedIngredients.isEmpty()) return Optional.empty();
             ArrayList<RecipeSlot> ingredients = new ArrayList<>();
             recipeSlots.forEach(ingredients::add);
-            providedItems.sort(Comparator.<system.Toast2<net.minecraft.world.item.ItemStack, Integer>>comparingInt(c2 -> (int)matchedProvided.getCount(c2.val0)).reversed());
+            providedItems.sort(Comparator.<Toast2<net.minecraft.world.item.ItemStack, Integer>>comparingInt(c2 -> (int)matchedProvided.getCount(c2.val0)).reversed());
             ingredients.sort(Comparator.comparingInt(c2 -> (int)matchedIngredients.getCount(c2)));
             HashMap<Integer, RecipeSlot> output = new HashMap<>();
-            block2: for (system.Toast2<net.minecraft.world.item.ItemStack, Integer> provided : providedItems) {
+            block2: for (Toast2<net.minecraft.world.item.ItemStack, Integer> provided : providedItems) {
                 Iterator<RecipeSlot> itIngredient = ingredients.iterator();
                 while (itIngredient.hasNext()) {
                     RecipeSlot ingredient = itIngredient.next();
@@ -621,7 +624,7 @@ public class Crafts {
                 List<RecipeSlot> input = create(key.toString(), json.get("input").getAsJsonArray());
                 int clicks = json.get("clicks").getAsInt();
                 String clicker_type = json.get("clicker_type").getAsString();
-                if (json.has("repair")) return ClickerRecipe.ofRepair(key, group, category, input, system.IRange.parse(json.get("repair").getAsString()), clicks, clicker_type);
+                if (json.has("repair")) return ClickerRecipe.ofRepair(key, group, category, input, IRange.parse(json.get("repair").getAsString()), clicks, clicker_type);
                 else if (json.has("enchantments")) return ClickerRecipe.ofCombine(key, group, category, input, Streams.stream(json.get("enchantments").getAsJsonArray()).map(JsonElement::getAsString).map(NamespacedKey::minecraft).map(Enchantment::getByKey).toList(), clicks, clicker_type);
                 else {
                     boolean replace = !json.has("replace") || json.get("replace").getAsBoolean();

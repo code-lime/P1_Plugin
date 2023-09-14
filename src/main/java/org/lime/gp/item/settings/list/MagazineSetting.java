@@ -15,7 +15,9 @@ import org.bukkit.persistence.PersistentDataType;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
@@ -23,6 +25,7 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
+import org.lime.system.utils.ItemUtils;
 
 @Setting(name = "magazine") public class MagazineSetting extends ItemSetting<JsonObject> {
     public static final NamespacedKey BULLETS_KEY = new NamespacedKey(lime._plugin, "bullets");
@@ -56,12 +59,12 @@ import com.google.gson.JsonObject;
                 .map(v -> v.split(" "))
                 .map(Arrays::stream)
                 .map(v -> v.filter(_v -> !_v.equals("")))
-                .map(v -> v.map(system::loadItem).collect(Collectors.toList()));
+                .map(v -> v.map(ItemUtils::loadItem).collect(Collectors.toList()));
     }
     public static void setBullets(ItemStack magazine, List<ItemStack> bullets) {
         ItemMeta meta = magazine.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        container.set(BULLETS_KEY, PersistentDataType.STRING, bullets.stream().map(system::saveItem).collect(Collectors.joining(" ")));
+        container.set(BULLETS_KEY, PersistentDataType.STRING, bullets.stream().map(ItemUtils::saveItem).collect(Collectors.joining(" ")));
         magazine.setItemMeta(meta);
 
         Items.getItemCreator(magazine)
@@ -72,10 +75,10 @@ import com.google.gson.JsonObject;
     @Override public void appendArgs(ItemMeta meta, Apply apply) {
         List<ItemStack> bullets = getBullets(meta).orElseGet(Collections::emptyList);
         apply.add("bullet_count", String.valueOf(bullets.size()));
-        apply.add("bullets", system.json.array()
+        apply.add("bullets", json.array()
                 .add(bullets, item -> Optional.ofNullable(item)
                         .flatMap(v -> Items.getOptional(BulletSetting.class, v))
-                        .map(v -> system.json.object()
+                        .map(v -> json.object()
                                 .add("bullet_name", v.creator().name)
                                 .add("bullet_type", v.bullet_type)
                                 .add("damage", v.damage)

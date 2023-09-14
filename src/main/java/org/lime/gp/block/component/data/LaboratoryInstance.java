@@ -30,7 +30,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.lime.display.models.shadow.Builder;
 import org.lime.display.models.shadow.EntityBuilder;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.display.models.shadow.NoneBuilder;
@@ -56,7 +55,11 @@ import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.execute.Execute;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.utils.ItemUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -69,7 +72,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
         super(component, metadata);
         this.model_interact = component.model_interact;
 
-        items = Arrays.stream(SlotType.values()).collect(ImmutableMap.toImmutableMap(type -> type, type -> system.func(type.thirst ? WaterLaboratorySlot::new : ItemLaboratorySlot::new).invoke(component(), type)));
+        items = Arrays.stream(SlotType.values()).collect(ImmutableMap.toImmutableMap(type -> type, type -> Execute.func(type.thirst ? WaterLaboratorySlot::new : ItemLaboratorySlot::new).invoke(component(), type)));
     }
 
     public static IBuilder createInteract(LaboratoryComponent component) {
@@ -103,13 +106,13 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
     @Override public Stream<? extends CustomTileMetadata.Element> childs() { return items.values().stream(); }
 
     private class ItemLaboratorySlot extends LaboratorySlot implements BlockDisplay.Displayable {
-        private system.LockToast1<IBuilder> model;
+        private LockToast1<IBuilder> model;
         public ItemLaboratorySlot(LaboratoryComponent component, SlotType type) {
             super(component, type);
         }
         @Override public ItemLaboratorySlot set(ItemStack item) {
             super.set(item);
-            if (model == null) model = system.<IBuilder>toast(null).lock();
+            if (model == null) model = Toast.lock(null);
             this.model.set0(lime.models.builder().none()
                     .local(local)
                     .addChild(builder_interact
@@ -181,15 +184,15 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                 .stream()
                 .flatMap(v -> v.entrySet()
                         .stream()
-                        .flatMap(kv -> kv.getValue().getAsString().stream().map(system::loadItem).map(_v -> system.toast(SlotType.valueOf(kv.getKey()), _v)))
+                        .flatMap(kv -> kv.getValue().getAsString().stream().map(ItemUtils::loadItem).map(_v -> Toast.of(SlotType.valueOf(kv.getKey()), _v)))
                         .filter(kv -> kv.val1 != null)
                 )
                 .forEach(kv -> of(kv.val0).set(kv.val1));
         syncDisplayVariable();
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .addObject("items", v -> v.add(items, Enum::name, _v -> system.saveItem(_v.get())))
+    @Override public json.builder.object write() {
+        return json.object()
+                .addObject("items", v -> v.add(items, Enum::name, _v -> ItemUtils.saveItem(_v.get())))
                 .add("last_click", last_click);
     }
 
@@ -333,7 +336,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             event.getWorld().playSound(null, event.getPos(), SoundEffects.BUBBLE_COLUMN_BUBBLE_POP, SoundCategory.BLOCKS, 1.0f, 1.0f);
             if (ticks % 10 > 0) return;
             PARTICLE
-                    .color(Color.fromRGB(0xFFFF00 + system.rand(0x00, 0xFF)), (float)system.rand(1.0, 2.0))
+                    .color(Color.fromRGB(0xFFFF00 + RandomUtils.rand(0x00, 0xFF)), (float)RandomUtils.rand(1.0, 2.0))
                     .count(1)
                     .location(metadata.location(0.5, 1.2, 0.5))
                     .spawn();

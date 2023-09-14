@@ -13,14 +13,15 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InputEvent extends Event {
     public static final InputEvent EMPTY = new InputEvent(Axis.None, Axis.None, false, false, null);
-    private static final ConcurrentHashMap<UUID, system.Toast2<InputEvent, Long>> last_inputs = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, Toast2<InputEvent, Long>> last_inputs = new ConcurrentHashMap<>();
     public static CoreElement create() {
         return CoreElement.create(InputEvent.class)
                 .withInit(InputEvent::init);
@@ -33,7 +34,7 @@ public class InputEvent extends Event {
                 InputEvent input = new InputEvent(packet, player);
                 lime.invokeSync(() -> {
                     Bukkit.getServer().getPluginManager().callEvent(input);
-                    last_inputs.put(player.getUniqueId(), system.toast(input, System.currentTimeMillis() + 100));
+                    last_inputs.put(player.getUniqueId(), Toast.of(input, System.currentTimeMillis() + 100));
                 });
             }
         });
@@ -45,7 +46,7 @@ public class InputEvent extends Event {
 
     public static InputEvent last(Player player) {
         if (player == null) return EMPTY;
-        system.Toast2<InputEvent, Long> input = last_inputs.getOrDefault(player.getUniqueId(), null);
+        Toast2<InputEvent, Long> input = last_inputs.getOrDefault(player.getUniqueId(), null);
         if (input != null) return input.val0;
         return new InputEvent(Axis.None, Axis.None, false, false, player);
     }

@@ -11,14 +11,16 @@ import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.sound.Sounds;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class ActionSlot implements Logged.ILoggedDelete {
-    /*public interface PlaySound extends system.Action1<Player> {
+    /*public interface PlaySound extends Action1<Player> {
         void play(Player player);
         @Override default void invoke(Player player) { play(player); }
         static PlaySound parse(JsonObject json) {
@@ -48,13 +50,13 @@ public class ActionSlot implements Logged.ILoggedDelete {
     public List<String> logs = new ArrayList<>();
     public String page = null;
     public int wait = 0;
-    public List<system.Toast2<String, String>> pageArgs = new ArrayList<>();
+    public List<Toast2<String, String>> pageArgs = new ArrayList<>();
     public boolean close = false;
     public boolean online = false;
     public List<ActionSlot> offlineActions = new ArrayList<>();
     public List<ActionSlot> actions = new ArrayList<>();
-    public List<system.Toast2<String, String>> args = new ArrayList<>();
-    public List<system.Toast2<String, ActionSlot>> checkActions = new ArrayList<>();
+    public List<Toast2<String, String>> args = new ArrayList<>();
+    public List<Toast2<String, ActionSlot>> checkActions = new ArrayList<>();
     public List<String> sounds = new ArrayList<>();
     public List<String> globalSounds = new ArrayList<>();
 
@@ -71,19 +73,19 @@ public class ActionSlot implements Logged.ILoggedDelete {
         if (json.has("logs")) json.get("logs").getAsJsonArray().forEach(msg -> action.logs.add(msg.getAsString()));
         if (json.has("sql")) json.get("sql").getAsJsonArray().forEach(msg -> action.sql.add(msg.getAsString()));
         action.page = json.has("page") ? json.get("page").getAsString() : null;
-        if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> action.args.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
+        if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> action.args.add(Toast.of(arg.getKey(), arg.getValue().getAsString())));
         action.wait = json.has("wait") ? json.get("wait").getAsInt() : 0;
-        if (json.has("page_args")) json.get("page_args").getAsJsonObject().entrySet().forEach(kv -> action.pageArgs.add(system.toast(kv.getKey(), kv.getValue().getAsString())));
+        if (json.has("page_args")) json.get("page_args").getAsJsonObject().entrySet().forEach(kv -> action.pageArgs.add(Toast.of(kv.getKey(), kv.getValue().getAsString())));
         if (json.has("actions")) json.get("actions").getAsJsonArray().forEach(kv -> action.actions.add(ActionSlot.parse(action, kv.getAsJsonObject())));
         if (json.has("sounds")) json.get("sounds").getAsJsonArray().forEach(kv -> action.sounds.add(kv.getAsString()));
         if (json.has("global_sounds")) json.get("global_sounds").getAsJsonArray().forEach(kv -> action.globalSounds.add(kv.getAsString()));
         if (json.has("offline_actions")) json.get("offline_actions").getAsJsonArray().forEach(kv -> action.offlineActions.add(ActionSlot.parse(action, kv.getAsJsonObject())));
-        if (json.has("check_actions")) json.get("check_actions").getAsJsonObject().entrySet().forEach(kv -> action.checkActions.add(system.toast(kv.getKey(), ActionSlot.parse(action, kv.getValue().getAsJsonObject()))));
+        if (json.has("check_actions")) json.get("check_actions").getAsJsonObject().entrySet().forEach(kv -> action.checkActions.add(Toast.of(kv.getKey(), ActionSlot.parse(action, kv.getValue().getAsJsonObject()))));
         return action;
     }
 
     private void _invoke(Player player, Apply apply) {
-        for (system.Toast2<String, String> arg : this.args) apply.add(arg.val0, ChatHelper.formatText(arg.val1, apply));
+        for (Toast2<String, String> arg : this.args) apply.add(arg.val0, ChatHelper.formatText(arg.val1, apply));
         if (online && !player.isOnline()) {
             offlineActions.forEach(v -> v.invoke(player, apply, true));
             return;
@@ -110,10 +112,10 @@ public class ActionSlot implements Logged.ILoggedDelete {
 
             HashMap<String, String> localArgs = new HashMap<>();
 
-            for (system.Toast2<String, String> arg : pageArgs) {
+            for (Toast2<String, String> arg : pageArgs) {
                 if (arg.val0.equals("*")) {
                     apply.list().forEach((k, v) -> {
-                        if (system.compareRegex(k, arg.val1))
+                        if (Regex.compareRegex(k, arg.val1))
                             localArgs.put(k, v);
                     });
                 } else {

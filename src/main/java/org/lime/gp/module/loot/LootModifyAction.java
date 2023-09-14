@@ -4,7 +4,8 @@ import com.google.gson.JsonElement;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.loot.MultiLoot;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +86,8 @@ public enum LootModifyAction {
         throw new IllegalArgumentException("Loot modify action '"+postfix+"' not found!");
     }
 
-    public static system.Toast3<String, ILoot, LootModifyAction> parse(String key, JsonElement value) {
+    public static Toast3<String, ILoot, LootModifyAction> parse(String key, JsonElement value) {
         String[] keys = key.split("#", 2);
-        return system.toast(keys[0], ILoot.parse(value), LootModifyAction.byPostfix(keys[1]));
+        return Toast.of(keys[0], ILoot.parse(value), LootModifyAction.byPostfix(keys[1]));
     }
 }

@@ -3,7 +3,7 @@ package org.lime.gp.module.mobs.spawn;
 import com.google.gson.JsonObject;
 import org.lime.gp.module.mobs.IMobCreator;
 import org.lime.gp.module.mobs.IPopulateSpawn;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class RandomSpawn implements ISpawn {
         if (totalWeight <= 0) return Optional.empty();
         int length = values.size();
         if (length == 0) return Optional.empty();
-        double value = system.rand(0, totalWeight);
+        double value = RandomUtils.rand(0, totalWeight);
         for (SpawnWeight item : values) {
             value -= item.weight;
             if (value <= 0) return Optional.of(item);

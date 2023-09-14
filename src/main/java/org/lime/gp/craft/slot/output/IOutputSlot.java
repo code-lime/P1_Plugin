@@ -3,7 +3,7 @@ package org.lime.gp.craft.slot.output;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.world.item.ItemStack;
-import org.lime.system;
+import org.lime.system.range.*;
 
 import java.util.stream.Collectors;
 
@@ -13,7 +13,7 @@ public interface IOutputSlot {
 
     static IOutputSlot ofString(String str) {
         String[] args = str.split("\\*");
-        return new RangeOutputSlot(args[0], args.length > 1 ? system.IRange.parse(args[1]) : new system.OnceRange(1));
+        return new RangeOutputSlot(args[0], args.length > 1 ? IRange.parse(args[1]) : new OnceRange(1));
     }
     static IOutputSlot of(JsonElement element) {
         if (element.isJsonPrimitive()) return ofString(element.getAsString());
@@ -37,7 +37,7 @@ public interface IOutputSlot {
             else {
                 return new ModifyOutputSlot(of(json.get("item")),
                         json.has("durability")
-                                ? system.IRange.parse(json.get("durability").getAsString())
+                                ? IRange.parse(json.get("durability").getAsString())
                                 : null,
                         json.has("name") ? json.get("name").getAsString() : null,
                         json.has("lore") ? json.get("lore").getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList() : null,

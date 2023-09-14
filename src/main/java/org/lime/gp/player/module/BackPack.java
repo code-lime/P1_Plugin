@@ -12,7 +12,8 @@ import org.lime.display.models.display.ChildEntityDisplay;
 import org.lime.display.models.shadow.Builder;
 import org.lime.display.models.shadow.EntityBuilder;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.ObjectDisplay;
@@ -87,7 +88,7 @@ public class BackPack {
                     PlayerInventory inventory = player.getInventory();
                     return Items.getOptional(BackPackSetting.class, inventory.getChestplate())
                         .map(v -> v.data.get(BackPackSetting.PoseType.getPose(player)))
-                        .map(v -> system.toast(player, v))
+                        .map(v -> Toast.of(player, v))
                         .stream();
                 })
                 .collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1));

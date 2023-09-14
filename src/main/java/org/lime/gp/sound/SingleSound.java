@@ -15,7 +15,8 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.unsafe;
 
 import java.util.Collection;
@@ -25,8 +26,8 @@ public class SingleSound extends ISound {
     public final String key;
     public final double distance;
     public final Sound.Source source;
-    public final system.Func0<Double> volume;
-    public final system.Func0<Double> pitch;
+    public final Func0<Double> volume;
+    public final Func0<Double> pitch;
 
     public SingleSound(String key, double distance, Sound.Source source) {
         this(key, distance, source, 1);
@@ -50,11 +51,11 @@ public class SingleSound extends ISound {
         this(key, distance, source, () -> volume, () -> pitch);
     }
 
-    public SingleSound(String key, double distance, Sound.Source source, system.Func0<Double> volume) {
+    public SingleSound(String key, double distance, Sound.Source source, Func0<Double> volume) {
         this(key, distance, source, volume, () -> 1.0);
     }
 
-    public SingleSound(String key, double distance, Sound.Source source, system.Func0<Double> volume, system.Func0<Double> pitch) {
+    public SingleSound(String key, double distance, Sound.Source source, Func0<Double> volume, Func0<Double> pitch) {
         this.key = key;
         this.distance = distance;
         this.source = source;

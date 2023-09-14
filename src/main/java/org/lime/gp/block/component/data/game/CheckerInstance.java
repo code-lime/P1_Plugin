@@ -7,7 +7,9 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.map.MapMonitor;
 import org.lime.gp.module.DrawMap;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -52,7 +54,7 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
         isNowBlack = json.getAsBoolean("isNowBlack").orElse(false);
         winType = json.getAsEnum(WinType.class, "winType").orElse(WinType.NONE);
     }
-    @Override public system.json.builder.object write() {
+    @Override public json.builder.object write() {
         return super.write()
                 .add("isNowBlack", isNowBlack)
                 .add("winType", winType.name());
@@ -91,8 +93,8 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
         }
     }
 
-    public record Selector(system.Toast2<Integer, Integer> index, Map<system.Toast2<Integer, Integer>, system.Toast2<Integer, Integer>> target) {
-        public Stream<system.Toast2<Integer, Integer>> damage() {
+    public record Selector(Toast2<Integer, Integer> index, Map<Toast2<Integer, Integer>, Toast2<Integer, Integer>> target) {
+        public Stream<Toast2<Integer, Integer>> damage() {
             return target.entrySet().stream().filter(v -> v.getValue() != null).map(Map.Entry::getKey);
         }
     }
@@ -105,7 +107,7 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
         @Override public void select(Player player, int x, int y, int size, MapMonitor.ClickType click, DrawMap map) {
             if (winType != WinType.NONE) return;
             if (click.isClick) {
-                system.Toast2<Integer, Integer> index = system.toast(x,y);
+                Toast2<Integer, Integer> index = Toast.of(x,y);
                 if (getOf(x,y) instanceof Checker checker) {
                     if (checker.isBlack != isNowBlack) select = null;
                     else {
@@ -126,7 +128,7 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
                     }
                 } else {
                     if (select != null && select.target.containsKey(index)) {
-                        system.Toast2<Integer, Integer> remove_index = select.target.remove(index);
+                        Toast2<Integer, Integer> remove_index = select.target.remove(index);
                         if (remove_index != null) setOf(remove_index, new Empty());
                         if (getOf(select.index) instanceof Checker moved) {
                             if ((y == 0 && !moved.isBlack) || (y == count - 1 && moved.isBlack)) moved.isKing = true;
@@ -134,7 +136,7 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
                         }
                         setOf(select.index, new Empty());
 
-                        Map<system.Toast2<Integer, Integer>, Selector> damage = new HashMap<>();
+                        Map<Toast2<Integer, Integer>, Selector> damage = new HashMap<>();
                         for (int _x = 0; _x < count; _x++)
                             for (int _y = 0; _y < count; _y++)
                                 if (getOf(_x, _y) instanceof Checker checker && checker.isBlack == isNowBlack) {
@@ -154,8 +156,8 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
                     getAll()
                             .map(v -> v instanceof Checker c ? c : null)
                             .filter(Objects::nonNull)
-                            .map(v -> v.isBlack ? system.toast(1,0) : system.toast(0,1))
-                            .reduce(system.toast(0,0), (v1,v2) -> system.toast(v1.val0+v2.val0, v1.val1+v2.val1))
+                            .map(v -> v.isBlack ? Toast.of(1,0) : Toast.of(0,1))
+                            .reduce(Toast.of(0,0), (v1,v2) -> Toast.of(v1.val0+v2.val0, v1.val1+v2.val1))
                             .invoke((black_count, white_count) -> {
                                 if (black_count == 0) winType = WinType.WHITE;
                                 else if (white_count == 0) winType = WinType.BLACK;
@@ -170,10 +172,10 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
         }
         @Override public void draw(int x, int y, int size, DrawMap map) {
             if (winType != WinType.NONE) return;
-            if (select != null && select.target.containsKey(system.toast(x,y))) map.rectangle(x * SIZE_BOX, y * SIZE_BOX, SIZE_BOX, SIZE_BOX, TARGET_BORDER, false);
+            if (select != null && select.target.containsKey(Toast.of(x,y))) map.rectangle(x * SIZE_BOX, y * SIZE_BOX, SIZE_BOX, SIZE_BOX, TARGET_BORDER, false);
         }
 
-        @Override public system.json.builder.object write() { return system.json.object().add("type", type().name()); }
+        @Override public json.builder.object write() { return json.object().add("type", type().name()); }
         public abstract Type type();
     }
     public class Empty extends TypeElement {
@@ -194,7 +196,7 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
             super.draw(x, y, size, map);
             int center_size= size / 2;
             int radius = center_size - 2;
-            if (select != null && system.toast(x,y).equals(select.index)) {
+            if (select != null && Toast.of(x,y).equals(select.index)) {
                 map.circle(x * size + center_size, y * size + center_size, radius, SELECT_CHECKER);
                 map.circle(x * size + center_size, y * size + center_size, radius - 1, isBlack ? BLACK_CHECKER : WHITE_CHECKER);
             } else {
@@ -202,11 +204,11 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
             }
             if (isKing) map.circle(x * size + center_size, y * size + center_size, radius / 2, KING_CHECKER);
         }
-        private void line(int x, int y, int dx, int dy, HashMap<system.Toast2<Integer, Integer>, system.Toast2<Integer, Integer>> points, HashMap<system.Toast2<Integer, Integer>, system.Toast2<Integer, Integer>> damage) {
+        private void line(int x, int y, int dx, int dy, HashMap<Toast2<Integer, Integer>, Toast2<Integer, Integer>> points, HashMap<Toast2<Integer, Integer>, Toast2<Integer, Integer>> damage) {
             x += dx;
             y += dy;
             while (in(x, y)) {
-                system.Toast2<Integer, Integer> point_index = system.toast(x, y);
+                Toast2<Integer, Integer> point_index = Toast.of(x, y);
                 if (!(getOf(point_index) instanceof Checker checker)) {
                     points.put(point_index, null);
                     x += dx;
@@ -217,15 +219,15 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
                 x += dx;
                 y += dy;
                 if (!in(x, y)) return;
-                system.Toast2<Integer, Integer> damage_index = system.toast(x,y);
+                Toast2<Integer, Integer> damage_index = Toast.of(x,y);
                 if (getOf(damage_index).type() != Type.Empty) return;
                 damage.put(damage_index, point_index);
                 return;
             }
         }
         public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Toast2<Integer, Integer>> points = new HashMap<>();
-            HashMap<system.Toast2<Integer, Integer>, system.Toast2<Integer, Integer>> damage = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Toast2<Integer, Integer>> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Toast2<Integer, Integer>> damage = new HashMap<>();
             if (isKing) {
                 line(x, y, -1, 1, points, damage);
                 line(x, y, 1, 1, points, damage);
@@ -233,30 +235,30 @@ public class CheckerInstance extends ITableGameInstance<CheckerInstance.TypeElem
                 line(x, y, 1, -1, points, damage);
             } else {
                 Arrays.asList(
-                        system.toast(-1, 1, isNowBlack),
-                        system.toast(1, 1, isNowBlack),
-                        system.toast(-1, -1, !isNowBlack),
-                        system.toast(1, -1, !isNowBlack)
+                        Toast.of(-1, 1, isNowBlack),
+                        Toast.of(1, 1, isNowBlack),
+                        Toast.of(-1, -1, !isNowBlack),
+                        Toast.of(1, -1, !isNowBlack)
                 ).forEach(_xy -> {
                     int _x = _xy.val0;
                     int _y = _xy.val1;
                     if (!in(x+_x,y+_y)) return;
-                    system.Toast2<Integer, Integer> point_index = system.toast(x+_x, y+_y);
+                    Toast2<Integer, Integer> point_index = Toast.of(x+_x, y+_y);
                     if (!(getOf(point_index) instanceof Checker checker)) {
                         if (_xy.val2) points.put(point_index, null);
                         return;
                     }
                     if (checker.isBlack == isBlack) return;
                     if (!in(x+_x*2,y+_y*2)) return;
-                    system.Toast2<Integer, Integer> damage_index = system.toast(x+_x*2, y+_y*2);
+                    Toast2<Integer, Integer> damage_index = Toast.of(x+_x*2, y+_y*2);
                     if (getOf(damage_index).type() != Type.Empty) return;
                     damage.put(damage_index, point_index);
                 });
             }
-            return new Selector(system.toast(x, y), damage.size() > 0 ? damage : points);
+            return new Selector(Toast.of(x, y), damage.size() > 0 ? damage : points);
         }
 
-        @Override public system.json.builder.object write() {
+        @Override public json.builder.object write() {
             return super.write()
                     .add("isBlack", isBlack)
                     .add("isKing", isKing);

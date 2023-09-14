@@ -11,10 +11,9 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.module.biome.holiday.Snowy;
-import org.lime.system;
+import org.lime.plugin.CoreElement;
+import org.lime.system.utils.RandomUtils;
 
 public class SnowballHit implements Listener {
     public static CoreElement create() {
@@ -25,10 +24,10 @@ public class SnowballHit implements Listener {
         if (e.getEntity().getType() != EntityType.SNOWBALL) return;
         Block hit_block = e.getHitBlock();
         if (e.getHitEntity() instanceof Player hit_player) {
-            hit_player.setFreezeTicks(Math.min(hit_player.getMaxFreezeTicks(), hit_player.getFreezeTicks() + system.rand(0, 30)));
+            hit_player.setFreezeTicks(Math.min(hit_player.getMaxFreezeTicks(), hit_player.getFreezeTicks() + RandomUtils.rand(0, 30)));
         }
         if (hit_block == null) return;
-        if (!system.rand_is(0.2)) return;
+        if (!RandomUtils.rand_is(0.2)) return;
         if (hit_block.getType() == Material.SNOW) addSnow(hit_block, e.getEntity());
         else if (e.getHitBlockFace() == BlockFace.UP) addSnow(hit_block.getRelative(BlockFace.UP), e.getEntity());
     }

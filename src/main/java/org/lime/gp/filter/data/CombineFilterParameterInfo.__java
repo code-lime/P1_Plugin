@@ -3,16 +3,16 @@ package org.lime.gp.filter.data;
 import net.minecraft.world.level.World;
 import org.lime._system;
 
-public class CombineFilterParameterInfo<TData extends IFilterData<TData>, TValueA, TValueB> implements IFilterParameterInfo<TData, system.Toast2<TValueA, TValueB>> {
+public class CombineFilterParameterInfo<TData extends IFilterData<TData>, TValueA, TValueB> implements IFilterParameterInfo<TData, Toast2<TValueA, TValueB>> {
     public final String name;
     private final IFilterParameter<TData, TValueA> typeA;
     private final IFilterParameter<TData, TValueB> typeB;
-    private final system.Func3<TValueA, TValueB, World, String> convert;
+    private final Func3<TValueA, TValueB, World, String> convert;
 
-    public CombineFilterParameterInfo(String name, IFilterParameter<TData, TValueA> typeA, IFilterParameter<TData, TValueB> typeB, system.Func2<TValueA, TValueB, String> convert) {
+    public CombineFilterParameterInfo(String name, IFilterParameter<TData, TValueA> typeA, IFilterParameter<TData, TValueB> typeB, Func2<TValueA, TValueB, String> convert) {
         this(name, typeA, typeB, (ta, tb, world) -> convert.invoke(ta, tb));
     }
-    public CombineFilterParameterInfo(String name, IFilterParameter<TData, TValueA> typeA, IFilterParameter<TData, TValueB> typeB, system.Func3<TValueA, TValueB, World, String> convert) {
+    public CombineFilterParameterInfo(String name, IFilterParameter<TData, TValueA> typeA, IFilterParameter<TData, TValueB> typeB, Func3<TValueA, TValueB, World, String> convert) {
         this.name = name;
         this.typeA = typeA;
         this.typeB = typeB;
@@ -22,7 +22,7 @@ public class CombineFilterParameterInfo<TData extends IFilterData<TData>, TValue
     @Override public String name() { return name; }
     @Override public void appendTo(IFilterData<TData> data, AppendFunction function) {
         data.getOptional(typeA)
-                .flatMap(vA -> data.getOptional(typeB).map(vB -> system.toast(vA, vB)))
+                .flatMap(vA -> data.getOptional(typeB).map(vB -> Toast.of(vA, vB)))
                 .ifPresentOrElse(
                 v -> {
                     String value = convert.invoke(v.val0, v.val1, data.world());

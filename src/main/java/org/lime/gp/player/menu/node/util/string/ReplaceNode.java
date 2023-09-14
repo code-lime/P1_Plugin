@@ -10,7 +10,9 @@ import org.lime.gp.player.menu.node.connect.input.ActionInput;
 import org.lime.gp.player.menu.node.connect.input.StringInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.StringOutput;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +32,18 @@ public class ReplaceNode extends BaseNode {
     private final StringOutput outputResult;
 
     public ReplaceNode(int id, int count, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
                 .add("modify", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
                 .add(IntStream.range(0, count)
                         .map(v -> v + 1)
-                        .mapToObj(i -> system.<String, system.Func2<String, Optional<JsonElement>, IInput>>toast("key_" + i, (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("false"))))
+                        .mapToObj(i -> Toast.<String, Func2<String, Optional<JsonElement>, IInput>>of("key_" + i, (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("false"))))
                         .iterator())
                 .add(IntStream.range(0, count)
                         .map(v -> v + 1)
-                        .mapToObj(i -> system.<String, system.Func2<String, Optional<JsonElement>, IInput>>toast("value_" + i, (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("false"))))
+                        .mapToObj(i -> Toast.<String, Func2<String, Optional<JsonElement>, IInput>>of("value_" + i, (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("false"))))
                         .iterator())
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add("output", ActionOutput::new)
                 .add("result", StringOutput::new)
                 .build());
@@ -60,10 +62,10 @@ public class ReplaceNode extends BaseNode {
 
     @Override protected void invokeNodeGenerate(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable, Map<Integer, Map<String, Object>> data, Map<IInput, Object> inputExecute) {
         if (!Boolean.TRUE.equals(inputExecute.get(inputAction))) return;
-        String modify = inputExecute.get(inputModify) + "";
+        String modify = String.valueOf(inputExecute.get(inputModify));
         for (int i = 0; i < count; i++) {
-            String key = inputExecute.get(this.input.get("key_" + (i + 1))) + "";
-            String value = inputExecute.get(this.input.get("value_" + (i + 1))) + "";
+            String key = String.valueOf(inputExecute.get(this.input.get("key_" + (i + 1))));
+            String value = String.valueOf(inputExecute.get(this.input.get("value_" + (i + 1))));
             modify = modify.replace("{" + key + "}", value);
         }
         outputResult.setNext(data, modify);

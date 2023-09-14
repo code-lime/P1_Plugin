@@ -13,17 +13,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.LimeKey;
 import net.minecraft.world.level.block.entity.*;
-import net.minecraft.world.level.block.state.BlockStateList;
-import net.minecraft.world.level.block.state.IBlockData;
-import net.minecraft.world.level.block.state.properties.IBlockState;
 import net.minecraft.world.phys.Vec3D;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
 import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataTypeRegistry;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -34,8 +33,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.Position;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.InfoComponent;
@@ -52,15 +49,20 @@ import org.lime.gp.extension.Modify;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
-import org.lime.gp.module.loot.Parameters;
-import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.module.ThreadPool;
 import org.lime.gp.module.TimeoutData;
-import org.lime.system;
+import org.lime.gp.module.loot.Parameters;
+import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.plugin.CoreElement;
+import org.lime.system.Time;
+import org.lime.system.map;
+import org.lime.system.toast.LockToast1;
+import org.lime.system.toast.LockToast2;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class Blocks implements Listener {
@@ -258,9 +260,9 @@ public class Blocks implements Listener {
         JsonElement modify_json = json.remove("MODIFY_LIST");
         json = lime.combineParent(json, true, false);
         if (modify_json != null) {
-            HashMap<String, Map<String, JsonObject>> modify_map = system.map.<String, Map<String, JsonObject>>of()
+            HashMap<String, Map<String, JsonObject>> modify_map = map.<String, Map<String, JsonObject>>of()
                     .add(modify_json.getAsJsonObject().entrySet(), Map.Entry::getKey, kv ->
-                            system.map.<String, JsonObject>of()
+                            map.<String, JsonObject>of()
                                     .add(lime.combineParent(kv.getValue().getAsJsonObject(), false, false).entrySet(), Map.Entry::getKey, _kv -> _kv.getValue().getAsJsonObject())
                                     .build()
                     )
@@ -280,20 +282,20 @@ public class Blocks implements Listener {
         CacheBlockDisplay.reset();
         BlockDisplay.resetDisplay();
     }
-    public static final system.LockToast2<Long, Long> nextAsyncTimes = system.toast(0L, 0L).lock();
-    public static final system.LockToast1<TickTimeInfo> deltaTime = system.toast(new TickTimeInfo()).lock();
-    private static final system.LockToast2<TickTimeInfo,TickTimeInfo> lastDeltaTime = system.toast(new TickTimeInfo(),new TickTimeInfo()).lock();
+    public static final LockToast2<Long, Long> nextAsyncTimes = Toast.lock(0L, 0L);
+    public static final LockToast1<TickTimeInfo> deltaTime = Toast.lock(new TickTimeInfo());
+    private static final LockToast2<TickTimeInfo,TickTimeInfo> lastDeltaTime = Toast.lock(new TickTimeInfo(),new TickTimeInfo());
     
     public static void init() {
         AnyEvent.addEvent("blocks.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, overrides::keySet), (p, key) -> lime.logOP("Block '" + key + "':\n" + overrides.getOrDefault(key, null)));
         setBlockData(0.0f);
         AnyEvent.addEvent("delta.show.blocks", AnyEvent.type.owner_console, p -> lime.logOP(Component.text("[Blocks] DeltaShow:\n" + nextAsyncTimes.call(v -> String.join("\n",
-                " - Last call: " + system.formatCalendar(system.getMoscowTime(v.val0), true),
+                " - Last call: " + Time.formatCalendar(Time.moscowTime(v.val0), true),
                 " - Delta call: " + v.val1 + "ms")))
                 .append(Component.text("\n - Tick info:\n    ").append(lastDeltaTime.get0().toComponent()))
                 .append(Component.text("\n - Average info:\n    ").append(lastDeltaTime.get1().toComponent()))
         ));
-        system.Toast1<Long> tick = system.toast(0L);
+        Toast1<Long> tick = Toast.of(0L);
         ThreadPool.Type.Async.executeRepeat(() -> {
             long _tick = tick.val0;
             tick.val0 = _tick + 1;

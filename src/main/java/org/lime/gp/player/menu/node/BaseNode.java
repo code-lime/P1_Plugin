@@ -26,7 +26,9 @@ import org.lime.gp.player.menu.node.util.logical.SwitchNode;
 import org.lime.gp.player.menu.node.util.parallel.ParallelNode;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.delete.DeleteHandle;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -38,9 +40,9 @@ public abstract class BaseNode implements Logged.ILoggedDelete {
     public final Map<String, IInput> input = new HashMap<>();
     public final Map<String, IOutput> output = new HashMap<>();
 
-    private final system.DeleteHandle deleteHandle = new system.DeleteHandle();
+    private final DeleteHandle deleteHandle = new DeleteHandle();
 
-    public BaseNode(int id, JsonObject json, Map<String, system.Func2<String, Optional<JsonElement>, IInput>> input, Map<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>> output) {
+    public BaseNode(int id, JsonObject json, Map<String, Func2<String, Optional<JsonElement>, IInput>> input, Map<String, Func2<String, List<Toast2<Integer, String>>, IOutput>> output) {
         this.type = json.get("type").getAsString();
         this.id = id;
 
@@ -58,7 +60,7 @@ public abstract class BaseNode implements Logged.ILoggedDelete {
                 .map(JsonElementOptional::getAsString)
                 .flatMap(Optional::stream)
                 .map(_v -> _v.split("#", 2))
-                .map(_v -> system.toast(Integer.parseInt(_v[0]), _v[1]))
+                .map(_v -> Toast.of(Integer.parseInt(_v[0]), _v[1]))
                 .toList()
         )));
     }

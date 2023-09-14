@@ -203,11 +203,11 @@ public class TimeoutData {
     public static <T extends ITimeout> Map<UUID, T> map(Class<T> tClass) {
         return stream(tClass).collect(Collectors.toMap(kv -> kv.val0, kv -> (T)kv.val1));
     }
-    public static <T extends ITimeout> Stream<system.Toast2<UUID, T>> stream(Class<T> tClass) {
+    public static <T extends ITimeout> Stream<Toast2<UUID, T>> stream(Class<T> tClass) {
         return timeouts.entrySet()
                 .stream()
                 .filter(kv -> tClass.isInstance(kv.getValue()))
-                .map(kv -> system.toast(kv.getKey().first_uuid, (T)kv.getValue()));
+                .map(kv -> Toast.of(kv.getKey().first_uuid, (T)kv.getValue()));
     }
     */
 }

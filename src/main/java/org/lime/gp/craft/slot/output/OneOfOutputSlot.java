@@ -1,7 +1,7 @@
 package org.lime.gp.craft.slot.output;
 
 import net.minecraft.world.item.ItemStack;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -14,7 +14,7 @@ public class OneOfOutputSlot implements IOutputSlot {
         if (this.slots.isEmpty()) throw new IllegalArgumentException("Items of output is empty");
     }
 
-    private IOutputSlot oneOf() { return system.rand(slots); }
+    private IOutputSlot oneOf() { return RandomUtils.rand(slots); }
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return oneOf().modify(item, copy, variable); }
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return oneOf().create(isPreview, variable); }
 }

@@ -15,7 +15,7 @@ import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.*;
 
@@ -42,7 +42,7 @@ public class JavaScriptLoot implements ILoot {
         args.put("data", data);
         ModifyLootTable.getOwnerPlayer(loot).map(CraftEntity::getUniqueId).ifPresent(uuid -> args.put("uuid", uuid.toString()));
         List<ItemStack> items = new ArrayList<>(next.generateLoot(loot));
-        args.put("variable", JsonObjectOptional.of(system.json.by(VariableLoot.exportVariablesWithRemove(items)).build()).createObject());
+        args.put("variable", JsonObjectOptional.of(json.by(VariableLoot.exportVariablesWithRemove(items)).build()).createObject());
         Map<String, Object> _loot = new HashMap<>();
         items.forEach(item -> {
             Map<String, Object> itemInfo = new HashMap<>();

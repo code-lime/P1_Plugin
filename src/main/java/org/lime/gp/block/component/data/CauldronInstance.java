@@ -45,7 +45,10 @@ import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -91,11 +94,11 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         potion(v -> v.new PotionCauldron(), (v, j) -> v.new PotionCauldron(j)),
         lava(v -> v.new LavaCauldron());
 
-        private final system.Func1<CauldronInstance, ICauldron> creator;
-        private final system.Func2<CauldronInstance, JsonObjectOptional, ICauldron> reader;
+        private final Func1<CauldronInstance, ICauldron> creator;
+        private final Func2<CauldronInstance, JsonObjectOptional, ICauldron> reader;
 
-        type(system.Func1<CauldronInstance, ICauldron> creator) { this(creator, (v,j) -> creator.invoke(v)); }
-        type(system.Func1<CauldronInstance, ICauldron> creator, system.Func2<CauldronInstance, JsonObjectOptional, ICauldron> reader) {
+        type(Func1<CauldronInstance, ICauldron> creator) { this(creator, (v,j) -> creator.invoke(v)); }
+        type(Func1<CauldronInstance, ICauldron> creator, Func2<CauldronInstance, JsonObjectOptional, ICauldron> reader) {
             this.creator = creator;
             this.reader = reader;
         }
@@ -111,7 +114,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
     public abstract class ICauldron implements CustomTileMetadata.Element {
         public UUID unique() { return CauldronInstance.this.unique(); }
         public abstract type type();
-        public abstract system.json.builder.object save();
+        public abstract json.builder.object save();
         public abstract boolean isFull();
         public abstract Map<net.minecraft.world.item.Item, CauldronBlockInteraction> interactions();
         public abstract String state();
@@ -120,7 +123,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         public abstract void syncBlock();
     }
     public class EmptyCauldron extends ICauldron {
-        @Override public system.json.builder.object save() { return system.json.object(); }
+        @Override public json.builder.object save() { return json.object(); }
         @Override public type type() { return type.empty; }
         @Override public boolean isFull() { return false; }
         @Override public Map<net.minecraft.world.item.Item, CauldronBlockInteraction> interactions() { return CauldronBlockInteraction.EMPTY; }
@@ -146,7 +149,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         public LayeredCauldron() { this(LayeredCauldronBlock.MAX_FILL_LEVEL); }
         public LayeredCauldron(JsonObjectOptional json) { this(json.getAsInt("level").orElse(LayeredCauldronBlock.MAX_FILL_LEVEL)); }
         public abstract Block material();
-        @Override public system.json.builder.object save() { return system.json.object().add("level", level); }
+        @Override public json.builder.object save() { return json.object().add("level", level); }
         @Override public boolean isFull() { return level == LayeredCauldronBlock.MAX_FILL_LEVEL; }
         @Override public String state() { return "level=" + level; }
 
@@ -205,18 +208,18 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
             COMBINE,
             RECIPE
         }
-        private final List<system.Toast2<String, Integer>> steps = new ArrayList<>();
+        private final List<Toast2<String, Integer>> steps = new ArrayList<>();
         private ItemStack result = null;
         private double timer = 0;
         private State state = State.EMPTY;
         private UUID last_owner = null;
 
-        private static final ReadonlyInventory.ItemList.ItemBoxed<system.Toast2<String, Integer>> ITEM_BOXED = new ReadonlyInventory.ItemList.ItemBoxed<>() {
-            @Override public net.minecraft.world.item.ItemStack of(system.Toast2<String, Integer> item) {
+        private static final ReadonlyInventory.ItemList.ItemBoxed<Toast2<String, Integer>> ITEM_BOXED = new ReadonlyInventory.ItemList.ItemBoxed<>() {
+            @Override public net.minecraft.world.item.ItemStack of(Toast2<String, Integer> item) {
                 return Items.getItemCreator(item.val0).map(v -> v.createItem(item.val1)).map(CraftItemStack::asNMSCopy).orElse(net.minecraft.world.item.ItemStack.EMPTY);
             }
             private static final String EMPTY_MATERIAL = Items.getMaterialKey(Material.AIR);
-            @Override public boolean isEmpty(system.Toast2<String, Integer> item) { return item.val1 <= 0 || EMPTY_MATERIAL.equals(item.val0); }
+            @Override public boolean isEmpty(Toast2<String, Integer> item) { return item.val1 <= 0 || EMPTY_MATERIAL.equals(item.val0); }
         };
         public final ReadonlyInventory readonlyInventory = ReadonlyInventory.of(steps, ITEM_BOXED);
 
@@ -228,9 +231,9 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                     .flatMap(Collection::stream)
                     .map(JsonElementOptional::getAsJsonObject)
                     .flatMap(Optional::stream)
-                    .flatMap(v -> v.getAsString("key").flatMap(key -> v.getAsInt("count").map(count -> system.toast(key, count))).stream())
+                    .flatMap(v -> v.getAsString("key").flatMap(key -> v.getAsInt("count").map(count -> Toast.of(key, count))).stream())
                     .forEach(steps::add);
-            result = json.getAsString("result").map(system::loadItem).orElse(null);
+            result = json.getAsString("result").map(ItemUtils::loadItem).orElse(null);
             timer = json.getAsFloat("timer").orElse(0.0F);
             state = json.getAsEnum(State.class, "state").orElse(State.EMPTY);
             refreshDisplay();
@@ -250,10 +253,10 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
             dropNotRecipeReset(metadata().location(0.5,0.5,0.5));
         }
 
-        @Override public system.json.builder.object save() {
+        @Override public json.builder.object save() {
             return super.save()
-                    .addArray("steps", v -> v.add(steps, kv -> system.json.object().add("key", kv.val0).add("count", kv.val1)))
-                    .add("result", result == null ? null : system.saveItem(result))
+                    .addArray("steps", v -> v.add(steps, kv -> json.object().add("key", kv.val0).add("count", kv.val1)))
+                    .add("result", result == null ? null : ItemUtils.saveItem(result))
                     .add("timer", timer)
                     .add("last_owner", last_owner)
                     .add("state", state == null ? null : state.name());
@@ -304,11 +307,11 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                         if (!Recipes.CAULDRON.getCacheWhitelistKeys().contains(key)) return false;
                         int step_list = steps.size();
                         if (step_list == 0) {
-                            steps.add(system.toast(key, item.getAmount()));
+                            steps.add(Toast.of(key, item.getAmount()));
                         } else {
-                            system.Toast2<String, Integer> step = steps.get(step_list - 1);
+                            Toast2<String, Integer> step = steps.get(step_list - 1);
                             if (key.equals(step.val0)) step.val1 += item.getAmount();
-                            else steps.add(system.toast(key, item.getAmount()));
+                            else steps.add(Toast.of(key, item.getAmount()));
                         }
                         last_owner = thrower;
                         return true;
@@ -444,7 +447,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
                         new Vector3f(1f, 1f, 1f),
                         null
                 ));
-        private final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
+        private final LockToast1<IBuilder> model = Toast.lock(null);
 
         private void refreshDisplay() {
             this.model.set0(Items.getOptional(ThirstSetting.class, result)
@@ -475,7 +478,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         }
     }
     public class LavaCauldron extends ICauldron implements CustomTileMetadata.Tickable {
-        @Override public system.json.builder.object save() { return system.json.object(); }
+        @Override public json.builder.object save() { return json.object(); }
         @Override public type type() { return type.lava; }
         @Override public boolean isFull() { return true; }
         @Override public Map<net.minecraft.world.item.Item, CauldronBlockInteraction> interactions() { return CauldronBlockInteraction.LAVA; }
@@ -496,8 +499,8 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         data = json.getAsString("type").flatMap(type::tryValueOf).orElse(type.empty).create(this, json);
         data.syncBlock();
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add("type", data.type())
                 .add(data.save());
     }

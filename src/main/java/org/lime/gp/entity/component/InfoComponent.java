@@ -5,7 +5,9 @@ import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.entity.EntityInstance;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -22,9 +24,9 @@ public class InfoComponent {
         String name();
     }
     public static final class GenericDynamicComponent<T extends EntityInstance> extends ComponentDynamic<JsonObject, T> {
-        private final system.Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance;
+        private final Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance;
         private final String name;
-        public GenericDynamicComponent(String name, EntityInfo info, system.Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance) {
+        public GenericDynamicComponent(String name, EntityInfo info, Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance) {
             super(info);
             this.createInstance = createInstance;
             this.name = name;
@@ -32,7 +34,7 @@ public class InfoComponent {
         @Override public T createInstance(CustomEntityMetadata metadata) { return createInstance.invoke(this, metadata); }
         @Override public String name() { return getName(name); }
 
-        public static <T extends EntityInstance>GenericDynamicComponent<T> of(String name, EntityInfo info, system.Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance) {
+        public static <T extends EntityInstance>GenericDynamicComponent<T> of(String name, EntityInfo info, Func2<ComponentDynamic<?, ?>, CustomEntityMetadata, T> createInstance) {
             return new GenericDynamicComponent<>(name, info, createInstance);
         }
         public static String getName(String name) {
@@ -42,7 +44,7 @@ public class InfoComponent {
     public static class EmptyDynamicComponent extends EntityInstance {
         public EmptyDynamicComponent(ComponentDynamic<?, ?> component, CustomEntityMetadata metadata) { super(component, metadata); }
         @Override public void read(JsonObjectOptional json) {}
-        @Override public system.json.builder.object write() { return system.json.object(); }
+        @Override public json.builder.object write() { return json.object(); }
     }
 }
 

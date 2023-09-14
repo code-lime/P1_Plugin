@@ -26,7 +26,10 @@ import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -55,7 +58,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
     //private final Builder builder;
 
-    public final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
+    public final LockToast1<IBuilder> model = Toast.lock(null);
     private org.bukkit.inventory.ItemStack head;
 
     public void setItem(org.bukkit.inventory.ItemStack item, boolean save) {
@@ -77,11 +80,11 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
     @Override public void read(JsonObjectOptional json) {
         super.read(json);
-        setItem(json.getAsString("item").map(system::loadItem).orElse(null), false);
+        setItem(json.getAsString("item").map(ItemUtils::loadItem).orElse(null), false);
     }
-    @Override public system.json.builder.object write() {
+    @Override public json.builder.object write() {
         return super.write()
-                .add("item", head.getType().isAir() ? null : system.saveItem(head));
+                .add("item", head.getType().isAir() ? null : ItemUtils.saveItem(head));
     }
 
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {

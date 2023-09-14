@@ -1,6 +1,7 @@
 package patch;
 
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.objectweb.asm.Type;
 
 import java.lang.invoke.SerializedLambda;
@@ -10,9 +11,9 @@ public interface IMethodFilter<T> {
     boolean test(int access, String name, String descriptor, String signature, String[] exceptions);
     String toInfo();
 
-    static <T>IMethodFilter<T> of(system.ICallable callable) {
+    static <T>IMethodFilter<T> of(ICallable callable) {
         SerializedLambda lambda = Native.infoFromLambda(callable);
-        Class<T> methodClass = system.funcEx(() -> (Class<T>)Class.forName(lambda.getImplClass().replace('/','.'))).throwable().invoke();
+        Class<T> methodClass = Execute.funcEx(() -> (Class<T>)Class.forName(lambda.getImplClass().replace('/','.'))).throwable().invoke();
         String methodName = lambda.getImplMethodName();
         String methodDescriptor = lambda.getImplMethodSignature();
         return new IMethodFilter<T>() {

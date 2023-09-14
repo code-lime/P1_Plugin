@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.module.loot.LootModifyAction;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.LevelRow;
@@ -17,7 +16,10 @@ import org.lime.gp.player.perm.Perms.CanData;
 import org.lime.gp.player.perm.Perms.ICanData;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 public class LevelStep {
 
@@ -26,7 +28,7 @@ public class LevelStep {
     public final double total;
 
     public final HashMap<ExperienceAction<?, ?>, List<ExperienceGetter<?, ?>>> variable = new HashMap<>();
-    public final LinkedHashMap<String, system.Toast2<ILoot, LootModifyAction>> modifyLootTable = new LinkedHashMap<>();
+    public final LinkedHashMap<String, Toast2<ILoot, LootModifyAction>> modifyLootTable = new LinkedHashMap<>();
     public final ICanData canData;
 
     public LevelStep(int level, LevelData data, JsonObject json) {
@@ -46,7 +48,7 @@ public class LevelStep {
                 .entrySet()
                 .forEach(kv -> LootModifyAction.parse(kv.getKey(), kv.getValue())
                         .invoke((key, loot, action) -> this.modifyLootTable
-                                .put(key, system.toast(loot, action))
+                                .put(key, Toast.of(loot, action))
                         )
                 );
         if (json.has("perm")) canData = new CanData(json.get("perm").getAsJsonObject());
@@ -55,9 +57,9 @@ public class LevelStep {
 
     public boolean tryModifyLoot(PopulateLootEvent e) {
         String key = e.getKey().getPath();
-        system.Toast2<ILoot, LootModifyAction> loot = null;
+        Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
-            if (!system.compareRegex(key, kv.getKey())) continue;
+            if (!Regex.compareRegex(key, kv.getKey())) continue;
             loot = kv.getValue();
             break;
         }
@@ -66,9 +68,9 @@ public class LevelStep {
         return true;
     }
     public Optional<ILoot> tryChangeLoot(String key, ILoot base, IPopulateLoot variable) {
-        system.Toast2<ILoot, LootModifyAction> loot = null;
+        Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
-            if (!system.compareRegex(key, kv.getKey())) continue;
+            if (!Regex.compareRegex(key, kv.getKey())) continue;
             loot = kv.getValue();
             break;
         }
@@ -100,15 +102,15 @@ public class LevelStep {
             double mutate = LevelModule.levelMutate(uuid);
             double mutate_exp = exp * mutate;
             if (LevelModule.DEBUG) {
-                String current = LevelRow.getBy(user.id, data.work).map(v -> system.getDouble(v.exp * total, 4) + "["+v.level+"]").orElse("0[0]");
+                String current = LevelRow.getBy(user.id, data.work).map(v -> MathUtils.getDouble(v.exp * total, 4) + "["+v.level+"]").orElse("0[0]");
                 String debugValue = type.debug(value);
                 if (!debugValue.isEmpty()) debugValue = " | " + debugValue;
                 lime.logOP("Exp " + Optional.ofNullable(Bukkit.getPlayer(uuid))
                         .map(Player::getName)
                         .orElse(uuid.toString()) + ": " + current + " / " + total
                         + " ("
-                            + (exp >= 0 ? "+" : "-") + system.getDouble(Math.abs(exp), 2)
-                            + (mutate != 1 ? (" * " + mutate + " = " + (mutate_exp >= 0 ? "+" : "-") + system.getDouble(Math.abs(mutate_exp), 2)) : "")
+                            + (exp >= 0 ? "+" : "-") + MathUtils.getDouble(Math.abs(exp), 2)
+                            + (mutate != 1 ? (" * " + mutate + " = " + (mutate_exp >= 0 ? "+" : "-") + MathUtils.getDouble(Math.abs(mutate_exp), 2)) : "")
                         + ")"
                         + debugValue
                 );
@@ -156,13 +158,13 @@ public class LevelStep {
         return container;
     }
 
-    public static List<system.Toast3<String, Double, Boolean>> GetExp(OfflinePlayer player) {
+    public static List<Toast3<String, Double, Boolean>> GetExp(OfflinePlayer player) {
         PersistentDataContainer container = player.isOnline() ? ((Player)player).getPersistentDataContainer() : getOfflinePersistent(player);
         JsonObject exp = JManager.FromContainer(JsonObject.class, container, "exp_role", null);
-        List<system.Toast3<String, Double, Boolean>> expList = new ArrayList<>();
+        List<Toast3<String, Double, Boolean>> expList = new ArrayList<>();
         if (exp == null) return expList;
         String current = getCurrentType(player);
-        exp.getAsJsonObject("exp_list").entrySet().forEach(kv -> expList.add(system.toast(kv.getKey(), kv.getValue().getAsDouble(), kv.getKey().equals(current))));
+        exp.getAsJsonObject("exp_list").entrySet().forEach(kv -> expList.add(Toast.of(kv.getKey(), kv.getValue().getAsDouble(), kv.getKey().equals(current))));
         return expList;
     }
     public static void SetExp(Player player, String type, double value) {
@@ -172,7 +174,7 @@ public class LevelStep {
         expList.addProperty(type, value);
         JManager.ToContainer(player.getPersistentDataContainer(), "exp_role", exp);
     }
-    public static void SetExp(Player player, String type, system.Func1<Double, Double> value) {
+    public static void SetExp(Player player, String type, Func1<Double, Double> value) {
         JsonObject exp = JManager.FromContainer(JsonObject.class, player.getPersistentDataContainer(), "exp_role", null);
         if (exp == null) return;
         JsonObject expList = exp.getAsJsonObject("exp_list");

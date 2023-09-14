@@ -3,7 +3,7 @@ package org.lime.gp.item.loot;
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.module.loot.IPopulateLoot;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class RandomLoot implements ILoot {
         if (totalWeight <= 0) return Optional.empty();
         int length = values.size();
         if (length == 0) return Optional.empty();
-        double value = system.rand(0, totalWeight);
+        double value = RandomUtils.rand(0, totalWeight);
         for (LootWeight item : values) {
             value -= item.weight;
             if (value <= 0) return Optional.of(item);

@@ -13,7 +13,10 @@ import org.lime.gp.database.rows.PrisonRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 public class Prison implements Listener {
     public static CoreElement create() {
@@ -51,13 +54,13 @@ public class Prison implements Listener {
     private static Location getOutPos(PrisonRow prison, HouseRow house) {
         try {
             JsonObject data = house.data;
-            if (data != null && data.has("out")) return system.getLocation(prison.outPos.world, data.get("out").getAsString());
+            if (data != null && data.has("out")) return MathUtils.getLocation(prison.outPos.world, data.get("out").getAsString());
             if (house.isRoom) {
-                Location loc = Tables.HOUSE_TABLE.get(house.street + "")
+                Location loc = Tables.HOUSE_TABLE.get(String.valueOf(house.street))
                         .map(v -> v.data)
                         .filter(v -> v.has("out"))
                         .map(v -> v.get("out").getAsString())
-                        .map(v -> system.getLocation(prison.outPos.world, v))
+                        .map(v -> MathUtils.getLocation(prison.outPos.world, v))
                         .orElse(null);
                 if (loc != null) return loc;
                 /*Rows.HouseRow o_house = Tables.HOUSE_TABLE.get(house.Street + "");
@@ -70,11 +73,11 @@ public class Prison implements Listener {
     public static void update() {
         for (PrisonRow row : Tables.PRISON_TABLE.getRows()) {
             if (row.isLog) continue;
-            Tables.HOUSE_TABLE.get(row.houseID + "").ifPresent(house -> Tables.USER_TABLE.get(row.userID + "").ifPresent(user -> {
+            Tables.HOUSE_TABLE.get(String.valueOf(row.houseID)).ifPresent(house -> Tables.USER_TABLE.get(String.valueOf(row.userID)).ifPresent(user -> {
                 Player player = EntityPosition.onlinePlayers.getOrDefault(user.uuid, null);
                 if (player == null) return;
                 if (Administrator.inABan(user.uuid)) return;
-                if (system.compareCalendar(row.endTime, system.getMoscowNow()) == -1) {
+                if (Time.compareCalendar(row.endTime, Time.moscowNow()) == -1) {
                     Methods.setIsLogPrison(row.id, true, () -> player.teleport(getOutPos(row, house)));
                 } else {
                     Location location = player.getLocation();

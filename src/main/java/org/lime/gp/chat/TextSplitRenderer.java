@@ -2,7 +2,7 @@ package org.lime.gp.chat;
 
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.format.Style;
-import org.lime.system;
+import org.lime.system.list;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -136,7 +136,7 @@ public final class TextSplitRenderer {
             return components.stream().map(TextComponent::content).collect(Collectors.joining("&"));
         }
         public TextSplit join(TextSplit other) {
-            return new TextSplit(system.list.<TextComponent>of().add(this.components).add(other.components).build());
+            return new TextSplit(list.<TextComponent>of().add(this.components).add(other.components).build());
         }
     }
     public static List<Component> split(Component component, String spliter) {

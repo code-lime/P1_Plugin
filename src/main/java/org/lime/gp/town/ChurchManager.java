@@ -18,7 +18,9 @@ import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
 
@@ -46,7 +48,7 @@ public class ChurchManager implements Listener {
                             func_div = func.get("div").getAsInt();
                             global_distance = json.get("global_distance").getAsDouble();
                         })
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .addObject("func", _v -> _v
                                         .add("pow", 1.75)
                                         .add("div", 5)

@@ -13,11 +13,11 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.Vector;
-import org.lime.display.models.shadow.Builder;
 import org.lime.display.models.shadow.EntityBuilder;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.block.component.display.IDisplayVariable;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
 import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
 import org.lime.gp.lime;
@@ -44,6 +44,8 @@ import net.minecraft.world.entity.decoration.EntityArmorStand;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.block.state.IBlockData;
+import org.lime.system.utils.ItemUtils;
+import org.lime.system.utils.MathUtils;
 
 public class MFPInstance extends BlockComponentInstance<MFPComponent> implements CustomTileMetadata.Damageable, CustomTileMetadata.Tickable, BlockDisplay.Displayable, CustomTileMetadata.Lootable, IDisplayVariable {
     public MFPInstance(MFPComponent component, CustomTileMetadata metadata) {
@@ -66,7 +68,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
 
     private final EntityBuilder builder;
 
-    public final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
+    public final LockToast1<IBuilder> model = Toast.lock(null);
     private ItemStack head;
 
     public void setItem(ItemStack item, boolean save) {
@@ -82,11 +84,11 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     }
 
     @Override public void read(JsonObjectOptional json) {
-        setItem(json.getAsString("item").map(system::loadItem).orElse(null), false);
+        setItem(json.getAsString("item").map(ItemUtils::loadItem).orElse(null), false);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .add("item", head.getType().isAir() ? null : system.saveItem(head));
+    @Override public json.builder.object write() {
+        return json.object()
+                .add("item", head.getType().isAir() ? null : ItemUtils.saveItem(head));
     }
 
     @Override public void onDamage(CustomTileMetadata metadata, BlockDamageEvent event) {
@@ -121,11 +123,11 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     private static final Pattern REMOVE_FORMATS = Pattern.compile("§.");
     public final void syncDisplayVariable() {
         MFPComponent component = component();
-        Optional<system.Toast4<String, Optional<String>, Optional<String>, Integer>> text = Optional.ofNullable(head)
+        Optional<Toast4<String, Optional<String>, Optional<String>, Integer>> text = Optional.ofNullable(head)
             .filter(ItemStack::hasItemMeta)
             .map(ItemStack::getItemMeta)
             .map(v -> v instanceof BookMeta m ? m : null)
-            .map(v -> system.toast(
+            .map(v -> Toast.of(
                 v.pages()
                     .stream()
                     .map(ChatHelper::getLegacyText)
@@ -154,7 +156,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                 if (rotation > 180) rotation -= 360;
                 Vector rotated_offset = Transform.toWorld(new Location(null, 0, 0, 0, (float) rotation, 0), new LocalLocation(component.out_offset)).toVector();
 
-                display.set("mfp.out", system.getString(metadata()
+                display.set("mfp.out", MathUtils.getString(metadata()
                     .location(rotated_offset.getX() + 0.5, rotated_offset.getY() + 0.5, rotated_offset.getZ() + 0.5)
                     .toVector()));
             });

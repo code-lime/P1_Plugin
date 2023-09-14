@@ -8,7 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.util.Vector;
-import org.lime.system;
+import org.lime.system.toast.*;
 
 import java.util.HashMap;
 
@@ -160,13 +160,13 @@ public class PathFinder {
         return loc;
     }
 
-    public static HashMap<system.Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, Vector center, int radius) {
+    public static HashMap<Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, Vector center, int radius) {
         return getHeight(world, center.getBlockX(), center.getBlockY(), center.getBlockZ(), radius);
     }
-    public static HashMap<system.Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, int center_x, int center_y, int center_z, int radius) {
+    public static HashMap<Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, int center_x, int center_y, int center_z, int radius) {
         return getHeight(world, center_x - radius, center_y - radius, center_z - radius, (radius * 2) + 1, (radius * 2) + 1, (radius * 2) + 1);
     }
-    public static HashMap<system.Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, Vector center, Vector size) {
+    public static HashMap<Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, Vector center, Vector size) {
         Vector min = new Vector()
                 .add(center)
                 .subtract(size);
@@ -184,8 +184,8 @@ public class PathFinder {
                 _size.getBlockY(),
                 _size.getBlockZ());
     }
-    public static HashMap<system.Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, int min_x, int min_y, int min_z, int size_x, int size_y, int size_z) {
-        HashMap<system.Toast3<Integer, Integer, Integer>, Double> map = new HashMap<>();
+    public static HashMap<Toast3<Integer, Integer, Integer>, Double> getHeight(net.minecraft.world.level.World world, int min_x, int min_y, int min_z, int size_x, int size_y, int size_z) {
+        HashMap<Toast3<Integer, Integer, Integer>, Double> map = new HashMap<>();
         for (int _x = 0; _x < size_x; _x++) {
             int x = min_x + _x;
             for (int _y = 0; _y < size_y; _y++) {
@@ -199,11 +199,11 @@ public class PathFinder {
 
                     int offset_y = 0;
                     while (h > 1) {
-                        map.merge(system.toast(x,y + offset_y,z), 1.0, Math::max);
+                        map.merge(Toast.of(x,y + offset_y,z), 1.0, Math::max);
                         offset_y++;
                         h--;
                     }
-                    map.merge(system.toast(x,y + offset_y,z), h, Math::max);
+                    map.merge(Toast.of(x,y + offset_y,z), h, Math::max);
                 }
             }
         }

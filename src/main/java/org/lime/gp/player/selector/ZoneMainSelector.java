@@ -6,10 +6,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public abstract class ZoneMainSelector extends ZoneSelector {
     protected abstract void onCallback(Position pos1, Position pos2, Position mainPos, BlockFace mainFace);
-    public static ZoneMainSelector create(system.Action4<Position, Position, Position, BlockFace> callback) {
+    public static ZoneMainSelector create(Action4<Position, Position, Position, BlockFace> callback) {
         return new ZoneMainSelector() {
             @Override protected void onCallback(Position pos1, Position pos2, Position mainPos, BlockFace mainFace) {
                 callback.invoke(pos1, pos2, mainPos, mainFace);

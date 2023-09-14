@@ -16,8 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 import org.lime.Position;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.InfoComponent;
@@ -44,7 +42,10 @@ import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.module.TimeoutData;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,14 +62,14 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                 );
     }
 
-    private final system.LockToast1<Long> variableIndex = system.toast(1L).lock();
+    private final LockToast1<Long> variableIndex = Toast.lock(1L);
     private final ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
     private final Map<String, String> unmodifiableVariables = Collections.unmodifiableMap(variables);
     private final ConcurrentHashMap<UUID, Partial> partials = new ConcurrentHashMap<>();
 
     @Override public DisplayComponent component() { return (DisplayComponent)super.component(); }
 
-    private final system.LockToast1<InfoComponent.Rotation.Value> rotationCache = system.<InfoComponent.Rotation.Value>toast(null).lock();
+    private final LockToast1<InfoComponent.Rotation.Value> rotationCache = Toast.lock(null);
 
     public void variableDirty() {
         variables.put(".index", String.valueOf(variableIndex.edit0(v -> v + 1)));
@@ -87,7 +88,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         this.variables.putAll(variables);
         variableDirty();
     }
-    public void modify(system.Func1<Map<String, String>, Boolean> modifyFunc) {
+    public void modify(Func1<Map<String, String>, Boolean> modifyFunc) {
         if (!modifyFunc.invoke(variables)) return;
         variableDirty();
     }
@@ -113,7 +114,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
                 .ifPresent(v -> variables.put(key, v)));
         variableDirty();
     }
-    @Override public system.json.builder.object write() { return system.json.object().add(variables, k -> k, v -> v); }
+    @Override public json.builder.object write() { return json.object().add(variables, k -> k, v -> v); }
 
     private Partial orSync(CustomTileMetadata metadata, UUID playerUUID, Player player, Map<String, String> variable, Partial _new, Partial _old) {
         if (Objects.equals(_new, _old)) return _new;
@@ -156,7 +157,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     }
     private static final int TOTAL_UPDATE_TICKS = 20 * 2 * 60;
     private int update_ticks = -1;
-    private final system.LockToast1<IBlockData> last_state = system.toast(Blocks.AIR.defaultBlockState()).lock();
+    private final LockToast1<IBlockData> last_state = Toast.lock(Blocks.AIR.defaultBlockState());
 
     private long lastUpdateDirtyIndex = -1;
     private static final ConcurrentLinkedQueue<UUID> dirtyQueue = new ConcurrentLinkedQueue<>();
@@ -170,10 +171,6 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
     private final HashMap<UUID, ItemDisplayObject> viewMap = new HashMap<>();
     private final HashMap<BlockModelDisplay.BlockModelKey, ModelDisplayObject> modelMap = new HashMap<>();
     @Override public void onAsyncTick(CustomTileMetadata metadata, long tick) {
-        /*
-        boolean isDebug = new ChunkCoordIntPair(metadata.skull.getBlockPos()).longKey == new ChunkCoordIntPair(360, -187).longKey;
-        system.Action1<String> log = isDebug ? lime::logOP : a -> {};
-         */
         if (lastTickID != tick) {
             lastTickID = tick;
             UUID uuid;

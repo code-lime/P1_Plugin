@@ -20,7 +20,11 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.util.Vector;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.range.IRange;
+import org.lime.system.range.OnceRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
@@ -30,6 +34,7 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.item.ItemStack;
+import org.lime.system.utils.RandomUtils;
 
 public class Easter implements Listener {
     public static CoreElement create() {
@@ -38,7 +43,7 @@ public class Easter implements Listener {
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("easter")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("enable", false)
                                 /*.addObject("biome", _v -> _v
                                         .add("sky", "200000")
@@ -65,9 +70,9 @@ public class Easter implements Listener {
     private static int TICKS_LIFE = 2400;
     private static int LIMIT_TO_PLAYER = 2;
     private static int RADIUS = 30;
-    private static final List<system.Toast2<Checker, system.IRange>> LOOT = new ArrayList<>();
+    private static final List<Toast2<Checker, IRange>> LOOT = new ArrayList<>();
 
-    /*private static system.Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
+    /*private static Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
 
     private static BiomeModify.ModifyActionCloseable closeable = null;*/
     public static void config(JsonObject json) {
@@ -83,7 +88,7 @@ public class Easter implements Listener {
             String type = Arrays.stream(key).limit(key.length - 1).collect(Collectors.joining("*"));
 
             int count = kv.getValue().getAsInt();
-            system.Toast2<Checker, system.IRange> element = system.toast(Checker.createCheck(type), key.length > 1 ? system.IRange.parse(key[key.length - 1]) : new system.OnceRange(1));
+            Toast2<Checker, IRange> element = Toast.of(Checker.createCheck(type), key.length > 1 ? IRange.parse(key[key.length - 1]) : new OnceRange(1));
             for (int i = 0; i < count; i++) LOOT.add(element);
         });
 
@@ -124,7 +129,7 @@ public class Easter implements Listener {
     }
     public static void update() {
         List<Player> players = lime.MainWorld.getPlayers();
-        system.Toast1<Integer> add_count = system.toast(players.size() * LIMIT_TO_PLAYER);
+        Toast1<Integer> add_count = Toast.of(players.size() * LIMIT_TO_PLAYER);
         Bukkit.getWorlds().forEach(world -> world.getEntitiesByClass(Rabbit.class).forEach(rabbit -> {
             Set<String> tags = rabbit.getScoreboardTags();
             if (!tags.contains("easter")) return;
@@ -134,7 +139,7 @@ public class Easter implements Listener {
         }));
         if (ENABLE) {
             for (int i = 0; i < add_count.val0; i++) {
-                Player player = system.rand(players);
+                Player player = RandomUtils.rand(players);
                 Location location = player.getLocation().add(Vector.getRandom().add(new Vector(-0.5, -0.5, -0.5)).multiply(RADIUS * 2));
                 Block top = location.getWorld().getHighestBlockAt(location);
                 Block bottom;
@@ -173,7 +178,7 @@ public class Easter implements Listener {
         if (event.getEntity() instanceof CraftRabbit rabbit && rabbit.getScoreboardTags().contains("easter")) {
             event.setCancelled(true);
             rabbit.getHandle().kill();
-            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(system.rand(item_key.getWhitelistKeys().toList()), v -> v.setCount(count.getIntValue(64)))
+            RandomUtils.rand(LOOT).invoke((item_key, count) -> Items.createItem(RandomUtils.rand(item_key.getWhitelistKeys().toList()), v -> v.setCount(count.getIntValue(64)))
                     .ifPresent(item -> Items.dropGiveItem(event.getDamageOwner(), item, true))
             );
         }
@@ -185,7 +190,7 @@ public class Easter implements Listener {
     }
     @EventHandler public static void on(ProjectileHitEvent e) {
         if (e.getEntity() instanceof CraftEgg egg && LOOT.stream().anyMatch(v -> v.val0.check(egg.getItem()))) {
-            if (system.rand_is(0.01))
+            if (RandomUtils.rand_is(0.01))
             spawnRabbit(e.getEntity().getLocation());
         }
     }

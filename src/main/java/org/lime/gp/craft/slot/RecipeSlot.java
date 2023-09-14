@@ -12,7 +12,9 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.IterableUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,13 +40,13 @@ public abstract class RecipeSlot {
     public abstract boolean checkCrafting();
 
     public RecipeItemStack getRecipeSlotNMS() { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(IDisplayRecipe::genericItem)); }
-    public RecipeItemStack getRecipeSlotNMS(system.Func1<ItemStack, ItemStack> map) { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(map)); }
+    public RecipeItemStack getRecipeSlotNMS(Func1<ItemStack, ItemStack> map) { return RecipeItemStack.of(this.getWhitelistIngredientsShow().map(map)); }
     public Stream<ItemStack> getWhitelistIngredientsShow() {
         return getWhitelistKeys()
                 .map(Items::getItemCreator)
                 .flatMap(Optional::stream)
-                .filter(system.distinctBy(IItemCreator::getKey))
-                .flatMap(c -> system.funcEx(() -> c.createItem(1)).optional().invoke().stream())
+                .filter(IterableUtils.distinctBy(IItemCreator::getKey))
+                .flatMap(c -> Execute.funcEx(() -> c.createItem(1)).optional().invoke().stream())
                 .map(CraftItemStack::asNMSCopy);
     }
 
@@ -52,7 +54,7 @@ public abstract class RecipeSlot {
     public RecipeAnyAmountSlot withAmountAny(int amount) { return new RecipeAnyAmountSlot(this, amount); }
 
     public static RecipeSlot of(String log_key, JsonElement json) {
-        RecipeSlot result = system.func(() -> {
+        RecipeSlot result = Execute.func(() -> {
             if (json.isJsonObject()) {
                 JsonObject slot = json.getAsJsonObject();
                 String in = slot.get("input").getAsString();
@@ -88,7 +90,7 @@ public abstract class RecipeSlot {
             @Override public boolean checkCrafting() { return true; }
         };
     }
-    public static RecipeSlot of(Checker checker, system.Func0<net.minecraft.world.item.ItemStack> result) {
+    public static RecipeSlot of(Checker checker, Func0<net.minecraft.world.item.ItemStack> result) {
         return new RecipeSlot() {
             @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
             @Override public Optional<Integer> split(ItemStack item) {

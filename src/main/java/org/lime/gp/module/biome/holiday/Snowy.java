@@ -31,7 +31,8 @@ import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.BiomeModify;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.Optional;
 
@@ -43,7 +44,7 @@ public class Snowy implements Listener {
                 .disable()
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("snowy")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("enable", false)
                                 .build())
                         .withInvoke(Snowy::config)
@@ -123,7 +124,7 @@ public class Snowy implements Listener {
                 data = Blocks.SNOW.defaultBlockState();
             } else {
                 int layers = data.getValue(BlockSnow.LAYERS);
-                if (layers == 8 || !system.rand_is((0.25 / layers) / layers)) return;
+                if (layers == 8 || !RandomUtils.rand_is((0.25 / layers) / layers)) return;
                 data = data.setValue(BlockSnow.LAYERS, layers + 1);
             }
             CraftEventFactory.handleBlockFormEvent(world, blockposition, data, entity);
@@ -152,7 +153,7 @@ public class Snowy implements Listener {
                         data = Blocks.SNOW.defaultBlockState();
                     } else {
                         int layers = data.getValue(BlockSnow.LAYERS);
-                        if (layers == 8 || !system.rand_is((0.25 / layers) / layers)) return;
+                        if (layers == 8 || !RandomUtils.rand_is((0.25 / layers) / layers)) return;
                         data = data.setValue(BlockSnow.LAYERS, layers + 1);
                     }
                     CraftEventFactory.handleBlockFormEvent(world, blockposition, data, null);

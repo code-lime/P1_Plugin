@@ -21,7 +21,8 @@ import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.io.Closeable;
 import java.util.*;
@@ -53,7 +54,7 @@ public class BiomeModify {
 
     public interface IAction { }
     public interface ModifyAction extends IAction { void modify(int id, String name, NBTTagCompound element); }
-    public interface GenerateAction extends IAction { Stream<system.Toast3<Integer, NBTTagCompound, String>> generate(int id, String key, NBTTagCompound element); }
+    public interface GenerateAction extends IAction { Stream<Toast3<Integer, NBTTagCompound, String>> generate(int id, String key, NBTTagCompound element); }
     public interface ActionCloseable extends Closeable { @Override void close(); }
 
     public static ActionCloseable appendModify(ModifyAction action) {

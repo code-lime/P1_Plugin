@@ -32,7 +32,9 @@ import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.gp.extension.Modify;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,9 +110,9 @@ public class Entities implements Listener {
         JsonElement modify_json = json.remove("MODIFY_LIST");
         json = lime.combineParent(json, true, false);
         if (modify_json != null) {
-            HashMap<String, Map<String, JsonObject>> modify_map = system.map.<String, Map<String, JsonObject>>of()
+            HashMap<String, Map<String, JsonObject>> modify_map = map.<String, Map<String, JsonObject>>of()
                     .add(modify_json.getAsJsonObject().entrySet(), Map.Entry::getKey, kv ->
-                            system.map.<String, JsonObject>of()
+                            map.<String, JsonObject>of()
                                     .add(lime.combineParent(kv.getValue().getAsJsonObject(), false, false).entrySet(), Map.Entry::getKey, _kv -> _kv.getValue().getAsJsonObject())
                                     .build()
                     )
@@ -200,7 +202,7 @@ public class Entities implements Listener {
     @EventHandler public static void destroy(EntityMarkerEventDestroy e) { of(e.getMarker()).ifPresent(v -> v.onDestroy(e)); }
     @EventHandler public static void interact(EntityMarkerEventInteract e) {
         of(e.getMarker())
-                .map(v -> system.action(e.isAttack() ? v::onDamage : v::onInteract))
+                .map(v -> Execute.action(e.isAttack() ? v::onDamage : v::onInteract))
                 .ifPresent(v -> v.invoke(e));
     }
 }

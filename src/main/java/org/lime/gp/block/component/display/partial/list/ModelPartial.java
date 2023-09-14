@@ -11,7 +11,8 @@ import org.lime.gp.block.component.display.partial.PartialEnum;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public class ModelPartial extends FramePartial implements IModelPartial {
     private final String model;
@@ -30,8 +31,8 @@ public class ModelPartial extends FramePartial implements IModelPartial {
         return "#generic";
     }
 
-    public Optional<system.Toast2<IBuilder, Double>> model() {
-        return Optional.ofNullable(generic).or(() -> lime.models.get(model)).map(v -> system.toast(v, modelDistance));
+    public Optional<Toast2<IBuilder, Double>> model() {
+        return Optional.ofNullable(generic).or(() -> lime.models.get(model)).map(v -> Toast.of(v, modelDistance));
     }
 
     @Override public PartialEnum type() { return PartialEnum.Model; }

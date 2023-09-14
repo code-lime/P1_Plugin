@@ -20,7 +20,7 @@ import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.voice.*;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.UUID;
 
@@ -38,8 +38,8 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
         radioData.read(json);
         distanceData.read(json);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add(radioData.write())
                 .add(distanceData.write());
     }

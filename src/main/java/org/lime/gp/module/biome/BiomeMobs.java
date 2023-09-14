@@ -33,7 +33,7 @@ import org.lime.gp.module.mobs.DespawnData;
 import org.lime.gp.module.mobs.IPopulateSpawn;
 import org.lime.gp.module.mobs.Parameters;
 import org.lime.gp.module.mobs.spawn.ISpawn;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,7 +58,7 @@ public class BiomeMobs implements Listener {
         Bukkit.getWorlds().forEach(world -> world.setGameRule(GameRule.UNIVERSAL_ANGER, true));
         lime.repeat(BiomeMobs::update, 1);
     }
-    public static void config(JsonObject json) {
+    public static void config(JsonObject _json) {
         MinecraftServer.getServer()
                 .registryAccess()
                 .registryOrThrow(Registries.BIOME)
@@ -68,10 +68,10 @@ public class BiomeMobs implements Listener {
                     String key = resourceKey.location().toString();
                     BiomeBase base = kv.getValue();
                     BiomeSettingsMobs mobs = base.getMobSettings();
-                    if (json.has(key)) writeTo(mobs, json.getAsJsonObject(key));
-                    else json.add(key, readFrom(mobs));
+                    if (_json.has(key)) writeTo(mobs, _json.getAsJsonObject(key));
+                    else _json.add(key, readFrom(mobs));
                 });
-        lime.writeAllConfig("biomes", system.toFormat(json));
+        lime.writeAllConfig("biomes", json.format(_json));
     }
     private static final HashMap<EntityType, ISpawn> entitySpawns = new HashMap<>();
     public static void configTable(JsonObject json) {
@@ -140,11 +140,11 @@ public class BiomeMobs implements Listener {
         ReflectionAccess.mobSpawnCosts_BiomeSettingsMobs.set(mobs, ReflectionAccess.mobSpawnCosts_BiomeSettingsMobs.get(buffer));
     }
     public static JsonObject readFrom(BiomeSettingsMobs mobs) {
-        return system.json.object()
+        return json.object()
                 .add("probability", ReflectionAccess.creatureGenerationProbability_BiomeSettingsMobs.get(mobs))
                 .addObject("spawners", v -> v
-                        .add(ReflectionAccess.spawners_BiomeSettingsMobs.get(mobs), EnumCreatureType::getName, _v -> system.json.array()
-                                .add(ReflectionAccess.items_WeightedRandomList.get(_v), item -> system.json.object()
+                        .add(ReflectionAccess.spawners_BiomeSettingsMobs.get(mobs), EnumCreatureType::getName, _v -> json.array()
+                                .add(ReflectionAccess.items_WeightedRandomList.get(_v), item -> json.object()
                                         .add("type", BuiltInRegistries.ENTITY_TYPE.getKey(item.type).toString())
                                         .add("weight", item.getWeight().asInt())
                                         .add("group_size", item.minCount + "-" + item.maxCount)
@@ -152,7 +152,7 @@ public class BiomeMobs implements Listener {
                         )
                 )
                 .addObject("spawn_costs", v -> v
-                        .add(ReflectionAccess.mobSpawnCosts_BiomeSettingsMobs.get(mobs), k -> BuiltInRegistries.ENTITY_TYPE.getKey(k).toString(), item -> system.json.object()
+                        .add(ReflectionAccess.mobSpawnCosts_BiomeSettingsMobs.get(mobs), k -> BuiltInRegistries.ENTITY_TYPE.getKey(k).toString(), item -> json.object()
                                 .add("energy_budget", item.energyBudget())
                                 .add("charge", item.charge())
                         )

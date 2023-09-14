@@ -22,7 +22,10 @@ import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,7 +40,7 @@ public class TrashInstance extends BlockInstance implements CustomTileMetadata.T
     }
 
     private static CraftInventory createBlockInventory(InventoryType type, net.kyori.adventure.text.Component title, Block block) {
-        system.Toast1<CraftInventory> inventory = system.toast(null);
+        Toast1<CraftInventory> inventory = Toast.of(null);
         BlockInventoryHolder holder = new BlockInventoryHolder() {
             @Override public Inventory getInventory() { return inventory.val0; }
             @Override public Block getBlock() { return block; }
@@ -56,14 +59,14 @@ public class TrashInstance extends BlockInstance implements CustomTileMetadata.T
                 .flatMap(Collection::stream)
                 .map(JsonElementOptional::getAsString)
                 .map(v -> v.orElse(null))
-                .map(system::loadItem)
+                .map(ItemUtils::loadItem)
                 .toArray(ItemStack[]::new)
         );
         isParticle = json.getAsBoolean("is_particle").orElse(false);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .addArray("items", v -> v.add(inventory.getContents(), system::saveItem))
+    @Override public json.builder.object write() {
+        return json.object()
+                .addArray("items", v -> v.add(inventory.getContents(), ItemUtils::saveItem))
                 .add("is_particle", isParticle);
     }
 

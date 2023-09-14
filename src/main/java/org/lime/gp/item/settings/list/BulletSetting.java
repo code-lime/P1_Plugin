@@ -9,7 +9,6 @@ import org.bukkit.Material;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.sound.SoundMaterial;
@@ -18,6 +17,7 @@ import org.lime.gp.sound.Sounds;
 import com.google.gson.JsonObject;
 
 import net.minecraft.world.level.block.state.IBlockData;
+import org.lime.system.utils.EnumUtils;
 
 @Setting(name = "bullet") public class BulletSetting extends ItemSetting<JsonObject> {
     public enum BulletAction {
@@ -50,7 +50,7 @@ import net.minecraft.world.level.block.state.IBlockData;
         }
 
         bullet_action = json.has("bullet_action")
-                ? system.tryParse(BulletSetting.BulletAction.class, json.get("bullet_action").getAsString())
+                ? EnumUtils.tryParse(BulletSetting.BulletAction.class, json.get("bullet_action").getAsString())
                 .orElseThrow(() -> new IllegalArgumentException("bullet_action can't be '" + json.get("bullet_action").getAsString() + "'. Only: " + Arrays.stream(BulletAction.values())
                         .map(Enum::name)
                         .collect(Collectors.joining(", ")))

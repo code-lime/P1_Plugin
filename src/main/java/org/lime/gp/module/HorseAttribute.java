@@ -7,7 +7,7 @@ import net.minecraft.world.level.World;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.function.DoubleSupplier;
 
@@ -16,7 +16,7 @@ public class HorseAttribute {
         return CoreElement.create(HorseAttribute.class)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("horse_attribute")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("max_speed_multiply", 0.75)
                                 .build())
                         .withInvoke(json -> {

@@ -28,7 +28,11 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.module.ArrowBow;
 import org.lime.gp.module.biome.weather.BiomeChecker;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -97,8 +101,8 @@ public class Parameters {
             .add(DamageSource.createInfoEqualsIgnoreCase("damage", v -> v.type().msgId()))
             .add(BlockState.createInfoEqualsIgnoreCase("block", IBlockDataHolder::toString))
             .add(Tool.createInfoFilter("tool", v -> Items.getGlobalKeyByItem(v).orElse("NULL"), Checker::createCheck, Checker::check))
-            .add(ExplosionRadius.createInfoFilter("explosion", system::getDouble, system.IRange::parse, (range, value) -> range.inRange(value, 16)))
-            .add(LootingMod.createInfoFilter("looting", system::getDouble, system.IRange::parse, (range, value) -> range.inRange(value, 3)))
+            .add(ExplosionRadius.createInfoFilter("explosion", MathUtils::getDouble, IRange::parse, (range, value) -> range.inRange(value, 16)))
+            .add(LootingMod.createInfoFilter("looting", MathUtils::getDouble, IRange::parse, (range, value) -> range.inRange(value, 3)))
             .add(Origin.createInfoWorldFilter("biome",
                     (v, world) -> world.getBiome(new BlockPosition((int)v.x, (int)v.y, (int)v.z))
                             .unwrapKey()
@@ -108,12 +112,12 @@ public class Parameters {
                     BiomeChecker::createCheck,
                     (checker, v, world) -> checker.check(world.getBiome(new BlockPosition((int)v.x, (int)v.y, (int)v.z)).value())
             ))
-            .add(Origin.createInfoFilter("position", v -> system.getDouble(v.x) + " " + system.getDouble(v.y) + " " + system.getDouble(v.z), s -> {
+            .add(Origin.createInfoFilter("position", v -> MathUtils.getDouble(v.x) + " " + MathUtils.getDouble(v.y) + " " + MathUtils.getDouble(v.z), s -> {
                 String[] args = s.split(" ");
-                return system.toast(system.IRange.parse(args[0]), system.IRange.parse(args[1]), system.IRange.parse(args[2]));
+                return Toast.of(IRange.parse(args[0]), IRange.parse(args[1]), IRange.parse(args[2]));
             }, (range, position) -> range.invokeGet((x, y, z) -> x.inRange(position.x, 16) && y.inRange(position.y, 16) && z.inRange(position.z, 16))))
             .add(ThisEntity.createInfoFilter("tags",
-                    v -> system.json.by(v.getTags()).build().toString(),
+                    v -> json.by(v.getTags()).build().toString(),
                     s -> List.of(s.split(",")),
                     (tags, entity) -> entity.getTags().containsAll(tags)))
             .build()

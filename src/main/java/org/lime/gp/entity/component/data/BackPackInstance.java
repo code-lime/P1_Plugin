@@ -6,7 +6,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.LangMessages;
@@ -24,7 +23,9 @@ import org.lime.gp.module.DrawText;
 import org.lime.gp.player.module.TabManager;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.json;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
 
@@ -76,7 +77,7 @@ public class BackPackInstance extends EntityInstance implements CustomEntityMeta
                 .map(JsonElementOptional::getAsString)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(system::loadItem)
+                .map(ItemUtils::loadItem)
                 .forEach(items::add);
         json.getAsJsonObject("owner").ifPresent(owner -> {
             owner.get("uuid").flatMap(JsonElementOptional::getAsString).map(UUID::fromString).ifPresent(uuid -> owner_uuid = uuid);
@@ -84,9 +85,9 @@ public class BackPackInstance extends EntityInstance implements CustomEntityMeta
         });
         create_time = json.get("create_time").flatMap(JsonElementOptional::getAsLong).orElseGet(System::currentTimeMillis);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .addArray("items", v -> v.add(items, system::saveItem))
+    @Override public json.builder.object write() {
+        return json.object()
+                .addArray("items", v -> v.add(items, ItemUtils::saveItem))
                 .addObject("owner", v -> v
                         .add("uuid", owner_uuid == null ? null : owner_uuid.toString())
                         .add("id", owner_id)
@@ -97,7 +98,7 @@ public class BackPackInstance extends EntityInstance implements CustomEntityMeta
         int total_sec = (int)((create_time + (LOCK_TIME * 1000) - System.currentTimeMillis()) / 1000);
         List<Component> lines = (total_sec <= 0 ? LangMessages.Message.Entity_BackPack_Unlock : LangMessages.Message.Entity_BackPack_Lock).getMessages(Apply.of()
                 .add("name", displayName())
-                .add("time", total_sec <= 0 ? "00:00" : system.formatTotalTime(total_sec, system.FormatTime.MINUTE_TIME))
+                .add("time", total_sec <= 0 ? "00:00" : Time.formatTotalTime(total_sec, Time.Format.MINUTE_TIME))
         );
         int size = lines.size();
         String prefix = unique().toString();

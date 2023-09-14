@@ -11,7 +11,8 @@ import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.MapUUID;
 import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,7 +66,7 @@ public class Radio {
             Radio.bufferElements.keySet().removeIf(uuid -> !bufferElements.containsKey(uuid));
         }, 2.5);
     }
-    private static final ConcurrentHashMap<system.Toast2<String, String>, Integer> radioLogs = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Toast2<String, String>, Integer> radioLogs = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<UUID, RadioElement> bufferElements = new ConcurrentHashMap<>();
 
     public static List<RadioListener> listeners = new ArrayList<>();
@@ -125,11 +126,11 @@ public class Radio {
     }
 
     public static void logRadioError(Radio.SenderInfo info, Throwable throwable) {
-        radioLogs.compute(system.toast("["+info.prefix()+"]: " + throwable.getMessage(), "error"), (k, v) -> (v == null ? 0 : v) + 1);
+        radioLogs.compute(Toast.of("["+info.prefix()+"]: " + throwable.getMessage(), "error"), (k, v) -> (v == null ? 0 : v) + 1);
     }
 
     public static void playRadio(SenderInfo info, Location location, double total_distance, int level, byte[] data) {
-        radioLogs.compute(system.toast("["+info.prefix()+"]: " + level + "*{count}", "log"), (k, v) -> (v == null ? 0 : v) + 1);
+        radioLogs.compute(Toast.of("["+info.prefix()+"]: " + level + "*{count}", "log"), (k, v) -> (v == null ? 0 : v) + 1);
         bufferElements.values().stream()
                 .filter(v -> v.hasLevel(level))
                 .filter(v -> v.isDistance(location, total_distance))

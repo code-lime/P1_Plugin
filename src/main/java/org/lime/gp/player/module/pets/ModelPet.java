@@ -3,11 +3,10 @@ package org.lime.gp.player.module.pets;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.lime.display.models.display.BaseChildDisplay;
-import org.lime.display.models.shadow.Builder;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
-import org.lime.system;
+import org.lime.system.map;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +22,7 @@ public class ModelPet extends AbstractPet {
     public void tick(BaseChildDisplay<?, ?, ?> model, Map<String, Object> data) {
         if (animation_tick == null) return;
         JavaScript.invoke(animation_tick,
-                system.map.<String, Object>of()
+                map.<String, Object>of()
                         .add(animation_args, k -> k, v -> v)
                         .add("data", data)
                         .build()

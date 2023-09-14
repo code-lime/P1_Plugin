@@ -13,7 +13,9 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.data.UpdateType;
 import org.lime.gp.item.settings.list.MegaPhoneSetting;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -44,14 +46,14 @@ public class MegaPhoneData extends DistanceData {
             return data;
         });
     }
-    public static void modifyData(ItemStack item, system.Action1<MegaPhoneData> modify) {
+    public static void modifyData(ItemStack item, Action1<MegaPhoneData> modify) {
         Items.getOptional(MegaPhoneSetting.class, item).ifPresent(setting -> {
             ItemMeta meta = item.getItemMeta();
             modifyData(setting, meta, modify);
             item.setItemMeta(meta);
         });
     }
-    public static void modifyData(MegaPhoneSetting setting, ItemMeta meta, system.Action1<MegaPhoneData> modify) {
+    public static void modifyData(MegaPhoneSetting setting, ItemMeta meta, Action1<MegaPhoneData> modify) {
         MegaPhoneData data = new MegaPhoneData(setting);
         PersistentDataContainer container = meta.getPersistentDataContainer();
         Optional.ofNullable(JManager.get(JsonObject.class, container, "megaphone.data", null))
@@ -73,7 +75,7 @@ public class MegaPhoneData extends DistanceData {
         super.read(json);
         volume = clampVolume(json.getAsInt("volume").orElse(100));
     }
-    public system.json.builder.object write() {
+    public json.builder.object write() {
         return super.write()
                 .add("volume", volume);
     }

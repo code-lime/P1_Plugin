@@ -9,7 +9,9 @@ import com.google.common.collect.Streams;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.admin.AnyEvent;
 
 import java.util.*;
@@ -57,15 +59,15 @@ public class PacketLogger {
                     return;
                 }
                 case "save": {
-                    List<system.Toast2<String, List<system.Toast2<String, Integer>>>> data = new ArrayList<>();
+                    List<Toast2<String, List<Toast2<String, Integer>>>> data = new ArrayList<>();
                     logger.forEach((k,v) -> {
-                        List<system.Toast2<String, Integer>> users = new ArrayList<>();
-                        v.forEach((_k,_v) -> users.add(system.toast(_k, _v)));
+                        List<Toast2<String, Integer>> users = new ArrayList<>();
+                        v.forEach((_k,_v) -> users.add(Toast.of(_k, _v)));
                         users.sort(Comparator.comparingInt(__v -> __v.val1));
-                        data.add(system.toast(k, users));
+                        data.add(Toast.of(k, users));
                     });
                     data.sort(Comparator.comparingInt(v -> v.val1.get(v.val1.size() - 1).val1));
-                    lime.writeAllConfig("packet_logger", system.toFormat(system.json.object().add(data, kv -> kv.val0, kv -> system.json.object().add(kv.val1, _kv -> _kv.val0, _kv -> _kv.val1)).build()));
+                    lime.writeAllConfig("packet_logger", json.format(json.object().add(data, kv -> kv.val0, kv -> json.object().add(kv.val1, _kv -> _kv.val0, _kv -> _kv.val1)).build()));
                     lime.logOP("SAVED PACKET LOGGER");
                     return;
                 }

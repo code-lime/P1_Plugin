@@ -10,10 +10,10 @@ function createEvent(index) {
     var args = create(index, function(i) { return "val" + i; }, ", ");
 
     var tt = "T0";
-    for (var i = 1; i < index; i++) tt = "system.Toast2<"+tt+","+"T"+i+">";
-    var line = "    public static <"+type+">void addEvent(String event, type other, system.Func1<Builder<Player>, Builder<";
-    line += tt + ">> build, system.Action"+index+"<"+type+"> execute) {\n";
-    line += "        addEvent(event, other, build, (system.Action1<"+tt+">)execute);\n"
+    for (var i = 1; i < index; i++) tt = "Toast2<"+tt+","+"T"+i+">";
+    var line = "    public static <"+type+">void addEvent(String event, type other, Func1<Builder<Player>, Builder<";
+    line += tt + ">> build, Action"+index+"<"+type+"> execute) {\n";
+    line += "        addEvent(event, other, build, (Action1<"+tt+">)execute);\n"
     line += "    }";
     return line;
 }

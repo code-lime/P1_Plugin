@@ -14,7 +14,7 @@ import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.module.TimeoutData;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,7 +62,7 @@ public final class DisplayInstance extends EntityInstance implements CustomEntit
         variables.clear();
         json.forEach((key, value) -> value.getAsString().ifPresent(v -> variables.put(key, v)));
     }
-    @Override public system.json.builder.object write() { return system.json.object().add(variables, k -> k, v -> v); }
+    @Override public json.builder.object write() { return json.object().add(variables, k -> k, v -> v); }
 
     private final ConcurrentHashMap<String, Object> animationData = new ConcurrentHashMap<>();
     @Override public void onTick(CustomEntityMetadata metadata, EntityMarkerEventTick event) {

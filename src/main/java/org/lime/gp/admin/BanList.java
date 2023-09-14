@@ -20,7 +20,8 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.KeyedTable;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.execute.Execute;
 
 import java.net.InetAddress;
 import java.util.Collections;
@@ -44,7 +45,7 @@ public class BanList implements Listener {
                         .withExecutor((sender, args) -> switch (args.length) {
                             case 1 -> false;
                             default -> {
-                                system.funcEx(UUID::fromString)
+                                Execute.funcEx(UUID::fromString)
                                         .optional()
                                         .invoke(args[0])
                                         .ifPresentOrElse(uuid -> Methods.banUser(uuid,
@@ -70,7 +71,7 @@ public class BanList implements Listener {
                         .withExecutor((sender, args) -> switch (args.length) {
                             case 1 -> false;
                             default -> {
-                                system.<String, InetAddress>funcEx(InetAddress::getByName)
+                                Execute.<String, InetAddress>funcEx(InetAddress::getByName)
                                         .optional()
                                         .invoke(args[0])
                                         .ifPresentOrElse(ip -> Methods.banUser(ip,
@@ -78,7 +79,7 @@ public class BanList implements Listener {
                                                 sender.getName(),
                                                 () -> sender.sendMessage("IP '"+ip.getHostAddress()+"' banned with reason '"+Stream.of(args).skip(1).collect(Collectors.joining(" "))+"'")
                                         ), () -> Methods.ipListByUUIDs(
-                                                system.funcEx(UUID::fromString)
+                                                Execute.funcEx(UUID::fromString)
                                                         .optional()
                                                         .invoke(args[0])
                                                         .map(Stream::of)
@@ -110,7 +111,7 @@ public class BanList implements Listener {
                             default -> Collections.emptyList();
                         })
                         .withExecutor((sender, args) -> {
-                            system.funcEx(UUID::fromString)
+                            Execute.funcEx(UUID::fromString)
                                     .optional()
                                     .invoke(args[0])
                                     .ifPresentOrElse(uuid -> Methods.pardonUser(uuid,
@@ -133,13 +134,13 @@ public class BanList implements Listener {
                             default -> Collections.emptyList();
                         })
                         .withExecutor((sender, args) -> {
-                            system.<String, InetAddress>funcEx(InetAddress::getByName)
+                            Execute.<String, InetAddress>funcEx(InetAddress::getByName)
                                     .optional()
                                     .invoke(args[0])
                                     .ifPresentOrElse(ip -> Methods.pardonUser(ip,
                                             () -> sender.sendMessage("IP '"+ip.getHostAddress()+"' unbanned")
                                     ), () -> Methods.ipListByUUIDs(
-                                            system.funcEx(UUID::fromString)
+                                            Execute.funcEx(UUID::fromString)
                                                     .optional()
                                                     .invoke(args[0])
                                                     .map(Stream::of)
@@ -173,14 +174,14 @@ public class BanList implements Listener {
                                                             String.join("\n",
                                                                     row.user,
                                                                     "Тип: " + row.type.name(),
-                                                                    "Дата: " + system.formatCalendar(row.createTime, true),
+                                                                    "Дата: " + Time.formatCalendar(row.createTime, true),
                                                                     "Выдал: " + row.owner,
                                                                     "Причина: " + row.reason
                                                             )
                                                     ))
                                                     .hoverEvent(HoverEvent.showText(Component.text("Информация о бане:")
                                                             .append(Component.text("\n Тип: ").color(NamedTextColor.GRAY).append(Component.text(row.type.name()).color(NamedTextColor.YELLOW)))
-                                                            .append(Component.text("\n Дата: ").color(NamedTextColor.GRAY).append(Component.text(system.formatCalendar(row.createTime, true)).color(NamedTextColor.YELLOW)))
+                                                            .append(Component.text("\n Дата: ").color(NamedTextColor.GRAY).append(Component.text(Time.formatCalendar(row.createTime, true)).color(NamedTextColor.YELLOW)))
                                                             .append(Component.text("\n Выдал: ").color(NamedTextColor.GRAY).append(Component.text(row.owner).color(NamedTextColor.YELLOW)))
                                                             .append(Component.text("\n Причина: ").color(NamedTextColor.GRAY).append(Component.text(row.reason).color(NamedTextColor.YELLOW)))
                                                             .append(Component.text("\n\nНажмите чтобы скопировать...").color(NamedTextColor.DARK_GRAY).decorate(TextDecoration.ITALIC))

@@ -10,7 +10,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.item.UseSetting;
@@ -24,19 +25,19 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.sound.Sound;
 
 @Setting(name = "musical_instrument") public class MusicalInstrumentSetting extends ItemSetting<JsonObject> implements UseSetting.IUse {
-    public final system.Action2<Location, Float> pitch;
+    public final Action2<Location, Float> pitch;
     public final EquipmentSlot arm;
     public final double cooldown;
     public final String menu;
     public final HashMap<String, String> args = new HashMap<>();
     public MusicalInstrumentSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
-        this.pitch = json.has("note") ? new system.Action2<>() {
+        this.pitch = json.has("note") ? new Action2<>() {
             final org.bukkit.Sound sound = org.bukkit.Sound.valueOf("BLOCK_NOTE_BLOCK_" + json.get("note").getAsString());
             @Override public void invoke(Location location, Float pitch) {
                 location.getWorld().playSound(Sound.sound(sound, Sound.Source.PLAYER, 1.0f, pitch), location.getX(), location.getY(), location.getZ());
             }
-        } : new system.Action2<>() {
+        } : new Action2<>() {
             final String sound = json.get("sound").getAsString();
             @Override public void invoke(Location location, Float pitch) {
                 Sounds.playSound(sound, location);

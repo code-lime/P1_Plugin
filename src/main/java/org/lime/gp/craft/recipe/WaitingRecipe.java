@@ -18,7 +18,9 @@ import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -76,11 +78,11 @@ public class WaitingRecipe extends AbstractRecipe {
     @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
         return assembleWithCount(inventory, custom, variable).val0;
     }
-    public system.Toast2<ItemStack, Integer> assembleWithCount(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
+    public Toast2<ItemStack, Integer> assembleWithCount(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
         ItemStack output = this.output.create(false, variable);
         int count = input.split(inventory.getItem(0)).orElse(1);
         output.setCount(output.getCount() * count);
-        return system.toast(output, count);
+        return Toast.of(output, count);
     }
     @Override public Stream<String> getWhitelistKeys() {
         return Streams.concat(
@@ -103,7 +105,7 @@ public class WaitingRecipe extends AbstractRecipe {
         for (int i = 0; i < catalyser_count; i++) slots.set(i + 3, catalyse.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
         for (int i = 0; i < fuel_count; i++) slots.set(i + 6, fuel.get(i).getRecipeSlotNMS(IDisplayRecipe::amountToName));
 
-        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.create(true, IOutputVariable.empty()), Component.text(" ⌚ " + system.formatTotalTime(total_sec, system.FormatTime.DAY_TIME)).color(NamedTextColor.LIGHT_PURPLE))));
+        return Stream.of(new ShapedRecipes(displayKey, displayGroup, category, 3, 3, slots, IDisplayRecipe.nameWithPostfix(output.create(true, IOutputVariable.empty()), Component.text(" ⌚ " + Time.formatTotalTime(total_sec, Time.Format.DAY_TIME)).color(NamedTextColor.LIGHT_PURPLE))));
     }
 
     @Override public String toString() {

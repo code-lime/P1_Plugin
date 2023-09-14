@@ -2,10 +2,8 @@ package org.lime.gp.player.module.needs.food;
 
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import org.lime.gp.extension.JsonNBT;
-import org.lime.gp.lime;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 public interface IFoodLevel {
     boolean addLevel(FoodType type, float level); //this.foodLevel = Math.min(food + this.foodLevel, 20);
@@ -16,7 +14,7 @@ public interface IFoodLevel {
 
     String type();
     void load(JsonObjectOptional json);
-    system.json.builder.object save();
+    json.builder.object save();
     boolean isVanilla();
 
     default void addSaveData(NBTTagCompound tag) {
@@ -25,7 +23,7 @@ public interface IFoodLevel {
     }
     default void readSaveData(NBTTagCompound tag) {
         if (!tag.contains("type", NBTBase.TAG_STRING) || !tag.getString("type").equals(type())) return;
-        JsonObjectOptional raw = JsonObjectOptional.of(system.json.parse(tag.getString("raw")).getAsJsonObject());
+        JsonObjectOptional raw = JsonObjectOptional.of(json.parse(tag.getString("raw")).getAsJsonObject());
         load(raw);
     }
 

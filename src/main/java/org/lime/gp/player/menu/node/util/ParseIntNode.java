@@ -11,7 +11,9 @@ import org.lime.gp.player.menu.node.connect.input.ActionInput;
 import org.lime.gp.player.menu.node.connect.input.StringInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.IntOutput;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.List;
 import java.util.Map;
@@ -26,10 +28,10 @@ public class ParseIntNode extends BaseNode {
     private final IntOutput outputNum;
 
     public ParseIntNode(int id, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
                 .add("text", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add("output", ActionOutput::new)
                 .add("error", ActionOutput::new)
                 .add("num", IntOutput::new)
@@ -44,7 +46,7 @@ public class ParseIntNode extends BaseNode {
 
     @Override protected void invokeNodeGenerate(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable, Map<Integer, Map<String, Object>> data, Map<IInput, Object> inputExecute) {
         if (!Boolean.TRUE.equals(inputExecute.get(inputAction))) return;
-        Optional.of(inputExecute.get(inputText) + "")
+        Optional.of(String.valueOf(inputExecute.get(inputText)))
                 .flatMap(ExtMethods::parseInt)
                 .ifPresentOrElse(value -> {
                     outputNum.setNext(data, value);

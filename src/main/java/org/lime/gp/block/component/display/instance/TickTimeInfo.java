@@ -5,12 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.lime.system;
-
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.lime.system.toast.*;
 
 public class TickTimeInfo {
     public int count = 1;
@@ -39,21 +38,21 @@ public class TickTimeInfo {
         last_ns = System.nanoTime();
     }
 
-    private List<system.Toast2<String, Long>> nanoMap() {
+    private List<Toast2<String, Long>> nanoMap() {
         return Arrays.asList(
-            system.toast("filter", filter_ns/count),
-            system.toast("users", users_ns/count),
-            system.toast("variables1", variables1_ns/count),
-            system.toast("variables2", variables2_ns/count),
-            system.toast("variables3", variables3_ns/count),
-            system.toast("check", check_ns/count),
-            system.toast("partial", partial_ns/count),
-            system.toast("metadata", metadata_ns/count),
-            system.toast("apply", apply_ns/count));
+            Toast.of("filter", filter_ns/count),
+            Toast.of("users", users_ns/count),
+            Toast.of("variables1", variables1_ns/count),
+            Toast.of("variables2", variables2_ns/count),
+            Toast.of("variables3", variables3_ns/count),
+            Toast.of("check", check_ns/count),
+            Toast.of("partial", partial_ns/count),
+            Toast.of("metadata", metadata_ns/count),
+            Toast.of("apply", apply_ns/count));
     }
 
     public Component toComponent() {
-        List<system.Toast2<String, Long>> nanoMap = nanoMap();
+        List<Toast2<String, Long>> nanoMap = nanoMap();
         long total_ns = Math.max(1, nanoMap.stream().mapToLong(v -> v.val1).sum());
         List<Component> components = new ArrayList<>();
         components.add(Component.text("calls: " + (calls / count) + "*" + count));

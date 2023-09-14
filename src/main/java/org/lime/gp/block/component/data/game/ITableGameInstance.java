@@ -15,7 +15,9 @@ import org.lime.gp.map.MonitorInstance;
 import org.lime.gp.map.ViewPosition;
 import org.lime.gp.module.DrawMap;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -59,18 +61,18 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
         return x >= 0 && x < count && y >= 0 && y < count;
     }
 
-    public IElement getOf(system.Toast2<Integer, Integer> pos) {
+    public IElement getOf(Toast2<Integer, Integer> pos) {
         return getOf(pos.val0, pos.val1);
     }
-    public void setOf(system.Toast2<Integer, Integer> pos, IElement element) {
+    public void setOf(Toast2<Integer, Integer> pos, IElement element) {
         setOf(pos.val0, pos.val1, element);
     }
-    public boolean in(system.Toast2<Integer, Integer> pos) {
+    public boolean in(Toast2<Integer, Integer> pos) {
         return in(pos.val0, pos.val1);
     }
 
-    public system.Toast2<Integer, Integer> box(int x, int y) {
-        return system.toast(Math.max(Math.min(x, count - 1), 0), Math.max(Math.min(y, count - 1), 0));
+    public Toast2<Integer, Integer> box(int x, int y) {
+        return Toast.of(Math.max(Math.min(x, count - 1), 0), Math.max(Math.min(y, count - 1), 0));
     }
 
 
@@ -81,7 +83,7 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
 
     private int of(int x, int y) { return y * count + x; }
     @SuppressWarnings("unused")
-    private system.Toast2<Integer, Integer> of(int index) { return system.toast(index % count, index / count); }
+    private Toast2<Integer, Integer> of(int index) { return Toast.of(index % count, index / count); }
 
     @Override public void read(JsonObjectOptional json) {
         json.getAsJsonArray("elements")
@@ -96,8 +98,8 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
                         }
                 }, this::setupDefault);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .addArray("elements", v -> v.add(elements, IGameElement::write));
     }
 
@@ -127,12 +129,12 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
         }
     }
 
-    private system.Toast2<Integer, Integer> ofPixel(int pixel_x, int pixel_y) {
+    private Toast2<Integer, Integer> ofPixel(int pixel_x, int pixel_y) {
         return box((pixel_x * count) / SIZE, (pixel_y * count) / SIZE);
     }
 
     @Override public void onMouseTick(Player player, ViewPosition position) {
-        system.Toast2<Integer, Integer> pos = ofPixel((int)Math.round(position.getDoubleX() * SIZE), (int)Math.round(position.getDoubleY() * SIZE));
+        Toast2<Integer, Integer> pos = ofPixel((int)Math.round(position.getDoubleX() * SIZE), (int)Math.round(position.getDoubleY() * SIZE));
         DrawMap map = this.map.copy();
         drawBackground(pos.val0, pos.val1, map);
         elements[of(pos.val0, pos.val1)].select(player, pos.val0, pos.val1, SIZE_BOX, position.getClick(), map);
@@ -152,7 +154,7 @@ public abstract class ITableGameInstance<IElement extends ITableGameInstance.IGa
     public interface IGameElement {
         void draw(int x, int y, int size, DrawMap map);
         void select(Player player, int x, int y, int size, MapMonitor.ClickType click, DrawMap map);
-        system.json.builder.object write();
+        json.builder.object write();
     }
 }
 

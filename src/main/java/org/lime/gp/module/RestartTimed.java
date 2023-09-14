@@ -15,7 +15,9 @@ import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -55,7 +57,7 @@ public class RestartTimed extends CustomUI.GUI {
                                 case 2 -> {
                                     switch (args[0]) {
                                         case "time" -> {
-                                            system.Toast1<Integer> sec = system.toast(0);
+                                            Toast1<Integer> sec = Toast.of(0);
                                             Arrays.stream(args[1].split(":")).forEach(_v -> sec.val0 = sec.val0 * 60 + Integer.parseUnsignedInt(_v));
                                             int time = (int) ((System.currentTimeMillis() / 1000) % 24 * 60 * 60);
                                             while (time < 0) time += 24 * 60 * 60;
@@ -81,17 +83,17 @@ public class RestartTimed extends CustomUI.GUI {
                                 autoRestart = null;
                                 return;
                             }
-                            Calendar now = system.getMoscowNow();
+                            Calendar now = Time.moscowNow();
                             Calendar autoRestart = (Calendar)now.clone();
-                            system.applyTime(autoRestart, json.getAsString());
+                            Time.applyTime(autoRestart, json.getAsString());
                             while (autoRestart.getTimeInMillis() <= now.getTimeInMillis()) autoRestart.add(Calendar.HOUR, 24);
                             RestartTimed.autoRestart = autoRestart;
-                            lime.logOP("Enabled AutoRestart! Execute date: " + system.formatCalendar(autoRestart, true));
+                            lime.logOP("Enabled AutoRestart! Execute date: " + Time.formatCalendar(autoRestart, true));
                         })
                 );
     }
     public static Double restart_time = null;
-    public static system.Toast2<String, TextColor> restart_message = null;
+    public static Toast2<String, TextColor> restart_message = null;
     private static boolean color = false;
     public static void init() {
         double delta = 0.5;
@@ -99,7 +101,7 @@ public class RestartTimed extends CustomUI.GUI {
         lime.repeat(() -> {
             if (restart_time == null) {
                 if (autoRestart == null) return;
-                Calendar now = system.getMoscowNow();
+                Calendar now = Time.moscowNow();
                 if (autoRestart.getTimeInMillis() > now.getTimeInMillis()) return;
                 lime.logOP("Execute autorestart...");
                 restart_time = 120.0;
@@ -125,7 +127,7 @@ public class RestartTimed extends CustomUI.GUI {
             total /= 60;
             int hour = total;
 
-            restart_message = system.toast("Рестарт через: " +
+            restart_message = Toast.of("Рестарт через: " +
                 org.apache.commons.lang.StringUtils.leftPad(String.valueOf(hour), 2, '0') + ":" +
                 org.apache.commons.lang.StringUtils.leftPad(String.valueOf(min), 2, '0') + ":" +
                 org.apache.commons.lang.StringUtils.leftPad(String.valueOf(sec), 2, '0'),

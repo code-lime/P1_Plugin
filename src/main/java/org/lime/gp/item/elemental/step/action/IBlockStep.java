@@ -6,7 +6,9 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.item.elemental.step.IStep;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +21,7 @@ public abstract class IBlockStep implements IStep {
 
     private static IBlockData setup(Material material, Map<String, String> setup) {
         IBlockData blockData = CraftMagicNumbers.getBlock(material).defaultBlockState();
-        HashMap<String, IBlockState<?>> states = system.map.<String, IBlockState<?>>of()
+        HashMap<String, IBlockState<?>> states = map.<String, IBlockState<?>>of()
                 .add(blockData.getProperties(), IBlockState::getName, v -> v)
                 .build();
         for (Map.Entry<String, String> kv : setup.entrySet()) {

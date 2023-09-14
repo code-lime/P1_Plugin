@@ -2,12 +2,13 @@ package org.lime.gp.extension;
 
 import net.minecraft.nbt.*;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public class NbtTagModify implements TagVisitor {
     private static final reflection.field<String> NBT_STRING_FIELD = reflection.field.<String>ofMojang(NBTTagString.class, "data").nonFinal();
-    private final system.Func1<String, String> modify;
-    public NbtTagModify(system.Func1<String, String> modify) {
+    private final Func1<String, String> modify;
+    public NbtTagModify(Func1<String, String> modify) {
         this.modify = modify;
     }
 

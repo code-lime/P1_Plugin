@@ -9,7 +9,8 @@ import org.lime.docs.json.IComment;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 import org.lime.gp.player.module.needs.thirst.Thirst;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,20 +65,20 @@ public enum EffectType {
         });
     }, "Тряска персонажа");
 
-    private final system.Action2<Player, Integer> tick;
+    private final Action2<Player, Integer> tick;
     private final IComment docs;
 
-    EffectType(system.Action2<Player, Integer> tick, IComment docs) {
+    EffectType(Action2<Player, Integer> tick, IComment docs) {
         this.tick = tick;
         this.docs = docs;
     }
-    EffectType(system.Action2<Player, Integer> tick, String docs) { this(tick, IComment.text(docs)); }
+    EffectType(Action2<Player, Integer> tick, String docs) { this(tick, IComment.text(docs)); }
 
     public void tick(Player player, int time) { tick.invoke(player, time); }
     public IComment docs() { return this.docs; }
 
-    //private static system.Action2<Player, Integer> ofPotion(PotionEffect potionEffect) { return ofPotion(potionEffect, 0); }
-    private static system.Action2<Player, Integer> ofPotion(PotionEffect potionEffect, int skip) {
+    //private static Action2<Player, Integer> ofPotion(PotionEffect potionEffect) { return ofPotion(potionEffect, 0); }
+    private static Action2<Player, Integer> ofPotion(PotionEffect potionEffect, int skip) {
         PotionEffectType effectType = potionEffect.getType();
         return (player, time) -> {
             PotionEffect current = player.getPotionEffect(effectType);

@@ -10,7 +10,9 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.MFPInstance;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 @InfoComponent.Component(name = "mfp")
 public final class MFPComponent extends ComponentDynamic<JsonObject, MFPInstance> {
@@ -21,9 +23,9 @@ public final class MFPComponent extends ComponentDynamic<JsonObject, MFPInstance
 
     public MFPComponent(BlockInfo info, JsonObject json) {
         super(info, json);
-        this.offset = json.has("offset") ? system.getVector(json.get("offset").getAsString()) : new Vector(0, 0, 0);
+        this.offset = json.has("offset") ? MathUtils.getVector(json.get("offset").getAsString()) : new Vector(0, 0, 0);
         this.out_rotation = json.has("out_rotation") ? json.get("out_rotation").getAsDouble() : 0;
-        this.out_offset = json.has("out_offset") ? system.getVector(json.get("out_offset").getAsString()) : new Vector(0, 0, 0);
+        this.out_offset = json.has("out_offset") ? MathUtils.getVector(json.get("out_offset").getAsString()) : new Vector(0, 0, 0);
     }
 
     @Override public MFPInstance createInstance(CustomTileMetadata metadata) { return new MFPInstance(this, metadata); }

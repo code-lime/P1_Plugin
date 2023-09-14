@@ -12,7 +12,7 @@ import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.CropsInstance;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.data.Checker;
-import org.lime.system;
+import org.lime.system.utils.MathUtils;
 
 @InfoComponent.Component(name = "crops") public class CropsComponent extends ComponentDynamic<JsonObject, CropsInstance> {
     public final Checker filter;
@@ -23,7 +23,7 @@ import org.lime.system;
         if (filter.isJsonArray()) this.filter = Checker.createCheck(filter.getAsJsonArray().asList().stream().map(JsonElement::getAsString).toList());
         else if (filter.isJsonPrimitive()) this.filter = Checker.createCheck(filter.getAsString());
         else throw new IllegalArgumentException("Field 'filter' in `crops` with value '"+filter+"' not supported");
-        this.offset = json.has("offset") ? system.transformation(json.get("offset")) : Transformation.identity();
+        this.offset = json.has("offset") ? MathUtils.transformation(json.get("offset")) : Transformation.identity();
     }
 
     @Override public CropsInstance createInstance(CustomTileMetadata metadata) { return new CropsInstance(this, metadata); }

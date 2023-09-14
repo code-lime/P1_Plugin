@@ -21,11 +21,11 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.gp.lime;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.system.*;
+
 public class ExecuteItem implements Listener {
     public static CoreElement create() {
         return CoreElement.create(ExecuteItem.class)
@@ -33,7 +33,7 @@ public class ExecuteItem implements Listener {
                 .withInit(ExecuteItem::init);
     }
     
-    public static final List<Func2<ItemStack, system.Toast1<ItemMeta>, Boolean>> execute = new ArrayList<>();
+    public static final List<Func2<ItemStack, Toast1<ItemMeta>, Boolean>> execute = new ArrayList<>();
 
     public static void init() {
         execute.add(ExecuteItem::onExecute);
@@ -65,7 +65,7 @@ public class ExecuteItem implements Listener {
         );*/
     }
 
-    private static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
+    private static boolean onExecute(ItemStack item, Toast1<ItemMeta> metaBox) {
         return Items.getIDByItem(item).map(id -> {
             Material mat = Items.creatorMaterials.get(id);
             if (mat == null || mat.equals(item.getType())) return false;
@@ -80,9 +80,9 @@ public class ExecuteItem implements Listener {
         if (item == null) return false;
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return false;
-        system.Toast1<ItemMeta> metaBox = system.toast(meta);
+        Toast1<ItemMeta> metaBox = Toast.of(meta);
         boolean save = false;
-        for (Func2<ItemStack, system.Toast1<ItemMeta>, Boolean> func : execute)
+        for (Func2<ItemStack, Toast1<ItemMeta>, Boolean> func : execute)
             save = func.invoke(item, metaBox) || save;
         
         if (!save) return false;

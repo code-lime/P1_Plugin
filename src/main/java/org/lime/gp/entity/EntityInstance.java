@@ -3,7 +3,7 @@ package org.lime.gp.entity;
 import org.lime.gp.entity.component.ComponentDynamic;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -19,7 +19,7 @@ public abstract class EntityInstance implements CustomEntityMetadata.Element {
     }
 
     public abstract void read(JsonObjectOptional json);
-    public abstract system.json.builder.object write();
+    public abstract json.builder.object write();
 
     public void saveData() {
         metadata.marker.persistentDataContainer.set(Entities.ofKey(component.name()), LimePersistentDataType.JSON_OBJECT, write().build());

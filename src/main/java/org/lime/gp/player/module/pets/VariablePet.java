@@ -26,14 +26,15 @@ import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.display.models.shadow.Builder;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class VariablePet extends AbstractPet {
     public final EntityTypes<? extends EntityLiving> type;
-    public final system.Action1<Entity> variable;
+    public final Action1<Entity> variable;
     public final boolean baby;
     public final IBuilder model;
 
@@ -59,8 +60,8 @@ public class VariablePet extends AbstractPet {
     }
 
     @SuppressWarnings("deprecation")
-    private static system.Action1<Entity> variableApply(Class<? extends Entity> type, String variable) {
-        system.Action1<Entity> apply = v -> {
+    private static Action1<Entity> variableApply(Class<? extends Entity> type, String variable) {
+        Action1<Entity> apply = v -> {
         };
         if (variable == null) return apply;
         if (Axolotl.class.isAssignableFrom(type))
@@ -126,12 +127,12 @@ public class VariablePet extends AbstractPet {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Entity, V> system.Action1<Entity> variableApply(system.Action2<T, V> apply, V value) {
+    private static <T extends Entity, V> Action1<Entity> variableApply(Action2<T, V> apply, V value) {
         return e -> apply.invoke((T) e, value);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Entity, V1, V2> system.Action1<Entity> variableApply(system.Action3<T, V1, V2> apply, V1 value1, V2 value2) {
+    private static <T extends Entity, V1, V2> Action1<Entity> variableApply(Action3<T, V1, V2> apply, V1 value1, V2 value2) {
         return e -> apply.invoke((T) e, value1, value2);
     }
 

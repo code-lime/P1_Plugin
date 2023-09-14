@@ -7,7 +7,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
@@ -27,7 +28,7 @@ import com.google.gson.JsonObject;
     }
 
     @Override public void apply(ItemMeta meta, Apply apply) {
-        List<system.Action1<MegaPhoneData>> modify = new ArrayList<>();
+        List<Action1<MegaPhoneData>> modify = new ArrayList<>();
         apply.get("distance").map(Short::parseShort).ifPresent(distance -> modify.add(data -> data.distance = distance));
         apply.get("volume").map(Integer::parseInt).ifPresent(volume -> modify.add(data -> data.volume = volume));
         if (!modify.isEmpty()) MegaPhoneData.modifyData(this, meta, data -> modify.forEach(action -> action.invoke(data)));

@@ -11,7 +11,9 @@ import org.lime.gp.item.elemental.step.group.*;
 import org.lime.gp.item.elemental.step.wait.QueueStep;
 import org.lime.gp.item.elemental.step.wait.WaitStep;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -28,7 +30,7 @@ public interface IStep {
             return switch (type) {
                 case "delta" -> new DeltaStep(
                         parse(json.get("step")),
-                        system.getVector(json.get("delta").getAsString()),
+                        MathUtils.getVector(json.get("delta").getAsString()),
                         json.get("count").getAsInt()
                 );
                 case "function" -> new FunctionStep(
@@ -43,7 +45,7 @@ public interface IStep {
                 );
                 case "offset" -> new OffsetStep(
                         parse(json.get("step")),
-                        system.getVector(json.get("offset").getAsString())
+                        MathUtils.getVector(json.get("offset").getAsString())
                 );
                 case "palette" -> new PaletteStep(
                         json.getAsJsonObject("palette")
@@ -79,14 +81,14 @@ public interface IStep {
                                 .entrySet()
                                 .stream()
                                 .collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString())),
-                        system.getVector(json.get("radius").getAsString()),
+                        MathUtils.getVector(json.get("radius").getAsString()),
                         json.get("self").getAsBoolean()
                 );
                 case "none" -> NoneStep.Instance;
                 case "other" -> new OtherStep(json.get("other").getAsString());
                 case "potion" -> new PotionStep(
                         Items.parseEffect(json.getAsJsonObject("potion")),
-                        system.getVector(json.get("radius").getAsString()),
+                        MathUtils.getVector(json.get("radius").getAsString()),
                         json.get("self").getAsBoolean()
                 );
                 case "block.set" -> new SetBlockStep(

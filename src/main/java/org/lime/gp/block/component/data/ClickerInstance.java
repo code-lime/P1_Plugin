@@ -54,7 +54,11 @@ import org.lime.gp.player.perm.Perms;
 import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -71,7 +75,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     private final ReadonlyInventory readonlyInventory = ReadonlyInventory.ofBukkit(items, metadata().location());
     private int clicks;
     private int damage;
-    //private final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
+    //private final LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
     /*private static LocalLocation ofHeight(int height) {
         return new LocalLocation(0.5, -0.4 + height * 0.025, 0, 0, 0);
     }*/
@@ -148,7 +152,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
     }
 
     private static int hurt(ItemStack damageItem) {
-        return system.rand_is(switch (damageItem.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.DURABILITY)) {
+        return RandomUtils.rand_is(switch (damageItem.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.DURABILITY)) {
             case 0 -> 0;
             case 1 -> 0.15;
             case 2 -> 0.3;
@@ -166,15 +170,15 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
                 .flatMap(Collection::stream)
                 .map(JsonElementOptional::getAsString)
                 .map(v -> v.orElse(null))
-                .map(system::loadItem)
+                .map(ItemUtils::loadItem)
                 .toList()
         );
         updateModel();
         syncDisplayVariable();
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .addArray("items", v -> v.add(items, system::saveItem))
+    @Override public json.builder.object write() {
+        return json.object()
+                .addArray("items", v -> v.add(items, ItemUtils::saveItem))
                 .add("clicks", clicks)
                 .add("damage", damage);
     }

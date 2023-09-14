@@ -4,8 +4,8 @@ import java.sql.ResultSet;
 import java.util.Calendar;
 import java.util.HashMap;
 
-import org.lime.system;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.system.Time;
 
 public class PreDonateRow extends BaseRow {
     public enum State {
@@ -43,10 +43,10 @@ public class PreDonateRow extends BaseRow {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("name", name);
-        map.put("amount", amount + "");
+        map.put("amount", String.valueOf(amount));
         map.put("type", type.name());
         map.put("info", info);
-        map.put("create_time", system.formatCalendar(create_time, true));
+        map.put("create_time", Time.formatCalendar(create_time, true));
         map.put("state", state.name());
         map.put("whitelist", whitelist.name());
         return map;

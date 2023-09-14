@@ -26,7 +26,8 @@ import org.lime.gp.item.settings.list.UnDrugsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.module.PlayerData;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +41,7 @@ public class Drugs implements Listener {
                 .withInit(Drugs::init)
                 .withUninit(Drugs::uninit);
     }
-    private static void regive(Player player, PlayerInventory inventory, EquipmentSlot slot, system.Func1<ItemStack, Boolean> filter) {
+    private static void regive(Player player, PlayerInventory inventory, EquipmentSlot slot, Func1<ItemStack, Boolean> filter) {
         Optional.of(inventory.getItem(slot))
                 .filter(v -> !v.getType().isAir())
                 .filter(filter::invoke)
@@ -60,11 +61,11 @@ public class Drugs implements Listener {
         lockArmsTick(player, inventory, v -> true);
     }
 
-    public static void lockArmsTick(Player player, system.Func1<ItemStack, Boolean> filter) {
+    public static void lockArmsTick(Player player, Func1<ItemStack, Boolean> filter) {
         if (player == null) return;
         lockArmsTick(player, player.getInventory(), filter);
     }
-    public static void lockArmsTick(Player player, PlayerInventory inventory, system.Func1<ItemStack, Boolean> filter) {
+    public static void lockArmsTick(Player player, PlayerInventory inventory, Func1<ItemStack, Boolean> filter) {
         if (player == null || inventory == null) return;
         regive(player, inventory, EquipmentSlot.OFF_HAND, filter);
         regive(player, inventory, EquipmentSlot.HAND, filter);

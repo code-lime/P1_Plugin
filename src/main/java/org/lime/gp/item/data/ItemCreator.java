@@ -36,7 +36,10 @@ import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.list.MaxStackSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.page.slot.ISlot;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.EnumUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -44,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ItemCreator extends IItemCreator {
-    static final Map<String, Attribute> ATTRIBUTE_NAMES = system.map.<String, Attribute>of()
+    static final Map<String, Attribute> ATTRIBUTE_NAMES = map.<String, Attribute>of()
             .add(Arrays.asList(Attribute.values()), kv -> Arrays.stream(kv.getKey().getKey().split("\\.")).skip(1).collect(Collectors.joining(".")), kv -> kv)
             .build();
 
@@ -57,9 +60,9 @@ public class ItemCreator extends IItemCreator {
     public final String name;
     public final List<String> lore = new ArrayList<>();
     public final List<ItemFlag> flags = new ArrayList<>();
-    private final List<system.Toast2<String, String>> args = new ArrayList<>();
+    private final List<Toast2<String, String>> args = new ArrayList<>();
 
-    public List<system.Toast2<String, String>> args(Apply apply) { return args; }
+    public List<Toast2<String, String>> args(Apply apply) { return args; }
 
     public final List<String> charged = new ArrayList<>();
     public final HashMap<String, JsonElement> data = new HashMap<>();
@@ -105,7 +108,7 @@ public class ItemCreator extends IItemCreator {
         this._key = key;
 
         this.item = json.get("item").getAsString();
-        this.nullable_cache_item = system.tryParse(Material.class, this.item).orElse(null);
+        this.nullable_cache_item = EnumUtils.tryParse(Material.class, this.item).orElse(null);
         this.name = json.has("name") ? json.get("name").getAsString() : null;
         this.id = json.has("id") ? json.get("id").getAsString() : null;
 
@@ -124,7 +127,7 @@ public class ItemCreator extends IItemCreator {
                 .entrySet()
                 .forEach(arg -> {
                     JsonElement val = arg.getValue();
-                    this.args.add(system.toast(arg.getKey(), val.isJsonPrimitive()
+                    this.args.add(Toast.of(arg.getKey(), val.isJsonPrimitive()
                             ? val.getAsString()
                             : val.toString()));
                 });

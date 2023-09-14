@@ -1,5 +1,6 @@
 package org.lime.gp.player.menu.page;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventory;
@@ -19,8 +20,9 @@ import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.menu.ActionSlot;
-import org.lime.system.Func1;
-import org.lime.system;
+import org.lime.system.list;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -50,13 +52,13 @@ public class Insert extends Base {
                 .filter(filter)
                 .open();
     }
-    private static boolean open(Player player, Component title, int rows, system.Action1<Integer> callback, Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
+    private static boolean open(Player player, Component title, int rows, Action1<Integer> callback, Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         return openFilterInventory(player, inventoryWallets.compute(player.getUniqueId(), (uuid, inv) -> inv == null
-                ? system.toast(new CraftInventoryCustom(null, rows * 9, title), callback)
+                ? Toast.of(new CraftInventoryCustom(null, rows * 9, title), callback)
                 : inv
         ).val0, filter);
     }
-    private static final HashMap<UUID, system.Toast2<CraftInventory, system.Action1<Integer>>> inventoryWallets = new HashMap<>();
+    private static final HashMap<UUID, Toast2<CraftInventory, Action1<Integer>>> inventoryWallets = new HashMap<>();
     private static void tick() {
         inventoryWallets.values().removeIf(kv -> {
             CraftInventory inventory = kv.val0;
@@ -82,7 +84,7 @@ public class Insert extends Base {
         if (json.has("insert")) {
             filter = Insert.filter(json.get("insert").getAsString());
         } else {
-            filter = Insert.filter(system.list.<String>of().add(json.get("regex").getAsJsonArray(), v -> v.getAsString()).build());
+            filter = Insert.filter(list.<String>of().add(json.get("regex").getAsJsonArray(), JsonElement::getAsString).build());
         }
         rows = json.has("rows") ? json.get("rows").getAsInt() : 3;
         if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(ActionSlot.parse(this, kv.getAsJsonObject())));

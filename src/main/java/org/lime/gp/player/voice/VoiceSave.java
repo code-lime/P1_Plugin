@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 
 import org.bukkit.Location;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.voice.Radio.RadioElement;
@@ -31,7 +33,7 @@ public class VoiceSave implements RadioElement {
                 .withInstance(instance)
                 .withInit(VoiceSave::init)
                 .<JsonObject>addConfig("voice_save", v -> v
-                        .withDefault(system.json.object().add("levels", system.json.array()).build())
+                        .withDefault(json.object().add("levels", json.array()).build())
                         .withInvoke(VoiceSave::config)
                 );
     }
@@ -74,7 +76,7 @@ public class VoiceSave implements RadioElement {
 
     private static long FRAME_LENGTH = 20000000L;
     private static byte[] saveFrames(VoiceFrame[] frames) {
-        HashMap<UUID, system.Toast2<short[][], OpusDecoder>> frameMap = new HashMap<>();
+        HashMap<UUID, Toast2<short[][], OpusDecoder>> frameMap = new HashMap<>();
         int startIndex = (int)(frames[0].initTime / FRAME_LENGTH);
         int endIndex = (int)(frames[frames.length-1].initTime / FRAME_LENGTH);
 
@@ -82,18 +84,18 @@ public class VoiceSave implements RadioElement {
         for (VoiceFrame frame : frames) {
             int index = (int)(frame.initTime / FRAME_LENGTH) - startIndex;
             if (index >= length || index < 0) continue;
-            system.Toast2<short[][], OpusDecoder> memory = frameMap.computeIfAbsent(frame.uuid, uuid -> {
+            Toast2<short[][], OpusDecoder> memory = frameMap.computeIfAbsent(frame.uuid, uuid -> {
                 short[][] arr = new short[length][];
                 Arrays.fill(arr, new short[960]);
                 OpusDecoder decoder = Voice.API.createDecoder();
-                return system.toast(arr, decoder);
+                return Toast.of(arr, decoder);
             });
             memory.val0[index] = memory.val1.decode(frame.data);
         }
         long[][] preResultMemory = new long[length][];
         for (int i = 0; i < length; i++) preResultMemory[i] = new long[960];
 
-        for (system.Toast2<short[][], OpusDecoder> memory : frameMap.values())
+        for (Toast2<short[][], OpusDecoder> memory : frameMap.values())
             for (int i = 0; i < length; i++)
                 for (int f = 0; f < 960; f++)
                     preResultMemory[i][f] += memory.val0[i][f];

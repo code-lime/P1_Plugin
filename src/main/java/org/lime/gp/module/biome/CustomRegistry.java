@@ -19,7 +19,8 @@ import net.minecraft.world.level.chunk.ChunkSection;
 import net.minecraft.world.level.chunk.DataPaletteBlock;
 import org.jetbrains.annotations.NotNull;
 import org.lime.gp.module.biome.weather.BiomeHolder;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Iterator;
 import java.util.stream.IntStream;
@@ -62,12 +63,12 @@ public class CustomRegistry<T> implements Registry<T> {
     public static ChunkSection createChunkSection(int chunkPos, World level, IRegistry<BiomeBase> biomeRegistry, BiMap<Integer, BiomeHolder> map) {
         return createChunkSection(chunkPos, level, createBiomeRegistry(biomeRegistry, map), biomeRegistry.getHolderOrThrow(Biomes.PLAINS));
     }
-    public static Stream<system.Toast2<ChunkSection, Integer>> readSections(PacketDataSerializer buffer, World level, CustomRegistry<Holder<BiomeBase>> biomeRegistry, Holder<BiomeBase> plains) {
+    public static Stream<Toast2<ChunkSection, Integer>> readSections(PacketDataSerializer buffer, World level, CustomRegistry<Holder<BiomeBase>> biomeRegistry, Holder<BiomeBase> plains) {
         return IntStream.range(level.getMinSection(), level.getMaxSection())
                 .mapToObj(i -> {
                     ChunkSection section = createChunkSection(i, level, biomeRegistry, plains);
                     section.read(buffer);
-                    return system.toast(section, i);
+                    return Toast.of(section, i);
                 });
                 //.mapToObj(i -> createChunkSection(i, level, biomeRegistry, plains))
                 //.peek(section -> section.read(buffer));

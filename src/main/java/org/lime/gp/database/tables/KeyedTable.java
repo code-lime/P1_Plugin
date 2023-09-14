@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
@@ -18,14 +17,17 @@ import org.lime.gp.database.rows.BaseRow;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.lime.system.Time;
+import org.lime.system.execute.*;
+import org.lime.system.toast.*;
 
 public class KeyedTable<V extends BaseRow> extends ITable<V> {
     public static final ConcurrentHashMap<String, KeyedTable<?>> tables = new ConcurrentHashMap<>();
     public static void resyncAll() {
-        tables.values().forEach(v -> v.last_update = system.getZeroTime());
+        tables.values().forEach(v -> v.last_update = Time.zeroTime());
     }
 
-    private Calendar last_update = system.getZeroTime();
+    private Calendar last_update = Time.zeroTime();
 
     private boolean isInit = false;
     
@@ -35,10 +37,10 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
     private final String where_select;
     private final String where;
     private final String key;
-    private final system.Func2<ResultSet, V, String> fKey;
-    private final system.Func1<ResultSet, V> fValue;
-    private final Map<String, system.Func1<V, String>> other;
-    private final Map<KeyedTable.Event, List<system.Action2<V, KeyedTable.Event>>> events;
+    private final Func2<ResultSet, V, String> fKey;
+    private final Func1<ResultSet, V> fValue;
+    private final Map<String, Func1<V, String>> other;
+    private final Map<KeyedTable.Event, List<Action2<V, KeyedTable.Event>>> events;
 
     private final ConcurrentHashMap<String, V> data = new ConcurrentHashMap<>();
 
@@ -70,7 +72,7 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
 
     public boolean isInit() { return this.isInit; }
 
-    private KeyedTable(String index, String table, String where, String key, system.Func2<ResultSet, V, String> fKey, system.Func1<ResultSet, V> fValue, Map<String, system.Func1<V, String>> other, ImmutableList<system.Toast2<KeyedTable.Event, system.Action2<V, KeyedTable.Event>>> events) {
+    private KeyedTable(String index, String table, String where, String key, Func2<ResultSet, V, String> fKey, Func1<ResultSet, V> fValue, Map<String, Func1<V, String>> other, ImmutableList<Toast2<Event, Action2<V, Event>>> events) {
         this.index = index;
         this.table = table;
         this.where_select = "last_update > @last" + (where == null ? "" : (" AND (" + where + ")"));
@@ -79,14 +81,14 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
         this.fKey = fKey;
         this.fValue = fValue;
         this.other = other;
-        Map<KeyedTable.Event, List<system.Action2<V, KeyedTable.Event>>> _events = new HashMap<>();
+        Map<KeyedTable.Event, List<Action2<V, KeyedTable.Event>>> _events = new HashMap<>();
         events.forEach(kv -> _events.computeIfAbsent(kv.val0, k -> new ArrayList<>()).add(kv.val1));
         this.events = ImmutableMap.copyOf(_events);
         this.events.forEach((event, calls) -> lime.logOP("Reg event '"+table+"'.'"+event+"' with calls: "+calls.size()));
         tables.put(index, this);
     }
     @Override public List<V> getRows() { return ImmutableList.copyOf(data.values()); }
-    @Override public void forEach(system.Action1<V> callback) { data.values().forEach(callback); }
+    @Override public void forEach(Action1<V> callback) { data.values().forEach(callback); }
     public Map<String, V> getKeyedRows() { return data; }
     public Optional<V> get(String key) { return Optional.ofNullable(data.get(key)); }
     public boolean has(String key) { return data.containsKey(key); }
@@ -101,12 +103,12 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
         tables.forEach((key, table) -> table.update());
     }
     protected void update() {
-        Calendar next_update = system.getMoscowNow();
+        Calendar next_update = Time.moscowNow();
         next_update.add(Calendar.SECOND, -5);
         Methods.SQL.Async.rawSqlQuery(
                 "SELECT * FROM " + table + " WHERE " + where_select,
                 MySql.args().add("last", last_update).build(),
-                set -> { V value = fValue.invoke(set); return system.toast(fKey.invoke(set, value), value); },
+                set -> { V value = fValue.invoke(set); return Toast.of(fKey.invoke(set, value), value); },
                 _rows -> {
                     _rows.forEach(kv -> {
                         kv.val1.init();
@@ -145,9 +147,9 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
     }
 
     private void onEvent(KeyedTable.Event event, V value) {
-        List<system.Action2<V, KeyedTable.Event>> calls = events.getOrDefault(event, null);
+        List<Action2<V, KeyedTable.Event>> calls = events.getOrDefault(event, null);
         if (calls == null) return;
-        for (system.Action2<V, KeyedTable.Event> call : calls) call.invoke(value, event);
+        for (Action2<V, KeyedTable.Event> call : calls) call.invoke(value, event);
     }
 
     public enum Event {
@@ -168,12 +170,12 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
         private final String _table;
         private final String _where;
         private final String _key;
-        private final system.Func2<ResultSet, V, String> _fKey;
-        private final system.Func1<ResultSet, V> _fValue;
-        private final ImmutableMap<String, system.Func1<V, String>> _other;
-        private final ImmutableList<system.Toast2<KeyedTable.Event, system.Action2<V, KeyedTable.Event>>> _events;
+        private final Func2<ResultSet, V, String> _fKey;
+        private final Func1<ResultSet, V> _fValue;
+        private final ImmutableMap<String, Func1<V, String>> _other;
+        private final ImmutableList<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>> _events;
 
-        private Builder(String index, String table, String where, String key, system.Func2<ResultSet, V, String> fKey, system.Func1<ResultSet, V> fValue, ImmutableMap<String, system.Func1<V, String>> other, ImmutableList<system.Toast2<KeyedTable.Event, system.Action2<V, KeyedTable.Event>>> events) {
+        private Builder(String index, String table, String where, String key, Func2<ResultSet, V, String> fKey, Func1<ResultSet, V> fValue, ImmutableMap<String, Func1<V, String>> other, ImmutableList<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>> events) {
             this._index = index;
             this._table = table;
             this._where = where;
@@ -186,20 +188,20 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
 
         public KeyedTable.Builder<V> index(String index) { return new KeyedTable.Builder<V>(index, _table, _where, _key, _fKey, _fValue, _other, _events); }
         public KeyedTable.Builder<V> where(String where) { return new KeyedTable.Builder<V>(_index, _table, where, _key, _fKey, _fValue, _other, _events); }
-        public KeyedTable.Builder<V> key(String key, system.Func1<ResultSet, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, (v1,v2) -> func.invoke(v1), _fValue, _other, _events); }
-        public KeyedTable.Builder<V> keyed(String key, system.Func1<V, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, (v1,v2) -> func.invoke(v2), _fValue, _other, _events); }
-        public KeyedTable.Builder<V> other(String key, system.Func1<V, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _fKey, _fValue, ImmutableMap.<String, system.Func1<V, String>>builder().putAll(_other).put(key, func).build(), _events); }
+        public KeyedTable.Builder<V> key(String key, Func1<ResultSet, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, (v1,v2) -> func.invoke(v1), _fValue, _other, _events); }
+        public KeyedTable.Builder<V> keyed(String key, Func1<V, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, (v1,v2) -> func.invoke(v2), _fValue, _other, _events); }
+        public KeyedTable.Builder<V> other(String key, Func1<V, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _fKey, _fValue, ImmutableMap.<String, Func1<V, String>>builder().putAll(_other).put(key, func).build(), _events); }
 
-        /*public Builder<V> event(Event key, system.Action2<V, Event> func) { return event(key, (a,b) -> { func.invoke(a,b); return true; }); }
-        public Builder<V> event(Event key, system.Action1<V> func) { return event(key, (a,b) -> { func.invoke(a); return true; }); }
+        /*public Builder<V> event(Event key, Action2<V, Event> func) { return event(key, (a,b) -> { func.invoke(a,b); return true; }); }
+        public Builder<V> event(Event key, Action1<V> func) { return event(key, (a,b) -> { func.invoke(a); return true; }); }
 */
-        public KeyedTable.Builder<V> event(KeyedTable.Event key, system.Action2<V, KeyedTable.Event> func) { return new KeyedTable.Builder<>(_index, _table, _where, _key, _fKey, _fValue, _other, ImmutableList.<system.Toast2<KeyedTable.Event, system.Action2<V, KeyedTable.Event>>>builder().addAll(_events).add(system.toast(key, func)).build()); }
-        public KeyedTable.Builder<V> event(KeyedTable.Event key, system.Action1<V> func) { return event(key, (a,b) -> func.invoke(a)); }
+        public KeyedTable.Builder<V> event(KeyedTable.Event key, Action2<V, KeyedTable.Event> func) { return new KeyedTable.Builder<>(_index, _table, _where, _key, _fKey, _fValue, _other, ImmutableList.<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>>builder().addAll(_events).add(Toast.of(key, func)).build()); }
+        public KeyedTable.Builder<V> event(KeyedTable.Event key, Action1<V> func) { return event(key, (a,b) -> func.invoke(a)); }
 
-        public KeyedTable.Builder<V> value(system.Func1<ResultSet, V> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _fKey, func, _other, _events); }
+        public KeyedTable.Builder<V> value(Func1<ResultSet, V> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _fKey, func, _other, _events); }
 
         public KeyedTable<V> build() { return new KeyedTable<>(_index, _table, _where, _key, _fKey, _fValue, _other, _events); }
     }
 
-    public static <V extends BaseRow>KeyedTable.Builder<V> of(String table, system.Func1<ResultSet, V> value) { return new KeyedTable.Builder<>(table, table, null, null, null, value, ImmutableMap.of(), ImmutableList.of()); }
+    public static <V extends BaseRow>KeyedTable.Builder<V> of(String table, Func1<ResultSet, V> value) { return new KeyedTable.Builder<>(table, table, null, null, null, value, ImmutableMap.of(), ImmutableList.of()); }
 }

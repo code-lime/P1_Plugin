@@ -33,12 +33,12 @@ public class Checkers {
             }
             public void draw(DrawMap map, Memory memory, long point) { draw(map, memory, of_x(point), of_y(point)); }
             public void draw(DrawMap map, Memory memory, int x, int y) {
-                system.Toast2<byte[], Map<Byte, Color>> display = this.display(memory, x, y);
+                Toast2<byte[], Map<Byte, Color>> display = this.display(memory, x, y);
                 map.rectangle(x * 16, y * 16, 16, display.val0, display.val1);
             }
             public abstract Map<Long, Long> filter(Memory memory, int x, int y);
             protected abstract IChecker upper();
-            protected abstract system.Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y);
+            protected abstract Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y);
         }
         public static class Checker extends IChecker {
             public boolean isKing;
@@ -82,10 +82,10 @@ public class Checkers {
                     line(memory, x, y, 1, -1, points, damage);
                 } else {
                     Arrays.asList(
-                            system.toast(-1,1,memory.isBlack),
-                            system.toast(1,1,memory.isBlack),
-                            system.toast(-1,-1,!memory.isBlack),
-                            system.toast(1,-1,!memory.isBlack)
+                            Toast.of(-1,1,memory.isBlack),
+                            Toast.of(1,1,memory.isBlack),
+                            Toast.of(-1,-1,!memory.isBlack),
+                            Toast.of(1,-1,!memory.isBlack)
                     ).forEach(_xy -> {
                         int _x = _xy.val0;
                         int _y = _xy.val1;
@@ -105,8 +105,8 @@ public class Checkers {
             }
 
             @Override protected IChecker upper() { isKing = true; return this; }
-            @Override protected system.Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y) {
-                return system.toast(checkerBytes, system.map.<Byte, Color>of()
+            @Override protected Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y) {
+                return Toast.of(checkerBytes, system.map.<Byte, Color>of()
                         .add((byte)1, isBlack ? Color.BLACK : Color.WHITE)
                         .add((byte)2, isKing ? Color.GRAY : (isBlack ? Color.BLACK : Color.WHITE))
                         .add((byte)3, memory.isBlack == isBlack ? Color.fromRGB(0x677535) : (isBlack ? Color.BLACK : Color.WHITE))
@@ -172,10 +172,10 @@ public class Checkers {
                     line(memory, x, y, 1, -1, points, damage);
                 } else {
                     Arrays.asList(
-                            system.toast(-1,1,memory.isBlack),
-                            system.toast(1,1,memory.isBlack),
-                            system.toast(-1,-1,!memory.isBlack),
-                            system.toast(1,-1,!memory.isBlack)
+                            Toast.of(-1,1,memory.isBlack),
+                            Toast.of(1,1,memory.isBlack),
+                            Toast.of(-1,-1,!memory.isBlack),
+                            Toast.of(1,-1,!memory.isBlack)
                     ).forEach(_xy -> {
                         int _x = _xy.val0;
                         int _y = _xy.val1;
@@ -195,8 +195,8 @@ public class Checkers {
             }
 
             @Override protected IChecker upper() { isKing = true; }
-            @Override protected system.Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y) {
-                return system.toast(checkerBytes, system.map.<Byte, Color>of()
+            @Override protected Toast2<byte[], Map<Byte, Color>> display(Memory memory, int x, int y) {
+                return Toast.of(checkerBytes, system.map.<Byte, Color>of()
                         .add((byte)1, isBlack ? Color.BLACK : Color.WHITE)
                         .add((byte)2, isKing ? Color.GRAY : (isBlack ? Color.BLACK : Color.WHITE))
                         .add((byte)3, memory.isBlack == isBlack ? Color.fromRGB(0x677535) : (isBlack ? Color.BLACK : Color.WHITE))
@@ -207,7 +207,7 @@ public class Checkers {
         public Long target;
         public final boolean multiKill;
         public boolean isBlack = false;
-        public system.Toast2<Integer, Integer> getTarget() { return target == null ? null : system.toast(of_x(target), of_y(target)); }
+        public Toast2<Integer, Integer> getTarget() { return target == null ? null : Toast.of(of_x(target), of_y(target)); }
         public UUID targetUUID;
         private boolean in(int x, int y) { return x >= 0 && x <= 7 && y >= 0 && y <= 7; }
         private boolean isEmpty(int x, int y) {
@@ -241,7 +241,7 @@ public class Checkers {
                         });
                     });
                     if (!multiKill || !damage.contains(point)) isBlack = !isBlack;
-                    system.Toast1<Integer> steps = system.toast(0);
+                    Toast1<Integer> steps = Toast.of(0);
                     checkers.forEach((k,v) -> { if (v.isBlack == isBlack) steps.val0 += v.filter(this, of_x(k), of_y(k)).size(); });
                     if (steps.val0 == 0) checkers.entrySet().removeIf(kv -> kv.getValue().isBlack == isBlack);
                 } else {
@@ -287,7 +287,7 @@ public class Checkers {
         }
 
         public void draw(DrawMap map) {
-            system.Toast2<Integer, Integer> conut = system.toast(0,0);
+            Toast2<Integer, Integer> conut = Toast.of(0,0);
             checkers.forEach((point, checker) -> {
                 if (checker.isBlack) conut.val0++;
                 else conut.val1++;
@@ -302,7 +302,7 @@ public class Checkers {
     }
     public static class CheckersMonitor extends ItemManager.BlockSetting.IBlock<JsonObject> implements MapMonitor.Monitor<CheckersMonitor, Memory> {
         @Override public Memory memory() { return Memory.ofCheckers(); }
-        @Override public Map<Player, byte[]> update(Map<Player, MapMonitor.ViewPosition> players, system.Toast1<Memory> memory) {
+        @Override public Map<Player, byte[]> update(Map<Player, MapMonitor.ViewPosition> players, Toast1<Memory> memory) {
             HashMap<Player, byte[]> result = new HashMap<>();
 
             DrawMap map = DrawMap.create(Color.WHITE);
@@ -317,7 +317,7 @@ public class Checkers {
             }
             memory.val0.draw(map);
 
-            system.Toast2<Integer, Integer> target = memory.val0.getTarget();
+            Toast2<Integer, Integer> target = memory.val0.getTarget();
             UUID targetUUID = memory.val0.targetUUID;
 
             players.forEach((player, point) -> {
@@ -373,7 +373,7 @@ public class Checkers {
         @Override public void populate(PopulateLootEvent e) { e.setCancelled(true); }
 
         @Override public void readBlock(JsonObject json) { rotation = MapMonitor.MapRotation.values()[json.has("rotation") ? json.get("rotation").getAsInt() : 0]; }
-        @Override public JsonObject writeBlock() { return system.json.object().add("rotation", rotation.ordinal()).build(); }
+        @Override public JsonObject writeBlock() { return json.object().add("rotation", rotation.ordinal()).build(); }
 
         @Override public void load() { }
         @Override public ItemManager.BlockSetting.IBlock<?> owner() { return this; }

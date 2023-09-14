@@ -49,7 +49,10 @@ import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +66,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         setItem(null, false);
     }
 
-    //public final system.LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
+    //public final LockToast1<IBuilder> model = system.<IBuilder>toast(null).lock();
     private ItemStack head;
     private net.minecraft.world.item.ItemStack nms_head;
     private UUID unique_key;
@@ -83,11 +86,11 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
     }
 
     @Override public void read(JsonObjectOptional json) {
-        setItem(json.getAsString("item").map(system::loadItem).orElse(null), false);
+        setItem(json.getAsString("item").map(ItemUtils::loadItem).orElse(null), false);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .add("item", head.getType().isAir() ? null : system.saveItem(head));
+    @Override public json.builder.object write() {
+        return json.object()
+                .add("item", head.getType().isAir() ? null : ItemUtils.saveItem(head));
     }
 
     @Override public void onDamage(CustomTileMetadata metadata, BlockDamageEvent event) {
@@ -161,10 +164,10 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
 
         World world = event.world();
         Perms.ICanData canData = Perms.getCanData(uuid);
-        List<system.Toast3<ConverterRecipe, IOutputSlot, net.minecraft.world.item.ItemStack>> output = Recipes.CONVERTER.getAllRecipes(canData)
+        List<Toast3<ConverterRecipe, IOutputSlot, net.minecraft.world.item.ItemStack>> output = Recipes.CONVERTER.getAllRecipes(canData)
                 .filter(v -> v.converter_type.equals(component.converter_type))
                 .filter(v -> v.matches(view, world))
-                .flatMap(v -> v.output.slots().map(_v -> system.toast(v, _v, v.replace ? _v.create(true, IOutputVariable.of(human)) : _v.modify(nms_head, true, IOutputVariable.of(human)))))
+                .flatMap(v -> v.output.slots().map(_v -> Toast.of(v, _v, v.replace ? _v.create(true, IOutputVariable.of(human)) : _v.modify(nms_head, true, IOutputVariable.of(human)))))
                 .toList();
         int maxPage = (output.size() - 1) / (4 * 9);
 
@@ -223,7 +226,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
                             }
                             int itemIndex = (page * 4 * 9) + index;
                             if (ConverterInstance.this.unique_key.equals(unique_key) && output.size() > itemIndex) {
-                                system.Toast3<ConverterRecipe, IOutputSlot, net.minecraft.world.item.ItemStack> out = output.get(itemIndex);
+                                Toast3<ConverterRecipe, IOutputSlot, net.minecraft.world.item.ItemStack> out = output.get(itemIndex);
                                 Perms.onRecipeUse(out.val0, human.getUUID(), canData);
                                 ConverterInstance.this.setItem((out.val0.replace ? out.val1.create(false, IOutputVariable.of(human)) : out.val1.modify(out.val2, true, IOutputVariable.of(human))).asBukkitCopy(), true);
                                 human.closeContainer();

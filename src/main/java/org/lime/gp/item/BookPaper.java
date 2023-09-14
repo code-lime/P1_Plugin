@@ -34,7 +34,9 @@ import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.extension.JManager;
-import org.lime.system;
+import org.lime.system.list;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.chat.ChatHelper;
 
 import java.util.ArrayList;
@@ -191,7 +193,7 @@ public class BookPaper implements Listener {
 
     private static final NamespacedKey AUTHOR_KEY = new NamespacedKey(lime._plugin, "author");
 
-    private static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
+    private static boolean onExecute(ItemStack item, Toast1<ItemMeta> metaBox) {
         return metaBox.val0 instanceof BookMeta meta ? onExecute(meta) : false;
     }
     private static boolean onExecute(BookMeta meta) {
@@ -269,7 +271,7 @@ public class BookPaper implements Listener {
                         } else {
                             JsonElement json = JManager.get(JsonElement.class, container, "pages", null);
                             if (json == null) return;
-                            List<Component> pages = system.list.<Component>of().add(json.getAsJsonArray(), ChatHelper::fromJson).build();
+                            List<Component> pages = list.<Component>of().add(json.getAsJsonArray(), ChatHelper::fromJson).build();
                             if (pages == null) return;
                             ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
                             BookMeta meta = (BookMeta) book.getItemMeta();

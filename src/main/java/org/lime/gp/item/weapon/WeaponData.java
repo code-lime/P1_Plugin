@@ -27,7 +27,10 @@ import org.lime.gp.item.settings.list.WeaponSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.EnumUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 
@@ -113,7 +116,7 @@ public class WeaponData {
                 .map(ItemStack::getItemMeta)
                 .map(PersistentDataHolder::getPersistentDataContainer)
                 .map(v -> v.get(STATE_KEY, PersistentDataType.STRING))
-                .flatMap(v -> system.tryParse(State.class, v))
+                .flatMap(v -> EnumUtils.tryParse(State.class, v))
                 .filter(weapon.states::contains)
                 .orElseGet(() -> State.def(weapon));
         this.pose = Pose.def(weapon);
@@ -194,8 +197,8 @@ public class WeaponData {
             Location bullet_location = location.clone();
 
             double split = pose == null ? 2.5 : pose.range(recoil, weapon.recoil);
-            bullet_location.setYaw(bullet_location.getYaw() + (float) system.rand(-split, split));
-            bullet_location.setPitch(bullet_location.getPitch() + (float) system.rand(-split, split));
+            bullet_location.setYaw(bullet_location.getYaw() + (float) RandomUtils.rand(-split, split));
+            bullet_location.setPitch(bullet_location.getPitch() + (float) RandomUtils.rand(-split, split));
 
             bullet_location.add(bullet_location.getDirection().multiply(0.5)).add(new Vector(0, -0.5, 0));
 

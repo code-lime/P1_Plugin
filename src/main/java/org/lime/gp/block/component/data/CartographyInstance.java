@@ -51,7 +51,9 @@ import org.lime.gp.map.ViewPosition;
 import org.lime.gp.module.DrawMap;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -143,8 +145,8 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
     @Override public void read(JsonObjectOptional json) {
         map = json.getAsString("map").map(Base64.getDecoder()::decode).orElse(null);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object().add("map", map == null ? null : Base64.getEncoder().encodeToString(map));
+    @Override public json.builder.object write() {
+        return json.object().add("map", map == null ? null : Base64.getEncoder().encodeToString(map));
     }
 
     @Override public byte[] preMap() { return map; }
@@ -196,7 +198,7 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
             if (position.getClick().isClick) {
                 DrawMap _draw = DrawMap.of(this.map);
                 Color brush_color = DrawMap.to(brush.color);
-                system.Toast3<Integer, Integer, Integer> delta = system.toast(0,0,0);
+                Toast3<Integer, Integer, Integer> delta = Toast.of(0,0,0);
                 _draw.rectangleFunc(x, y, part, part, color -> {
                     Color _color = DrawMap.to(color);
                     delta.val0 += Math.abs(_color.getRed() - brush_color.getRed());
@@ -206,7 +208,7 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
                 delta.val0 /= 2;
                 delta.val1 /= 2;
                 delta.val2 /= 2;
-                system.Toast3<Integer, Integer, Integer> bucket = system.toast(0,0,0);
+                Toast3<Integer, Integer, Integer> bucket = Toast.of(0,0,0);
                 CartographyBucket.modifyData(player.getInventory().getItemInOffHand(), data -> {
                     bucket.val0 = delta.val0;
                     bucket.val1 = delta.val1;

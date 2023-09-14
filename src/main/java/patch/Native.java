@@ -5,8 +5,9 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
-import org.lime.gp.TestData;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.objectweb.asm.*;
 
 import javax.annotation.Nullable;
@@ -59,7 +60,7 @@ public class Native {
         subLog(subLogger);
     }
 
-    public static void writeMethod(system.ICallable callable, system.Action5<Integer, String, String, String, Boolean> method) {
+    public static void writeMethod(ICallable callable, Action5<Integer, String, String, String, Boolean> method) {
         SerializedLambda lambda = infoFromLambda(callable);
         String kind = MethodHandleInfo.referenceKindToString(lambda.getImplMethodKind());
         int opcode = switch (kind) {
@@ -71,11 +72,11 @@ public class Native {
             default -> throw new IllegalArgumentException("Kind method type '"+kind+"' not supported!");
         };
         boolean isInterface = opcode == Opcodes.INVOKEINTERFACE
-                || system.funcEx(() -> Class.forName(lambda.getImplClass().replace('/', '.')).isInterface())
+                || Execute.funcEx(() -> Class.forName(lambda.getImplClass().replace('/', '.')).isInterface())
                     .optional().invoke().orElse(false);
         method.invoke(opcode, lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature(), isInterface);
     }
-    public static void writeField(int opcode, system.ICallable callable, system.Action4<Integer, String, String, String> field) {
+    public static void writeField(int opcode, ICallable callable, Action4<Integer, String, String, String> field) {
         FieldInfo info = infoFromField(callable);
         field.invoke(opcode, info.owner(), info.name(), info.descriptor());
     }
@@ -96,13 +97,13 @@ public class Native {
         return getMethod(lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature());
     }
 
-    public static boolean isMethod(system.ICallable callable, String owner, String name, String descriptor) {
+    public static boolean isMethod(ICallable callable, String owner, String name, String descriptor) {
         SerializedLambda lambda = infoFromLambda(callable);
         if (!lambda.getImplMethodName().equals(name) || !Type.getType(lambda.getImplMethodSignature()).equals(Type.getType(descriptor))) return false;
         if (lambda.getImplClass().equals(owner)) return true;
         return getMethod(owner, name, descriptor).equals(getMethod(lambda));
     }
-    public static boolean isField(system.ICallable callable, String owner, String name, String descriptor) {
+    public static boolean isField(ICallable callable, String owner, String name, String descriptor) {
         FieldInfo field = infoFromField(callable);
         return field.owner().equals(owner)
                 && field.name().equals(name)
@@ -119,7 +120,7 @@ public class Native {
         }
     }
     public record FieldInfo(String owner, String name, String descriptor) { }
-    public static FieldInfo infoFromField(system.ICallable callable) {
+    public static FieldInfo infoFromField(ICallable callable) {
         try {
             SerializedLambda lambda = infoFromLambda(callable);
             String classFile = lambda.getImplClass();
@@ -133,7 +134,7 @@ public class Native {
             try (InputStream stream = Objects.requireNonNull(tClass.getClassLoader().getResourceAsStream(classFile + ".class"))) {
                 ClassReader cr = new ClassReader(stream);
                 ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                system.Toast1<FieldInfo> fieldInfo = system.toast(null);
+                Toast1<FieldInfo> fieldInfo = Toast.of(null);
                 cr.accept(new ClassVisitor(Opcodes.ASM9, cw) {
                     @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
                         //Native.log("Compare method with: " + methodOwner.replace('/', '.') + "." + name + descriptor);
@@ -164,28 +165,28 @@ public class Native {
         if (mappingsInputStream == null) return () -> {};
         MappingReader.read(new InputStreamReader(mappingsInputStream, StandardCharsets.UTF_8), MappingFormat.TINY_2, tree);
         for (MappingTree.ClassMapping classMapping : tree.getClasses()) {
-            Map<system.Toast3<String, String, Boolean>, String> members = new HashMap<>();
+            Map<Toast3<String, String, Boolean>, String> members = new HashMap<>();
             for (MappingTree.MemberMapping member : classMapping.getMethods()) {
-                members.put(system.toast(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), true), member.getName(ObfHelper.SPIGOT_NAMESPACE));
+                members.put(Toast.of(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), true), member.getName(ObfHelper.SPIGOT_NAMESPACE));
             }
             for (MappingTree.MemberMapping member : classMapping.getFields()) {
-                members.put(system.toast(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), false), member.getName(ObfHelper.SPIGOT_NAMESPACE));
+                members.put(Toast.of(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), false), member.getName(ObfHelper.SPIGOT_NAMESPACE));
             }
             classes.put(classMapping.getName(ObfHelper.SPIGOT_NAMESPACE).replace('/', '.'), members);
         }
         return mappingsInputStream;
     }
-    private static final Map<String, Map<system.Toast3<String, String, Boolean>, String>> classes = new HashMap<>();
+    private static final Map<String, Map<Toast3<String, String, Boolean>, String>> classes = new HashMap<>();
     private static final List<Class<?>> dat = new ArrayList<>();
     public static String ofMojang(Class<?> tClass, String name, String desc, boolean isMethod) {
-        Map<system.Toast3<String, String, Boolean>, String> mapping = classes.get(tClass.getName());
+        Map<Toast3<String, String, Boolean>, String> mapping = classes.get(tClass.getName());
         if (mapping == null) return name;
         if (dat.contains(tClass)) {
-            log("Class " + tClass.getName() + " with found " + (isMethod ? "method" : "field") + " " + name + desc + "\n" + system.json.object().add(mapping, system.IToast::toString, v -> v).build().toString());
+            log("Class " + tClass.getName() + " with found " + (isMethod ? "method" : "field") + " " + name + desc + "\n" + json.object().add(mapping, IToast::toString, v -> v).build().toString());
             dat.add(tClass);
         }
         //
-        String src_name = mapping.get(system.toast(name, desc, isMethod));
+        String src_name = mapping.get(Toast.of(name, desc, isMethod));
         boolean isFound = src_name != null;
         if (src_name == null) {
             src_name = name;

@@ -1,7 +1,8 @@
 package org.lime.gp.chat;
 
 import net.minecraft.network.chat.ChatHexColor;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -21,14 +22,14 @@ public class ChatColorHex {
         this.b = color.getBlue();
     }
     public ChatColorHex(String _hex) {
-        system.Toast3<Integer, Integer, Integer> hex = fromHex(_hex);
+        Toast3<Integer, Integer, Integer> hex = fromHex(_hex);
 
         r = hex.val0;
         g = hex.val1;
         b = hex.val2;
     }
     public ChatColorHex(ChatColor color) {
-        system.Toast3<Integer, Integer, Integer> hex;
+        Toast3<Integer, Integer, Integer> hex;
         switch (color)
         {
             case DARK_RED: hex = fromHex("AA0000"); break;
@@ -61,14 +62,14 @@ public class ChatColorHex {
         for (Character ch : hex.toCharArray()) tostring.append("§").append(ch);
         return tostring.toString();
     }
-    public static system.Toast3<Integer, Integer, Integer> fromHex(String hex) {
+    public static Toast3<Integer, Integer, Integer> fromHex(String hex) {
         hex = hex.replace("#", "");
         int len = hex.length();
         if (len != 6) throw new IllegalArgumentException("hex");
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2)
             data[i / 2] =  (byte) ((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i+1), 16));
-        return new system.Toast3<>(data[0] & 0xFF, data[1] & 0xFF, data[2] & 0xFF);
+        return new Toast3<>(data[0] & 0xFF, data[1] & 0xFF, data[2] & 0xFF);
     }
 
     @Override public String toString() {

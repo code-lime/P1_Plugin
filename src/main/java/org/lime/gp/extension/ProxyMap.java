@@ -2,7 +2,8 @@ package org.lime.gp.extension;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Collection;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Set;
 
 public class ProxyMap<K, V> implements Map<K, V> {
     private final Map<K, V> base;
-    private final system.LockToast1<Boolean> dirty = system.toast(false).lock();
+    private final LockToast1<Boolean> dirty = Toast.lock(false);
 
     private ProxyMap(Map<K,V> base) { this.base = base; }
     public static <K,V>ProxyMap<K,V> of(Map<K,V> base) { return new ProxyMap<>(base); }

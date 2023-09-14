@@ -33,7 +33,11 @@ import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.range.IRange;
+import org.lime.system.range.OnceRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +49,7 @@ public class WeatherBiomes {
                 .withInit(WeatherBiomes::init)
                 .<JsonObject>addConfig("weather_biomes", v -> v
                         .withDefault(() -> {
-                            HashMap<BiomeData, system.Toast2<String, Integer>> pattern = new HashMap<>();
+                            HashMap<BiomeData, Toast2<String, Integer>> pattern = new HashMap<>();
                             Map<String, BiomeData> biomeMap = BiomeModify.getRawVanillaBiomes()
                                     .collect(Collectors.toMap(_v -> _v.getString("name"), _v -> BiomeData.parseElement(_v.getCompound("element"))));
                             biomeMap.forEach((key, value) -> pattern.compute(value, (_k, _v) -> {
@@ -54,14 +58,14 @@ public class WeatherBiomes {
                                     String patternValue = "_" + values[values.length - 1];
 
                                     return pattern.values().stream().anyMatch(__v -> patternValue.equals(__v.val0))
-                                            ? system.toast(patternValue + "#" + pattern.size(), 1)
-                                            : system.toast(patternValue, 1);
+                                            ? Toast.of(patternValue + "#" + pattern.size(), 1)
+                                            : Toast.of(patternValue, 1);
                                 }
                                 _v.val1++;
                                 return _v;
                             }));
                             pattern.values().removeIf(_v -> _v.val1 < 2);
-                            return system.json.object()
+                            return json.object()
                                     .addObject("Pattern", _v -> _v
                                             .add(pattern.entrySet().stream().sorted(Comparator.comparing(kv -> kv.getValue().val0)).iterator(),
                                                     kv -> kv.getValue().val0,
@@ -82,13 +86,13 @@ public class WeatherBiomes {
     }
 
     private static final HashBiMap<Integer, BiomeHolder> customBiomeMap = HashBiMap.create();
-    private static final HashMap<system.Toast2<String, SeasonKey>, Integer> seasonToBiomeID = new HashMap<>();
+    private static final HashMap<Toast2<String, SeasonKey>, Integer> seasonToBiomeID = new HashMap<>();
 
     private static Holder<BiomeBase> BIOME_PLAINS;
     private static int BIOME_COUNT;
     private static CustomRegistry<Holder<BiomeBase>> BIOME_REGISTRY;
 
-    private static system.IRange TEST_SECTION_RANGE = new system.OnceRange(15);
+    private static IRange TEST_SECTION_RANGE = new OnceRange(15);
 
     private static void init() {
         BIOME_PLAINS = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.PLAINS);
@@ -98,14 +102,14 @@ public class WeatherBiomes {
                 .add(ClientboundLevelChunkWithLightPacket.class, WeatherBiomes::onPacket)
                 .listen();
 
-        AnyEvent.addEvent("chunk.test", AnyEvent.type.owner, v -> v.createParam(system.IRange::parse, "[range]"), (v, range) -> {
+        AnyEvent.addEvent("chunk.test", AnyEvent.type.owner, v -> v.createParam(IRange::parse, "[range]"), (v, range) -> {
             TEST_SECTION_RANGE = range;
             lime.logOP("SET SR: " + TEST_SECTION_RANGE.getAllInts(0).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
         });
     }
 
-    private static void config(JsonObject json) {
-        List<String> whitelist = JsonElementOptional.of(json.remove("whitelist"))
+    private static void config(JsonObject _json) {
+        List<String> whitelist = JsonElementOptional.of(_json.remove("whitelist"))
                 .getAsJsonArray()
                 .stream()
                 .flatMap(Collection::stream)
@@ -113,14 +117,14 @@ public class WeatherBiomes {
                 .flatMap(Optional::stream)
                 .toList();
 
-        system.json.builder.object sourceConfig = system.json.object();
-        json.entrySet().forEach(group -> group.getValue().getAsJsonObject().entrySet().forEach(dat -> {
+        json.builder.object sourceConfig = json.object();
+        _json.entrySet().forEach(group -> group.getValue().getAsJsonObject().entrySet().forEach(dat -> {
             boolean isWhitelist = whitelist.contains(dat.getKey());
 
             JsonElement value = dat.getValue();
             //if (isWhitelist) lime.logOP("See raw " + dat.getKey() + ": " + value);
 
-            if (value.isJsonPrimitive()) dat.setValue(value = system.json.object().add("parent", value.getAsString()).build());
+            if (value.isJsonPrimitive()) dat.setValue(value = json.object().add("parent", value.getAsString()).build());
 
             JsonObject element = value.getAsJsonObject();
             boolean isSeasons = false;
@@ -147,23 +151,23 @@ public class WeatherBiomes {
                 sourceConfig.add(dat.getKey() + "#" + name, raw);
             }
         }));
-        HashMap<system.Toast2<String, SeasonKey>, BiomeData> biomeColorMap = new HashMap<>();
+        HashMap<Toast2<String, SeasonKey>, BiomeData> biomeColorMap = new HashMap<>();
         lime.combineParent(sourceConfig.build(), false, false)
                 .entrySet()
                 .forEach(kv -> {
                     String[] args = kv.getKey().split("#");
                     if (!whitelist.contains(args[0])) return;
-                    //lime.logOP("Setup biome settings: " + system.toast(args[0], SeasonKey.byKey(args[1])));
-                    biomeColorMap.put(system.toast(args[0], SeasonKey.byKey(args[1])), BiomeData.parseJson(JsonObjectOptional.of(kv.getValue().getAsJsonObject())));
+                    //lime.logOP("Setup biome settings: " + Toast.of(args[0], SeasonKey.byKey(args[1])));
+                    biomeColorMap.put(Toast.of(args[0], SeasonKey.byKey(args[1])), BiomeData.parseJson(JsonObjectOptional.of(kv.getValue().getAsJsonObject())));
                 });
 
-        system.Toast1<Integer> iterator = system.toast(BIOME_COUNT*2);
+        Toast1<Integer> iterator = Toast.of(BIOME_COUNT*2);
         HashMap<Integer, BiomeHolder> customBiomeList = new HashMap<>();
-        HashMap<system.Toast2<String, SeasonKey>, Integer> seasonToBiomeID = new HashMap<>();
+        HashMap<Toast2<String, SeasonKey>, Integer> seasonToBiomeID = new HashMap<>();
         biomeColorMap.entrySet().stream().sorted(Comparator.comparing(v -> v.getKey().toString())).forEach(kkv -> kkv.getKey().invoke((biomeName, seasonKey) -> {
             int index = iterator.val0;
             customBiomeList.put(index, new BiomeHolder(index, biomeName, seasonKey, kkv.getValue()));
-            seasonToBiomeID.put(system.toast(biomeName, seasonKey), index);
+            seasonToBiomeID.put(Toast.of(biomeName, seasonKey), index);
             //lime.logOP("Settings of " + biomeName + "#"+seasonKey.key+": " + kkv.getValue());
             iterator.val0++;
         }));
@@ -193,7 +197,7 @@ public class WeatherBiomes {
     private static final reflection.field<Object> configuration_DataPaletteBlock_c = reflection.field.ofMojang(data_DataPaletteBlock.field.getType(), "configuration");
     private static final reflection.constructor<?> new_DataPaletteBlock_c = reflection.constructor.of(data_DataPaletteBlock.field.getType(), configuration_DataPaletteBlock_c.field.getType(), DataBits.class, DataPalette.class);
 
-    private static <T>boolean replaceValues(T[] values, system.Func1<T, T> replace, T def) {
+    private static <T>boolean replaceValues(T[] values, Func1<T, T> replace, T def) {
         int length = values.length;
         boolean changed = false;
         for (int i = 0; i < length; i++) {
@@ -209,7 +213,7 @@ public class WeatherBiomes {
         }
         return changed;
     }
-    private static <T>DataPalette<T> replaceValues(DataBits storage, DataPalette<T> palette, system.Func1<T, T> replace, T def) {
+    private static <T>DataPalette<T> replaceValues(DataBits storage, DataPalette<T> palette, Func1<T, T> replace, T def) {
         if (palette instanceof SingleValuePalette<T> single) {
             T value = single.valueFor(0);
 
@@ -246,7 +250,7 @@ public class WeatherBiomes {
             return global;
         } else throw new IllegalArgumentException("Palette '"+palette+"' not supported");
     }
-    private static void replaceValues(ChunkSection section, system.Func1<Holder<BiomeBase>, Holder<BiomeBase>> replace) {
+    private static void replaceValues(ChunkSection section, Func1<Holder<BiomeBase>, Holder<BiomeBase>> replace) {
         DataPaletteBlock<Holder<BiomeBase>> biomes = biomes_ChunkSection.get(section);
         Object data = data_DataPaletteBlock.get(biomes);
         DataPalette<Holder<BiomeBase>> palette = palette_DataPaletteBlock_c.get(data);
@@ -287,7 +291,7 @@ public class WeatherBiomes {
                                 //.filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Full key: {0}") : v -> true)
                                 .map(v -> v.location().toString())
                                 //.filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Location: {0} / Season: " + Weather.getCurrentSeason().key) : v -> true)
-                                .map(biomeName -> seasonToBiomeID.get(system.toast(biomeName, Weather.getCurrentSeason())))
+                                .map(biomeName -> seasonToBiomeID.get(Toast.of(biomeName, Weather.getCurrentSeason())))
                                 //.filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Biome index: {0}") : v -> true)
                                 .map(customBiomeMap::get)
                                 //.filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Biome: {0}") : v -> true)
@@ -308,7 +312,7 @@ public class WeatherBiomes {
                                         .filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Full key: {0}") : v -> true)
                                         .map(v -> v.location().toString())
                                         .filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Location: {0} / Season: " + Weather.getCurrentSeason().key) : v -> true)
-                                        .map(biomeName -> seasonToBiomeID.get(system.toast(biomeName, Weather.getCurrentSeason())))
+                                        .map(biomeName -> seasonToBiomeID.get(Toast.of(biomeName, Weather.getCurrentSeason())))
                                         .filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Biome index: {0}") : v -> true)
                                         .map(customBiomeMap::get)
                                         .filter(isTestSection ? ExtMethods.filterLogExecute(lines::add, "Biome: {0}") : v -> true)
@@ -381,12 +385,12 @@ public class WeatherBiomes {
 
     public static Stream<BiomeHolder> selectBiomes(String key) {
         return Stream.of(SeasonKey.values())
-                .map(seasonKey -> seasonToBiomeID.get(system.toast(key, seasonKey)))
+                .map(seasonKey -> seasonToBiomeID.get(Toast.of(key, seasonKey)))
                 .filter(Objects::nonNull)
                 .map(customBiomeMap::get);
     }
     public static Optional<BiomeHolder> selectBiome(SeasonKey season, String key) {
-        return Optional.ofNullable(seasonToBiomeID.get(system.toast(key, season)))
+        return Optional.ofNullable(seasonToBiomeID.get(Toast.of(key, season)))
                 .map(customBiomeMap::get);
     }
 }

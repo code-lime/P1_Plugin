@@ -66,7 +66,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffectType;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
+import org.lime.system.utils.RandomUtils;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -90,18 +94,18 @@ public class Death implements Listener {
                 .withUninit(Death::uninit)
                 .addConfig("config", v -> v
                         .withParent("spawn")
-                        .withDefault(new JsonPrimitive(system.getString(new Vector(0, 70, 0))))
+                        .withDefault(new JsonPrimitive(MathUtils.getString(new Vector(0, 70, 0))))
                         .withInvoke(json -> {
                             if (json.isJsonPrimitive()) {
-                                DEFAULT_SPAWN_LOCATION = system.getLocation(lime.MainWorld, json.getAsString());
+                                DEFAULT_SPAWN_LOCATION = MathUtils.getLocation(lime.MainWorld, json.getAsString());
                                 SPAWN_LOCATIONS.clear();
                             } else if (json.isJsonObject()) {
                                 JsonObject spawn = json.getAsJsonObject().deepCopy();
-                                Location defaultSpawn = system.getLocation(lime.MainWorld, spawn.remove("default").getAsString());
+                                Location defaultSpawn = MathUtils.getLocation(lime.MainWorld, spawn.remove("default").getAsString());
                                 HashMap<Integer, Location> spawns = new HashMap<>();
                                 spawn.entrySet().forEach(kv -> spawns.put(
                                         Integer.parseInt(kv.getKey()),
-                                        system.getLocation(lime.MainWorld, kv.getValue().getAsString()))
+                                        MathUtils.getLocation(lime.MainWorld, kv.getValue().getAsString()))
                                 );
                                 DEFAULT_SPAWN_LOCATION = defaultSpawn;
                                 SPAWN_LOCATIONS.clear();
@@ -243,7 +247,7 @@ public class Death implements Listener {
             if (!SPAWN_LOCATIONS.isEmpty()) return;
             nextSets.removeIf(uuid -> !EntityPosition.onlinePlayers.containsKey(uuid));
             List<UUID> isHeal = new ArrayList<>();
-            system.Toast1<Boolean> isSpawnWork = system.toast(false);
+            Toast1<Boolean> isSpawnWork = Toast.of(false);
             Tables.HOUSE_TABLE.getRows().forEach(v -> {
                 if (!v.inZone(DEFAULT_SPAWN_LOCATION)) return;
                 isSpawnWork.val0 = true;
@@ -276,7 +280,7 @@ public class Death implements Listener {
         if (item == null) return builder.append("NONE");
         builder.append(item.getType().name()).append("*").append(item.getAmount());
         if (!item.hasItemMeta()) return builder;
-        return builder.append(system.json.builder.byObject(item.getItemMeta().serialize()).build().toString());
+        return builder.append(json.builder.byObject(item.getItemMeta().serialize()).build().toString());
     }
     public static void kill(Player player, Reason reason) {
         DieInfo dieInfo = up(player);
@@ -330,7 +334,7 @@ public class Death implements Listener {
             CoreProtectHandle.logDrop(location, player, item);
             dropped.add(item);
         })) log.append("EMPTY ");
-        log.append("from ").append(system.getString(location.toVector())).append(" in ").append(location.getWorld().getKey());
+        log.append("from ").append(MathUtils.getString(location.toVector())).append(" in ").append(location.getWorld().getKey());
         lime.logToFile("kills", log.toString());
 
         if (!dropped.isEmpty()) {
@@ -435,7 +439,7 @@ public class Death implements Listener {
                     .withAmbient(false)
             );
             if (player.getHealth() > 4) return;
-            if (system.rand() || system.rand()) return;
+            if (RandomUtils.rand() || RandomUtils.rand()) return;
             BLOOD.location(player.getLocation().clone().add(0, 0.5, 0)).spawn();
         });
     }
@@ -505,7 +509,7 @@ public class Death implements Listener {
                 final int max = 14;
                 double damage = (e.getDamage() - min) / (max - min);
                 if (damage > 1) damage = 1;
-                if (damage > 0 && system.rand_is((damage + 0.2) / 1.2) && player.getWorld() == lime.MainWorld) {
+                if (damage > 0 && RandomUtils.rand_is((damage + 0.2) / 1.2) && player.getWorld() == lime.MainWorld) {
                     player.addScoreboardTag("leg.broken");
                     MenuCreator.showLang(player, LangEnum.ME, Apply.of().add("key", "LEG_BROKEN"));
                 }

@@ -8,7 +8,6 @@ import org.bukkit.inventory.ItemStack;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.UseSetting;
 import org.lime.gp.item.data.ItemCreator;
@@ -17,9 +16,10 @@ import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Death;
 
 import com.google.gson.JsonObject;
+import org.lime.system.range.IRange;
 
 @Setting(name = "heal") public class HealSetting extends ItemSetting<JsonObject> implements UseSetting.ITimeUse {
-    public final system.IRange heal;
+    public final IRange heal;
     public final Integer total;
     public final int time;
     public final boolean up;
@@ -27,7 +27,7 @@ import com.google.gson.JsonObject;
 
     public HealSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
-        this.heal = system.IRange.parse(json.get("heal").getAsString());
+        this.heal = IRange.parse(json.get("heal").getAsString());
         this.total = json.has("total") ? json.get("total").getAsInt() : null;
         this.time = json.has("time") ? json.get("time").getAsInt() : 0;
         this.up = json.has("up") && json.get("up").getAsBoolean();

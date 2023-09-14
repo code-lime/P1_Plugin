@@ -1,15 +1,15 @@
 package org.lime.gp.extension;
 
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
 
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public class Cooldown {
     public static CoreElement create() {
@@ -52,7 +52,7 @@ public class Cooldown {
         return Optional.of((int)(long)cooldown);
     }
     public static boolean hasOrSetCooldown(UUID uuid, String key, double sec) {
-        system.Toast1<Boolean> result = system.toast(false);
+        Toast1<Boolean> result = Toast.of(false);
         cooldowns.compute(createKey(uuid, key), (_k,_v) -> {
             long curr = System.currentTimeMillis();
             if (_v != null && _v > curr) {
@@ -82,7 +82,7 @@ public class Cooldown {
         return (int)(long)cooldown;
     }
     public static boolean hasOrSetCooldown(UUID[] uuid, String key, double sec) {
-        system.Toast1<Boolean> result = system.toast(false);
+        Toast1<Boolean> result = Toast.of(false);
         cooldowns.compute(createKey(uuid, key), (_k,_v) -> {
             long curr = System.currentTimeMillis();
             if (_v != null && _v > curr) {

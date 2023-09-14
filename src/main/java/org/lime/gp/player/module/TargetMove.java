@@ -26,7 +26,8 @@ import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.drugs.Drugs;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class TargetMove implements Listener {
                 .withInstance()
                 .withInit(TargetMove::init);
     }
-    public static final HashMap<UUID, system.Toast2<UUID, Integer>> targets = new HashMap<>();
+    public static final HashMap<UUID, Toast2<UUID, Integer>> targets = new HashMap<>();
     public static void init() {
         AnyEvent.addEvent("target.move", AnyEvent.type.other, v -> v.createParam(UUID::fromString, "[uuid]"), (player, target_uuid) -> {
             Player target = Bukkit.getPlayer(target_uuid);
@@ -54,7 +55,7 @@ public class TargetMove implements Listener {
                         Location targetLocation = targetOf(player, target, true).val0;
                         if (targetLocation == null) return;
                         GSitAPI.removePose(pose.getPlayer(), GetUpReason.PLUGIN);
-                        targets.put(playerUUID, system.toast(targetUUID, 10));
+                        targets.put(playerUUID, Toast.of(targetUUID, 10));
                         isSync = true;
                         try {
                             GSitAPI.createSeat(targetLocation.getBlock(), target, false, targetLocation.getX() % 1 - 0.5, 0, targetLocation.getZ() % 1 - 0.5, targetLocation.getYaw(), true);
@@ -71,7 +72,7 @@ public class TargetMove implements Listener {
 
     public static void update() {
         targets.entrySet().removeIf(kv -> {
-            system.Toast2<UUID, Integer> target = kv.getValue();
+            Toast2<UUID, Integer> target = kv.getValue();
             boolean init = target.val1 > 0;
             if (init) target.val1--;
             return updateSingle(kv.getKey(), target.val0, init);
@@ -90,7 +91,7 @@ public class TargetMove implements Listener {
         Drugs.lockArmsTick(target);
         GSeat seat = GSitAPI.getSeat(target);
         if (seat == null) return true;
-        system.Toast1<Boolean> remove = system.toast(false);
+        Toast1<Boolean> remove = Toast.of(false);
         targetOf(player, target, init).invoke((target_move, isSee) -> {
             if (target_move == null) {
                 remove.val0 = true;
@@ -101,19 +102,19 @@ public class TargetMove implements Listener {
         });
         return remove.val0;
     }
-    public static system.Toast2<Location, Boolean> targetOf(Player player, Player target, boolean init) {
+    public static Toast2<Location, Boolean> targetOf(Player player, Player target, boolean init) {
         Location location = player.getLocation();
-        if (location.getWorld() != target.getWorld()) return system.toast(null, false);
+        if (location.getWorld() != target.getWorld()) return Toast.of(null, false);
         Location target_location = target.getLocation();
-        if (location.distanceSquared(target_location) > 9) return system.toast(null, false);
+        if (location.distanceSquared(target_location) > 9) return Toast.of(null, false);
         Vector delta = target_location.toVector().setY(0).subtract(location.toVector().setY(0));
         double length = delta.length();
-        if (!init && length > 1.5) return system.toast(null, false);
+        if (!init && length > 1.5) return Toast.of(null, false);
         delta.normalize();
         location.setPitch(0);
         double dot = delta.dot(location.getDirection());
         location.setDirection(delta);
-        return system.toast(location.add(delta).add(0, -0.5, 0), dot > 0.5D);
+        return Toast.of(location.add(delta).add(0, -0.5, 0), dot > 0.5D);
     }
     public static boolean isTarget(UUID target) {
         return targets.values().stream().map(v -> v.val0).anyMatch(target::equals);
@@ -170,7 +171,7 @@ public class TargetMove implements Listener {
     }
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW) public static void on(PlayerInteractEntityEvent e) {
         Player player = e.getPlayer();
-        system.Toast2<UUID, Integer> target = targets.get(player.getUniqueId());
+        Toast2<UUID, Integer> target = targets.get(player.getUniqueId());
         if (target == null) return;
         if (e.getHand() != EquipmentSlot.HAND) return;
         if (!player.isSneaking()) return;

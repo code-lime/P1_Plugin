@@ -5,7 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
-import org.lime.system;
+import org.lime.system.range.IRange;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -13,13 +13,13 @@ import java.util.List;
 
 public class ModifyOutputSlot implements IOutputSlot {
     private final IOutputSlot item;
-    private final @Nullable system.IRange durability;
+    private final @Nullable IRange durability;
     private final @Nullable String name;
     private final @Nullable List<String> lore;
     private final @Nullable String id;
 
     public ModifyOutputSlot(IOutputSlot item,
-                            @Nullable system.IRange durability,
+                            @Nullable IRange durability,
                             @Nullable String name,
                             @Nullable List<String> lore,
                             @Nullable String id

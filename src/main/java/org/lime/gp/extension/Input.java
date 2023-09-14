@@ -3,7 +3,10 @@ package org.lime.gp.extension;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.lime.gp.module.InputEvent;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -15,8 +18,8 @@ public abstract class Input {
         private final Speed steering;
         private final double max_speed;
         private final Angle angle;
-        private final system.Func0<Optional<Player>> driver;
-        private StaticInput(Speed forward, Speed backward, Speed steering, double max_speed, Angle angle, system.Func0<Optional<Player>> driver) {
+        private final Func0<Optional<Player>> driver;
+        private StaticInput(Speed forward, Speed backward, Speed steering, double max_speed, Angle angle, Func0<Optional<Player>> driver) {
             this.forward = forward;
             this.backward = backward;
             this.steering = steering;
@@ -31,12 +34,12 @@ public abstract class Input {
         @Override protected Speed getSteering() { return steering; }
         @Override protected Angle getAngle() { return angle; }
 
-        @Override public Input deepClone(system.Func0<Optional<Player>> driver) {
+        @Override public Input deepClone(Func0<Optional<Player>> driver) {
             return of(forward.deepClone(), backward.deepClone(), steering == null ? null : steering.deepClone(), max_speed, angle.deepClone(), driver);
         }
         @Override public JsonObject toJson() {
             Speed steering = getSteering();
-            return system.json.object()
+            return json.object()
                     .add("max_speed", getMaxSpeed())
                     //.add("angle", getAngle())
                     .add("forward", getForward().toJson())
@@ -66,7 +69,7 @@ public abstract class Input {
             @Override public double getDown() { return down; }
             @Override public Speed deepClone() { return new StaticSpeed(up, down, def); }
             @Override public JsonObject toJson() {
-                return system.json.object()
+                return json.object()
                         .add("up", up)
                         .add("down", down)
                         .add("default", def)
@@ -99,7 +102,7 @@ public abstract class Input {
 
             @Override public Angle deepClone() { return new StaticAngle(min, max); }
             @Override public JsonObject toJson() {
-                return system.json.object()
+                return json.object()
                         .add("min", min)
                         .add("max", max)
                         .build();
@@ -116,7 +119,7 @@ public abstract class Input {
             return (max - min) * (speed / max_speed) + min;
         }*/
         public double getAngle(double rotation) {
-            return system.rand(getMin(), getMax()) * rotation;
+            return RandomUtils.rand(getMin(), getMax()) * rotation;
             /*double max = getMax();
             double min = getMin();
 
@@ -193,10 +196,10 @@ public abstract class Input {
         return getDriver().map(InputEvent::last).orElse(InputEvent.EMPTY);
     }
 
-    public static Input of(Speed forward, Speed backward, Speed steering, double max_speed, Angle angle, system.Func0<Optional<Player>> driver) {
+    public static Input of(Speed forward, Speed backward, Speed steering, double max_speed, Angle angle, Func0<Optional<Player>> driver) {
         return new StaticInput(forward, backward, steering, max_speed, angle, driver);
     }
-    public static Input of(JsonObject json, system.Func0<Optional<Player>> driver) {
+    public static Input of(JsonObject json, Func0<Optional<Player>> driver) {
         return of(
                 Speed.of(json.get("forward").getAsJsonObject()),
                 Speed.of(json.get("backward").getAsJsonObject()),
@@ -208,7 +211,7 @@ public abstract class Input {
     }
 
     public abstract JsonObject toJson();
-    public abstract Input deepClone(system.Func0<Optional<Player>> driver);
+    public abstract Input deepClone(Func0<Optional<Player>> driver);
 }
 
 

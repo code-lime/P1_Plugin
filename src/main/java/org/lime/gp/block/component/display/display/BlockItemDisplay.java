@@ -13,12 +13,11 @@ import org.lime.display.EditedDataWatcher;
 import org.lime.display.ObjectDisplay;
 import org.lime.gp.block.component.display.instance.DisplayMap;
 import org.lime.gp.block.component.display.instance.list.ItemDisplayObject;
-import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
 
 import com.mojang.math.Transformation;
 
-import org.lime.system;
+import org.lime.system.toast.*;
 
 import java.util.Map;
 import java.util.UUID;
@@ -145,16 +144,16 @@ public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.I
         return itemFrame;
     }
 
-    public static class BlockItemManager extends DisplayManager<system.Toast2<UUID, UUID>, ItemDisplayObject, BlockItemDisplay> {
+    public static class BlockItemManager extends DisplayManager<Toast2<UUID, UUID>, ItemDisplayObject, BlockItemDisplay> {
         @Override public boolean isAsync() { return true; }
         @Override public boolean isFast() { return true; }
 
-        @Override public Map<system.Toast2<UUID, UUID>, ItemDisplayObject> getData() {
+        @Override public Map<Toast2<UUID, UUID>, ItemDisplayObject> getData() {
             return TimeoutData.stream(DisplayMap.class)
-                    .flatMap(kv -> kv.getValue().viewMap.entrySet().stream().map(v -> system.toast(kv.getKey(), v.getKey(), v.getValue())))
-                    .collect(Collectors.toMap(kv -> system.toast(kv.val0, kv.val1), kv -> kv.val2));
+                    .flatMap(kv -> kv.getValue().viewMap.entrySet().stream().map(v -> Toast.of(kv.getKey(), v.getKey(), v.getValue())))
+                    .collect(Collectors.toMap(kv -> Toast.of(kv.val0, kv.val1), kv -> kv.val2));
         }
-        @Override public BlockItemDisplay create(system.Toast2<UUID, UUID> uuid, ItemDisplayObject display) {
+        @Override public BlockItemDisplay create(Toast2<UUID, UUID> uuid, ItemDisplayObject display) {
             return new BlockItemDisplay(uuid.val0, uuid.val1, display);
         }
     }

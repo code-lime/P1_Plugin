@@ -22,7 +22,7 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
 import org.lime.gp.module.SingleModules;
-import org.lime.system;
+import org.lime.system.utils.MathUtils;
 
 @InfoComponent.Component(name = "lay")
 public final class LayComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Interactable {
@@ -33,7 +33,7 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
     public LayComponent(BlockInfo creator, JsonObject json) {
         super(creator, json);
         rotation = json.has("rotation") ? json.get("rotation").getAsDouble() : 0;
-        offset = json.has("offset") ? system.getVector(json.get("offset").getAsString()) : new Vector();
+        offset = json.has("offset") ? MathUtils.getVector(json.get("offset").getAsString()) : new Vector();
         sitAtBlock = !json.has("sit_at_block") || json.get("sit_at_block").getAsBoolean();
     }
 
@@ -52,7 +52,7 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
         if (rotation > 180) rotation -= 360;
         Vector rotated_offset = Transform.toWorld(new Location(null, 0, 0, 0, (float) rotation, 0), new LocalLocation(offset)).toVector();
 
-        String bedLoc = system.getString(metadata.location());
+        String bedLoc = MathUtils.getString(metadata.location());
         if (SingleModules.beds.containsKey(bedLoc)) return EnumInteractionResult.PASS;
         SingleModules.beds.put(bedLoc, bukkitPlayer.getUniqueId());
 

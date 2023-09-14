@@ -40,7 +40,8 @@ import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -67,7 +68,7 @@ public class Search implements Listener {
 
     private static boolean inDistance(Location loc1, Location loc2, double distance) { return loc1.getWorld() == loc2.getWorld() && loc1.toVector().distance(loc2.toVector()) < distance; }
 
-    public static void search(Player player, Player other, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
+    public static void search(Player player, Player other, boolean readonly, Func1<net.minecraft.world.item.ItemStack, Boolean> filter) {
         Apply _other = Apply.of().add("other_uuid", other.getUniqueId().toString());
         MenuCreator.showLang(player, LangEnum.SEARCH, _other);
 

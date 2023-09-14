@@ -7,7 +7,9 @@ import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.StairComponent;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public class StairInstance extends BlockComponentInstance<StairComponent> {
     public StairInstance(StairComponent component, CustomTileMetadata metadata) {
@@ -33,7 +35,7 @@ public class StairInstance extends BlockComponentInstance<StairComponent> {
     @Override public void read(JsonObjectOptional json) {
 
     }
-    @Override public system.json.builder.object write() {
+    @Override public json.builder.object write() {
         return null;
     }
 /*

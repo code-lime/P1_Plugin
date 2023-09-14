@@ -10,7 +10,8 @@ import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.xaeros.packet.*;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 
@@ -20,7 +21,7 @@ public class XaerosDraw implements Listener {
                 .withInit(XaerosDraw::init)
                 .withInstance()
                 .<JsonObject>addConfig("xaeroworldmap", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("server_id", SERVER_ID)
                                 .build()
                         )
@@ -32,7 +33,7 @@ public class XaerosDraw implements Listener {
 
     public static boolean allowFilter(Player player) { return player.isOp(); }
 
-    private static int SERVER_ID = system.rand(10000, 10000000);
+    private static int SERVER_ID = RandomUtils.rand(10000, 10000000);
     private static void init() { lime.repeat(XaerosDraw::update, 1); }
     private static final HashSet<Player> syncToPlayers = new HashSet<>();
     private static final HashMap<UUID, Boolean> lastSendPlayers = new HashMap<>();

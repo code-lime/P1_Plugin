@@ -13,7 +13,9 @@ import org.lime.gp.player.menu.node.connect.input.ObjectInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.ObjectOutput;
 import org.lime.json.JsonElementOptional;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,22 +33,22 @@ public class SubgraphUnit extends BaseNode {
         this(id, json, Assert.requireNonEmpty(NodeCreator.nodeGroups.get(json.get("target").getAsString()), "target is empty"));
     }
     private SubgraphUnit(int id, JsonObject json, NodeCreator.NodeGroup target) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add(target.controlInput.stream()
-                        .map(v -> system.<String, system.Func2<String, Optional<JsonElement>, IInput>>toast(v, (key, def) -> new ActionInput(key)))
+                        .map(v -> Toast.<String, Func2<String, Optional<JsonElement>, IInput>>of(v, (key, def) -> new ActionInput(key)))
                         .iterator()
                 )
                 .add(target.valueInput.keySet().stream()
-                        .map(o -> system.<String, system.Func2<String, Optional<JsonElement>, IInput>>toast(o, (key, def) -> new ObjectInput(key, def.map(JsonElementOptional::of).flatMap(JsonElementOptional::getAsObject).orElse(null))))
+                        .map(o -> Toast.<String, Func2<String, Optional<JsonElement>, IInput>>of(o, (key, def) -> new ObjectInput(key, def.map(JsonElementOptional::of).flatMap(JsonElementOptional::getAsObject).orElse(null))))
                         .iterator()
                 )
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add(target.controlOutput.stream()
-                        .map(v -> system.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>toast(v, ActionOutput::new))
+                        .map(v -> Toast.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of(v, ActionOutput::new))
                         .iterator()
                 )
                 .add(target.valueOutput.stream()
-                        .map(v -> system.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>toast(v, ObjectOutput::new))
+                        .map(v -> Toast.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of(v, ObjectOutput::new))
                         .iterator()
                 )
                 .build());

@@ -8,13 +8,13 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 
 import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
+import org.lime.system.json;
 
 public class PermissionRow extends BaseRow {
     public static CoreElement create() {
@@ -34,7 +34,7 @@ public class PermissionRow extends BaseRow {
     public PermissionRow(ResultSet set) {
         super(set);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));
-        permissions = Streams.stream(system.json.parse(MySql.readObject(set, "permissions", String.class)).getAsJsonArray().iterator()).map(JsonElement::getAsString).toList();
+        permissions = Streams.stream(json.parse(MySql.readObject(set, "permissions", String.class)).getAsJsonArray().iterator()).map(JsonElement::getAsString).toList();
     }
     @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
         map = super.appendToReplace(map);

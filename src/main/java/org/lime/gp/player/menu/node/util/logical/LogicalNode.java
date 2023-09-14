@@ -10,7 +10,9 @@ import org.lime.gp.player.menu.node.connect.IOutput;
 import org.lime.gp.player.menu.node.connect.input.ActionInput;
 import org.lime.gp.player.menu.node.connect.input.StringInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +29,16 @@ public class LogicalNode extends BaseNode {
     private final List<ActionOutput> outputActions;
 
     public LogicalNode(int id, int count, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
                 .add(IntStream.range(0, count)
                         .map(v -> v + 1)
-                        .mapToObj(i -> system.<String, system.Func2<String, Optional<JsonElement>, IInput>>toast("function_" + i, (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("false"))))
+                        .mapToObj(i -> Toast.<String, Func2<String, Optional<JsonElement>, IInput>>of("function_" + i, (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("false"))))
                         .iterator())
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add(IntStream.range(0, count)
                         .map(v -> v + 1)
-                        .mapToObj(i -> system.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>toast("output_" + i, ActionOutput::new))
+                        .mapToObj(i -> Toast.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of("output_" + i, ActionOutput::new))
                         .iterator())
                 .build());
         this.count = count;

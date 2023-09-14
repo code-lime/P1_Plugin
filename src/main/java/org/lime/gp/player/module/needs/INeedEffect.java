@@ -3,7 +3,8 @@ package org.lime.gp.player.module.needs;
 import com.google.gson.JsonObject;
 import org.bukkit.potion.PotionEffect;
 import org.lime.gp.item.Items;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public interface INeedEffect<T extends INeedEffect<T>> {
     class Type<T extends INeedEffect<T>> {
@@ -14,9 +15,9 @@ public interface INeedEffect<T extends INeedEffect<T>> {
         public static final Type<Effect> EFFECT = new Type<>(Effect.class, Effect::parse);
 
         private final Class<T> tClass;
-        private final system.Func2<Type<T>, JsonObject, T> ctor;
+        private final Func2<Type<T>, JsonObject, T> ctor;
 
-        private Type(Class<T> tClass, system.Func2<Type<T>, JsonObject, T> ctor) {
+        private Type(Class<T> tClass, Func2<Type<T>, JsonObject, T> ctor) {
             this.tClass = tClass;
             this.ctor = ctor;
         }

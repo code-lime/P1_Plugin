@@ -8,8 +8,9 @@ import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
-import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -22,7 +23,7 @@ public class RandomTickSpeed {
         return CoreElement.create(RandomTickSpeed.class)
                 .withInit(RandomTickSpeed::init)
                 .<JsonObject>addConfig("randomTickSpeed", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("value", 3)
                                 .add("fraction", false)
                                 .build())
@@ -106,7 +107,7 @@ public class RandomTickSpeed {
         RandomTickSpeed.value = value;
         RandomTickSpeed.fraction = fraction;
 
-        lime.writeAllConfig("randomTickSpeed", system.json.object()
+        lime.writeAllConfig("randomTickSpeed", json.object()
                 .add("value", value)
                 .add("fraction", fraction)
                 .build()

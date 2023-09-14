@@ -14,7 +14,10 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.MultiBlockComponent;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.util.*;
 
@@ -38,12 +41,12 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
                 .flatMap(Collection::stream)
                 .forEach(kv -> kv.getValue().getAsString().ifPresent(value -> positions.put(UUID.fromString(kv.getKey()), parse(value))));
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .addObject("positions", _v -> _v.add(positions, UUID::toString, v -> v.getX() + " " + v.getY() + " " + v.getZ()));
     }
     private static BlockPosition parse(String text) {
-        var pos = system.getPosToast(text);
+        var pos = MathUtils.getPosToast(text);
         return new BlockPosition(pos.val0, pos.val1, pos.val2);
     }
     public void child(UUID uuid, BlockPosition position) {

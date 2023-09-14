@@ -9,9 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
-import org.lime.system;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
+import org.lime.system.Time;
 
 public class BanListRow extends BaseRow {
     public enum Type {
@@ -66,7 +66,7 @@ public class BanListRow extends BaseRow {
         map.put("user", user);
         map.put("type", type.name());
         map.put("owner", owner);
-        map.put("create_time", system.formatCalendar(createTime, true));
+        map.put("create_time", Time.formatCalendar(createTime, true));
         return map;
     }
 }

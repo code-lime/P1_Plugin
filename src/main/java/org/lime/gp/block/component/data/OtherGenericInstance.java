@@ -19,7 +19,10 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.OtherGenericComponent;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.util.*;
 
@@ -36,7 +39,7 @@ public class OtherGenericInstance extends BlockInstance implements CustomTileMet
     }
 
     private static BlockPosition parse(String text) {
-        var pos = system.getPosToast(text);
+        var pos = MathUtils.getPosToast(text);
         return new BlockPosition(pos.val0, pos.val1, pos.val2);
     }
 
@@ -45,8 +48,8 @@ public class OtherGenericInstance extends BlockInstance implements CustomTileMet
         this.owner = json.getAsString("owner").map(UUID::fromString).orElse(null);
         this.owner_type = json.getAsString("owner_type").orElse(null);
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add("position", this.position == null ? null : (position.getX() +" " + position.getY() + " " + position.getZ()))
                 .add("owner", this.owner)
                 .add("owner_type", this.owner_type);

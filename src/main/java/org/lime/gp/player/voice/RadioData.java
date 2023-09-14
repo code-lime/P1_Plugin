@@ -18,7 +18,10 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.data.UpdateType;
 import org.lime.gp.item.settings.list.RadioSetting;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -72,10 +75,10 @@ public class RadioData {
     }
 
     public Map<String, String> map() {
-        return system.map.<String, String>of()
+        return map.<String, String>of()
                 .add("level", String.valueOf(level))
                 .add("state", enable ? "true" : "false")
-                .add("action", state + "")
+                .add("action", String.valueOf(state))
                 .add("min_level", String.valueOf(min_level))
                 .add("max_level", String.valueOf(max_level))
                 .add("volume", String.valueOf(volume))
@@ -95,14 +98,14 @@ public class RadioData {
             return data;
         });
     }
-    public static void modifyData(ItemStack item, system.Action1<RadioData> modify) {
+    public static void modifyData(ItemStack item, Action1<RadioData> modify) {
         Items.getOptional(RadioSetting.class, item).ifPresent(setting -> {
             ItemMeta meta = item.getItemMeta();
             modifyData(setting, meta, modify);
             item.setItemMeta(meta);
         });
     }
-    public static void modifyData(RadioSetting setting, ItemMeta meta, system.Action1<RadioData> modify) {
+    public static void modifyData(RadioSetting setting, ItemMeta meta, Action1<RadioData> modify) {
         RadioData data = new RadioData(setting);
         PersistentDataContainer container = meta.getPersistentDataContainer();
         Optional.ofNullable(JManager.get(JsonObject.class, container, "radio.data", null))
@@ -121,7 +124,7 @@ public class RadioData {
                 .flatMap(v -> v.list(RadioInstance.class).findFirst())
                 .map(v -> v.radioData);
     }
-    public static void modifyData(Block block, system.Action1<RadioData> modify) {
+    public static void modifyData(Block block, Action1<RadioData> modify) {
         Blocks.of(block)
                 .flatMap(Blocks::customOf)
                 .flatMap(v -> v.list(RadioInstance.class).findFirst())
@@ -143,10 +146,10 @@ public class RadioData {
         }
         return list;
     }
-    public static Optional<system.Toast2<Integer, Double>> getInput(Player player) {
+    public static Optional<Toast2<Integer, Double>> getInput(Player player) {
         return RadioData.getData(player.getInventory().getItemInMainHand())
                 .filter(data -> data.enable && data.state.isInput)
-                .map(data -> system.toast(data.level, data.total_distance));
+                .map(data -> Toast.of(data.level, data.total_distance));
     }
 
     public void read(JsonObjectOptional json) {
@@ -154,8 +157,8 @@ public class RadioData {
         enable = json.getAsBoolean("state").orElse(enable);
         volume = json.getAsInt("volume").orElse(100);
     }
-    public system.json.builder.object write() {
-        return system.json.object()
+    public json.builder.object write() {
+        return json.object()
                 .add("level", level)
                 .add("state", enable)
                 .add("volume", volume);

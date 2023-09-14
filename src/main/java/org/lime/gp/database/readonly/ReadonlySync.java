@@ -16,13 +16,14 @@ import org.lime.gp.player.perm.Works;
 import org.lime.gp.player.selector.ISelector;
 import org.lime.gp.player.selector.SelectorType;
 import org.lime.gp.player.voice.Radio;
-import org.lime.system;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.selector.UserSelector;
 import org.lime.gp.player.module.TabManager;
 import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.Ghost;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -112,10 +113,10 @@ public class ReadonlySync {
             .withData(() -> {
                 HashMap<String, List<Object>> list = new HashMap<>();
 
-                List<system.Toast3<Double, Location, String>> _rooms = new ArrayList<>(Administrator.rooms);
+                List<Toast3<Double, Location, String>> _rooms = new ArrayList<>(Administrator.rooms);
                 int size = _rooms.size();
                 for (int i = 0; i < size; i++) {
-                    system.Toast3<Double, Location, String> kv = _rooms.get(i);
+                    Toast3<Double, Location, String> kv = _rooms.get(i);
                     list.put((kv.val2 == null ? "" : kv.val2) + "^" + i + "^ROOM", Arrays.<Object>asList(kv.val2, i, "ROOM"));
                 }
                 Administrator.target_list.forEach((k, v) -> list.put(k + "^" + v + "^UUID", Arrays.<Object>asList(k.toString(), v, "UUID")));
@@ -128,7 +129,7 @@ public class ReadonlySync {
             .withKey(String.class)
             .withKeys("id","type","icon","name")
             .withData(() ->
-                    Works.works.values().stream().map(v -> system.toast(v.id + "^WORK", Arrays.<Object>asList(v.id, "WORK", v.icon, v.name)))
+                    Works.works.values().stream().map(v -> Toast.of(v.id + "^WORK", Arrays.<Object>asList(v.id, "WORK", v.icon, v.name)))
                             .collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1))
             )
             .build();
@@ -158,11 +159,11 @@ public class ReadonlySync {
             .withData(() -> EntityPosition.getEntitiyRows().values().stream().flatMap(j -> {
                 JsonArray data = JManager.get(JsonArray.class, j.getPersistentDataContainer(), "sub_owners", null);
                 if (data == null) return Stream.empty();
-                List<system.Toast2<String, List<Object>>> list = new ArrayList<>();
+                List<Toast2<String, List<Object>>> list = new ArrayList<>();
                 String uuid = j.getUniqueId().toString();
                 data.forEach(v -> {
                     String other = v.getAsString();
-                    list.add(system.toast(uuid + "^" + other, Arrays.<Object>asList(uuid, other)));
+                    list.add(Toast.of(uuid + "^" + other, Arrays.<Object>asList(uuid, other)));
                 });
                 return list.stream();
             }).collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1)))
@@ -176,7 +177,7 @@ public class ReadonlySync {
                     .filter(Objects::nonNull)
                     .flatMap(radio -> {
                         String uuid = radio.player().getUniqueId().toString();
-                        return radio.levels().stream().map(level -> system.toast(uuid + "^" + level, Arrays.<Object>asList(uuid, level + "")));
+                        return radio.levels().stream().map(level -> Toast.of(uuid + "^" + level, Arrays.<Object>asList(uuid, level + "")));
                     }).collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1))
             )
             .build();

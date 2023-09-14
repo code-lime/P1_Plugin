@@ -14,19 +14,21 @@ import org.lime.gp.block.component.data.BottleInstance;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.player.level.LevelModule;
-import org.lime.system;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import javax.annotation.Nullable;
 
 @InfoComponent.Component(name = "whitelist_interact")
 public final class WhitelistInteractComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Interactable {
-    public final @Nullable system.IRange works;
-    public final @Nullable system.IRange levels;
+    public final @Nullable IRange works;
+    public final @Nullable IRange levels;
 
     public WhitelistInteractComponent(BlockInfo info, JsonObject json) {
         super(info);
-        this.works = json.has("works") ? system.IRange.parse(json.get("works").getAsString()) : null;
-        this.levels = json.has("levels") ? system.IRange.parse(json.get("levels").getAsString()) : null;
+        this.works = json.has("works") ? IRange.parse(json.get("works").getAsString()) : null;
+        this.levels = json.has("levels") ? IRange.parse(json.get("levels").getAsString()) : null;
     }
 
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {

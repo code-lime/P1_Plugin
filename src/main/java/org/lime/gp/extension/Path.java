@@ -3,17 +3,20 @@ package org.lime.gp.extension;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
+import org.lime.system.utils.MathUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +38,7 @@ public class Path {
         public JsonObject toJson() {
             JsonObject json = new JsonObject();
             JsonArray arr = new JsonArray();
-            positions.forEach(p -> arr.add(system.getString(p)));
+            positions.forEach(p -> arr.add(MathUtils.getString(p)));
             json.add("path", arr);
             json.addProperty("world", Bukkit.getWorlds().indexOf(path.world));
             return json;
@@ -43,9 +46,9 @@ public class Path {
 
         public static boolean save(PathData data, String name) {
             if (data == null) return true;
-            JsonObject json = system.json.parse(lime.readAllConfig("path")).getAsJsonObject();
-            json.add(name, data.toJson());
-            lime.writeAllConfig("path", system.toFormat(json));
+            JsonObject _json = json.parse(lime.readAllConfig("path")).getAsJsonObject();
+            _json.add(name, data.toJson());
+            lime.writeAllConfig("path", json.format(_json));
             return true;
         }
     }
@@ -158,9 +161,9 @@ public class Path {
     }
     public static boolean reload() {
         if (!lime.existConfig("path")) lime.writeAllConfig("path", "{}");
-        JsonObject json = system.json.parse(lime.readAllConfig("path")).getAsJsonObject();
+        JsonObject _json = json.parse(lime.readAllConfig("path")).getAsJsonObject();
         HashMap<String, Path> path_list = new HashMap<>();
-        json.entrySet().forEach(kv -> path_list.put(kv.getKey(), parse(path_list, kv.getValue().getAsJsonObject())));
+        _json.entrySet().forEach(kv -> path_list.put(kv.getKey(), parse(path_list, kv.getValue().getAsJsonObject())));
 
         Path.path_list.clear();
         Path.path_list.putAll(path_list);
@@ -221,7 +224,7 @@ public class Path {
                 if (curr.equals(last)) continue;
                 last = curr;
                 if (curr.toLowerCase().startsWith("path:")) list.addAll(path_list.get(curr.substring(5)).points());
-                else list.add(system.getVector(curr));
+                else list.add(MathUtils.getVector(curr));
             }
             return of(list);
         }

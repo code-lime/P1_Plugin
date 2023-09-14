@@ -25,7 +25,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.Position;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
 
 public class UsestationInstance extends BlockComponentInstance<UsestationComponent> implements Tickable {
     public final int distance;
@@ -97,7 +97,7 @@ public class UsestationInstance extends BlockComponentInstance<UsestationCompone
     
 
     @Override public void read(JsonObjectOptional json) { }
-    @Override public system.json.builder.object write() { return system.json.object(); }
+    @Override public json.builder.object write() { return json.object(); }
 
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
         BlockPosition position = event.getPos();

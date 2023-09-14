@@ -5,7 +5,8 @@ import java.util.UUID;
 
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.display.invokable.PacketInvokable;
 import org.lime.gp.lime;
 import org.lime.gp.block.CustomTileMetadata;
@@ -49,7 +50,7 @@ public class PacketListener {
                 });
     }
     public static void onPacket(PacketPlayOutMultiBlockChange packet, PacketEvent event) {
-        system.Toast1<SectionPosition> section = system.toast(null);
+        Toast1<SectionPosition> section = Toast.of(null);
         Short2ObjectMap<IBlockData> shorts = new Short2ObjectArrayMap<>();
         packet.runUpdates((pos, state) -> {
             if (section.val0 == null) section.val0 = SectionPosition.of(pos);

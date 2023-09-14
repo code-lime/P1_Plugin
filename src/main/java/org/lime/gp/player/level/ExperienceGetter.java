@@ -5,13 +5,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.lime.display.models.ExecutorJavaScript;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.range.IRange;
+import org.lime.system.range.OnceRange;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.UUID;
 
-public record ExperienceGetter<TValue, TCompare>(boolean duplicate, ExperienceAction<TValue, TCompare> action, @Nullable String regex, TCompare compare, system.IRange range, ExecutorJavaScript js) {
+public record ExperienceGetter<TValue, TCompare>(boolean duplicate, ExperienceAction<TValue, TCompare> action, @Nullable String regex, TCompare compare, IRange range, ExecutorJavaScript js) {
     public double execute(UUID uuid, TValue value, double total) {
         double exp = range.getValue(total);
         js.execute(Map.of(
@@ -29,13 +30,13 @@ public record ExperienceGetter<TValue, TCompare>(boolean duplicate, ExperienceAc
         return new ExperienceGetter<>(duplicate, action, regex,
                 action.parse(regex),
                 json.has("exp")
-                        ? system.IRange.parse(json.get("exp").getAsString())
-                        : new system.OnceRange(0),
+                        ? IRange.parse(json.get("exp").getAsString())
+                        : new OnceRange(0),
                 new ExecutorJavaScript("execute", json, lime._plugin.js())
         );
     }
     private static <TValue, TCompare>ExperienceGetter<TValue, TCompare> parse(boolean duplicate, ExperienceAction<TValue, TCompare> action, @Nullable String regex, JsonPrimitive json) {
-        return new ExperienceGetter<>(duplicate, action, regex, action.parse(regex), system.IRange.parse(json.getAsString()), ExecutorJavaScript.empty());
+        return new ExperienceGetter<>(duplicate, action, regex, action.parse(regex), IRange.parse(json.getAsString()), ExecutorJavaScript.empty());
     }
     public static <TValue, TCompare>ExperienceGetter<TValue, TCompare> parse(ExperienceAction<TValue, TCompare> action, @Nullable String regex, JsonElement json) {
         boolean duplicate = false;

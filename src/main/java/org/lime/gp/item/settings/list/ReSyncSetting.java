@@ -20,7 +20,8 @@ import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 import org.lime.gp.lime;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ import java.util.stream.Collectors;
                 .withInit(ReSyncSetting::init);
     }
     private static void init() { ExecuteItem.execute.add(ReSyncSetting::onExecute); }
-    private static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
+    private static boolean onExecute(ItemStack item, Toast1<ItemMeta> metaBox) {
         return Items.getOptional(ReSyncSetting.class, item)
                 .map(resync -> resync.tryUpdate(metaBox.val0))
                 .orElse(false);

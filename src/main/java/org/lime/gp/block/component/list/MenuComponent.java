@@ -27,7 +27,9 @@ import org.lime.gp.item.Items;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,7 +101,7 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
     }
 
     public final class OpenInstance extends BlockInstance implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable {
-        public final HashMap<UUID, system.Toast2<Integer, MenuData>> open_list = new HashMap<>();
+        public final HashMap<UUID, Toast2<Integer, MenuData>> open_list = new HashMap<>();
         private boolean init = true;
 
         public OpenInstance(ComponentDynamic<?, ?> component, CustomTileMetadata metadata) {
@@ -111,8 +113,8 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
         }
 
         @Override
-        public system.json.builder.object write() {
-            return system.json.object();
+        public json.builder.object write() {
+            return json.object();
         }
 
         @Override
@@ -125,7 +127,7 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
             open_list.forEach((key, value) -> Optional.ofNullable(Bukkit.getPlayer(key))
                     .filter(v -> v.getOpenInventory().getTopInventory().getType() == InventoryType.CHEST)
                     .ifPresentOrElse(player -> value.val0 = value.val1.open_timeout, () -> value.val0--));
-            system.Toast1<String> sco = system.toast(null);
+            Toast1<String> sco = Toast.of(null);
             if (open_list.values().removeIf(v -> {
                 boolean remove = v.val0 <= 0;
                 if (remove) {
@@ -148,9 +150,9 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
             Apply data = argsOf(metadata)
                     .add("mainhand_", Items.getStringData(playerInventory.getItemInMainHand()))
                     .add("offhand_", Items.getStringData(playerInventory.getItemInOffHand()))
-                    .add("viewers", open_list.size() + "")
+                    .add("viewers", String.valueOf(open_list.size()))
                     .add(menuData.args);
-            //lime.logOP(system.toFormat(system.json.object().add(data.list()).build()));
+            //lime.logOP(system.toFormat(json.object().add(data.list()).build()));
 
             Location location = metadata.location(0.5, 0.5, 0.5);
             if (!MenuCreator.show(player, player.isSneaking() ? menuData.shift_menu : menuData.menu, data))
@@ -160,7 +162,7 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
                 metadata.list(DisplayInstance.class).forEach(variable -> variable.set("open", "true"));
             }
             Sounds.playSound(menuData.sound_open_any, location);
-            open_list.put(player.getUniqueId(), system.toast(menuData.open_timeout, menuData));
+            open_list.put(player.getUniqueId(), Toast.of(menuData.open_timeout, menuData));
             return EnumInteractionResult.CONSUME;
         }
     }

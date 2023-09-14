@@ -20,7 +20,9 @@ import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -52,7 +54,7 @@ import java.util.stream.Stream;
         public static Context parse(JsonElement json) {
             if (json.isJsonPrimitive()) return new Context(json.getAsString(), Transformation.identity());
             JsonObject data = json.getAsJsonObject();
-            return new Context(data.get("display").getAsString(), system.transformation(data));
+            return new Context(data.get("display").getAsString(), MathUtils.transformation(data));
         }
     }
 
@@ -128,12 +130,12 @@ import java.util.stream.Stream;
         @Override public TableDisplaySetting.ITableInfo optimize() { return tryStatic().<TableDisplaySetting.ITableInfo>map(v -> v).orElse(this); }
     }
 
-    private final HashMap<system.Toast2<TableDisplaySetting.TableType, String>, TableDisplaySetting.ITableInfo> infos = new HashMap<>();
+    private final HashMap<Toast2<TableDisplaySetting.TableType, String>, TableDisplaySetting.ITableInfo> infos = new HashMap<>();
 
     public Optional<TableDisplaySetting.ITableInfo> of(TableDisplaySetting.TableType tableType, @Nullable String type) {
         return type == null
-                ? Optional.ofNullable(infos.get(system.toast(tableType, null)))
-                : Optional.ofNullable(infos.get(system.toast(tableType, type))).or(() -> Optional.ofNullable(infos.get(system.toast(tableType, null))));
+                ? Optional.ofNullable(infos.get(Toast.of(tableType, null)))
+                : Optional.ofNullable(infos.get(Toast.of(tableType, type))).or(() -> Optional.ofNullable(infos.get(Toast.of(tableType, null))));
     }
 
     public TableDisplaySetting(ItemCreator creator, JsonObject json) {
@@ -143,7 +145,7 @@ import java.util.stream.Stream;
             TableDisplaySetting.TableType type = TableType.valueOf(args[0]);
             TableDisplaySetting.ITableInfo info = new DynamicTableInfo(kv.getValue().getAsJsonObject()).optimize();
             (type == TableType.all ? TableType.all() : Stream.of(type))
-                    .forEach(_type -> infos.put(system.toast(_type, args.length > 1 ? args[1] : null), info));
+                    .forEach(_type -> infos.put(Toast.of(_type, args.length > 1 ? args[1] : null), info));
         });
     }
 
@@ -156,8 +158,8 @@ import java.util.stream.Stream;
     public static IBuilder builderItem(ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
         return Items.getOptional(TableDisplaySetting.class, item)
                 .flatMap(v -> v.of(table, type))
-                .map(v -> system.toast(v.display(item), v.context()))
-                .orElseGet(() -> system.toast(CraftItemStack.asNMSCopy(item), Optional.empty()))
+                .map(v -> Toast.of(v.display(item), v.context()))
+                .orElseGet(() -> Toast.of(CraftItemStack.asNMSCopy(item), Optional.empty()))
                 .invokeGet((model, context) -> lime.models.builder().item()
                         .item(model)
                         .context(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE))
@@ -167,8 +169,8 @@ import java.util.stream.Stream;
     public static IBuilder builderItem(net.minecraft.world.item.ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
         return Items.getOptional(TableDisplaySetting.class, item)
                 .flatMap(v -> v.of(table, type))
-                .map(v -> system.toast(v.display(item), v.context()))
-                .orElseGet(() -> system.toast(item.copy(), Optional.empty()))
+                .map(v -> Toast.of(v.display(item), v.context()))
+                .orElseGet(() -> Toast.of(item.copy(), Optional.empty()))
                 .invokeGet((model, context) -> lime.models.builder().item()
                         .item(model)
                         .context(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE))

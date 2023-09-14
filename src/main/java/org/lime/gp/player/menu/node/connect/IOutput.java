@@ -1,6 +1,7 @@
 package org.lime.gp.player.menu.node.connect;
 
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,8 +9,8 @@ import java.util.Map;
 
 public abstract class IOutput {
     public final String key;
-    public final List<system.Toast2<Integer, String>> target;
-    public IOutput(String key, List<system.Toast2<Integer, String>> target) {
+    public final List<Toast2<Integer, String>> target;
+    public IOutput(String key, List<Toast2<Integer, String>> target) {
         this.key = key;
         this.target = target;
     }

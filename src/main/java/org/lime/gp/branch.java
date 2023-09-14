@@ -8,14 +8,16 @@ import java.util.stream.Collectors;
 
 import org.bukkit.command.CommandSender;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import com.google.gson.JsonObject;
 
 public class branch {
     private record BranchData(Map<String, String> Data) {
         public static HashMap<String, BranchData> getBranchList() {
-            JsonObject branch = system.json.parse(lime.readAllConfig("branch")).getAsJsonObject();
+            JsonObject branch = json.parse(lime.readAllConfig("branch")).getAsJsonObject();
             HashMap<String, BranchData> out = new HashMap<String, BranchData>();
             branch.entrySet().forEach(kv -> {
                 out.put(kv.getKey(), new BranchData(kv.getValue()
@@ -27,11 +29,11 @@ public class branch {
             return out;
         }
         public static Collection<String> getBranchKeys() {
-            return system.json.parse(lime.readAllConfig("branch")).getAsJsonObject().keySet();
+            return json.parse(lime.readAllConfig("branch")).getAsJsonObject().keySet();
         }
         public void applyBranch() {
             for (String configFile : new String[] { "autodownload", "share", "database" }) {
-                JsonObject config = system.json.parse(lime.readAllConfig(configFile)).getAsJsonObject();
+                JsonObject config = json.parse(lime.readAllConfig(configFile)).getAsJsonObject();
                 if (!config.has("format")) continue;
                 JsonObject format = config.getAsJsonObject("format");
 
@@ -43,7 +45,7 @@ public class branch {
                     }
                     config.addProperty(kv.getKey(), value);
                 });
-                lime.writeAllConfig(configFile, system.toFormat(config));
+                lime.writeAllConfig(configFile, json.format(config));
             }
         }
     }

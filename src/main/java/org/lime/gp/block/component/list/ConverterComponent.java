@@ -1,7 +1,6 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
-import com.mojang.math.Transformation;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
@@ -10,7 +9,6 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.ConverterInstance;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
 
 @InfoComponent.Component(name = "converter")
 public final class ConverterComponent extends ComponentDynamic<JsonObject, ConverterInstance> {

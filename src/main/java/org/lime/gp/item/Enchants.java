@@ -12,7 +12,10 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 
@@ -22,7 +25,7 @@ public class Enchants implements Listener {
                 .withInstance()
                 .withInit(Enchants::init)
                 .<JsonArray>addConfig("allow_enchants", v -> v
-                        .withDefault(system.json.array()
+                        .withDefault(json.array()
                                 .add("vanishing_curse") //Проклятие утраты
                                 .add("binding_curse") //Проклятие несъёмности
                                 .add("blast_protection") //Взрывоустойчивость
@@ -50,7 +53,7 @@ public class Enchants implements Listener {
         ExecuteItem.execute.add(Enchants::onExecute);
     }
     
-    private static boolean removeEnchants(system.Func0<Collection<Enchantment>> enchantments, system.Action1<Enchantment> remove, system.Action1<Enchantment> append, boolean not_empty) {
+    private static boolean removeEnchants(Func0<Collection<Enchantment>> enchantments, Action1<Enchantment> remove, Action1<Enchantment> append, boolean not_empty) {
         boolean edit = false;
         for (Enchantment enchantment : enchantments.invoke()) {
             if (allowEnchantments.contains(enchantment)) continue;
@@ -58,12 +61,12 @@ public class Enchants implements Listener {
             edit = true;
         }
         if (not_empty && enchantments.invoke().isEmpty()) {
-            append.invoke(system.rand_is(0.25) ? system.rand(allowEnchantments) : system.rand(Enchantment.BINDING_CURSE, Enchantment.VANISHING_CURSE));
+            append.invoke(RandomUtils.rand_is(0.25) ? RandomUtils.rand(allowEnchantments) : RandomUtils.rand(Enchantment.BINDING_CURSE, Enchantment.VANISHING_CURSE));
             edit = true;
         }
         return edit;
     }
-    public static boolean onExecute(ItemStack item, system.Toast1<ItemMeta> metaBox) {
+    public static boolean onExecute(ItemStack item, Toast1<ItemMeta> metaBox) {
         ItemMeta meta = metaBox.val0;
         boolean save = removeEnchants(() -> meta.getEnchants().keySet(), meta::removeEnchant, e -> meta.addEnchant(e, 1, true), false);
         if (meta instanceof EnchantmentStorageMeta esm)

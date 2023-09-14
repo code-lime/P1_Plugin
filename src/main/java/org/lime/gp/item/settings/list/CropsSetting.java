@@ -10,18 +10,18 @@ import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
-import org.lime.system;
+import org.lime.system.range.IRange;
 
 @Setting(name = "crops") public class CropsSetting extends ItemSetting<JsonObject> implements BaseAgeableInstance.AgeableData {
     public final int ageCount;
-    public final system.IRange ageStepTicks;
+    public final IRange ageStepTicks;
     public final ILoot loot;
 
     public CropsSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         JsonObject age = json.get("age").getAsJsonObject();
         ageCount = age.get("count").getAsInt();
-        ageStepTicks = system.IRange.parse(age.get("step_ticks").getAsString());
+        ageStepTicks = IRange.parse(age.get("step_ticks").getAsString());
         loot = ILoot.parse(json.get("loot"));
     }
 

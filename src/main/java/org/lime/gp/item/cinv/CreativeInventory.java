@@ -27,14 +27,14 @@ public class CreativeInventory {
                 .addCommand("cinv", v -> v.withTab().withCheck(ServerOperator::isOp).withExecutor(sender -> {
                     if (!(sender instanceof CraftPlayer player)) return false;
                     /*Apply apply = UserRow.getBy(player.getUniqueId()).map(_v -> Apply.of().add(_v)).orElseGet(Apply::of);
-                    List<system.Toast2<String, List<ItemStack>>> items = Items.creators.values()
+                    List<Toast2<String, List<ItemStack>>> items = Items.creators.values()
                             .stream()
-                            .map(creator -> system.toast(creator.getKey(), system.funcEx(() -> creator.createItem(1, apply)).optional().invoke().orElse(null)))
+                            .map(creator -> Toast.of(creator.getKey(), system.funcEx(() -> creator.createItem(1, apply)).optional().invoke().orElse(null)))
                             .filter(_v -> _v.val1 != null && _v.val0 != null)
                             .collect(Collectors.groupingBy(kv -> kv.val0.contains(".") ? kv.val0.split("\\.")[0].toLowerCase() : "item"))
                             .entrySet()
                             .stream()
-                            .map(kv -> system.toast(kv.getKey(), kv.getValue().stream().map(_v -> _v.val1).toList()))
+                            .map(kv -> Toast.of(kv.getKey(), kv.getValue().stream().map(_v -> _v.val1).toList()))
                             .collect(Collectors.toList());*/
                     return open(player);
                 }));

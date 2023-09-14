@@ -10,9 +10,12 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.lime.database.MiniConnectionPoolManager;
 import org.lime.gp.lime;
-import org.lime.gp.database.MiniConnectionPoolManager;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.io.Closeable;
@@ -27,9 +30,9 @@ import java.util.stream.Stream;
 
 public final class MySql implements Closeable {
     private final MiniConnectionPoolManager poolManager;
-    final system.Func0<Connection> connection_func;
+    final Func0<Connection> connection_func;
     public MySql(String host, int port, String database, String login, String password) {
-        HashMap<String, String> map = system.map.<String, String>of()
+        HashMap<String, String> _map = map.<String, String>of()
                 .add("useSSL", "false")
                 .add("useUnicode", "true")
                 .add("characterEncoding", "utf-8")
@@ -41,7 +44,7 @@ public final class MySql implements Closeable {
                 .add("failOverReadOnly", "false")
                 .add("maxReconnects", "10")
                 .build();
-        String url = "jdbc:mysql://"+host+":"+port+"/"+database+"?" + map.entrySet().stream().map(kv -> kv.getKey() + "=" + kv.getValue()).collect(Collectors.joining("&"));
+        String url = "jdbc:mysql://"+host+":"+port+"/"+database+"?" + _map.entrySet().stream().map(kv -> kv.getKey() + "=" + kv.getValue()).collect(Collectors.joining("&"));
 
         MysqlConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
         dataSource.setUrl(url);
@@ -71,9 +74,9 @@ public final class MySql implements Closeable {
         }
     }
 
-    private final ConcurrentLinkedQueue<system.Action0> invokeQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Action0> invokeQueue = new ConcurrentLinkedQueue<>();
     public void invokeNext() {
-        system.Action0 action = invokeQueue.poll();
+        Action0 action = invokeQueue.poll();
         if (action != null) action.invoke();
     }
 
@@ -81,11 +84,11 @@ public final class MySql implements Closeable {
         try (Connection connection = connection_func.invoke()) { return connection.isValid(100); }
         catch (Exception e) { return false; }
     }
-    public <T>void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> func, system.Action1<Exception> error, system.Action0 _finally) {
+    public <T>void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> func, Action1<Exception> error, Action0 _finally) {
         AsyncConnection<T> connection = AsyncConnection.of(index, debug, sql, func, error, _finally);
         invokeQueue.add(() -> connection.invoke(this));
     }
-    public void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvoke func, system.Action1<Exception> error, system.Action0 _finally) {
+    public void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvoke func, Action1<Exception> error, Action0 _finally) {
         callMySQL(index, debug, sql, func.toData(), error, _finally);
     }
 
@@ -158,18 +161,18 @@ public final class MySql implements Closeable {
             case Types.NULL: return "null";
             default:
                 if (value == null) return "null";
-                if (value instanceof Calendar) return system.formatCalendar((Calendar)value, false);
+                if (value instanceof Calendar) return Time.formatCalendar((Calendar)value, false);
                 return value.toString();
         }
     }
-    static PreparedStatement prepareStatement(int state, debug debug, Connection connection, system.Toast1<String> sql, Map<String, Object> args) throws SQLException {
+    static PreparedStatement prepareStatement(int state, debug debug, Connection connection, Toast1<String> sql, Map<String, Object> args) throws SQLException {
         if (args != null) {
             for (Map.Entry<String, Object> arg : args.entrySet()) sql.val0 = sql.val0.replace("@" + arg.getKey(), toSqlObject(arg.getValue()));
         }
         if (debug != null) debug.callSQL(sql.val0);
         if (state == 1) {
             Component component = Component
-                    .text("[" + system.formatCalendar(system.getMoscowNow(), true) + "] SQL QUERY")
+                    .text("[" + Time.formatCalendar(Time.moscowNow(), true) + "] SQL QUERY")
                     .color(NamedTextColor.GOLD)
                     .hoverEvent(HoverEvent.showText(Component.text(sql.val0)))
                     .clickEvent(ClickEvent.copyToClipboard(sql.val0));
@@ -181,8 +184,8 @@ public final class MySql implements Closeable {
         return connection.prepareStatement(sql.val0);
     }
 
-    public static system.map.builder<String, Object> args() {
-        return system.map.of();
+    public static map.builder<String, Object> args() {
+        return map.of();
     }
 
     public static int columnsCount(ResultSet set) {
@@ -251,7 +254,7 @@ public final class MySql implements Closeable {
 
     public MySqlAsync Async = new MySqlAsync(this);
 
-    static final ConcurrentHashMap<Integer, system.Toast2<String, String>> calls = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<Integer, Toast2<String, String>> calls = new ConcurrentHashMap<>();
 }
 
 

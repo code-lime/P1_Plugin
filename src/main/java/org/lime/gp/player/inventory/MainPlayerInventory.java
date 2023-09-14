@@ -38,6 +38,8 @@ import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Ghost;
 import org.lime.gp.extension.Cooldown;
 import org.lime.plugin.CoreElement;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -128,10 +130,10 @@ public final class MainPlayerInventory implements Listener {
         backgrounds.entrySet().removeIf(kv -> Bukkit.getPlayer(kv.getKey()) == null);
     }
 
-    private static final HashMap<UUID, system.Toast2<Inventory, ItemStack>> backgrounds = new HashMap<>();
+    private static final HashMap<UUID, Toast2<Inventory, ItemStack>> backgrounds = new HashMap<>();
     public static void setBackground(Player player, Inventory inventory, ItemStack background) {
         player.getInventory().setItem(13, background);
-        backgrounds.put(player.getUniqueId(), system.toast(inventory, background));
+        backgrounds.put(player.getUniqueId(), Toast.of(inventory, background));
     }
     public static void clearBackground(Player player) {
         backgrounds.remove(player.getUniqueId());
@@ -141,11 +143,11 @@ public final class MainPlayerInventory implements Listener {
     private static final HashMap<Integer, ClickSlot> clickData = new HashMap<>();
     private static class ClickSlot {
         private final ItemStack item;
-        private final system.Action2<Player, ClickType> callback;
-        public ClickSlot(ItemStack item, system.Action1<Player> callback) {
+        private final Action2<Player, ClickType> callback;
+        public ClickSlot(ItemStack item, Action1<Player> callback) {
             this(item, (p,c) -> callback.invoke(p));
         }
-        public ClickSlot(ItemStack item, system.Action2<Player, ClickType> callback) {
+        public ClickSlot(ItemStack item, Action2<Player, ClickType> callback) {
             this.item = item;
             this.callback = callback;
         }
@@ -197,7 +199,7 @@ public final class MainPlayerInventory implements Listener {
         for (int i = 9; i < 36; i++) slots.put(i, lock_slot);
         slots.put(13, ILockSlot.create((slot, item, isBarrier, player, slots) -> {
             UUID uuid = player.getUniqueId();
-            system.Toast2<Inventory, ItemStack> _slot = backgrounds.getOrDefault(uuid, null);
+            Toast2<Inventory, ItemStack> _slot = backgrounds.getOrDefault(uuid, null);
             if (_slot == null) return lock_slot.invoke(slot, item, isBarrier, player, slots);
             if (player.getOpenInventory().getTopInventory() == _slot.val0) return _slot.val1;
             backgrounds.remove(uuid);

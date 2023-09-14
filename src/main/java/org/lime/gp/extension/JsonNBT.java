@@ -3,7 +3,7 @@ package org.lime.gp.extension;
 import com.google.gson.*;
 import com.google.gson.internal.LazilyParsedNumber;
 import net.minecraft.nbt.*;
-import org.lime.system;
+import org.lime.system.toast.*;
 
 import java.util.*;
 
@@ -99,7 +99,7 @@ public class JsonNBT {
 
     @SuppressWarnings("unchecked")
     private static <T extends NBTBase>DynamicNBT<T> _toDynamicNBT(JsonElement jsonElement, List<String> list) {
-        system.Toast2<NBTBase, Map<String, List<MultiPath>>> data = toDynamicNBT(Collections.emptyList(), jsonElement, list);
+        Toast2<NBTBase, Map<String, List<MultiPath>>> data = toDynamicNBT(Collections.emptyList(), jsonElement, list);
         NBTBase nbt = data.val0;
         Map<String, List<MultiPath>> modify = data.val1;
         return map -> {
@@ -112,25 +112,25 @@ public class JsonNBT {
             return (T)nbt_copy;
         };
     }
-    private static system.Toast2<NBTBase, Map<String, List<MultiPath>>> toDynamicNBT(List<IPath> path, JsonElement jsonElement, List<String> list) {
+    private static Toast2<NBTBase, Map<String, List<MultiPath>>> toDynamicNBT(List<IPath> path, JsonElement jsonElement, List<String> list) {
         if (jsonElement instanceof JsonPrimitive jsonPrimitive) {
             if (jsonPrimitive.isBoolean()) {
                 boolean value = jsonPrimitive.getAsBoolean();
-                if (value) return system.toast(NBTTagByte.valueOf(true), Collections.emptyMap());
-                else return system.toast(NBTTagByte.valueOf(false), Collections.emptyMap());
+                if (value) return Toast.of(NBTTagByte.valueOf(true), Collections.emptyMap());
+                else return Toast.of(NBTTagByte.valueOf(false), Collections.emptyMap());
             } else if (jsonPrimitive.isNumber()) {
                 Number number = jsonPrimitive.getAsNumber();
-                if (number instanceof Byte) return system.toast(NBTTagByte.valueOf(number.byteValue()), Collections.emptyMap());
-                else if (number instanceof Short) return system.toast(NBTTagShort.valueOf(number.shortValue()), Collections.emptyMap());
-                else if (number instanceof Integer) return system.toast(NBTTagInt.valueOf(number.intValue()), Collections.emptyMap());
-                else if (number instanceof Long) return system.toast(NBTTagLong.valueOf(number.longValue()), Collections.emptyMap());
-                else if (number instanceof Float) return system.toast(NBTTagFloat.valueOf(number.floatValue()), Collections.emptyMap());
-                else if (number instanceof Double) return system.toast(NBTTagDouble.valueOf(number.doubleValue()), Collections.emptyMap());
-                else if (number instanceof LazilyParsedNumber) return system.toast(NBTTagDouble.valueOf(number.doubleValue()), Collections.emptyMap());
+                if (number instanceof Byte) return Toast.of(NBTTagByte.valueOf(number.byteValue()), Collections.emptyMap());
+                else if (number instanceof Short) return Toast.of(NBTTagShort.valueOf(number.shortValue()), Collections.emptyMap());
+                else if (number instanceof Integer) return Toast.of(NBTTagInt.valueOf(number.intValue()), Collections.emptyMap());
+                else if (number instanceof Long) return Toast.of(NBTTagLong.valueOf(number.longValue()), Collections.emptyMap());
+                else if (number instanceof Float) return Toast.of(NBTTagFloat.valueOf(number.floatValue()), Collections.emptyMap());
+                else if (number instanceof Double) return Toast.of(NBTTagDouble.valueOf(number.doubleValue()), Collections.emptyMap());
+                else if (number instanceof LazilyParsedNumber) return Toast.of(NBTTagDouble.valueOf(number.doubleValue()), Collections.emptyMap());
                 else throw new AssertionError("[NBT] Json number type '"+(number == null ? "<?~Empty>" : number.getClass().getName())+"' not supported!");
             } else if (jsonPrimitive.isString()) {
                 String str = jsonPrimitive.getAsString();
-                return system.toast(NBTTagString.valueOf(str), list.contains(str)
+                return Toast.of(NBTTagString.valueOf(str), list.contains(str)
                         ? Collections.singletonMap(str, Collections.singletonList(new MultiPath(path)))
                         : Collections.emptyMap());
             } else throw new AssertionError("[NBT] Json primitive '"+jsonPrimitive+"' not supported!");
@@ -146,7 +146,7 @@ public class JsonNBT {
                     nbtList.add(nbt);
                 });
             }
-            return system.toast(nbtList, map);
+            return Toast.of(nbtList, map);
         } else if (jsonElement instanceof JsonObject jsonObject) {
             NBTTagCompound nbtCompound = new NBTTagCompound();
             Map<String, List<MultiPath>> map = new HashMap<>();
@@ -158,8 +158,8 @@ public class JsonNBT {
                     nbtCompound.put(kv.getKey(), nbt);
                 });
             });
-            return system.toast(nbtCompound, map);
-        } else if (jsonElement instanceof JsonNull) return system.toast(new NBTTagCompound(), Collections.emptyMap());
+            return Toast.of(nbtCompound, map);
+        } else if (jsonElement instanceof JsonNull) return Toast.of(new NBTTagCompound(), Collections.emptyMap());
         else throw new AssertionError("[NBT] Json type '"+(jsonElement == null ? "<?~Empty>" : jsonElement.getClass().getName())+"' not supported!");
     }
 

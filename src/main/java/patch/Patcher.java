@@ -7,7 +7,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.lime.json.JsonElementOptional;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.io.Closeable;
 import java.io.File;
@@ -63,25 +66,25 @@ public class Patcher {
         return formatter.toString();
     }
 
-    private static system.Toast2<String, String> calculateVersion(JarArchive plugin_archive, JsonObject patch_data) throws Throwable {
+    private static Toast2<String, String> calculateVersion(JarArchive plugin_archive, JsonObject patch_data) throws Throwable {
         Native.log("Calculate patch version...");
-        List<system.Toast3<String, byte[], Boolean>> checkFiles = new ArrayList<>();
+        List<Toast3<String, byte[], Boolean>> checkFiles = new ArrayList<>();
         try (var ignored = Native.subLog()) {
             patch_data.getAsJsonArray("append").forEach(append -> {
                 String name = append.getAsString();
-                checkFiles.add(system.toast(name, plugin_archive.entries.get(name), true));
+                checkFiles.add(Toast.of(name, plugin_archive.entries.get(name), true));
             });
             Stream.concat(
-                    patch_data.getAsJsonArray("append_regex").asList().stream().map(JsonElement::getAsString).map(v -> system.toast(v, true)),
-                    Stream.of(system.toast("patch\\/.*", false))
+                    patch_data.getAsJsonArray("append_regex").asList().stream().map(JsonElement::getAsString).map(v -> Toast.of(v, true)),
+                    Stream.of(Toast.of("patch\\/.*", false))
             ).forEach(v -> v.invoke((regex, patch) -> Native.subLog("Append group '"+regex+"':", () -> plugin_archive.entries
                     .entrySet()
                     .stream()
-                    .filter(kv -> system.compareRegex(kv.getKey(), regex))
-                    .forEach(kv -> checkFiles.add(system.toast(kv.getKey(), kv.getValue(), patch))))));
+                    .filter(kv -> Regex.compareRegex(kv.getKey(), regex))
+                    .forEach(kv -> checkFiles.add(Toast.of(kv.getKey(), kv.getValue(), patch))))));
         }
         checkFiles.sort(Comparator.comparing(v -> v.val0));
-        return system.toast(
+        return Toast.of(
                 miniSha1(checkFiles.stream().flatMap(v -> Stream.of(v.val0.getBytes(), v.val1))),
                 miniSha1(checkFiles.stream().filter(v -> v.val2).flatMap(v -> Stream.of(v.val0.getBytes(), v.val1)))
         );
@@ -93,24 +96,24 @@ public class Patcher {
         JarArchive paper_archive = JarArchive.of("paper", paper_path);
 
         Native.log("Read plugin jar...");
-        JarArchive plugin_archive = JarArchive.of("plugin", of(patch.class));
+        JarArchive plugin_archive = JarArchive.of("plugin", of(Patcher.class));
 
-        JsonObject patch_data = system.json.parse(new String(resource)).getAsJsonObject();
+        JsonObject patch_data = json.parse(new String(resource)).getAsJsonObject();
 
         boolean resetCacheOriginal = !paper_archive.entries.containsKey("lime-patch.json");
 
-        system.Toast2<String, String> current_version = Optional.ofNullable(paper_archive.entries.get("lime-patch.json"))
+        Toast2<String, String> current_version = Optional.ofNullable(paper_archive.entries.get("lime-patch.json"))
                 .map(String::new)
-                .map(system.json::parse)
+                .map(json::parse)
                 .map(JsonElementOptional::of)
                 .flatMap(JsonElementOptional::getAsJsonObject)
                 .flatMap(v -> v.getAsJsonObject("version"))
                 .flatMap(v -> v.getAsString("patch")
                         .flatMap(patch -> v.getAsString("append")
-                                .map(append -> system.toast(patch, append))))
+                                .map(append -> Toast.of(patch, append))))
                 .orElse(null);
 
-        system.Toast2<String, String> patch_version = calculateVersion(plugin_archive, patch_data);
+        Toast2<String, String> patch_version = calculateVersion(plugin_archive, patch_data);
 
         Native.log("Current patch version: " + (current_version == null ? "Not patched" : current_version));
         Native.log("New patch version:     " + patch_version);
@@ -120,7 +123,7 @@ public class Patcher {
         boolean isOnlyAppendPart = current_version == null || !current_version.val1.equals(patch_version.val1);
 
         Native.log("Patch...");
-        paper_archive.entries.put("lime-patch.json", system.toFormat(system.json.object()
+        paper_archive.entries.put("lime-patch.json", json.format(json.object()
                 .addObject("version", v -> v
                         .add("patch", isOnlyAppendPart ? "??????????" : patch_version.val0)
                         .add("append", patch_version.val1)
@@ -150,7 +153,7 @@ public class Patcher {
                 plugin_archive.entries
                         .entrySet()
                         .stream()
-                        .filter(v -> system.compareRegex(v.getKey(), regex))
+                        .filter(v -> Regex.compareRegex(v.getKey(), regex))
                         .forEach(kv -> {
                             Native.log(" - '"+kv.getKey()+"'...");
                             version_archive.entries.put(kv.getKey(), kv.getValue());

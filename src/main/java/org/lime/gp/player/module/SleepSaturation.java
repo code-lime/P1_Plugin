@@ -1,9 +1,8 @@
 package org.lime.gp.player.module;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
-
+import com.google.gson.JsonObject;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -11,24 +10,22 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.lime.gp.player.module.needs.NeedSystem;
-import org.lime.gp.player.ui.CustomUI.IType;
-import org.lime.gp.player.ui.CustomUI.IUI;
-
-import com.google.gson.JsonObject;
-
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-
-import org.lime.plugin.CoreElement;
-import org.lime.system;
-import org.lime.gp.lime;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.admin.AnyEvent.type;
+import org.lime.gp.lime;
 import org.lime.gp.module.SingleModules;
+import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.CustomUI.IType;
+import org.lime.gp.player.ui.CustomUI.IUI;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
 
 public class SleepSaturation implements IUI {
     private static final SleepSaturation instance = new SleepSaturation();
@@ -38,7 +35,7 @@ public class SleepSaturation implements IUI {
                 .withInstance(instance)
                 .withInit(SleepSaturation::init)
                 .<JsonObject>addConfig("sleep_saturation", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("enable", false)
                                 .add("total_sec", 10 * 60)
                                 .add("reset_sec", 2 * 60)

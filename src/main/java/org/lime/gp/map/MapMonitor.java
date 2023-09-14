@@ -10,14 +10,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 import org.lime.Position;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -81,12 +81,12 @@ public class MapMonitor implements Listener {
         if (e.getHand() != EquipmentSlot.HAND) return;
         onMouse(e.getPlayer(), true, m -> {});
     }
-    private static void onMouse(Player player, boolean isClick, system.Action1<MonitorInstance> clicked) {
+    private static void onMouse(Player player, boolean isClick, Action1<MonitorInstance> clicked) {
         ClickType type = isClick ? player.isSneaking() ? ClickType.Shift : ClickType.Click : ClickType.None;
         Vector eyePosition = player.getEyeLocation().toVector();
         TimeoutData.values(MonitorData.class)
                 .filter(v -> v.position.world == player.getWorld())
-                .map(v -> system.toast(v.position.toVector().distanceSquared(eyePosition), v))
+                .map(v -> Toast.of(v.position.toVector().distanceSquared(eyePosition), v))
                 .filter(v -> v.val0 < 5 * 5)
                 .sorted(Comparator.comparingDouble(v -> v.val0))
                 .map(v -> Blocks.of(v.val1.position.getBlock())
@@ -95,7 +95,7 @@ public class MapMonitor implements Listener {
                 )
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(monitor -> ViewPosition.of(monitor, player, type).map(v -> system.toast(monitor, v)))
+                .map(monitor -> ViewPosition.of(monitor, player, type).map(v -> Toast.of(monitor, v)))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .min(Comparator.comparingDouble(v -> v.val1.getLocation().toVector().distanceSquared(eyePosition)))
@@ -136,9 +136,9 @@ public class MapMonitor implements Listener {
             return data;
 
 
-            /*system.Toast2<Integer, Integer> out = system.toast(x - center_x, y - center_y);
-            for (int i = 0; i < count; i++) out = system.toast(out.val1, -out.val0);
-            return system.toast(out.val0 + center_x, out.val1 + center_y);*/
+            /*Toast2<Integer, Integer> out = Toast.of(x - center_x, y - center_y);
+            for (int i = 0; i < count; i++) out = Toast.of(out.val1, -out.val0);
+            return Toast.of(out.val0 + center_x, out.val1 + center_y);*/
             //return data;
         }
         public static MapRotation of(InfoComponent.Rotation.Value rotation) {

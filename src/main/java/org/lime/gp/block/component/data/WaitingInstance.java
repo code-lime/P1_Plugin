@@ -45,7 +45,11 @@ import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
 
@@ -61,9 +65,9 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         public abstract Material material();
         public abstract int cmd();
         public abstract int count();
-        public abstract system.json.builder.object save();
+        public abstract json.builder.object save();
         public abstract ItemStack nms();
-        public abstract system.Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event);
+        public abstract Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event);
         public abstract BaseInput loot(List<org.bukkit.inventory.ItemStack> drop);
         public static Optional<BaseInput> read(String type, JsonElement value) {
             return switch (type) {
@@ -87,17 +91,17 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
     private static abstract class BaseItemInput extends BaseInput {
         public ItemStack item;
 
-        public BaseItemInput(JsonElement value) { item = CraftItemStack.asNMSCopy(system.loadItem(value.getAsString())); }
+        public BaseItemInput(JsonElement value) { item = CraftItemStack.asNMSCopy(ItemUtils.loadItem(value.getAsString())); }
         public BaseItemInput(ItemStack item) { this.item = item.copy(); }
 
         @Override public Material material() { return CraftMagicNumbers.getMaterial(item.getItem()); }
         @Override public int cmd() { return Items.getIDByItem(item).orElse(0); }
         @Override public int count() { return item.getCount(); }
         public abstract String type();
-        @Override public system.json.builder.object save() {
-            return system.json.object()
+        @Override public json.builder.object save() {
+            return json.object()
                     .add("type", type())
-                    .add("value", system.saveItem(CraftItemStack.asBukkitCopy(item)));
+                    .add("value", ItemUtils.saveItem(CraftItemStack.asBukkitCopy(item)));
         }
         @Override public ItemStack nms() { return item; }
 
@@ -130,24 +134,24 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         @Override public String type() { return "item"; }
         @Override public String color() { return ThirstSetting.DEFAULT_WATER_COLOR_HEX.substring(1); }
 
-        @Override public system.Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        @Override public Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
             EntityHuman entityhuman = event.player();
             EnumHand enumhand = event.hand();
             BlockPosition blockposition = metadata.skull.getBlockPos();
             World world = metadata.skull.getLevel();
             ItemStack itemstack = entityhuman.getItemInHand(enumhand);
-            if (itemstack.isEmpty()) return system.toast(this, instance.openWorkbench(entityhuman));
+            if (itemstack.isEmpty()) return Toast.of(this, instance.openWorkbench(entityhuman));
             if (ItemStack.isSameItemSameTags(itemstack, item)) {
-                if (item.getCount() >= instance.component().max_count) return system.toast(this, EnumInteractionResult.PASS);
+                if (item.getCount() >= instance.component().max_count) return Toast.of(this, EnumInteractionResult.PASS);
                 if (!entityhuman.getAbilities().instabuild) itemstack.shrink(1);
                 item.grow(1);
                 setDirty();
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1.0f, 0.25f);
-                return system.toast(item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
+                return Toast.of(item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
             }
-            if (!instance.isWhitelistItem(itemstack)) return system.toast(this, EnumInteractionResult.PASS);
-            return system.toast(this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
+            if (!instance.isWhitelistItem(itemstack)) return Toast.of(this, EnumInteractionResult.PASS);
+            return Toast.of(this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
         }
         @Override public BaseInput loot(List<org.bukkit.inventory.ItemStack> drop) {
             drop.add(item.asBukkitCopy());
@@ -161,13 +165,13 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         @Override public String type() { return "water"; }
         @Override public String color() { return ChatColorHex.toHex(Items.getOptional(ThirstSetting.class, item).map(v -> v.color).orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1); }
 
-        @Override public system.Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        @Override public Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
             EntityHuman entityhuman = event.player();
             EnumHand enumhand = event.hand();
             BlockPosition blockposition = metadata.skull.getBlockPos();
             World world = metadata.skull.getLevel();
             ItemStack itemstack = entityhuman.getItemInHand(enumhand);
-            if (itemstack.isEmpty()) return system.toast(this, instance.openWorkbench(entityhuman));
+            if (itemstack.isEmpty()) return Toast.of(this, instance.openWorkbench(entityhuman));
             if (itemstack.getItem() == net.minecraft.world.item.Items.GLASS_BOTTLE) {
                 ItemStack potion = item.split(1);
                 setDirty();
@@ -177,9 +181,9 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(item));
                 world.playSound(null, blockposition, SoundEffects.BOTTLE_FILL, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.gameEvent(null, GameEvent.FLUID_PICKUP, blockposition);
-                return system.toast(this.item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
+                return Toast.of(this.item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
             } else if (ItemStack.isSameItemSameTags(item, itemstack)) {
-                if (item.getCount() >= instance.component().max_count) return system.toast(this, EnumInteractionResult.PASS);
+                if (item.getCount() >= instance.component().max_count) return Toast.of(this, EnumInteractionResult.PASS);
                 item.grow(1);
                 setDirty();
 
@@ -187,10 +191,10 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.gameEvent(null, GameEvent.FLUID_PLACE, blockposition);
-                return system.toast(this, EnumInteractionResult.sidedSuccess(world.isClientSide));
+                return Toast.of(this, EnumInteractionResult.sidedSuccess(world.isClientSide));
             }
-            if (!instance.isWhitelistItem(itemstack)) return system.toast(this, EnumInteractionResult.PASS);
-            return system.toast(item.isEmpty() ? new EmptyInput() : this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
+            if (!instance.isWhitelistItem(itemstack)) return Toast.of(this, EnumInteractionResult.PASS);
+            return Toast.of(item.isEmpty() ? new EmptyInput() : this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
         }
         @Override public BaseInput loot(List<org.bukkit.inventory.ItemStack> drop) { return this; }
     }
@@ -199,20 +203,20 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         @Override public Material material() { return Material.AIR; }
         @Override public int cmd() { return 0; }
         @Override public int count() { return 0; }
-        @Override public system.json.builder.object save() {
-            return system.json.object()
+        @Override public json.builder.object save() {
+            return json.object()
                     .add("type", "empty")
                     .addNull("value");
         }
         @Override public ItemStack nms() { return ItemStack.EMPTY; }
-        @Override public system.Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        @Override public Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
             EntityHuman entityhuman = event.player();
             EnumHand enumhand = event.hand();
             BlockPosition blockposition = metadata.skull.getBlockPos();
             World world = metadata.skull.getLevel();
             ItemStack itemstack = entityhuman.getItemInHand(enumhand);
-            if (itemstack.isEmpty()) return system.toast(this, instance.openWorkbench(entityhuman));
-            if (!instance.isWhitelistItem(itemstack)) return system.toast(this, EnumInteractionResult.PASS);
+            if (itemstack.isEmpty()) return Toast.of(this, instance.openWorkbench(entityhuman));
+            if (!instance.isWhitelistItem(itemstack)) return Toast.of(this, EnumInteractionResult.PASS);
             BaseInput input;
             if (Items.has(ThirstSetting.class, itemstack)) {
                 input = new WaterInput(itemstack);
@@ -226,7 +230,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1.0f, 0.25f);
             }
-            return system.toast(input, EnumInteractionResult.sidedSuccess(world.isClientSide));
+            return Toast.of(input, EnumInteractionResult.sidedSuccess(world.isClientSide));
         }
         @Override public BaseInput loot(List<org.bukkit.inventory.ItemStack> drop) { return this; }
         @Override public String toString() { return "empty"; }
@@ -267,7 +271,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         items.clear();
         json.getAsJsonArray("items")
                 .ifPresent(arr -> arr.forEach(element -> element.getAsString()
-                        .map(system::loadItem)
+                        .map(ItemUtils::loadItem)
                         .map(CraftItemStack::asNMSCopy)
                         .filter(item -> {
                             if (item.isEmpty()) {
@@ -280,15 +284,15 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 ));
         syncRecipe("READ", false);
     }
-    @Override public system.json.builder.object write() {
+    @Override public json.builder.object write() {
         if (items.removeIf(Objects::isNull)) {
             lime.logOP("!!!WARNING!!! FOUND EMPTY ITEMS IN WAITING INSTANCE");
         }
-        return system.json.object()
+        return json.object()
                 .add("input", input.save())
                 .addArray("items", v -> v.add(items.stream()
                         .map(CraftItemStack::asBukkitCopy)
-                        .map(system::saveItem)
+                        .map(ItemUtils::saveItem)
                         .iterator()
                 ))
                 .add("start_time", startTime)
@@ -319,9 +323,9 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         String id = this.unique() + ":DEBUG";
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(startTime);
-        String startTimeDisplay = system.formatCalendar(calendar, true);
+        String startTimeDisplay = Time.formatCalendar(calendar, true);
         calendar.setTimeInMillis(endTime);
-        String endTimeDisplay = system.formatCalendar(calendar, true);
+        String endTimeDisplay = Time.formatCalendar(calendar, true);
 
         long currentTime = System.currentTimeMillis();
 
@@ -407,7 +411,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
 
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         EntityHuman entityhuman = event.player();
-        system.Toast2<BaseInput, EnumInteractionResult> result = input.interact(this, metadata, event);
+        Toast2<BaseInput, EnumInteractionResult> result = input.interact(this, metadata, event);
         if (input != result.val0) input = result.val0;
         if (input.readDirty()) {
             last_click = entityhuman.getUUID();

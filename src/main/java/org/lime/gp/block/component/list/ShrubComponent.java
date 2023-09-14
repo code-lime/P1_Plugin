@@ -11,13 +11,15 @@ import org.lime.gp.block.component.data.BaseAgeableInstance;
 import org.lime.gp.block.component.data.ShrubInstance;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.loot.ILoot;
-import org.lime.system;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 @InfoComponent.Component(name = "shrub") public class ShrubComponent extends ComponentDynamic<JsonObject, ShrubInstance> implements BaseAgeableInstance.AgeableData {
     public final int ageCount;
     public final int ageRemove;
 
-    public final system.IRange ageStepTicks;
+    public final IRange ageStepTicks;
     public final ILoot loot;
 
     public ShrubComponent(BlockInfo info, JsonObject json) {
@@ -25,7 +27,7 @@ import org.lime.system;
         JsonObject age = json.get("age").getAsJsonObject();
         ageCount = age.get("count").getAsInt();
         ageRemove = Math.max(age.has("remove") ? age.get("remove").getAsInt() : 1, 1);
-        ageStepTicks = system.IRange.parse(age.get("step_ticks").getAsString());
+        ageStepTicks = IRange.parse(age.get("step_ticks").getAsString());
         loot = ILoot.parse(json.get("loot"));
     }
 

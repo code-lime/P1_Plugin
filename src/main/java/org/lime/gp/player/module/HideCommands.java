@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,14 +24,14 @@ public class HideCommands implements Listener {
                 .withInstance()
                 .<JsonObject>addConfig("commands", v -> v
                         .withInvoke(j -> lime.nextTick(() -> HideCommands.config(j)))
-                        .withDefault(system.json.object().add("hide", new JsonObject()).add("remove", new JsonArray()).build())
+                        .withDefault(json.object().add("hide", new JsonObject()).add("remove", new JsonArray()).build())
                 );
     }
 
     private static final List<String> hides = new ArrayList<>();
-    public static void config(JsonObject json) {
-        JsonObject hide = json.get("hide").getAsJsonObject();
-        JsonArray remove = json.get("remove").getAsJsonArray();
+    public static void config(JsonObject _json) {
+        JsonObject hide = _json.get("hide").getAsJsonObject();
+        JsonArray remove = _json.get("remove").getAsJsonArray();
 
         Map<String, Command> commands = Bukkit.getCommandMap().getKnownCommands();
         Map<String, String[]> aliases = Bukkit.getServer().getCommandAliases();
@@ -54,7 +54,7 @@ public class HideCommands implements Listener {
                         aliases.remove(command);
                     }
                 });
-        lime.writeAllConfig("commands", system.toFormat(json));
+        lime.writeAllConfig("commands", json.format(_json));
 
         //MinecraftServer.getServer().vanillaCommandDispatcher.getDispatcher()
         /*lime.logOP(Bukkit.getServer().reloadCommandAliases()

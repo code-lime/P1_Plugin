@@ -39,7 +39,7 @@ public class DataPaletteProxy<T> {
 
     }
 
-    public void modifySingle(int x, int y, int z, system.Func1<Integer, Integer> mapper) {
+    public void modifySingle(int x, int y, int z, Func1<Integer, Integer> mapper) {
         handle.acquire();
         try {
             int index = strategy().getIndex(x, y, z);
@@ -50,7 +50,7 @@ public class DataPaletteProxy<T> {
             handle.release();
         }
     }
-    public void modifyAll(system.Func1<Integer, Integer> mapper) {
+    public void modifyAll(Func1<Integer, Integer> mapper) {
         handle.acquire();
         try {
             //this.data.storage.forEach((location, data) -> consumer.accept(this.data.palette.valueFor(data), location));

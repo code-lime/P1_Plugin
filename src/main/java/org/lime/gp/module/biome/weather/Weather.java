@@ -23,7 +23,9 @@ import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.gp.player.api.ViewDistance;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +43,7 @@ public class Weather {
                 .withInit(Weather::init)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("weather")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .addObject("random_tick_speed", _v -> _v
                                         .add("init", initValue)
                                         .add("step", stepValue)
@@ -70,7 +72,7 @@ public class Weather {
 
     private static void init() {
         AnyEvent.addEvent("biome.raw", AnyEvent.type.owner_console, v -> v, v -> {
-            HashMap<BiomeData, system.Toast2<String, Integer>> pattern = new HashMap<>();
+            HashMap<BiomeData, Toast2<String, Integer>> pattern = new HashMap<>();
             Map<String, BiomeData> biomeMap = BiomeModify.getRawVanillaBiomes()
                     .collect(Collectors.toMap(_v -> _v.getString("name"), _v -> BiomeData.parseElement(_v.getCompound("element"))));
             biomeMap.forEach((key, value) -> pattern.compute(value, (_k, _v) -> {
@@ -79,14 +81,14 @@ public class Weather {
                     String patternValue = "_" + values[values.length - 1];
 
                     return pattern.values().stream().anyMatch(__v -> patternValue.equals(__v.val0))
-                            ? system.toast(patternValue + "#" + pattern.size(), 1)
-                            : system.toast(patternValue, 1);
+                            ? Toast.of(patternValue + "#" + pattern.size(), 1)
+                            : Toast.of(patternValue, 1);
                 }
                 _v.val1++;
                 return _v;
             }));
             pattern.values().removeIf(_v -> _v.val1 < 2);
-            JsonObject raw = system.json.object()
+            JsonObject raw = json.object()
                     .addObject("Pattern", _v -> _v
                             .add(pattern.entrySet().stream().sorted(Comparator.comparing(kv -> kv.getValue().val0)).iterator(),
                                     kv -> kv.getValue().val0,
@@ -101,7 +103,7 @@ public class Weather {
                             )
                     )
                     .build();
-            lime.writeAllConfig("biome.raw", system.toFormat(raw));
+            lime.writeAllConfig("biome.raw", json.format(raw));
         });
         AnyEvent.addEvent("recalculate.view", AnyEvent.type.owner, player -> {
             lime.logOP("Recalculate view: " + ViewDistance.clearPlayerView(player));
@@ -194,12 +196,12 @@ public class Weather {
         Bukkit.getWorlds().forEach(world -> world.setStorm(seasonKey != SeasonKey.Sunny));
     }
 
-    private static Stream<system.Toast3<Integer, NBTTagCompound, String>> generate(int id, String key, NBTTagCompound element) {
+    private static Stream<Toast3<Integer, NBTTagCompound, String>> generate(int id, String key, NBTTagCompound element) {
         return WeatherBiomes.selectBiomes(key).map(biomeHolder -> {
             NBTTagCompound seasonElement = element.copy();
             biomeHolder.seasonKey.modify(seasonElement);
             biomeHolder.biomeData.modify(seasonElement);
-            return system.toast(biomeHolder.index, seasonElement, biomeHolder.seasonKey.key);
+            return Toast.of(biomeHolder.index, seasonElement, biomeHolder.seasonKey.key);
         });
     }
 }

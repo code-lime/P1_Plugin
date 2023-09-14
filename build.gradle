@@ -53,16 +53,17 @@ dependencies {
 //<editor-fold desc="LOADER">
 
 eclipse.classpath.file.whenMerged {
-	for (ClasspathEntry entry : entries) {
+    for (ClasspathEntry entry : entries) {
         String entryFile = entry.path;
         if (entryFile.endsWith('.jar')) {
             File folder = new File(entryFile).getParentFile();
             File srcFile = new File(getFileNameWithoutExt(entryFile) + "-sources.jar");
             if (srcFile.exists()) {
+                System.out.println("Add sources: " + srcFile);
                 entry.setSourcePath(it.fileReference(srcFile));
             }
         }
-	}
+    }
 }
 
 static String getFileNameWithoutExt(String fileName) {
@@ -87,6 +88,14 @@ File decompileFile(String file) {
 }
 String libPath(String file) {
     return Paths.get(githubMinecraftDataPath(), ".libs", file);
+}
+String[] libPathAll(String file) {
+    List<String> lines = new ArrayList<>();
+    for (String line : getFiles(new File(libPath(file).toString())).toArray()) {
+        if (line.endsWith("-sources.jar")) continue;
+        lines.add(line);
+    }
+    return lines.toArray();
 }
 
 static List<String> getText(Process process) {
@@ -113,7 +122,7 @@ static void invokeText(Process process, Action1<String> action) {
         input.close()
     }
 }
-String executeJs(int line_index, String js) {
+String executeJs(String js) {
     String exe = Paths.get(githubMinecraftDataPath(), ".utils", "js.exe").toAbsolutePath().toFile().path + " " + Base64.getEncoder().encodeToString(js.getBytes());
     return new String(Base64.getDecoder().decode(String.join("\n", getText(Runtime.runtime.exec(exe)))));
 }
@@ -160,27 +169,35 @@ String generateFile(File dir, String text) {
             continue;
         }
         switch (trim_line) {
-            case "//<generator>": 
+            case "//<generator>":
                 if (code != null) throw new IllegalArgumentException("<generator> in line '"+(i+1)+"'");
                 code = new ArrayList<>();
                 output.add(line);
                 break;
             case "//</generator>":
                 if (code == null) throw new IllegalArgumentException("</generator> in line '"+(i+1)+"'");
-                output.add(executeJs(i+1, String.join("\n", code)));
+                var executeCode = executeJs(String.join("\n", code));
+                output.add(executeCode);
                 output.add(line);
 
                 edited = true;
                 code = null;
                 break;
-            default: 
+            default:
                 if (trim_line.startsWith("//<generator name=\"")) {
                     if (code != null) throw new IllegalArgumentException("<generator> in line '"+(i+1)+"'");
 
                     String file_name = trim_line.substring(19);
                     file_name = file_name.substring(0, file_name.indexOf("\">"));
+                    String[] args = file_name.split(':');
                     code = new ArrayList<>();
-                    code.add(Paths.get(dir.absolutePath, file_name).toFile().text);
+                    if (args.length > 1) {
+                        System.out.println('Execute file function: ' + args[0] + " : " + args[1]);
+                        code.add(Paths.get(dir.absolutePath, args[0]).toFile().text + "\n" + args[1]);
+                    } else {
+                        System.out.println('Execute single file: ' + file_name);
+                        code.add(Paths.get(dir.absolutePath, file_name).toFile().text);
+                    }
                     output.add(line);
                 } else {
                     output.add(line);
@@ -190,6 +207,31 @@ String generateFile(File dir, String text) {
         }
     }
     return edited ? String.join("\n", output) : null;
+}
+HashMap<String, String> generateJavas(File dir, String text) {
+    List<String> lines = text.replace("\r", "").split("\n");
+    HashMap<String, String> outputFiles = new HashMap<>();
+    for (String line in lines) {
+        String[] data = line.split(":", 2);
+
+        //System.out.println(line + " -- " + data[0] + ": " + data[1]);
+
+        String js = Paths.get(dir.absolutePath, data[0]).toFile().text + "\n" + data[1];
+        String _raw = executeJs(js);
+
+        //System.out.println("JS: " + js);
+        //System.out.println("Raw: " + _raw);
+
+        String[] raw = _raw.split('\r');
+        int filesLength = raw.length / 2;
+        for (int i = 0; i < filesLength; i++) {
+            int index = i * 2;
+            String fileName = raw[index];
+            String fileText = raw[index + 1];
+            outputFiles.put(fileName, fileText);
+        }
+    }
+    return outputFiles;
 }
 
 static byte[] zip(HashMap<String, byte[]> entries) {
@@ -218,24 +260,36 @@ task generator() {
     HashMap<String, byte[]> entries = new HashMap<>();
     String prefix = Paths.get(projectDir.absolutePath, "src", "main", "java").toAbsolutePath();
     for (File file : getFiles(Paths.get(projectDir.absolutePath, "src", "main", "java").toAbsolutePath().toFile())) {
-        if (!file.path.endsWith(".java")) continue;
-        String filePath = file.toPath().toAbsolutePath().toString();
-        String text = file.text;
-        String _file = generateFile(file.parentFile, text);
-        if (_file != null) {
-            System.out.println("EDITED: " + filePath);
-            file.text = text = _file;
+        var path = file.path;
+        if (path.endsWith(".java") || path.endsWith(".javas")) {
+            String filePath = file.toPath().toAbsolutePath().toString();
+            String text = file.text;
+            if (path.endsWith(".javas")) {
+                HashMap<String, String> _files = generateJavas(file.parentFile, text);
+                for (Map.Entry<String, String> _kv : _files.entrySet()) {
+                    String _text = _kv.getValue();
+                    var _filePath = Paths.get(file.parentFile.absolutePath, _kv.getKey()).toAbsolutePath();
+                    _filePath.toFile().text = _text;
+                    entries.put(_filePath.toString().replace(prefix + "\\", ""), _text.getBytes());
+                }
+            } else {
+                String _file = generateFile(file.parentFile, text);
+                if (_file != null) {
+                    System.out.println("EDITED: " + filePath);
+                    file.text = text = _file;
+                }
+                entries.put(filePath.replace(prefix + "\\", ""), text.getBytes());
+            }
         }
-        entries.put(filePath.replace(prefix + "\\", ""), text.getBytes());
     }
 
     java.nio.file.Path srcPath = Paths.get(projectDir.absolutePath, "build", "src");
     if (!srcPath.toFile().exists()) srcPath.toFile().mkdirs();
 
     Paths.get(projectDir.absolutePath,
-        "build",
-        "src",
-        getFileNameWithoutExt(jar.archiveFile.get().asFile.toPath().fileName.toString()) + '-sources.jar')
+            "build",
+            "src",
+            getFileNameWithoutExt(jar.archiveFile.get().asFile.toPath().fileName.toString()) + '-sources.jar')
             .toAbsolutePath()
             .toFile()
             .bytes = zip(entries);
@@ -280,8 +334,8 @@ copyToLib.doLast {
     }
 
     for (String path : [
-        Paths.get(githubMinecraftDataPath(), ".output"),
-        Paths.get(githubMinecraftDataPath(), ".libs")
+            Paths.get(githubMinecraftDataPath(), ".output"),
+            Paths.get(githubMinecraftDataPath(), ".libs")
     ])
     {
         java.nio.file.Path copied = Paths.get(path, file_name)

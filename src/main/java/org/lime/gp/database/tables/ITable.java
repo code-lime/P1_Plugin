@@ -5,27 +5,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import org.lime.system;
 import org.lime.gp.database.rows.BaseRow;
+import org.lime.system.execute.*;
 
 public abstract class ITable<V extends BaseRow> {
     public abstract List<V> getRows();
-    public abstract void forEach(system.Action1<V> callback);
-    public Optional<V> getBy(system.Func1<V, Boolean> func) {
+    public abstract void forEach(Action1<V> callback);
+    public Optional<V> getBy(Func1<V, Boolean> func) {
         for (V item : getRows()) {
             if (func.invoke(item))
                 return Optional.ofNullable(item);
         }
         return Optional.empty();
     }
-    public boolean hasBy(system.Func1<V, Boolean> func) {
+    public boolean hasBy(Func1<V, Boolean> func) {
         for (V item : getRows()) {
             if (func.invoke(item))
                 return true;
         }
         return false;
     }
-    public <T1>HashMap<T1, V> getMapBy(system.Func1<V, Boolean> compare, system.Func1<V, T1> convert) {
+    public <T1>HashMap<T1, V> getMapBy(Func1<V, Boolean> compare, Func1<V, T1> convert) {
         HashMap<T1, V> map = new HashMap<>();
         getRows().forEach(v -> {
             if (!compare.invoke(v)) return;
@@ -33,12 +33,12 @@ public abstract class ITable<V extends BaseRow> {
         });
         return map;
     }
-    public <T1>HashMap<T1, V> getMap(system.Func1<V, T1> convert) {
+    public <T1>HashMap<T1, V> getMap(Func1<V, T1> convert) {
         HashMap<T1, V> map = new HashMap<>();
         getRows().forEach(v -> map.put(convert.invoke(v), v));
         return map;
     }
-    public List<V> getRowsBy(system.Func1<V, Boolean> compare) {
+    public List<V> getRowsBy(Func1<V, Boolean> compare) {
         List<V> list = new ArrayList<>();
         getRows().forEach(v -> {
             if (!compare.invoke(v)) return;

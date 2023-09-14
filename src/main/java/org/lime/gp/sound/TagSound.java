@@ -4,22 +4,22 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Collection;
 import java.util.List;
 
 public class TagSound extends ISound {
     public final ISound none;
-    public final List<system.Toast2<String, ISound>> values;
-    public TagSound(ISound none, List<system.Toast2<String, ISound>> values) {
+    public final List<Toast2<String, ISound>> values;
+    public TagSound(ISound none, List<Toast2<String, ISound>> values) {
         this.none = none;
         this.values = values;
     }
 
     private ISound getBy(Collection<String> tags) {
-        for (system.Toast2<String, ISound> item : values) {
+        for (Toast2<String, ISound> item : values) {
             if (tags.contains(item.val0))
                 return item.val1;
         }

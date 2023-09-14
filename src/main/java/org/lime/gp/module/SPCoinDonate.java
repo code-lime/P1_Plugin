@@ -17,7 +17,9 @@ import org.lime.gp.extension.ExtMethods;
 import com.google.gson.JsonObject;
 
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.web;
 
 import java.util.Arrays;
@@ -31,7 +33,7 @@ public class SPCoinDonate {
     public static CoreElement create() {
         return CoreElement.create(SPCoinDonate.class)
                 .<JsonObject>addConfig("spcoin", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("api", "https://admingp.spworlds.org/spcoin")
                                 .add("ws", "WS")
                                 .add("token", "TOKEN")
@@ -119,7 +121,7 @@ public class SPCoinDonate {
                 );
     }
 
-    private static String apiBuilder(system.FuncEx1<URIBuilder, URIBuilder> setup, String... path) {
+    private static String apiBuilder(FuncEx1<URIBuilder, URIBuilder> setup, String... path) {
         try {
             URIBuilder builder = new URIBuilder(api);
             List<String> segments = builder.getPathSegments();
@@ -142,7 +144,7 @@ public class SPCoinDonate {
         webhook_logs = json.has("webhook_logs") && !json.get("webhook_logs").isJsonNull() ? json.get("webhook_logs").getAsString() : null;
     }
 
-    public static void balanceGet(UUID uuid, system.Action1<Optional<Integer>> state) {
+    public static void balanceGet(UUID uuid, Action1<Optional<Integer>> state) {
         web.method.GET.create(apiBuilder(
                 v -> v
                     .addParameter("uuid", uuid.toString()), 
@@ -162,7 +164,7 @@ public class SPCoinDonate {
                 state.invoke(Optional.of(data.getAsInt()));
             });
     }
-    /*private static void balanceAdd(UUID uuid, String reason, int value, system.Action1<Boolean> state) {
+    /*private static void balanceAdd(UUID uuid, String reason, int value, Action1<Boolean> state) {
         web.method.POST.create(apiBuilder(
                 v -> v
                     .addParameter("uuid", uuid.toString())
@@ -184,7 +186,7 @@ public class SPCoinDonate {
                 state.invoke(data.getAsBoolean());
             });
     }*/
-    private static void balanceDel(UUID uuid, String reason, int value, system.Action1<Boolean> state) {
+    private static void balanceDel(UUID uuid, String reason, int value, Action1<Boolean> state) {
         web.method.POST.create(apiBuilder(
                 v -> v
                     .addParameter("uuid", uuid.toString())
@@ -207,7 +209,7 @@ public class SPCoinDonate {
             });
     }
 
-    public static void convert(UUID uuid, int count, system.Action1<Integer> callback) {
+    public static void convert(UUID uuid, int count, Action1<Integer> callback) {
         if (count <= 0) return;
         balanceDel(uuid, "Buy trefs in gp", count, state -> {
             if (state) {

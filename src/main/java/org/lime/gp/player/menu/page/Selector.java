@@ -10,7 +10,8 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.selector.*;
-import org.lime.system;
+import org.lime.system.utils.EnumUtils;
+import org.lime.system.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +35,7 @@ public class Selector extends Base {
             case Main:
                 List<Material> filter = apply.get("filter")
                         .map(v -> Arrays.stream(v.split(","))
-                                .map(_v -> system.tryParse(Material.class, _v).or(() -> {
+                                .map(_v -> EnumUtils.tryParse(Material.class, _v).or(() -> {
                                     lime.logOP("Filter material '"+_v+"' not founded!");
                                     return Optional.empty();
                                 }))
@@ -47,37 +48,37 @@ public class Selector extends Base {
                     Position posFace = pos.add(face.getModX(), face.getModY(), face.getModZ());
                     apply
                             .add("pos", pos.toSave())
-                            .add("pos_x", pos.x + "")
-                            .add("pos_y", pos.y + "")
-                            .add("pos_z", pos.z + "")
-                            .add("pos_face_x", posFace.x + "")
-                            .add("pos_face_y", posFace.y + "")
-                            .add("pos_face_z", posFace.z + "")
+                            .add("pos_x", String.valueOf(pos.x))
+                            .add("pos_y", String.valueOf(pos.y))
+                            .add("pos_z", String.valueOf(pos.z))
+                            .add("pos_face_x", String.valueOf(posFace.x))
+                            .add("pos_face_y", String.valueOf(posFace.y))
+                            .add("pos_face_z", String.valueOf(posFace.z))
                             .add("face", face.name());
                     output.forEach(i -> i.invoke(player, apply, true));
                 }).select(player);
                 break;
             case ZoneReadonly:
                 new ZoneReadonly(
-                        Position.of(lime.MainWorld, apply.get("pos1").map(system::getVector).orElseGet(() -> new Vector(0,0,0))),
-                        Position.of(lime.MainWorld, apply.get("pos2").map(system::getVector).orElseGet(() -> new Vector(0,0,0)))
+                        Position.of(lime.MainWorld, apply.get("pos1").map(MathUtils::getVector).orElseGet(() -> new Vector(0,0,0))),
+                        Position.of(lime.MainWorld, apply.get("pos2").map(MathUtils::getVector).orElseGet(() -> new Vector(0,0,0)))
                 ).select(player);
                 break;
             case ZoneMain:
                 ZoneMainSelector.create((pos1, pos2, posMain, faceMain) -> {
                     apply
                             .add("pos1", pos1.toSave())
-                            .add("pos1_x", pos1.x + "")
-                            .add("pos1_y", pos1.y + "")
-                            .add("pos1_z", pos1.z + "")
+                            .add("pos1_x", String.valueOf(pos1.x))
+                            .add("pos1_y", String.valueOf(pos1.y))
+                            .add("pos1_z", String.valueOf(pos1.z))
                             .add("pos2", pos2.toSave())
-                            .add("pos2_x", pos2.x + "")
-                            .add("pos2_y", pos2.y + "")
-                            .add("pos2_z", pos2.z + "")
+                            .add("pos2_x", String.valueOf(pos2.x))
+                            .add("pos2_y", String.valueOf(pos2.y))
+                            .add("pos2_z", String.valueOf(pos2.z))
                             .add("posMain", posMain.toSave())
-                            .add("posMain_x", posMain.x + "")
-                            .add("posMain_y", posMain.y + "")
-                            .add("posMain_z", posMain.z + "")
+                            .add("posMain_x", String.valueOf(posMain.x))
+                            .add("posMain_y", String.valueOf(posMain.y))
+                            .add("posMain_z", String.valueOf(posMain.z))
                             .add("faceMain", faceMain.name());
                     output.forEach(i -> i.invoke(player, apply, true));
                 }).select(player);

@@ -19,14 +19,18 @@ import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawMap;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.system;
+import org.lime.system.IJson;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements system.IJson<JsonObject> {
+public class CartographyBrush extends IJson.ILoad<JsonObject> implements IJson<JsonObject> {
     public static CoreElement create() {
         return CoreElement.create(CartographyBrush.class)
                 .withInstance(new Listener() {
@@ -84,7 +88,7 @@ public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements 
     public byte size;
 
     public HashMap<String, String> map() {
-        return system.map.<String, String>of()
+        return map.<String, String>of()
                 .add("color", String.valueOf(color))
                 .add("hex", DrawMap.toHex(color))
                 .add("size", String.valueOf(size))
@@ -100,7 +104,7 @@ public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements 
         size = json.has("size") ? json.get("size").getAsByte() : 0;
     }
     @Override public JsonObject toJson() {
-        return system.json.object()
+        return json.object()
                 .add("color", color)
                 .add("size", size)
                 .build();
@@ -115,7 +119,7 @@ public class CartographyBrush extends system.IJson.ILoad<JsonObject> implements 
         JsonObject json = JManager.get(JsonObject.class, meta.getPersistentDataContainer(), "brush.data", null);
         return Optional.of(new CartographyBrush(json == null ? new JsonObject() : json));
     }
-    public static void modifyData(ItemStack item, system.Action1<CartographyBrush> modify) {
+    public static void modifyData(ItemStack item, Action1<CartographyBrush> modify) {
         Items.getItemCreator(item).map(v -> v instanceof ItemCreator creator ? creator : null).ifPresent(creator -> {
             if (!creator.has(BrushSetting.class)) return;
             ItemMeta meta = item.getItemMeta();

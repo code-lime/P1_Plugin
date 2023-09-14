@@ -43,7 +43,9 @@ import org.lime.gp.item.settings.list.BlockLimitSetting;
 import org.lime.gp.item.settings.list.BlockSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.loot.Parameters;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.player.level.LevelModule;
@@ -51,6 +53,8 @@ import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.module.HandCuffs;
 import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.system.utils.ParseUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,7 +68,7 @@ public class Perms implements Listener {
     }
 
     private static final long canBreakCooldown = 60 * 1000;
-    private static final HashMap<Position, system.Toast3<UUID, Long, String>> owners = new HashMap<>();
+    private static final HashMap<Position, Toast3<UUID, Long, String>> owners = new HashMap<>();
 
     public interface ICanData {
         String unique();
@@ -148,17 +152,17 @@ public class Perms implements Listener {
         public CanData(JsonObject json) {
             unique = String.valueOf(uniqueIterator++);
             canFishing = json.has("fishing") && json.get("fishing").getAsBoolean();
-            system.parseAdd(json, "break", canBreak, Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v);
-            system.parseAdd(json, "place", canPlace, Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v);
-            system.parseAdd(json, "craft", canCraft, Streams.stream(Bukkit.getServer().recipeIterator()).map(v -> ((Keyed)v).getKey().getKey()).toList(), v -> v);
-            system.parseAdd(json, "use", canUse, Items.creatorIDs.keySet(), v -> v);
-            system.parseAdd(json, "damage", canDamage, Arrays.asList(EntityType.values()), Enum::name);
-            system.parseAdd(json, "farm", canFarm, Arrays.asList(EntityType.values()), Enum::name);
+            ParseUtils.parseAdd(json, "break", canBreak, Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v);
+            ParseUtils.parseAdd(json, "place", canPlace, Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v);
+            ParseUtils.parseAdd(json, "craft", canCraft, Streams.stream(Bukkit.getServer().recipeIterator()).map(v -> ((Keyed)v).getKey().getKey()).toList(), v -> v);
+            ParseUtils.parseAdd(json, "use", canUse, Items.creatorIDs.keySet(), v -> v);
+            ParseUtils.parseAdd(json, "damage", canDamage, Arrays.asList(EntityType.values()), Enum::name);
+            ParseUtils.parseAdd(json, "farm", canFarm, Arrays.asList(EntityType.values()), Enum::name);
 
             if (json.has("break_farm")) json.get("break_farm").getAsJsonObject().entrySet().forEach(kv -> {
                 double chance = kv.getValue().getAsDouble();
                 for (Material material : Material.values())
-                    if (system.compareRegex(material.name(), kv.getKey()))
+                    if (Regex.compareRegex(material.name(), kv.getKey()))
                         breakFarmReplace.put(material, chance);
             });
         }
@@ -232,7 +236,7 @@ public class Perms implements Listener {
     }
     private static void onRecipeUse(String recipePath, UUID uuid, ICanData data) {
         if (uuid == null) return;
-        system.Toast1<Boolean> use = system.toast(false);
+        Toast1<Boolean> use = Toast.of(false);
         data.work().ifPresent(work -> UserRow.getBy(uuid).ifPresent(user -> {
             UUID _uuid = user.uuid;
             Tables.USERCRAFTS_TABLE.forEach(craftRow -> {
@@ -249,7 +253,7 @@ public class Perms implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST) public static void on(EntityChangeBlockEvent e) {
         if (e.getEntityType() == EntityType.FALLING_BLOCK) {
             if (e.getTo().isAir()) {
-                Optional<system.Toast3<UUID, Long, String>> owner = Optional.ofNullable(owners.remove(new Position(e.getBlock())));
+                Optional<Toast3<UUID, Long, String>> owner = Optional.ofNullable(owners.remove(new Position(e.getBlock())));
                 if (owner.isEmpty()) return;
                 e.getEntity().getPersistentDataContainer().set(
                         JManager.key("place_owner"),
@@ -257,9 +261,9 @@ public class Perms implements Listener {
                         owner.map(v -> v.val0 + " " + v.val1 + " " + v.val2).get()
                 );
             } else {
-                Optional<system.Toast3<UUID, Long, String>> owner = Optional.ofNullable(e.getEntity().getPersistentDataContainer().get(JManager.key("place_owner"), PersistentDataType.STRING))
+                Optional<Toast3<UUID, Long, String>> owner = Optional.ofNullable(e.getEntity().getPersistentDataContainer().get(JManager.key("place_owner"), PersistentDataType.STRING))
                         .map(v -> v.split(" "))
-                        .map(v -> system.toast(UUID.fromString(v[0]), Long.parseLong(v[1]), v[2]));
+                        .map(v -> Toast.of(UUID.fromString(v[0]), Long.parseLong(v[1]), v[2]));
                 if (owner.isEmpty()) return;
                 owners.put(new Position(e.getBlock()), owner.get());
             }
@@ -282,7 +286,7 @@ public class Perms implements Listener {
             Block farmland = block.getLocation().add(0, -1, 0).getBlock();
             if (farmland.getType() == Material.FARMLAND) {
                 double chance = data.getBreakFarmReplace(material);
-                if (chance != 0 && system.rand_is(chance)) {
+                if (chance != 0 && RandomUtils.rand_is(chance)) {
                     farmland.setType(Material.COARSE_DIRT);
                 }
             }
@@ -314,7 +318,7 @@ public class Perms implements Listener {
             return;
         }
         Items.getOptional(BlockLimitSetting.class, e.getItemInHand())
-                .flatMap(v -> v.isLimitWithGet(e.getBlock().getLocation()).map(_v -> system.toast(_v, v.limit)))
+                .flatMap(v -> v.isLimitWithGet(e.getBlock().getLocation()).map(_v -> Toast.of(_v, v.limit)))
                 .ifPresent(dat -> dat.invoke((count, limit) -> {
                     e.setCancelled(true);
                     LangMessages.Message.Block_Error_Limit.sendMessage(e.getPlayer(), Apply.of()
@@ -331,7 +335,7 @@ public class Perms implements Listener {
                 .orElseGet(() -> Blocks.getBlockKey(block))
         )) {
             if (from == Material.DIRT_PATH && to == Material.FARMLAND) block.setType(Material.DIRT);
-            lime.nextTick(() -> owners.put(new Position(block), system.toast(uuid, System.currentTimeMillis() + canBreakCooldown, Blocks.getBlockKey(block))));
+            lime.nextTick(() -> owners.put(new Position(block), Toast.of(uuid, System.currentTimeMillis() + canBreakCooldown, Blocks.getBlockKey(block))));
             return;
         }
         e.setCancelled(true);

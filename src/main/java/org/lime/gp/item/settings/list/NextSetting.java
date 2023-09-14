@@ -9,7 +9,9 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
     }
 
     public Optional<IItemCreator> next() {
-        double value = system.rand(0, totalWeight);
+        double value = RandomUtils.rand(0, totalWeight);
         Checker select = null;
         for (Map.Entry<Checker, Double> item : next.entrySet()) {
             value -= item.getValue();

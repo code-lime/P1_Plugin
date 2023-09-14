@@ -14,7 +14,7 @@ import org.lime.gp.item.settings.*;
 import com.google.gson.JsonObject;
 
 import net.kyori.adventure.text.Component;
-import org.lime.system;
+import org.lime.system.range.IRange;
 
 @Setting(name = "vest") public class VestSetting extends ItemSetting<JsonObject> {
     public final int rows;
@@ -28,7 +28,7 @@ import org.lime.system;
         this.title = ChatHelper.formatComponent(json.get("title").getAsString());
         json.getAsJsonObject("slots").entrySet().forEach(kv -> {
             Checker checker = Checker.createCheck(kv.getValue().getAsString());
-            system.IRange.parse(kv.getKey()).getAllInts(rows * 9).forEach(slot -> this.slots.put(slot, checker));
+            IRange.parse(kv.getKey()).getAllInts(rows * 9).forEach(slot -> this.slots.put(slot, checker));
             //Menu.rangeOf(kv.getKey()).forEach(slot -> this.slots.put(slot, checker));
         });
     }

@@ -12,7 +12,7 @@ public class Pets {
                         .withDefault(new JsonObject())
                         .withInvoke(Pets::config)
                         .orText("pets.js", _v -> _v
-                                .withInvoke(t -> Pets.config(system.json.parse(JavaScript.getJsString(t).orElseThrow()).getAsJsonObject()))
+                                .withInvoke(t -> Pets.config(json.parse(JavaScript.getJsString(t).orElseThrow()).getAsJsonObject()))
                                 .withDefault("{}")
                         )
                 );
@@ -198,7 +198,7 @@ public class Pets {
     }
     public static class VariablePet extends AbstractPet {
         public final EntityTypes<? extends EntityLiving> type;
-        public final system.Action1<Entity> variable;
+        public final Action1<Entity> variable;
         public final boolean baby;
         public final Model model;
 
@@ -227,8 +227,8 @@ public class Pets {
         }
 
         @SuppressWarnings("deprecation")
-        private static system.Action1<Entity> variableApply(Class<? extends Entity> type, String variable) {
-            system.Action1<Entity> apply = v -> {};
+        private static Action1<Entity> variableApply(Class<? extends Entity> type, String variable) {
+            Action1<Entity> apply = v -> {};
             if (variable == null) return apply;
             if (Axolotl.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(Axolotl::setVariant, Axolotl.Variant.byId(org.bukkit.entity.Axolotl.Variant.valueOf(variable).ordinal())));
             if (EntityCat.class.isAssignableFrom(type)) apply = apply.andThen(variableApply(EntityCat::setVariant, BuiltInRegistries.CAT_VARIANT.get(of(Cat.Type.valueOf(variable).getKey()))));
@@ -269,12 +269,12 @@ public class Pets {
         }
         
         @SuppressWarnings("unchecked")
-        private static <T extends Entity, V>system.Action1<Entity> variableApply(system.Action2<T, V> apply, V value) {
+        private static <T extends Entity, V>Action1<Entity> variableApply(Action2<T, V> apply, V value) {
             return e -> apply.invoke((T)e, value);
         }
         
         @SuppressWarnings("unchecked")
-        private static <T extends Entity, V1, V2>system.Action1<Entity> variableApply(system.Action3<T, V1, V2> apply, V1 value1, V2 value2) {
+        private static <T extends Entity, V1, V2>Action1<Entity> variableApply(Action3<T, V1, V2> apply, V1 value1, V2 value2) {
             return e -> apply.invoke((T)e, value1, value2);
         }
 
@@ -430,46 +430,46 @@ public class Pets {
     }*/
 /*---------------
     public static void config(JsonObject json) {
-        /*json = system.json.object()
-                .add("temp001", system.json.object()
+        /*json = json.object()
+                .add("temp001", json.object()
                         .add("type", "bee")
                         .add("speed", 0.02)
                         .add("steps", 500)
                         .add("baby", true)
                         .add("fly", true)
                 )
-                .add("temp???", system.json.object()
+                .add("temp???", json.object()
                         .add("type", "axolotl")
                         .add("speed", 0.06)
                         .add("steps", 500)
                         .add("baby", true)
                         .add("fly", true)
                 )
-                .add("temp002", system.json.object()
+                .add("temp002", json.object()
                         .add("type", "bat")
                         .add("speed", 0.06)
                         .add("steps", 500)
                         .add("fly", true)
                 )
-                .add("temp003", system.json.object()
+                .add("temp003", json.object()
                         .add("type", "phantom")
                         .add("speed", 0.1)
                         .add("steps", 250)
                         .add("fly", true)
                 )
-                .add("temp004", system.json.object()
+                .add("temp004", json.object()
                         .add("type", "vex")
                         .add("speed", 0.06)
                         .add("steps", 500)
                         .add("fly", true)
                 )
-                .add("temp005", system.json.object()
+                .add("temp005", json.object()
                         .add("type", "parrot")
                         .add("speed", 0.04)
                         .add("steps", 400)
                         .add("fly", true)
                 )
-                .add("temp006", system.json.object()
+                .add("temp006", json.object()
                         .add("type", "pig")
                         .add("speed", 0.04)
                         .add("steps", 500)

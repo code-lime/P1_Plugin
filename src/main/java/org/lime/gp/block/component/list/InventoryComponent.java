@@ -14,7 +14,10 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.settings.list.TableDisplaySetting;
-import org.lime.system;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -37,13 +40,13 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
         json.getAsJsonObject("slots").entrySet().forEach(kv -> {
             Checker checker = Checker.createCheck(kv.getValue().getAsString());
             //Menu.rangeOf(kv.getKey())
-            system.IRange.parse(kv.getKey()).getAllInts(this.rows * 9)
+            IRange.parse(kv.getKey()).getAllInts(this.rows * 9)
                     .forEach(slot -> this.slots.put(slot, checker));
         });
         json.getAsJsonObject("display").entrySet().forEach(kv -> {
-            Transformation transformation = system.transformation(kv.getValue());
+            Transformation transformation = MathUtils.transformation(kv.getValue());
             //Menu.rangeOf(kv.getKey())
-            system.IRange.parse(kv.getKey()).getAllInts(this.rows * 9)
+            IRange.parse(kv.getKey()).getAllInts(this.rows * 9)
                     .forEach(slot -> this.display.put(slot, transformation));
         });
     }

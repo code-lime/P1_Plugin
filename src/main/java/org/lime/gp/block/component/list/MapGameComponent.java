@@ -11,7 +11,8 @@ import org.lime.gp.block.component.data.game.CheckerInstance;
 import org.lime.gp.block.component.data.game.ChessInstance;
 import org.lime.gp.block.component.data.game.ITableGameInstance;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 @InfoComponent.Component(name = "game")
 public final class MapGameComponent extends ComponentDynamic<JsonObject, ITableGameInstance<?>> {
@@ -19,9 +20,9 @@ public final class MapGameComponent extends ComponentDynamic<JsonObject, ITableG
         Checkers(CheckerInstance::new),
         Chess(ChessInstance::new);
 
-        public final system.Func2<MapGameComponent, CustomTileMetadata, ITableGameInstance<?>> createInstance;
+        public final Func2<MapGameComponent, CustomTileMetadata, ITableGameInstance<?>> createInstance;
 
-        GameType(system.Func2<MapGameComponent, CustomTileMetadata, ITableGameInstance<?>> createInstance) {
+        GameType(Func2<MapGameComponent, CustomTileMetadata, ITableGameInstance<?>> createInstance) {
             this.createInstance = createInstance;
         }
     }

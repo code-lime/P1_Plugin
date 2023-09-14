@@ -1,14 +1,17 @@
 package org.lime.gp.block;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
-
+import net.minecraft.core.BlockPosition;
+import net.minecraft.world.EnumHand;
+import net.minecraft.world.EnumInteractionResult;
+import net.minecraft.world.LimeKey;
+import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.level.ChunkCoordIntPair;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
+import net.minecraft.world.level.block.entity.TileEntitySkullEventRemove;
+import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
+import net.minecraft.world.level.block.state.IBlockData;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
@@ -17,35 +20,23 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.permissions.ServerOperator;
 import org.jetbrains.annotations.Nullable;
 import org.lime.Position;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
-import org.lime.system;
-import org.lime.gp.lime;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.CacheBlockDisplay;
 import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.extension.ExtMethods;
-import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
+import org.lime.gp.module.loot.PopulateLootEvent;
+import org.lime.plugin.CoreElement;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
+import org.lime.system.utils.IterableUtils;
 
-import net.minecraft.core.BlockPosition;
-import net.minecraft.world.EnumHand;
-import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.LimeKey;
-import net.minecraft.world.entity.player.EntityHuman;
-import net.minecraft.world.level.ChunkCoordIntPair;
-import net.minecraft.world.level.block.BlockSkullDestroyInfo;
-import net.minecraft.world.level.block.BlockSkullInteractInfo;
-import net.minecraft.world.level.block.BlockSkullPlaceInfo;
-import net.minecraft.world.level.block.BlockSkullShapeInfo;
-import net.minecraft.world.level.block.BlockSkullStateInfo;
-import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
-import net.minecraft.world.level.block.entity.TileEntitySkullEventRemove;
-import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
-import net.minecraft.world.level.block.state.IBlockData;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class CustomTileMetadata extends TileMetadata {
     public static Position DEBUG_BLOCK = null;
@@ -165,7 +156,7 @@ public class CustomTileMetadata extends TileMetadata {
         } else {
             stream = Stream.empty();
         }
-        system.Toast1<Boolean> isChildable = system.toast(false);
+        Toast1<Boolean> isChildable = Toast.of(false);
         List<T> data = stream
                 .flatMap(v -> {
                     if (v instanceof Childable childable) {
@@ -262,7 +253,7 @@ public class CustomTileMetadata extends TileMetadata {
         if (event.hand() == EnumHand.MAIN_HAND) interactLocker.remove(playerID);
         else if (interactLocker.remove(playerID) != null) return EnumInteractionResult.CONSUME;
         EnumInteractionResult result = EnumInteractionResult.CONSUME;
-        for (Interactable interactable : system.iterable(list(Interactable.class)))  {
+        for (Interactable interactable : IterableUtils.iterable(list(Interactable.class)))  {
             EnumInteractionResult _result = interactable.onInteract(this, event);
             if (!_result.consumesAction()) continue;
             result = _result;
@@ -274,7 +265,7 @@ public class CustomTileMetadata extends TileMetadata {
     }
     @Override public @Nullable VoxelShape onShape(BlockSkullShapeInfo event) {
         VoxelShape last = null;
-        for (Shapeable shapeable : system.iterable(list(Shapeable.class))) {
+        for (Shapeable shapeable : IterableUtils.iterable(list(Shapeable.class))) {
             VoxelShape newShape = shapeable.onShape(this, event);
             last = newShape == null ? last : newShape;
         }
@@ -300,7 +291,7 @@ public class CustomTileMetadata extends TileMetadata {
     @Override public void onDestroy(BlockSkullDestroyInfo event) { list(Destroyable.class).forEach(v -> v.onDestroy(this, event)); }
     @Override public @Nullable IBlockData onPlace(BlockSkullPlaceInfo event) {
         IBlockData last = null;
-        for (Placeable placeable : system.iterable(list(Placeable.class))) last = placeable.onPlace(this, event);
+        for (Placeable placeable : IterableUtils.iterable(list(Placeable.class))) last = placeable.onPlace(this, event);
         return last;
     }
 

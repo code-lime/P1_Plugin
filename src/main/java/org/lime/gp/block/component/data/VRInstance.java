@@ -4,7 +4,7 @@ import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.list.VRComponent;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 public class VRInstance extends BlockComponentInstance<VRComponent> {
     public VRInstance(VRComponent component, CustomTileMetadata metadata) {
@@ -32,7 +32,7 @@ public class VRInstance extends BlockComponentInstance<VRComponent> {
     @Override public void read(JsonObjectOptional json) {
 
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object();
+    @Override public json.builder.object write() {
+        return json.object();
     }
 }

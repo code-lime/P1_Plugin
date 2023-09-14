@@ -5,7 +5,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBase;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.material.Material;
-import org.lime.system;
+import org.lime.system.map;
 
 import java.util.*;
 
@@ -22,7 +22,7 @@ public enum SoundMaterial {
 
     private final List<net.minecraft.world.level.material.Material> materials;
 
-    private static final HashMap<org.bukkit.Material, net.minecraft.world.level.material.Material> typeList = system.map.<org.bukkit.Material, net.minecraft.world.level.material.Material>of()
+    private static final HashMap<org.bukkit.Material, net.minecraft.world.level.material.Material> typeList = map.<org.bukkit.Material, net.minecraft.world.level.material.Material>of()
             .add(Arrays.asList(org.bukkit.Material.values()), k -> k, v -> net.minecraft.world.level.material.Material.STONE)
             .add(BuiltInRegistries.BLOCK.stream().map(Block::defaultBlockState).toList(), IBlockData::getBukkitMaterial, BlockBase.BlockData::getMaterial)
             .build();

@@ -5,18 +5,19 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.module.Discord;
 
 import com.google.gson.JsonObject;
+import org.lime.system.json;
+import org.lime.system.utils.MathUtils;
 
 public class AutoRestart {
     public static CoreElement create() {
         return CoreElement.create(AutoRestart.class)
                 .withInit(AutoRestart::init)
                 .<JsonObject>addConfig("autorestart", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("alert_channel", 1082817786818080838L)
                                 .add("alert_message", "Alert")
                                 .add("min_tps", 4.9)
@@ -50,10 +51,10 @@ public class AutoRestart {
         if (tps >= MIN_TPS) return;
         DONE = true;
         Discord.sendMessageToChannel(ALERT_CHANNEL, ALERT_MESSAGE
-            .replace("{min_tps}", system.getDouble(MIN_TPS))
-            .replace("{tps}", system.getDouble(tps)));
+            .replace("{min_tps}", MathUtils.getDouble(MIN_TPS))
+            .replace("{tps}", MathUtils.getDouble(tps)));
         COMMANDS.forEach(cmd -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd
-            .replace("{min_tps}", system.getDouble(MIN_TPS))
-            .replace("{tps}", system.getDouble(tps))));
+            .replace("{min_tps}", MathUtils.getDouble(MIN_TPS))
+            .replace("{tps}", MathUtils.getDouble(tps))));
     }
 }

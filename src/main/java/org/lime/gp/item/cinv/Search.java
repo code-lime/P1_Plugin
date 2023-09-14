@@ -18,7 +18,8 @@ import org.lime.gp.item.data.MaterialCreator;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.ui.ContainerInput;
 import org.lime.gp.player.ui.EditorUI;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -60,8 +61,8 @@ public class Search {
 
             private int offset = 0;
 
-            private final system.LockToast1<List<ItemElement>> items = system.toast(Collections.<ItemElement>emptyList()).lock();
-            private final system.LockToast1<Integer> lastExecutor = system.toast(0).lock();
+            private final LockToast1<List<ItemElement>> items = Toast.of(Collections.<ItemElement>emptyList()).lock();
+            private final LockToast1<Integer> lastExecutor = Toast.of(0).lock();
 
             private final int stepLength = 9;
             private final int showLength = stepLength * 3;
@@ -136,7 +137,7 @@ public class Search {
             }
             private static <T>Stream<T> timeout(Stream<T> stream, long timeoutMs, Optional<T> timeoutElement) {
                 long stopMs = System.currentTimeMillis() + timeoutMs;
-                system.Toast1<Boolean> timeout = system.toast(false);
+                Toast1<Boolean> timeout = Toast.of(false);
                 return Stream.concat(
                         stream.takeWhile(v -> {
                             if (System.currentTimeMillis() < stopMs) return true;

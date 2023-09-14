@@ -6,7 +6,8 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.player.menu.Logged;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class SelectSlot implements ISlot {
-    public List<system.Toast2<String, ISlot>> slots = new ArrayList<>();
+    public List<Toast2<String, ISlot>> slots = new ArrayList<>();
 
     private final Logged.ILoggedDelete base;
     private final Logged.ChildLoggedDeleteHandle deleteHandle;
@@ -32,13 +33,13 @@ public class SelectSlot implements ISlot {
 
     public static SelectSlot parse(Logged.ILoggedDelete base, JsonObject json) {
         SelectSlot slot = new SelectSlot(base);
-        json.entrySet().forEach(kv -> slot.slots.add(system.toast(kv.getKey(), ISlot.parse(slot, kv.getValue().getAsJsonObject()))));
+        json.entrySet().forEach(kv -> slot.slots.add(Toast.of(kv.getKey(), ISlot.parse(slot, kv.getValue().getAsJsonObject()))));
         return slot;
     }
 
     private Optional<ISlot> getSelected(Apply apply) {
         if (isDeleted()) return Optional.empty();
-        for (system.Toast2<String, ISlot> slot : slots) {
+        for (Toast2<String, ISlot> slot : slots) {
             if (ISlot.isTrue(slot.val0, apply))
                 return Optional.of(slot.val1);
         }
@@ -51,10 +52,10 @@ public class SelectSlot implements ISlot {
                 .isPresent();
     }
 
-    public system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
+    public Toast3<List<Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
         return getSelected(apply)
                 .map(v -> v.create(apply))
-                .orElseGet(() -> system.toast(new ArrayList<>(), new HashMap<>(), new ItemStack(Material.AIR)));
+                .orElseGet(() -> Toast.of(new ArrayList<>(), new HashMap<>(), new ItemStack(Material.AIR)));
     }
 }
 

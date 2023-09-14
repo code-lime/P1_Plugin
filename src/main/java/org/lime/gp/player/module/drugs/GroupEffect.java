@@ -4,7 +4,9 @@ import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.gp.player.module.needs.thirst.Thirst;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 
@@ -32,7 +34,7 @@ public class GroupEffect {
     }
 
     public JsonObject save() {
-        return system.json.object()
+        return json.object()
                 .add("v", DATA_VERSION)
                 .add(effects, String::valueOf, SingleEffect::save)
                 .build();
@@ -78,20 +80,20 @@ public class GroupEffect {
 
         public boolean tick(Player player, int tick) {
             if (effects.isEmpty()) return false;
-            system.Toast2<ImmutableSet<EffectType>, Integer> effect = effects.get(0);
+            Toast2<ImmutableSet<EffectType>, Integer> effect = effects.get(0);
             effect.val1--;
             effect.val0.forEach(type -> type.tick(player, tick));
             if (effect.val1 <= 0) effects.remove(0);
             return true;
         }
 
-        public void setup(List<system.Toast2<ImmutableSet<EffectType>, system.IRange>> effects) {
+        public void setup(List<Toast2<ImmutableSet<EffectType>, system.IRange>> effects) {
             this.effects.clear();
-            effects.forEach(kv -> this.effects.add(system.toast(kv.val0, (int)kv.val1.getValue(0))));
+            effects.forEach(kv -> this.effects.add(Toast.of(kv.val0, (int)kv.val1.getValue(0))));
         }
         public void modify(ImmutableSet<EffectType> types, int ticks, boolean set) {
             if (set) this.effects.clear();
-            this.effects.add(system.toast(types, ticks));
+            this.effects.add(Toast.of(types, ticks));
         }
     */
     public void reset() {

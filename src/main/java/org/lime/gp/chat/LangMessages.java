@@ -8,7 +8,10 @@ import net.kyori.adventure.text.JoinConfiguration;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -144,17 +147,17 @@ public class LangMessages {
             this.sendMessage(player, Apply.of());
         }
     }
-    public static void config(JsonObject json) {
+    public static void config(JsonObject _json) {
         msgs.clear();
         for (Message msg : Message.values()) {
-            List<String> list = msg.parse(json);
+            List<String> list = msg.parse(_json);
             if (list == null) {
                 lime.logOP(ChatColor.GOLD + "Lang not founded: '" + msg.path() + "'");
-                msg.addDefault(json);
+                msg.addDefault(_json);
             }
             else msgs.put(msg, list);
         }
-        lime.writeAllConfig("lang", system.toFormat(json));
+        lime.writeAllConfig("lang", json.format(_json));
     }
 }
 

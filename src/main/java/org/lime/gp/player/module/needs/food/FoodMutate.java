@@ -19,7 +19,8 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.FoodSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.needs.NeedSystem;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class FoodMutate {
         return food.isVanilla();
     }
 
-    public FoodMutate(EntityHuman human, NBTTagCompound tag, system.Action0 onChange) {
+    public FoodMutate(EntityHuman human, NBTTagCompound tag, Action0 onChange) {
         this.food = FoodType.IsVanilla ? new VanillaFoodLevel(onChange) : new TypedFoodLevel(onChange);
         this.human = human;
         readAdditionalSaveData(tag);

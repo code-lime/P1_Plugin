@@ -10,7 +10,7 @@ import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.coreprotect.CoreProtectHandle;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import javax.annotation.Nullable;
 
@@ -39,7 +39,7 @@ public class LockPicking {
         if (!(state instanceof Openable openable)) return;
         openable.setOpen(!openable.isOpen());
         state.update();
-        if (sound != null) world.playSound(block.getLocation().add(0.5f,0.5f,0.5f), sound, SoundCategory.BLOCKS, 1.0f, (float) system.rand(0.0, 1.0) * 0.1f + 0.9f);
+        if (sound != null) world.playSound(block.getLocation().add(0.5f,0.5f,0.5f), sound, SoundCategory.BLOCKS, 1.0f, (float) RandomUtils.rand(0.0, 1.0) * 0.1f + 0.9f);
         CoreProtectHandle.logInteract(block, player);
     }
 }

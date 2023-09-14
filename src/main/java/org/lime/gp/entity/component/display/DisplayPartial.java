@@ -7,7 +7,9 @@ import org.bukkit.entity.Player;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,22 +21,22 @@ public class DisplayPartial {
     }
 
     public static final class Variable {
-        public final List<system.Toast2<String, List<String>>> values = new ArrayList<>();
+        public final List<Toast2<String, List<String>>> values = new ArrayList<>();
         public final Partial partial;
 
         public Variable(double distance, JsonObject owner, JsonObject child) {
             child.entrySet().forEach(kv -> {
                 if (kv.getKey().equals("result")) return;
-                values.add(system.toast(kv.getKey(), Collections.singletonList(kv.getValue().getAsString())));
+                values.add(Toast.of(kv.getKey(), Collections.singletonList(kv.getValue().getAsString())));
             });
             partial = Partial.parse(distance, lime.combineJson(owner, child.get("result"), false).getAsJsonObject());
         }
-        public Variable(Partial partial, List<system.Toast2<String, List<String>>> variable) {
+        public Variable(Partial partial, List<Toast2<String, List<String>>> variable) {
             this.partial = partial;
             this.values.addAll(variable);
         }
         public boolean is(Map<String, String> values) {
-            for (system.Toast2<String, List<String>> kv : this.values) {
+            for (Toast2<String, List<String>> kv : this.values) {
                 String str = values.getOrDefault(kv.val0, null);
                 if (!kv.val1.contains(str)) return false;
             }
@@ -78,7 +80,7 @@ public class DisplayPartial {
             return this;
         }
         @Override public String toString() {
-            return "[distance=" + system.getDouble(Math.sqrt(distanceSquared)) + (variables.size() == 0 ? "" : ":") + variables.stream().map(Object::toString).collect(Collectors.joining(",")) + "]";
+            return "[distance=" + MathUtils.getDouble(Math.sqrt(distanceSquared)) + (variables.size() == 0 ? "" : ":") + variables.stream().map(Object::toString).collect(Collectors.joining(",")) + "]";
         }
 
         public static Partial parse(double distance, JsonObject json) {
@@ -126,14 +128,14 @@ public class DisplayPartial {
     private static class Builder {
         public final double distance;
         public Partial base = null;
-        public final List<system.Toast2<Partial, List<system.Toast2<String, List<String>>>>> childs = new LinkedList<>();
+        public final List<Toast2<Partial, List<Toast2<String, List<String>>>>> childs = new LinkedList<>();
 
         public Builder(double distance) {
             this.distance = distance;
         }
-        public void append(Partial partial, List<system.Toast2<String, List<String>>> variable) {
+        public void append(Partial partial, List<Toast2<String, List<String>>> variable) {
             if (variable.size() == 0) base = partial;
-            else childs.add(system.toast(partial, variable));
+            else childs.add(Toast.of(partial, variable));
         }
         public Partial build() {
             Partial base = this.base == null ? new NonePartial(distance) : this.base;
@@ -148,14 +150,14 @@ public class DisplayPartial {
             String[] _arr = kv.getKey().split("\\?");
             double distance = Double.parseDouble(_arr[0]);
             String[] _args = Arrays.stream(_arr).skip(1).collect(Collectors.joining("?")).replace('?', '&').split("&");
-            List<system.Toast2<String, List<String>>> map = new ArrayList<>();
+            List<Toast2<String, List<String>>> map = new ArrayList<>();
             for (String _arg : _args) {
                 String[] _kv = _arg.split("=");
                 if (_kv.length == 1) {
                     if (_kv[0].length() > 0) lime.logOP("[Warning] Key '"+_kv[0]+"' of Partial '"+kv.getKey()+"' in block '"+creator.getKey()+"' is empty. Skipped");
                     continue;
                 }
-                map.add(system.toast(_kv[0], Arrays.asList(Arrays.stream(_kv).skip(1).collect(Collectors.joining("=")).split(","))));
+                map.add(Toast.of(_kv[0], Arrays.asList(Arrays.stream(_kv).skip(1).collect(Collectors.joining("=")).split(","))));
             }
             distanceBuilder.compute(distance, (k,v) -> {
                 if (v == null) v = new Builder(k);

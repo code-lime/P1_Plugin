@@ -13,7 +13,10 @@ import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.ActionSlot;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,21 +80,21 @@ public class Roll implements Logged.ILoggedDelete {
         return roll;
     }
 
-    public system.Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, system.Toast3<List<system.Toast2<String, String>>, HashMap<ClickType, List<ActionSlot>>, BaseRow>> onClickEvents) {
-        List<system.Toast2<HashMap<String, String>, Integer>> array = new ArrayList<>();
-        system.Toast1<Integer> scale = system.toast(0);
-        system.json.parse(JavaScript.getJsString(apply.apply(data)).orElseThrow()).getAsJsonArray().forEach(item -> {
+    public Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, Toast3<List<Toast2<String, String>>, HashMap<ClickType, List<ActionSlot>>, BaseRow>> onClickEvents) {
+        List<Toast2<HashMap<String, String>, Integer>> array = new ArrayList<>();
+        Toast1<Integer> scale = Toast.of(0);
+        json.parse(JavaScript.getJsString(apply.apply(data)).orElseThrow()).getAsJsonArray().forEach(item -> {
             JsonObject data = item.getAsJsonObject();
             HashMap<String, String> map = new HashMap<>();
             int _scale = data.get("scale").getAsInt();
             data.entrySet().forEach(kv -> map.put(kv.getKey(), kv.getValue().getAsString()));
             scale.val0 += _scale;
-            array.add(system.toast(map, _scale));
+            array.add(Toast.of(map, _scale));
         });
-        Map<ItemStack, system.Toast2<Integer, Apply>> values = new HashMap<>();
+        Map<ItemStack, Toast2<Integer, Apply>> values = new HashMap<>();
         array.forEach(kv -> {
             Apply _apply = apply.copy().add(kv.val0);
-            values.put(format.create(_apply).val2, system.toast(kv.val1, _apply));
+            values.put(format.create(_apply).val2, Toast.of(kv.val1, _apply));
         });
         int size = values.size();
         if (size == 0) throw new IllegalArgumentException("ROLL.SIZE_ZERO");
@@ -99,8 +102,8 @@ public class Roll implements Logged.ILoggedDelete {
         if (slots == 0) throw new IllegalArgumentException("ROLL.SLOTS_ZERO");
         return roll(player, inventory, scale.val0, values);
     }
-    private system.Action0 roll(Player player, Inventory inventory, int total, Map<ItemStack, system.Toast2<Integer, Apply>> values) {
-        system.Toast1<Integer> result_index = system.toast(system.rand(0, total));
+    private Action0 roll(Player player, Inventory inventory, int total, Map<ItemStack, Toast2<Integer, Apply>> values) {
+        Toast1<Integer> result_index = Toast.of(RandomUtils.rand(0, total));
         return values.entrySet()
                 .stream()
                 .filter(kv -> {
@@ -108,7 +111,7 @@ public class Roll implements Logged.ILoggedDelete {
                     result_index.val0 -= kv.getValue().val0;
                     return filter;
                 })
-                .map(kv -> system.toast(kv.getKey(), kv.getValue().val1))
+                .map(kv -> Toast.of(kv.getKey(), kv.getValue().val1))
                 .reduce((v1,v2) -> v2)
                 .map(result -> {
                     generate.invoke(player, result.val1.copy(), true);
@@ -121,7 +124,7 @@ public class Roll implements Logged.ILoggedDelete {
 
                     List<BukkitTask> tasks = new ArrayList<>();
 
-                    system.Toast1<Boolean> closed = system.toast(false);
+                    Toast1<Boolean> closed = Toast.of(false);
                     double wait = 0;
                     for (int i = roll_size - 1; i >= 0; i--) {
                         int _i = i;
@@ -144,7 +147,7 @@ public class Roll implements Logged.ILoggedDelete {
                         end.invoke(player, result.val1.copy().add("closed", "false"), true);
                     }, wait));
 
-                    return system.action(() -> {
+                    return Execute.action(() -> {
                         if (closed.val0) return;
                         closed.val0 = true;
                         tasks.forEach(BukkitTask::cancel);
@@ -153,12 +156,12 @@ public class Roll implements Logged.ILoggedDelete {
                 })
                 .orElse(() -> {});
     }
-    private static <T, V> List<T> randomize(Map<T, V> items, system.Func1<V, Integer> func, int size) {
+    private static <T, V> List<T> randomize(Map<T, V> items, Func1<V, Integer> func, int size) {
         List<T> list = new ArrayList<>();
         while (list.size() < size) items.forEach((k, v) -> {
             for (int i = func.invoke(v) - 1; i >= 0; i--) list.add(k);
         });
-        system.randomize(list);
+        RandomUtils.randomize(list);
         return list;
     }
     private void frame(Player player, Inventory inventory, int index, int size, List<ItemStack> see) {

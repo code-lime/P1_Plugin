@@ -13,7 +13,8 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -87,17 +88,17 @@ public class ExtMethods {
         catch (Exception e) { return Optional.empty(); }
     }
 
-    public static <T> Predicate<T> filterLogExecute(system.Action1<String> execute, system.Func1<T, String> action) {
+    public static <T> Predicate<T> filterLogExecute(Action1<String> execute, Func1<T, String> action) {
         return t -> {
             execute.invoke(action.invoke(t));
             return true;
         };
     }
-    public static <T> Predicate<T> filterLogExecute(system.Action1<String> execute, String text) {
+    public static <T> Predicate<T> filterLogExecute(Action1<String> execute, String text) {
         return filterLogExecute(execute, v -> text.replace("{0}", String.valueOf(v)));
     }
 
-    public static <T> Predicate<T> filterLog(system.Func1<T, String> action) { return filterLogExecute(lime::logOP, action); }
+    public static <T> Predicate<T> filterLog(Func1<T, String> action) { return filterLogExecute(lime::logOP, action); }
     public static <T> Predicate<T> filterLog(String text) { return filterLogExecute(lime::logOP, text); }
 }
 

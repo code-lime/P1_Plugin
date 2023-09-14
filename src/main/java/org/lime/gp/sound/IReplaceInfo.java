@@ -2,7 +2,6 @@ package org.lime.gp.sound;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.system;
 
 import java.util.Collection;
 import java.util.Collections;

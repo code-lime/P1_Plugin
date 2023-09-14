@@ -9,7 +9,9 @@ import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.player.level.LevelModule;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -21,11 +23,11 @@ public class ModifyLootTable implements Listener {
                 .withInstance()
                 .<JsonObject>addConfig("loottable", v -> v.withInvoke(ModifyLootTable::config).withDefault(new JsonObject()));
     }
-    private static final HashMap<String, system.Toast2<ILoot, LootModifyAction>> modifyLootTable = new HashMap<>();
+    private static final HashMap<String, Toast2<ILoot, LootModifyAction>> modifyLootTable = new HashMap<>();
     public static void config(JsonObject json) {
-        HashMap<String, system.Toast2<ILoot, LootModifyAction>> lootTables = new HashMap<>();
+        HashMap<String, Toast2<ILoot, LootModifyAction>> lootTables = new HashMap<>();
         json.entrySet().forEach(kv -> LootModifyAction.parse(kv.getKey(), kv.getValue())
-                .invoke((key, loot, action) -> lootTables.put(key, system.toast(loot, action))));
+                .invoke((key, loot, action) -> lootTables.put(key, Toast.of(loot, action))));
         ModifyLootTable.modifyLootTable.clear();
         ModifyLootTable.modifyLootTable.putAll(lootTables);
     }
@@ -60,9 +62,9 @@ public class ModifyLootTable implements Listener {
 
     private static void tryModifyLoot(PopulateLootEvent e) {
         String key = e.getKey().getPath();
-        system.Toast2<ILoot, LootModifyAction> loot = null;
+        Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
-            if (!system.compareRegex(key, kv.getKey())) continue;
+            if (!Regex.compareRegex(key, kv.getKey())) continue;
             loot = kv.getValue();
             break;
         }
@@ -70,9 +72,9 @@ public class ModifyLootTable implements Listener {
         loot.val1.modifyLoot(e, loot.val0);
     }
     private static Optional<ILoot> tryChangeLoot(String key, ILoot base, IPopulateLoot variable) {
-        system.Toast2<ILoot, LootModifyAction> loot = null;
+        Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
-            if (!system.compareRegex(key, kv.getKey())) continue;
+            if (!Regex.compareRegex(key, kv.getKey())) continue;
             loot = kv.getValue();
             break;
         }

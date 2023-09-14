@@ -5,7 +5,10 @@ import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.data.voice.RadioInstance;
 import org.lime.gp.block.component.list.RadioComponent;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -32,7 +35,7 @@ public class DistanceData {
     }
 
     public HashMap<String, String> map() {
-        return system.map.<String, String>of()
+        return map.<String, String>of()
                 .add("distance", String.valueOf(distance))
                 .add("min_distance", String.valueOf(min_distance))
                 .add("max_distance", String.valueOf(max_distance))
@@ -45,7 +48,7 @@ public class DistanceData {
                 .flatMap(v -> v.list(RadioInstance.class).findFirst())
                 .map(v -> v.distanceData);
     }
-    public static void modifyData(Block block, system.Action1<DistanceData> modify) {
+    public static void modifyData(Block block, Action1<DistanceData> modify) {
         Blocks.of(block)
                 .flatMap(Blocks::customOf)
                 .flatMap(v -> v.list(RadioInstance.class).findFirst())
@@ -59,8 +62,8 @@ public class DistanceData {
     public void read(JsonObjectOptional json) {
         distance = clampDistance(json.getAsShort("distance").orElse(def_distance));
     }
-    public system.json.builder.object write() {
-        return system.json.object()
+    public json.builder.object write() {
+        return json.object()
                 .add("distance", distance);
     }
 }

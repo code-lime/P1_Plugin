@@ -33,7 +33,7 @@ import com.google.gson.JsonObject;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.gp.player.module.TabManager;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.json;
 
 public class LevelModule implements Listener {
     public static CoreElement create() {
@@ -210,7 +210,7 @@ public class LevelModule implements Listener {
                         }
                     }
                     endMs = Math.max(endMs, now + (long)(mutate.sec * 1000));
-                    data.setJson(LEVEL_FOOD_MUTATE_KEY, system.json.object().add("end_ms", endMs).build());
+                    data.setJson(LEVEL_FOOD_MUTATE_KEY, json.object().add("end_ms", endMs).build());
                 });
     }
 }

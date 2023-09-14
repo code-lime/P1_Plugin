@@ -14,7 +14,8 @@ import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.list.BlockLimitSetting;
 import org.lime.gp.module.TimeoutData;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 @InfoComponent.Component(name = "limit") public class LimitComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Tickable {
     public final String type;
@@ -23,9 +24,9 @@ import org.lime.system;
         super(creator, json);
         type = json.get("type").getAsString();
     }
-    public record ChunkGroup(long chunk, String type) implements TimeoutData.TKeyedGroup<system.Toast2<Long, String>> {
+    public record ChunkGroup(long chunk, String type) implements TimeoutData.TKeyedGroup<Toast2<Long, String>> {
         public ChunkGroup(BlockPosition pos, String type) { this(ChunkCoordIntPair.asLong(pos), type); }
-        @Override public system.Toast2<Long, String> groupID() { return system.toast(chunk, type); }
+        @Override public Toast2<Long, String> groupID() { return Toast.of(chunk, type); }
     }
     public static class LimitElement extends TimeoutData.IGroupTimeout {
         public final Position position;

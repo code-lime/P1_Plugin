@@ -10,7 +10,7 @@ import org.lime.gp.entity.component.data.BackPackInstance;
 import org.lime.gp.entity.component.display.DisplayInstance;
 import org.lime.gp.entity.component.display.DisplayPartial;
 import org.lime.gp.module.JavaScript;
-import org.lime.system;
+import org.lime.system.map;
 
 import java.util.*;
 
@@ -25,7 +25,7 @@ public class Components {
         public void animationTick(Map<String, Object> variable, Map<String, Object> data) {
             if (animation_tick == null) return;
             JavaScript.invoke(animation_tick,
-                    system.map.<String, Object>of()
+                    map.<String, Object>of()
                             .add(animation_args, k -> k, v -> v)
                             .add("variable", variable)
                             .add("data", data)

@@ -27,7 +27,9 @@ import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.gp.module.biome.weather.WeatherBiomes;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,14 +55,14 @@ public class SnowModify implements Listener {
         });
         */
         if (tickChunks.isEmpty()) return;
-        HashSet<system.Toast2<WorldServer, SectionPosition>> tickChunks = SnowModify.tickChunks;
+        HashSet<Toast2<WorldServer, SectionPosition>> tickChunks = SnowModify.tickChunks;
         SnowModify.tickChunks = new HashSet<>();
         tickChunks.removeIf(kv -> kv.invokeGet((world, position) -> {
             tickSnow(world, position, 70);
             return true;
         }));
     }
-    private static HashSet<system.Toast2<WorldServer, SectionPosition>> tickChunks = new HashSet<>();
+    private static HashSet<Toast2<WorldServer, SectionPosition>> tickChunks = new HashSet<>();
     private static final BlockPosition.MutableBlockPosition chunkTickMutablePosition = new BlockPosition.MutableBlockPosition();
     private static final ThreadUnsafeRandom randomTickRandom = new ThreadUnsafeRandom(RandomSource.create().nextLong());
     private static int tickSnow(WorldServer world, SectionPosition position, int count) {
@@ -117,9 +119,9 @@ public class SnowModify implements Listener {
         WorldServer world = e.getWorld();
         BiomeBase biome = world.getBiome(position).value();
         if (biome.coldEnoughToSnow(position)) return;
-        tickChunks.add(system.toast(world, SectionPosition.of(position)));
+        tickChunks.add(Toast.of(world, SectionPosition.of(position)));
         IBlockData oldBlock = e.getState();
-        int layer = Math.max(oldBlock.getValue(BlockSnow.LAYERS) - system.rand(1, 2), 0);
+        int layer = Math.max(oldBlock.getValue(BlockSnow.LAYERS) - RandomUtils.rand(1, 2), 0);
         IBlockData newBlock = layer == 0 ? Blocks.AIR.defaultBlockState() : oldBlock.setValue(BlockSnow.LAYERS, layer);
         if (CraftEventFactory.callBlockFadeEvent(world, position, newBlock).isCancelled()) return;
         BlockSnow.dropResources(oldBlock, world, position);

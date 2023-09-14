@@ -1,9 +1,8 @@
 package org.lime.gp;
 
 import org.bukkit.permissions.ServerOperator;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -22,7 +21,7 @@ public class TestData {
         public boolean isOff() { return this == Off; }
     }
 
-    public static final system.LockToast1<DataType> ENABLE_TYPE = system.toast(DataType.Off).lock();
+    public static final LockToast1<DataType> ENABLE_TYPE = Toast.lock(DataType.Off);
 
     public static CoreElement create() {
         return CoreElement.create(TestData.class)

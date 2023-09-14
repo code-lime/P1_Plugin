@@ -20,7 +20,12 @@ import org.lime.gp.item.Items;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.BiomeModify;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.range.IRange;
+import org.lime.system.range.OnceRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 
@@ -31,7 +36,7 @@ public class Halloween implements Listener {
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("halloween")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("enable", false)
                                 .addObject("biome", _v -> _v
                                         .add("sky", "200000")
@@ -60,9 +65,9 @@ public class Halloween implements Listener {
     private static int TICKS_LIFE = 2400;
     private static int LIMIT_TO_PLAYER = 2;
     private static int RADIUS = 30;
-    private static final List<system.Toast2<String, system.IRange>> LOOT = new ArrayList<>();
+    private static final List<Toast2<String, IRange>> LOOT = new ArrayList<>();
 
-    private static system.Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
+    private static Func1<NBTTagCompound, NBTTagCompound> appendEffects = v -> v;
 
     private static BiomeModify.ActionCloseable closeable = null;
     public static void config(JsonObject json) {
@@ -75,7 +80,7 @@ public class Halloween implements Listener {
         vex.getAsJsonObject("loot").entrySet().forEach(kv -> {
             String[] key = kv.getKey().split("\\*", 2);
             int count = kv.getValue().getAsInt();
-            system.Toast2<String, system.IRange> element = system.toast(key[0], key.length > 1 ? system.IRange.parse(key[1]) : new system.OnceRange(1));
+            Toast2<String, IRange> element = Toast.of(key[0], key.length > 1 ? IRange.parse(key[1]) : new OnceRange(1));
             for (int i = 0; i < count; i++) LOOT.add(element);
         });
 
@@ -116,7 +121,7 @@ public class Halloween implements Listener {
     }
     public static void update() {
         List<Player> players = lime.MainWorld.getPlayers();
-        system.Toast1<Integer> add_count = system.toast(players.size() * LIMIT_TO_PLAYER);
+        Toast1<Integer> add_count = Toast.of(players.size() * LIMIT_TO_PLAYER);
         Bukkit.getWorlds().forEach(world -> world.getEntitiesByClass(Vex.class).forEach(vex -> {
             Set<String> tags = vex.getScoreboardTags();
             if (!tags.contains("halloween")) return;
@@ -126,7 +131,7 @@ public class Halloween implements Listener {
         }));
         if (ENABLE) {
             for (int i = 0; i < add_count.val0; i++) {
-                Player player = system.rand(players);
+                Player player = RandomUtils.rand(players);
                 Location location = player.getLocation().add(Vector.getRandom().multiply(RADIUS));
                 location.getWorld().spawn(location, CraftVex.class, vex -> {
                     vex.getHandle().setItemSlot(EnumItemSlot.MAINHAND, ItemStack.EMPTY);
@@ -139,7 +144,7 @@ public class Halloween implements Listener {
         if (event.getEntity() instanceof CraftVex vex && vex.getScoreboardTags().contains("halloween")) {
             event.setCancelled(true);
             vex.getHandle().kill();
-            system.rand(LOOT).invoke((item_key, count) -> Items.createItem(item_key, v -> v.setCount(count.getIntValue(64)))
+            RandomUtils.rand(LOOT).invoke((item_key, count) -> Items.createItem(item_key, v -> v.setCount(count.getIntValue(64)))
                     .ifPresent(item -> Items.dropGiveItem(event.getDamageOwner(), item, true))
             );
         }

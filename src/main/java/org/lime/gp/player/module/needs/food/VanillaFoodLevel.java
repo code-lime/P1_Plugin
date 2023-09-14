@@ -1,14 +1,14 @@
 package org.lime.gp.player.module.needs.food;
 
-import org.lime.gp.lime;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.execute.*;
+import org.lime.system.json;
 
 public class VanillaFoodLevel implements IFoodLevel {
     private float value = FoodType.Vanilla.maxCount;
 
-    private final system.Action0 onChange;
-    public VanillaFoodLevel(system.Action0 onChange) {
+    private final Action0 onChange;
+    public VanillaFoodLevel(Action0 onChange) {
         this.onChange = onChange;
     }
 
@@ -37,6 +37,6 @@ public class VanillaFoodLevel implements IFoodLevel {
 
     @Override public String type() { return "vanilla"; }
     @Override public void load(JsonObjectOptional json) { json.getAsFloat("value").ifPresent(v -> value = v); }
-    @Override public system.json.builder.object save() { return system.json.object().add("value", value); }
+    @Override public json.builder.object save() { return json.object().add("value", value); }
     @Override public boolean isVanilla() { return true; }
 }

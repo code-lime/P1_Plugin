@@ -3,7 +3,7 @@ package org.lime.gp.craft.slot;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.gp.item.Items;
-import org.lime.system;
+import org.lime.system.execute.Execute;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -21,7 +21,7 @@ public class RecipeAnyAmountSlot extends RecipeSlot {
         return getWhitelistKeys()
                 .map(Items::getItemCreator)
                 .flatMap(Optional::stream)
-                .flatMap(c -> system.funcEx(() -> c.createItem(amount)).optional().invoke().stream())
+                .flatMap(c -> Execute.funcEx(() -> c.createItem(amount)).optional().invoke().stream())
                 .map(CraftItemStack::asNMSCopy);
     }
 

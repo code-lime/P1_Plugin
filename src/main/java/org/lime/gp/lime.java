@@ -15,7 +15,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
-import org.lime.plugin.CoreElement;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.display.models.Models;
 import org.lime.display.models.shadow.BaseBuilder;
 import org.lime.gp.admin.Administrator;
@@ -66,7 +68,6 @@ import org.lime.invokable.IInvokable;
 import org.lime.plugin.IConfig;
 import org.lime.plugin.TimerBuilder;
 import org.lime.plugin.Timers;
-import org.lime.system;
 import org.lime.web;
 import patch.Patcher;
 
@@ -106,9 +107,9 @@ public class lime extends core {
     public static BukkitTask repeatTicks(Timers.IRunnable callback, long ticks) { return _plugin._repeatTicks(callback, ticks); }
     public static BukkitTask repeat(Timers.IRunnable callback, double wait, double sec) { return _plugin._repeat(callback, wait, sec); }
     public static BukkitTask repeatTicks(Timers.IRunnable callback, long wait, long ticks) { return _plugin._repeatTicks(callback, wait, ticks); }
-    public static <T>void repeat(T[] array, system.Action1<T> callback_part, system.Action0 callback_end, double sec, int inOneStep) { _plugin._repeat(array, callback_part, callback_end, sec, inOneStep); }
-    public static BukkitTask invokeAsync(system.Action0 async, Timers.IRunnable nextSync) { return _plugin._invokeAsync(async, nextSync); }
-    public static <T>BukkitTask invokeAsync(system.Func0<T> async, system.Action1<T> nextSync) { return _plugin._invokeAsync(async, nextSync); }
+    public static <T>void repeat(T[] array, Action1<T> callback_part, Action0 callback_end, double sec, int inOneStep) { _plugin._repeat(array, callback_part, callback_end, sec, inOneStep); }
+    public static BukkitTask invokeAsync(Action0 async, Timers.IRunnable nextSync) { return _plugin._invokeAsync(async, nextSync); }
+    public static <T>BukkitTask invokeAsync(Func0<T> async, Action1<T> nextSync) { return _plugin._invokeAsync(async, nextSync); }
     public static void invokeSync(Timers.IRunnable sync) { _plugin._invokeSync(sync); }
     public static void invokable(IInvokable invokable) { _plugin._invokable(invokable); }
 
@@ -288,7 +289,7 @@ public class lime extends core {
 
         List<Component> shows = new ArrayList<>();
 
-        system.Toast3<Integer, Integer, Integer> showIndex = system.toast(0, 0, 0);
+        Toast3<Integer, Integer, Integer> showIndex = Toast.of(0, 0, 0);
 
         addOther().forEach(loadedElement -> lime.once(() -> {
             showIndex.val0++;
@@ -371,7 +372,7 @@ public class lime extends core {
         if (isDevelopment) return;
         try {
             if (lime.existConfig("alert")) {
-                JsonObject alert = system.json.parse(lime.readAllConfig("alert")).getAsJsonObject();
+                JsonObject alert = json.parse(lime.readAllConfig("alert")).getAsJsonObject();
                 String webhook = alert.get("webhook").getAsString();
                 long role = alert.get("role").getAsLong();
                 String name = alert.get("name").getAsString();

@@ -59,7 +59,11 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.module.ArrowBow;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.json;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.item.data.Builder;
@@ -70,6 +74,8 @@ import org.lime.gp.item.settings.*;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.inventory.WalletInventory;
+import org.lime.system.utils.EnumUtils;
+import org.lime.system.utils.RandomUtils;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -110,8 +116,7 @@ public class Items implements Listener {
     }
 
     public static void init() {
-        
-        Items.addHardcodeItem("tmp.backpack", system.json.object()
+        Items.addHardcodeItem("tmp.backpack", json.object()
             .add("item", Material.STONE.name())
             .add("id", -50)
             .addObject("settings", v -> v
@@ -138,7 +143,7 @@ public class Items implements Listener {
                 .map(Items.creatorIDs::get)
                 .forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
         });
-        AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> system.json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
+        AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
             _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));
         });
         AnyEvent.addEvent("drop.item", AnyEvent.type.owner_console, builder -> builder
@@ -156,7 +161,7 @@ public class Items implements Listener {
             .createParam(Double::parseDouble, "[y]")
             .createParam(Double::parseDouble, "[z]")
             .createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList())
-            .createParam(t -> system.json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), 
+            .createParam(t -> json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), 
             (s, x, y, z, _creators, args) -> {
                 _creators.getWhitelistKeys()
                     .map(Items.creatorIDs::get)
@@ -216,10 +221,10 @@ public class Items implements Listener {
     public static final LinkedHashMap<String, Integer> creatorIDsNames = new LinkedHashMap<>();
 
     public static List<String> getKeysRegex(String regex) {
-        return creatorIDs.keySet().stream().filter(key -> key.equals(regex) || system.compareRegex(key, regex)).collect(Collectors.toList());
+        return creatorIDs.keySet().stream().filter(key -> key.equals(regex) || Regex.compareRegex(key, regex)).collect(Collectors.toList());
     }
     public static List<IItemCreator> getValuesRegex(String regex) {
-        return creatorIDs.entrySet().stream().filter(kv -> kv.getKey().equals(regex) || system.compareRegex(kv.getKey(), regex)).map(Map.Entry::getValue).collect(Collectors.toList());
+        return creatorIDs.entrySet().stream().filter(kv -> kv.getKey().equals(regex) || Regex.compareRegex(kv.getKey(), regex)).map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
     private static final HashMap<String, PotionEffectType> potionEffectTypes = new HashMap<>();
@@ -456,10 +461,10 @@ public class Items implements Listener {
     public static Optional<ItemStack> createItem(int id) {
         return createItem(id, null);
     }
-    public static Optional<ItemStack> createItem(String key, system.Func1<Builder, Builder> builder) {
+    public static Optional<ItemStack> createItem(String key, Func1<Builder, Builder> builder) {
         return Optional.ofNullable(creatorIDs.get(key)).map(v -> v.createItem(builder));
     }
-    public static Optional<ItemStack> createItem(int id, system.Func1<Builder, Builder> builder) {
+    public static Optional<ItemStack> createItem(int id, Func1<Builder, Builder> builder) {
         return Optional.ofNullable(creators.get(id)).map(v -> v.createItem(builder));
     }
 
@@ -512,7 +517,7 @@ public class Items implements Listener {
 
     public static Optional<IItemCreator> getItemCreator(String key) {
         return Optional.ofNullable(creatorIDs.get(key))
-                .or(() -> system.tryParse(Material.class, Items.isMaterialKey(key) ? key.substring(10) : key).map(ItemCreator::byMaterial));
+                .or(() -> EnumUtils.tryParse(Material.class, Items.isMaterialKey(key) ? key.substring(10) : key).map(ItemCreator::byMaterial));
     }
     public static Optional<IItemCreator> getItemCreator(ItemStack item) {
         return Optional.ofNullable(item)
@@ -537,7 +542,7 @@ public class Items implements Listener {
                 .flatMap(container -> getItemCreator(item)
                         .map(v -> v instanceof ItemCreator c ? c : null)
                         .map(v -> v.data)
-                        .map(v -> system.map.<String, JsonElement>of().add(v.entrySet(), Map.Entry::getKey, kv -> JManager.get(JsonElement.class, container, kv.getKey(), kv.getValue())).build())
+                        .map(v -> map.<String, JsonElement>of().add(v.entrySet(), Map.Entry::getKey, kv -> JManager.get(JsonElement.class, container, kv.getKey(), kv.getValue())).build())
                         .map(v -> (Map<String, JsonElement>)v)
                 )
                 .orElseGet(Collections::emptyMap);
@@ -637,7 +642,7 @@ public class Items implements Listener {
         else attack = net.minecraft.world.item.ItemStack.EMPTY;
         if (attack.getUseAnimation() == EnumAnimation.BLOCK) attack = net.minecraft.world.item.ItemStack.EMPTY;
         double chance = Items.getOptional(ShieldIgnoreSetting.class, shield).map(v -> v.chance).orElse(1.0) * Items.getOptional(ShieldIgnoreSetting.class, attack).map(v -> v.chance).orElse(0.0);
-        if (system.rand_is(chance)) e.setBlocking(false);
+        if (RandomUtils.rand_is(chance)) e.setBlocking(false);
     }
     @EventHandler private static void on(EntityShootBowEvent e) {
         Items.getOptional(ArrowSetting.class, e.getBow())

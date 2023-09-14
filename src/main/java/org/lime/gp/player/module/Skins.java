@@ -27,7 +27,9 @@ import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.lime;
 import org.lime.skin;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.player.menu.MenuCreator;
 
 import java.io.File;
@@ -100,13 +102,13 @@ public class Skins implements Listener {
             lime.nextTick(() -> player.teleport(loc));
         });
     }
-    public static system.Toast2<String, String> getSkinData(Player player) {
+    public static Toast2<String, String> getSkinData(Player player) {
         if (player == null) return null;
         EntityPlayer ep = ((CraftPlayer)player).getHandle();
         if (ep == null) return null;
         com.mojang.authlib.properties.Property textures = of(ep.getGameProfile().getProperties(), "textures");
         if (textures == null) return null;
-        return system.toast(textures.getValue(), textures.getSignature());
+        return Toast.of(textures.getValue(), textures.getSignature());
     }
     public static String getSkinURL(Player player) {
         if (player == null) return null;
@@ -115,7 +117,7 @@ public class Skins implements Listener {
         com.mojang.authlib.properties.Property textures = of(ep.getGameProfile().getProperties(), "textures");
         if (textures == null) return null;
         try {
-            return system.json.getter(system.json.parse(new String(Base64.getDecoder().decode(textures.getValue()))))
+            return json.getter(json.parse(new String(Base64.getDecoder().decode(textures.getValue()))))
                     .of("textures")
                     .of("SKIN")
                     .of("url")
@@ -147,7 +149,7 @@ public class Skins implements Listener {
             updateSkin(player);
             return;
         }
-        Methods.SQL.Async.rawSqlOnce("SELECT skins.value, skins.signature FROM skins WHERE skins.`uuid` = '"+uuid+"' AND skins.id = "+skin_id, set -> system.toast(MySql.readObject(set, "value", String.class), MySql.readObject(set, "signature", String.class)), obj -> {
+        Methods.SQL.Async.rawSqlOnce("SELECT skins.value, skins.signature FROM skins WHERE skins.`uuid` = '"+uuid+"' AND skins.id = "+skin_id, set -> Toast.of(MySql.readObject(set, "value", String.class), MySql.readObject(set, "signature", String.class)), obj -> {
             if (obj == null) return;
             String value = obj.val0;
             String signature = obj.val1;
@@ -189,13 +191,13 @@ public class Skins implements Listener {
     public static void addSkins(List<String> urls) {
         addSkins(urls, null);
     }
-    public static void addSkins(List<String> urls, system.Action0 callback) {
+    public static void addSkins(List<String> urls, Action0 callback) {
         File dir = lime.getConfigFile("skins/");
         if (!dir.exists()) dir.mkdir();
         urls.forEach(url -> {
             String md5 = getMD5(url);
             String path = "skins/" + md5;
-            if (lime.existConfig(path)) skins.put(md5, new Property(system.json.parse(lime.readAllConfig(path)).getAsJsonObject()));
+            if (lime.existConfig(path)) skins.put(md5, new Property(json.parse(lime.readAllConfig(path)).getAsJsonObject()));
             else
             {
                 Property prop = genSkin(url);

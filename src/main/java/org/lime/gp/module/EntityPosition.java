@@ -8,10 +8,9 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -119,7 +118,7 @@ public class EntityPosition {
         return list;
     }
     @SuppressWarnings("unused")
-    private static List<Tameable>getEntities(system.Func1<Tameable, Boolean> removeIf) {
+    private static List<Tameable>getEntities(Func1<Tameable, Boolean> removeIf) {
         List<Tameable> list = getEntities();
         list.removeIf(removeIf::invoke);
         return list;

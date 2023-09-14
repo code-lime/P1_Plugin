@@ -13,7 +13,6 @@ import org.bukkit.persistence.PersistentDataHolder;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.chat.Apply;
@@ -24,6 +23,7 @@ import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.lime.system.json;
 
 @Setting(name = "block") public class BlockSetting extends ItemSetting<JsonObject> {
     public static final NamespacedKey BLOCK_DATA_KEY = new NamespacedKey(lime._plugin, "block_data");
@@ -61,7 +61,7 @@ import com.google.gson.JsonPrimitive;
                 .ifPresent(v -> v.entrySet().forEach(kv -> apply.add(kv.getKey(), kv.getValue().getAsString())));
         return block_args.entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, kv -> system.EditStringToObject(kv.getValue().deepCopy(), text -> new JsonPrimitive(ChatHelper.formatText(text, apply)))));
+                .collect(Collectors.toMap(Map.Entry::getKey, kv -> json.editStringToObject(kv.getValue().deepCopy(), text -> new JsonPrimitive(ChatHelper.formatText(text, apply)))));
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {

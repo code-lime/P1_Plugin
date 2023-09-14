@@ -22,7 +22,10 @@ import org.lime.gp.player.menu.MenuCreator;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.sql.ResultSet;
 import java.util.*;
@@ -38,7 +41,7 @@ public class JavaScript {
 
     public static class JSMenu extends org.lime.JavaScript.InstanceJS {
         private static final ConcurrentHashMap<String, Object> staticMemory = new ConcurrentHashMap<>();
-        public Object memoryGetOrAdd(String key, system.Func0<Object> def) {
+        public Object memoryGetOrAdd(String key, Func0<Object> def) {
             return staticMemory.computeIfAbsent(key, k -> def.invoke());
         }
         public Object memoryGet(String key) {
@@ -96,15 +99,15 @@ public class JavaScript {
 
         public Object read(ResultSet set, String name, Class<?> tClass) { return MySql.readObject(set, name, tClass); }
         public void log(String text) { lime.logOP(text); }
-        public void repeat(system.Action0 func, double sec) {
+        public void repeat(Action0 func, double sec) {
             this.inits.add(lime.repeat(func, sec));
         }
 
         public String toJsonString(Object obj) {
-            return system.json.by(obj).build().toString();
+            return json.by(obj).build().toString();
         }
-        public void once(system.Action0 func, double sec) {
-            system.Toast1<BukkitTask> bukkitTask = system.toast(null);
+        public void once(Action0 func, double sec) {
+            Toast1<BukkitTask> bukkitTask = Toast.of(null);
             bukkitTask.val0 = lime.once(func, sec);
             this.inits.add(bukkitTask.val0);
         }
@@ -116,10 +119,10 @@ public class JavaScript {
         public void show(String menu, int page) { this.show(menu, page, new HashMap<>()); }
         public void show(String menu, int page, Map<String, String> args) { MenuCreator.show(menu, page, Apply.of().add(args)); }
 
-        public void getSpCoin(String uuid, system.Action1<Integer> callback) {
+        public void getSpCoin(String uuid, Action1<Integer> callback) {
              SPCoinDonate.balanceGet(UUID.fromString(uuid), value -> callback.invoke(value.orElse(0)));
         }
-        public void convertSpCoin(String uuid, int count, system.Action1<Integer> callback) {
+        public void convertSpCoin(String uuid, int count, Action1<Integer> callback) {
             SPCoinDonate.convert(UUID.fromString(uuid), count, callback);
         }
 
@@ -140,8 +143,8 @@ public class JavaScript {
             ChatMessages.showHeadText(UUID.fromString(uuid), text);
         }
 
-        public Transformation createTransformation(Object dat) { return system.transformation(system.json.by(dat).build()); }
-        public Map<String, Object> objectTransformation(Transformation transformation) { return JsonObjectOptional.of(system.transformation(transformation)).createObject(); }
+        public Transformation createTransformation(Object dat) { return MathUtils.transformation(json.by(dat).build()); }
+        public Map<String, Object> objectTransformation(Transformation transformation) { return JsonObjectOptional.of(MathUtils.transformation(transformation)).createObject(); }
         public Transformation composeTransformation(Transformation a, Transformation b) { return a.compose(b); }
     }
 
@@ -157,7 +160,7 @@ public class JavaScript {
     public static Optional<Double> getJsDouble(String js, Map<String, Object> values) { return JavaScript.js.getJsDouble(js, values); }
     public static Optional<String> getJsString(String js, Map<String, Object> values) { return JavaScript.js.getJsString(js, values); }
 
-    public static void getJsStringNext(String js, system.Action1<String> callback) { JavaScript.js.getJsStringNext(js, callback); }
+    public static void getJsStringNext(String js, Action1<String> callback) { JavaScript.js.getJsStringNext(js, callback); }
 
     public static void invoke(String js) { JavaScript.js.invoke(js); }
     public static Optional<Object> invoke(String js, Map<String, Object> values) { return JavaScript.js.invoke(js, values); }

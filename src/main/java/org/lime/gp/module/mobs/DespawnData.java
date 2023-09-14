@@ -5,11 +5,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.range.IRange;
 
 import java.util.Optional;
 
-public record DespawnData(system.IRange despawnSec, Optional<Double> deltaHealth, boolean isOnlyLight) {
+public record DespawnData(IRange despawnSec, Optional<Double> deltaHealth, boolean isOnlyLight) {
     private static final NamespacedKey DESPAWN_SEC = new NamespacedKey(lime._plugin, "despawn_sec");
     private static final NamespacedKey DELTA_HEALTH = new NamespacedKey(lime._plugin, "delta_health");
     private static final NamespacedKey ONLY_LIGHT = new NamespacedKey(lime._plugin, "only_light");
@@ -37,7 +37,7 @@ public record DespawnData(system.IRange despawnSec, Optional<Double> deltaHealth
 
     public static DespawnData parse(JsonObject json) {
         return new DespawnData(
-                system.IRange.parse(json.get("sec").getAsString()),
+                IRange.parse(json.get("sec").getAsString()),
                 json.has("delta_health") ? Optional.of(json.get("delta_health").getAsDouble()) : Optional.empty(),
                 !json.has("only_light") || json.get("only_light").getAsBoolean()
         );

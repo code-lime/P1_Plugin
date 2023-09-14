@@ -12,7 +12,10 @@ import org.lime.gp.filter.data.IFilterInfo;
 import org.lime.gp.filter.data.IFilterParameterInfo;
 import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.gp.module.biome.weather.WeatherType;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.Toast;
+import org.lime.system.utils.MathUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,12 +44,12 @@ public class Parameters {
             .add(ThisEntity.createInfoEqualsIgnoreCase("this", v -> v.getBukkitEntity().getType().name()))
             .add(FloorBlock.createInfoEqualsIgnoreCase("block", IBlockDataHolder::toString))
             .add(Origin.createInfoEqualsIgnoreCase("biome", (v, world) -> world.getBiome(new BlockPosition(v.getBlockX(), v.getBlockY(), v.getBlockZ())).unwrapKey().map(ResourceKey::location).map(MinecraftKey::toString).orElse("NULL")))
-            .add(Origin.createInfoFilter("position", v -> system.getDouble(v.getX()) + " " + system.getDouble(v.getY()) + " " + system.getDouble(v.getZ()), s -> {
+            .add(Origin.createInfoFilter("position", v -> MathUtils.getDouble(v.getX()) + " " + MathUtils.getDouble(v.getY()) + " " + MathUtils.getDouble(v.getZ()), s -> {
                 String[] args = s.split(" ");
-                return system.toast(system.IRange.parse(args[0]), system.IRange.parse(args[1]), system.IRange.parse(args[2]));
+                return Toast.of(IRange.parse(args[0]), IRange.parse(args[1]), IRange.parse(args[2]));
             }, (range, position) -> range.invokeGet((x, y, z) -> x.inRange(position.getX(), 16) && y.inRange(position.getY(), 16) && z.inRange(position.getZ(), 16))))
             .add(ThisEntity.createInfoFilter("tags",
-                    v -> system.json.by(v.getTags()).build().toString(),
+                    v -> json.by(v.getTags()).build().toString(),
                     s -> List.of(s.split(",")),
                     (tags, entity) -> entity.getTags().containsAll(tags)))
             .add(SeasonKey.createInfoEqualsIgnoreCase("season", v -> v.key))

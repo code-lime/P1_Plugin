@@ -12,7 +12,6 @@ import org.bukkit.util.Vector;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
@@ -27,6 +26,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.kyori.adventure.text.format.TextColor;
+import org.lime.system.utils.ItemUtils;
+import org.lime.system.utils.MathUtils;
 
 @Setting(name = "weapon") public class WeaponSetting extends ItemSetting<JsonObject> {
     public static final NamespacedKey MAGAZINE_KEY = new NamespacedKey(lime._plugin, "magazine");
@@ -41,7 +42,7 @@ import net.kyori.adventure.text.format.TextColor;
         }
 
         public Pose(JsonObject json) {
-            offset = system.getVector(json.get("offset").getAsString());
+            offset = MathUtils.getVector(json.get("offset").getAsString());
             range = json.get("range").getAsDouble();
             range_max = json.get("range_max").getAsDouble();
         }
@@ -131,12 +132,12 @@ import net.kyori.adventure.text.format.TextColor;
         return Optional.of(weapon)
                 .map(PersistentDataHolder::getPersistentDataContainer)
                 .map(v -> v.get(MAGAZINE_KEY, PersistentDataType.STRING))
-                .map(system::loadItem);
+                .map(ItemUtils::loadItem);
     }
     public static void setMagazine(ItemStack weapon, ItemStack magazine) {
         ItemMeta meta = weapon.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        Optional.ofNullable(system.saveItem(magazine))
+        Optional.ofNullable(ItemUtils.saveItem(magazine))
                 .ifPresentOrElse(
                         _v -> container.set(MAGAZINE_KEY, PersistentDataType.STRING, _v),
                         () -> container.remove(MAGAZINE_KEY)

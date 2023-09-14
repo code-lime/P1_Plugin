@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.map;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
@@ -68,7 +68,7 @@ public class BlockPartial extends Partial implements CustomTileMetadata.Shapeabl
                 .getBlock(material)
                 .defaultBlockState();
         if (json.has("states")) {
-            HashMap<String, IBlockState<?>> states = system.map.<String, IBlockState<?>>of()
+            HashMap<String, IBlockState<?>> states = map.<String, IBlockState<?>>of()
                     .add(blockData.getProperties(), IBlockState::getName, v -> v)
                     .build();
             for (Map.Entry<String, JsonElement> kv : json.get("states").getAsJsonObject().entrySet()) {

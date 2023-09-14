@@ -23,7 +23,8 @@ import com.google.gson.JsonObject;
 
 import net.kyori.adventure.text.format.TextColor;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.utils.MathUtils;
 
 public class ViewPartial extends BlockPartial implements IModelPartial {
     private final ItemStack item;
@@ -71,8 +72,8 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
         if (json.has("offset")) {
             JsonObject offset = json.getAsJsonObject("offset");
             offset_rotation = offset.has("rotation") ? offset.get("rotation").getAsDouble() : 0;
-            offset_translation = offset.has("translation") ? system.getVector(offset.get("translation").getAsString()) : new Vector();
-            offset_scale = offset.has("scale") ? system.getVector(offset.get("scale").getAsString()) : new Vector(1, 1, 1);
+            offset_translation = offset.has("translation") ? MathUtils.getVector(offset.get("translation").getAsString()) : new Vector();
+            offset_scale = offset.has("scale") ? MathUtils.getVector(offset.get("scale").getAsString()) : new Vector(1, 1, 1);
         } else {
             offset_rotation = 0;
             offset_translation = new Vector();
@@ -107,8 +108,8 @@ public class ViewPartial extends BlockPartial implements IModelPartial {
 
     @Override public PartialEnum type() { return PartialEnum.Frame; }
     @Override public String toString() { return super.toString()+ "^" + item + "R" + rotation.angle; }
-    @Override public Optional<system.Toast2<IBuilder, Double>> model() {
-        return Optional.ofNullable(generic).or(() -> model == null ? Optional.empty() : lime.models.get(model)).map(v -> system.toast(v, modelDistance));
+    @Override public Optional<Toast2<IBuilder, Double>> model() {
+        return Optional.ofNullable(generic).or(() -> model == null ? Optional.empty() : lime.models.get(model)).map(v -> Toast.of(v, modelDistance));
     }
 
     public static JObject docs(IDocsLink docs, IIndexDocs variable) {

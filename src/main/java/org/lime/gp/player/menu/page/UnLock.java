@@ -35,7 +35,10 @@ import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.ui.EditorUI;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -46,7 +49,7 @@ public class UnLock extends Base {
     public String soundProgress;
     public String soundOpen;
 
-    public List<system.Toast2<String, UnLockData>> unlock = new ArrayList<>();
+    public List<Toast2<String, UnLockData>> unlock = new ArrayList<>();
     public List<ActionSlot> skip = new ArrayList<>();
 
     public UnLock(JsonObject json) {
@@ -54,7 +57,7 @@ public class UnLock extends Base {
         json.get("unlock")
                 .getAsJsonObject()
                 .entrySet()
-                .forEach(kv -> unlock.add(system.toast(kv.getKey(), new UnLockData(this, kv.getValue().getAsJsonObject()))));
+                .forEach(kv -> unlock.add(Toast.of(kv.getKey(), new UnLockData(this, kv.getValue().getAsJsonObject()))));
         if (json.has("skip")) json.get("skip").getAsJsonArray().forEach(kv -> skip.add(ActionSlot.parse(this, kv.getAsJsonObject())));
         if (json.has("sound")) {
             JsonObject sound = json.getAsJsonObject("sound");
@@ -72,7 +75,7 @@ public class UnLock extends Base {
         if (player == null) return;
         apply.get("block_x").ifPresent(x -> apply.get("block_y").ifPresent(y -> apply.get("block_z").ifPresent(z -> {
             Location blockLocation = new Location(player.getWorld(), Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z));
-            for (system.Toast2<String, UnLockData> item : unlock) {
+            for (Toast2<String, UnLockData> item : unlock) {
                 if (JavaScript.isJsTrue(ChatHelper.formatText(item.val0, apply)).filter(_v -> _v).isEmpty()) continue;
                 open(player, apply, item.val1, blockLocation);
                 return;
@@ -122,9 +125,9 @@ public class UnLock extends Base {
         private final String soundCrash;
         private final String soundProgress;
         private final String soundOpen;
-        private final system.Action0 callbackOpen;
+        private final Action0 callbackOpen;
 
-        public UnLockInventory(Location location, boolean isSmall, String soundCrash, String soundProgress, String soundOpen, ReadonlyInventory view, system.Action0 callbackOpen) {
+        public UnLockInventory(Location location, boolean isSmall, String soundCrash, String soundProgress, String soundOpen, ReadonlyInventory view, Action0 callbackOpen) {
             this.isSmall = isSmall;
             this.view = view;
             this.soundCrash = soundCrash;
@@ -134,11 +137,11 @@ public class UnLock extends Base {
             this.location = location.toCenterLocation();
             this.values = isSmall ? Arrays.asList(-1, 1) : Arrays.asList(-2,-1,1,2);
             this.title = createTitle(isSmall);
-            this.data = IntStream.range(0, 9).map(v -> system.rand(values)).toArray();
-            this.preview = system.map.<Integer, ItemStack>of()
+            this.data = IntStream.range(0, 9).map(v -> RandomUtils.rand(values)).toArray();
+            this.preview = map.<Integer, ItemStack>of()
                     .add((isSmall
-                            ? Stream.of(system.toast(1, 10015), system.toast(0, 0), system.toast(-1, 10016))
-                            : Stream.of(system.toast(2, 10011), system.toast(1, 10012), system.toast(0, 0), system.toast(-1, 10013), system.toast(-2, 10014))
+                            ? Stream.of(Toast.of(1, 10015), Toast.of(0, 0), Toast.of(-1, 10016))
+                            : Stream.of(Toast.of(2, 10011), Toast.of(1, 10012), Toast.of(0, 0), Toast.of(-1, 10013), Toast.of(-2, 10014))
                     ).toList(), kv -> kv.val0, kv -> {
                         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(Material.BARRIER);
                         ItemMeta meta = item.getItemMeta();

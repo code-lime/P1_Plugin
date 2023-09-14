@@ -8,14 +8,14 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
-import org.lime.system;
+import org.lime.system.range.IRange;
 
 @Setting(name = "decay_mutate") public class DecayMutateSetting extends ItemSetting<JsonObject> {
-    public final system.IRange mutate;
+    public final IRange mutate;
 
     public DecayMutateSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
-        mutate = system.IRange.parse(json.get("mutate").getAsString());
+        mutate = IRange.parse(json.get("mutate").getAsString());
     }
 
     public double decayDelta(double total) {

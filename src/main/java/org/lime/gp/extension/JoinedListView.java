@@ -1,41 +1,42 @@
 package org.lime.gp.extension;
 
 import org.jetbrains.annotations.NotNull;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 public class JoinedListView<T> implements List<T> {
-    private final List<system.Func0<List<T>>> lists;
-    private JoinedListView(Iterable<system.Func0<List<T>>> lists) {
+    private final List<Func0<List<T>>> lists;
+    private JoinedListView(Iterable<Func0<List<T>>> lists) {
         this.lists = new ArrayList<>();
         lists.forEach(this.lists::add);
     }
-    private JoinedListView(List<system.Func0<List<T>>> lists) {
+    private JoinedListView(List<Func0<List<T>>> lists) {
         this.lists = lists;
     }
 
     public static <T>JoinedListView<T> of(Iterable<List<T>> lists) {
-        List<system.Func0<List<T>>> _lists = new ArrayList<>();
+        List<Func0<List<T>>> _lists = new ArrayList<>();
         lists.forEach(item -> _lists.add(() -> item));
         return new JoinedListView<>(_lists);
     }
     public static <T>JoinedListView<T> of(List<T> singleList) { return of(Collections.singleton(singleList)); }
     public static <T>JoinedListView<T> of(List<T>... lists) { return of((Iterable<List<T>>)Arrays.asList(lists)); }
 
-    public JoinedListView<T> append(int index, system.Func0<List<T>> list) { lists.add(index, list); return this; }
+    public JoinedListView<T> append(int index, Func0<List<T>> list) { lists.add(index, list); return this; }
     public JoinedListView<T> append(int index, List<T> list) { lists.add(index, () -> list); return this; }
-    public JoinedListView<T> append(system.Func0<List<T>> list) { lists.add(list); return this; }
+    public JoinedListView<T> append(Func0<List<T>> list) { lists.add(list); return this; }
     public JoinedListView<T> append(List<T> list) { lists.add(() -> list); return this; }
 
-    private Stream<List<T>> listStream() { return lists.stream().map(system.Func0::invoke); }
+    private Stream<List<T>> listStream() { return lists.stream().map(Func0::invoke); }
 
-    private <I>I ExecuteAction(I init, system.Func2<List<T>, I, I> step) {
-        for (system.Func0<List<T>> list : lists) init = step.invoke(list.invoke(), init);
+    private <I>I ExecuteAction(I init, Func2<List<T>, I, I> step) {
+        for (Func0<List<T>> list : lists) init = step.invoke(list.invoke(), init);
         return init;
     }
-    private <I>I ExecuteAction(I init, system.Func3<List<T>, Integer, I, I> step) {
+    private <I>I ExecuteAction(I init, Func3<List<T>, Integer, I, I> step) {
         int i = 0;
         for (var _list : lists) {
             List<T> list = _list.invoke();
@@ -44,7 +45,7 @@ public class JoinedListView<T> implements List<T> {
         }
         return init;
     }
-    private <I>I ExecuteAction(I init, system.Func4<List<T>, Integer, Integer, I, I> step) {
+    private <I>I ExecuteAction(I init, Func4<List<T>, Integer, Integer, I, I> step) {
         int i = 0;
         for (var _list : lists) {
             List<T> list = _list.invoke();

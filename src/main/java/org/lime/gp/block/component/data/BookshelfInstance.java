@@ -38,7 +38,11 @@ import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 
@@ -54,7 +58,7 @@ public class BookshelfInstance extends BlockInstance implements CustomTileMetada
     public CraftInventory inventory;
     private ItemStack[] oldTick = new ItemStack[0];
     private final boolean DEBUG;
-    private final int UINDEX = system.rand(0, 9999999);
+    private final int UINDEX = RandomUtils.rand(0, 9999999);
     private final static HashMap<TileEntityLimeSkull, Integer> TILE_INDEX = new HashMap<>();
     public BookshelfInstance(ComponentDynamic<?, ?> component, CustomTileMetadata metadata) {
         super(component, metadata);
@@ -63,7 +67,7 @@ public class BookshelfInstance extends BlockInstance implements CustomTileMetada
             Integer index = TILE_INDEX.get(metadata.skull);
             lime.logStackTrace();
             if (index == null) {
-                index = system.rand(0, 9999999);
+                index = RandomUtils.rand(0, 9999999);
                 lime.logOP("["+UINDEX+"] Create bookshelf instance with new index: " + index);
             } else {
                 lime.logOP("["+UINDEX+"] Create bookshelf instance: " + index);
@@ -80,7 +84,7 @@ public class BookshelfInstance extends BlockInstance implements CustomTileMetada
     }
 
     private static CraftInventory createBlockInventory(InventoryType type, net.kyori.adventure.text.Component title, Block block) {
-        system.Toast1<CraftInventory> inventory = system.toast(null);
+        Toast1<CraftInventory> inventory = Toast.of(null);
         BlockInventoryHolder holder = new BlockInventoryHolder() {
             @Override public Inventory getInventory() { return inventory.val0; }
             @Override public Block getBlock() { return block; }
@@ -100,14 +104,14 @@ public class BookshelfInstance extends BlockInstance implements CustomTileMetada
                 .flatMap(Collection::stream)
                 .map(JsonElementOptional::getAsString)
                 .map(v -> v.orElse(null))
-                .map(system::loadItem)
+                .map(ItemUtils::loadItem)
                 .toArray(ItemStack[]::new)
         );
     }
-    @Override public system.json.builder.object write() {
+    @Override public json.builder.object write() {
         if (DEBUG) lime.logOP("["+UINDEX+"] Save bookshelf");
-        return system.json.object()
-                .addArray("items", v -> v.add(inventory.getContents(), system::saveItem));
+        return json.object()
+                .addArray("items", v -> v.add(inventory.getContents(), ItemUtils::saveItem));
     }
 
     private static boolean equals(ItemStack[] items1, ItemStack[] items2) {

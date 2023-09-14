@@ -25,7 +25,8 @@ import org.lime.gp.player.ui.CustomUI;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.EnumItemSlot;
 
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Optional;
 
@@ -117,14 +118,14 @@ public class UseSetting implements Listener {
         if (onUse(e.getPlayer(), e.getPlayer())) e.setCancelled(true);
     }
 
-    public static void timeUse(Player player, Player target, int ticks, system.Func2<Player, Player, Boolean> check, system.Action2<Player, Player> execute, system.Action2<Player, Player> cancel) {
+    public static void timeUse(Player player, Player target, int ticks, Func2<Player, Player, Boolean> check, Action2<Player, Player> execute, Action2<Player, Player> cancel) {
         timeUse(player, target, 0.1, ticks, check, execute, cancel);
     }
-    public static void timeUse(Player player, Player target, double distance, int ticks, system.Func2<Player, Player, Boolean> check, system.Action2<Player, Player> execute, system.Action2<Player, Player> cancel) {
+    public static void timeUse(Player player, Player target, double distance, int ticks, Func2<Player, Player, Boolean> check, Action2<Player, Player> execute, Action2<Player, Player> cancel) {
         if (Cooldown.hasCooldown(player.getUniqueId(), "use_item")) return;
         tickUse(player, target, distance, ticks, check, execute, cancel);
     }
-    private static void tickUse(Player player, Player target, double distance, int ticks, system.Func2<Player, Player, Boolean> check, system.Action2<Player, Player> execute, system.Action2<Player, Player> cancel) {
+    private static void tickUse(Player player, Player target, double distance, int ticks, Func2<Player, Player, Boolean> check, Action2<Player, Player> execute, Action2<Player, Player> cancel) {
         if (!player.isOnline() || !target.isOnline() || !check.invoke(player, target)) {
             cancel.invoke(player, target);
             return;

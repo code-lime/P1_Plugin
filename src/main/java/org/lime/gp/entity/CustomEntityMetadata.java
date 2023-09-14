@@ -6,7 +6,8 @@ import net.minecraft.world.entity.EntityMarkerEventDestroy;
 import org.lime.gp.entity.component.ComponentDynamic;
 import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,7 +89,7 @@ public class CustomEntityMetadata extends EntityMetadata {
                             return v;
                         });
                     });
-                    system.Toast1<Boolean> isLazy = system.toast(null);
+                    Toast1<Boolean> isLazy = Toast.of(null);
                     list(LazyTickable.class)
                             .filter(v -> isLazy.val0 == null
                                     ? (isLazy.val0 = marker.level.hasNearbyAlivePlayer(marker.getX(), marker.getY(), marker.getZ(), info.distance))

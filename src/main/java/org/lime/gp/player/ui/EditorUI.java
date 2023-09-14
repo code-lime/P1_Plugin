@@ -28,7 +28,8 @@ import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -64,17 +65,17 @@ public final class EditorUI {
 
     public static void update() { inputs.entrySet().removeIf((kv)->!kv.getKey().isOnline()); }
 
-    public static void openInput(Player player, Component title, system.Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
+    public static void openInput(Player player, Component title, Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
         openInput(((CraftPlayer)player).getHandle(), title, init);
     }
-    public static void openInput(EntityHuman player, Component title, system.Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
+    public static void openInput(EntityHuman player, Component title, Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
         player.openMenu(new TileInventory(init::invoke, new AdventureComponent(title)));
     }
-    public static void openSign(Player player, List<String> lines, system.Action1<List<String>> callback){
+    public static void openSign(Player player, List<String> lines, Action1<List<String>> callback){
         new SignEditor(player, lines).callback(callback).open();
     }
     public static void openBook(Player player, List<Component> pages){ new BookEditor(player, pages, false).open(); }
-    public static void openBook(Player player, List<Component> pages, system.Action1<List<String>> callback) {
+    public static void openBook(Player player, List<Component> pages, Action1<List<String>> callback) {
         new BookEditor(player, pages, true).callback(callback).open();
     }
 
@@ -91,7 +92,7 @@ public final class EditorUI {
 
         private final List<String> text;
         private final BlockPosition position;
-        private system.Action1<List<String>> callback = null;
+        private Action1<List<String>> callback = null;
         public SignEditor(Player player, List<String> text) {
             super(player);
             text = new ArrayList<>(text);
@@ -102,7 +103,7 @@ public final class EditorUI {
             position = new net.minecraft.core.BlockPosition(location.getBlockX(), location.getWorld().getMinHeight(), location.getBlockZ());
         }
 
-        public SignEditor callback(system.Action1<List<String>> callback) {
+        public SignEditor callback(Action1<List<String>> callback) {
             this.callback = callback;
             return this;
         }
@@ -144,7 +145,7 @@ public final class EditorUI {
     private static class BookEditor extends IEditor<PacketPlayInBEdit> {
         public final List<Component> pages;
         public final boolean editable;
-        private system.Action1<List<String>> callback = null;
+        private Action1<List<String>> callback = null;
 
         public BookEditor(Player player, List<Component> pages, boolean editable) {
             super(player);
@@ -152,7 +153,7 @@ public final class EditorUI {
             this.editable = editable;
         }
 
-        public BookEditor callback(system.Action1<List<String>> callback) {
+        public BookEditor callback(Action1<List<String>> callback) {
             if (!editable) return this;
             this.callback = callback;
             return this;
@@ -204,7 +205,7 @@ public final class EditorUI {
     private static final class Menu {
         private final List<String> text;
         private net.minecraft.core.BlockPosition position;
-        private system.Action2<Player, String[]> callback;
+        private Action2<Player, String[]> callback;
 
         Menu(List<String> text) {
             text = new ArrayList<>(text);
@@ -212,7 +213,7 @@ public final class EditorUI {
             this.text = text;
         }
 
-        public Menu callback(system.Action2<Player, String[]> callback) {
+        public Menu callback(Action2<Player, String[]> callback) {
             this.callback = callback;
             return this;
         }

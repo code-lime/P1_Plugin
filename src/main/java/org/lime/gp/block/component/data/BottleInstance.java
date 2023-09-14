@@ -24,23 +24,22 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
-import org.lime.core;
-import org.lime.gp.block.component.display.IDisplayVariable;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.BottleComponent;
 import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.*;
+import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -57,7 +56,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
     public interface IFluid {
         ItemStack createBottle();
         Color waterColor();
-        system.json.builder.object save();
+        json.builder.object save();
 
         static Optional<IFluid> of(ItemStack item) {
             return Items.getOptional(ThirstSetting.class, item)
@@ -96,8 +95,8 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
         public static Optional<CustomFluid> load(JsonObjectOptional json) {
             return json.getAsInt("id").map(CustomFluid::new);
         }
-        @Override public system.json.builder.object save() {
-            return system.json.object()
+        @Override public json.builder.object save() {
+            return json.object()
                     .add("type", "custom")
                     .add("id", id);
         }
@@ -178,8 +177,8 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                             )
                     );
         }
-        @Override public system.json.builder.object save() {
-            return system.json.object()
+        @Override public json.builder.object save() {
+            return json.object()
                     .add("type", "potion")
                     .add("potion", type.name())
                     .addObject("data", v -> v
@@ -188,7 +187,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                             .add("upgraded", data.isUpgraded())
                     )
                     .addArray("effects", _v -> _v
-                            .add(effects, effect -> system.json.object()
+                            .add(effects, effect -> json.object()
                                     .add("amplifier", effect.getAmplifier())
                                     .add("duration", effect.getDuration())
                                     .add("type", effect.getType().getName())
@@ -214,8 +213,8 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
         public static Optional<WaterFluid> load(JsonObjectOptional json) {
             return Optional.of(new WaterFluid());
         }
-        @Override public system.json.builder.object save() {
-            return system.json.object()
+        @Override public json.builder.object save() {
+            return json.object()
                     .add("type", "water");
         }
     }
@@ -235,8 +234,8 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                     syncDisplayVariable();
                 });
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add("fluid", fluid == null ? null : fluid.save())
                 .add("level", level);
     }

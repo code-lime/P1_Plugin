@@ -9,7 +9,7 @@ import org.bukkit.generator.WorldInfo;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -41,7 +41,7 @@ public class WorldGenModify {
                 positions.clear();
                 BlockPosition pos = new BlockPosition(offset_x + random.nextInt(0, 16), y + random.nextInt(-8, 8), offset_z + random.nextInt(0, 16));
                 for (int i = 0; i < 10; i++) {
-                    pos = pos.relative(system.rand(dirs));
+                    pos = pos.relative(RandomUtils.rand(dirs));
                     positions.add(pos);
                 }
             }

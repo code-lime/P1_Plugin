@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.lime.Position;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
@@ -21,8 +20,12 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.player.module.TabManager;
 import org.lime.gp.lime;
-import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.IJson;
+import org.lime.system.Time;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.json;
+import org.lime.system.map;
 import org.lime.web;
 
 import javax.annotation.Nullable;
@@ -45,7 +48,7 @@ public class Methods {
                             json.get("login").getAsString(),
                             json.get("password").getAsString());
                     if (!SQL.isValidMySQL()) throw new IllegalArgumentException("Could not establish database connection.");
-                }).withDefault(() -> system.json.object()
+                }).withDefault(() -> json.object()
                         .add("port", 3306)
                         .add("host", "localhost")
                         .add("name", "DATABASE_NAME")
@@ -113,21 +116,21 @@ public class Methods {
         MEDIC_DIE((world) -> world == lime.MainWorld),
         ADMIN((world) -> true);
 
-        public final system.Func1<World, Boolean> checkWorldFunc;
+        public final Func1<World, Boolean> checkWorldFunc;
         public boolean check(World world) {
             return checkWorldFunc.invoke(world);
         }
-        CallType(system.Func1<World, Boolean> checkWorldFunc) {
+        CallType(Func1<World, Boolean> checkWorldFunc) {
             this.checkWorldFunc = checkWorldFunc;
         }
     }
-    public static void callLog(int from, CallType type, String message, system.Action1<Integer> callback) {
-        SQL.Async.rawSqlOnce("SELECT CallLog(@from,@type,@message,@now)", MySql.args().add("from", from).add("type", type.name()).add("message", message).add("now", system.getMoscowNow()).build(), Integer.class, callback);
+    public static void callLog(int from, CallType type, String message, Action1<Integer> callback) {
+        SQL.Async.rawSqlOnce("SELECT CallLog(@from,@type,@message,@now)", MySql.args().add("from", from).add("type", type.name()).add("message", message).add("now", Time.moscowNow()).build(), Integer.class, callback);
     }
-    public static void smsLog(int from_id, int to_id, String message, system.Action1<Integer> callback) {
+    public static void smsLog(int from_id, int to_id, String message, Action1<Integer> callback) {
         SQL.Async.rawSqlOnce("SELECT Sms(@from_id,@to_id,@msg)", MySql.args().add("from_id", from_id).add("to_id", to_id).add("msg", message).build(), Integer.class, callback);
     }
-    public static void isIgnore(int player, int other, system.Action1<Boolean> callback_ignore) {
+    public static void isIgnore(int player, int other, Action1<Boolean> callback_ignore) {
         SQL.Async.rawSqlOnce("SELECT EXISTS(SELECT * FROM other_flags WHERE FlagGetIndex(other_flags.flag, 0) = 1 AND other_flags.user_id = "+player+" AND other_flags.other_id = " + other + ")",
                 Integer.class,
                 state -> callback_ignore.invoke(state == 1));
@@ -157,8 +160,8 @@ public class Methods {
         public Component toLine(Component prefix) {
             Optional<UserRow> user = Optional.ofNullable(this.uuid).flatMap(UserRow::getBy);
             Optional<UserRow> owner = Optional.ofNullable(this.owner).flatMap(UserRow::getBy);
-            String createTime = system.formatCalendar(this.create_time, true);
-            String endTime = this.end_time.map(v -> system.formatCalendar(v, true)).orElse("Неограничено");
+            String createTime = Time.formatCalendar(this.create_time, true);
+            String endTime = this.end_time.map(v -> Time.formatCalendar(v, true)).orElse("Неограничено");
             Component display = Component.empty()
                     .append(Component.text("Дата выдачи: ").append(Component.text(createTime).color(NamedTextColor.GRAY)).append(Component.newline()))
                     .append(Component.text("Действителен до: ").append(Component.text(endTime).color(this.end_time.isPresent() ? NamedTextColor.GRAY : NamedTextColor.RED)).append(Component.newline()))
@@ -183,7 +186,7 @@ public class Methods {
                     );
         }
     }
-    public static void aBanAdd(UUID uuid, String reason, Integer time, UUID owner, system.Action0 callback) {
+    public static void aBanAdd(UUID uuid, String reason, Integer time, UUID owner, Action0 callback) {
         String sql = owner == null
                 ? "INSERT INTO aban (aban.uuid, aban.reason, aban.time) VALUES (@uuid, @reason, @time) ON DUPLICATE KEY UPDATE aban.reason = @reason, aban.time = @time, aban.owner = NULL"
                 : "INSERT INTO aban (aban.uuid, aban.reason, aban.owner, aban.time) VALUES (@uuid, @reason, @owner, @time) ON DUPLICATE KEY UPDATE aban.reason = @reason, aban.time = @time, aban.owner = @owner";
@@ -191,7 +194,7 @@ public class Methods {
                 MySql.args().add("uuid", uuid.toString()).add("owner", owner == null ? "" : owner.toString()).add("reason", reason).add("time", time).build(),
                 callback);
     }
-    public static void aMuteAdd(UUID uuid, String reason, Integer time, UUID owner, system.Action0 callback) {
+    public static void aMuteAdd(UUID uuid, String reason, Integer time, UUID owner, Action0 callback) {
         String sql = owner == null
                 ? "INSERT INTO amute (amute.uuid, amute.reason, amute.time) VALUES (@uuid, @reason, @time) ON DUPLICATE KEY UPDATE amute.reason = @reason, amute.time = @time, amute.owner = NULL"
                 : "INSERT INTO amute (amute.uuid, amute.reason, amute.owner, amute.time) VALUES (@uuid, @reason, @owner, @time) ON DUPLICATE KEY UPDATE amute.reason = @reason, amute.time = @time, amute.owner = @owner";
@@ -199,18 +202,18 @@ public class Methods {
                 MySql.args().add("uuid", uuid.toString()).add("owner", owner == null ? "" : owner.toString()).add("reason", reason).add("time", time).build(),
                 callback);
     }
-    public static void aWarnAdd(UUID uuid, String reason, Integer time, UUID owner, system.Action1<List<Methods.WarnInfo>> callback) {
+    public static void aWarnAdd(UUID uuid, String reason, Integer time, UUID owner, Action1<List<WarnInfo>> callback) {
         SQL.Async.rawSql("SELECT AWarnCreate(@uuid, @reason, @time, @owner)",
                 MySql.args().add("uuid", uuid.toString()).add("reason", reason).add("time", time).add("owner", owner == null ? null : owner.toString()).build(),
                 () -> aWarnList(uuid, callback));
     }
-    public static void aWarnList(UUID uuid, system.Action1<List<Methods.WarnInfo>> callback) {
+    public static void aWarnList(UUID uuid, Action1<List<Methods.WarnInfo>> callback) {
         SQL.Async.rawSqlQuery("SELECT * FROM awarn WHERE awarn.uuid = @uuid",
                 MySql.args().add("uuid", uuid.toString()).build(),
                 WarnInfo::new,
                 callback);
     }
-    public static void aBanDel(UUID uuid, system.Action0 callback) {
+    public static void aBanDel(UUID uuid, Action0 callback) {
         SQL.Async.rawSql("DELETE FROM aban WHERE aban.uuid = '"+uuid+"'", callback);
     }
     public static void aAnyUpdate(Iterable<UUID> online) {
@@ -225,7 +228,7 @@ public class Methods {
     public static void updateUser(UUID uuid, String user_name, Calendar connect_date) {
         SQL.Async.rawSql("UPDATE users SET connect_date = @connect_date, user_name = @user_name WHERE uuid = @uuid", MySql.args().add("uuid", uuid.toString()).add("user_name", user_name).add("connect_date", connect_date).build(), null);
     }
-    public static void renameUser(UUID uuid, String first_name, String last_name, system.Action0 callback) {
+    public static void renameUser(UUID uuid, String first_name, String last_name, Action0 callback) {
         SQL.Async.rawSql("UPDATE users SET users.first_name = @first_name, users.last_name = @last_name WHERE users.uuid = @uuid", MySql.args()
                 .add("first_name", first_name)
                 .add("last_name", last_name)
@@ -234,28 +237,28 @@ public class Methods {
         , callback);
     }
 
-    public static void commandExecute(UUID uuid, String command, system.Action0 callback) {
+    public static void commandExecute(UUID uuid, String command, Action0 callback) {
         SQL.Async.rawSqlOnce("SELECT CommandExecute(@uuid, @command)",
                 MySql.args().add("uuid", uuid == null ? "NULL" : uuid.toString()).add("command", command).build(),
                 Integer.class,
                 (id) -> callback.invoke());
     }
 
-    public static void addDiscord(long discord_id, UUID uuid, system.Action0 callback) {
+    public static void addDiscord(long discord_id, UUID uuid, Action0 callback) {
         SQL.Async.rawSql("INSERT INTO discord (discord_id,uuid) VALUES ("+discord_id+", '"+uuid+"')", callback);
     }
-    public static void delDiscord(UUID uuid, system.Action1<Long> callback) {
+    public static void delDiscord(UUID uuid, Action1<Long> callback) {
         SQL.Async.rawSqlQuery("SELECT discord_id FROM discord WHERE discord.uuid = '"+uuid+"'", Long.class, ids -> ids.forEach(id -> SQL.Async.rawSql("DELETE FROM discord WHERE discord_id = '"+id+"'", () -> callback.invoke(id))));
     }
-    public static void findDiscord(UUID uuid, system.Action1<Long> callback) {
+    public static void findDiscord(UUID uuid, Action1<Long> callback) {
         SQL.Async.rawSqlOnce("SELECT discord_id FROM discord WHERE discord.uuid = '"+uuid+"'", Long.class, callback);
     }
-    public static void discordRoleList(system.Action1<Map<Long, Object>> callback) {
+    public static void discordRoleList(Action1<Map<Long, Object>> callback) {
         List<String> unions = new ArrayList<>();
         unions.add("SELECT roles.discord_role FROM roles WHERE roles.discord_role IS NOT NULL GROUP BY roles.discord_role");
         unions.add("SELECT role_groups.discord_role FROM role_groups WHERE role_groups.discord_role IS NOT NULL GROUP BY role_groups.discord_role");
         if (CITY_ENABLE) unions.add("SELECT city.discord_role FROM city WHERE city.discord_role IS NOT NULL GROUP BY city.discord_role");
-        SQL.Async.rawSqlQuery(String.join(" UNION ", unions), Long.class, list -> callback.invoke(system.map.<Long, Object>of().add(list, new Object()).build()));
+        SQL.Async.rawSqlQuery(String.join(" UNION ", unions), Long.class, list -> callback.invoke(map.<Long, Object>of().add(list, new Object()).build()));
     }
 
     private static final String discordUpdateSQL = String.join(" ",
@@ -281,20 +284,20 @@ public class Methods {
             "NULL AS discord_city_role"
     );
 
-    public static void discordUpdate(system.Action4<Long, String, Long[], UUID> callback, system.Action0 end) {
+    public static void discordUpdate(Action4<Long, String, Long[], UUID> callback, Action0 end) {
         discordUpdate(discordUpdateSQL
                 .replace("{CITY_FIELDS}", CITY_ENABLE ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
                 + (CITY_ENABLE ? discordUpdateSQL_City : ""), callback, end);
     }
-    public static void discordUpdateSingle(UUID uuid, system.Action4<Long, String, Long[], UUID> callback, system.Action0 end) {
+    public static void discordUpdateSingle(UUID uuid, Action4<Long, String, Long[], UUID> callback, Action0 end) {
         discordUpdate(discordUpdateSQL
                 .replace("{CITY_FIELDS}", CITY_ENABLE ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
                 + (CITY_ENABLE ? discordUpdateSQL_City : "")
                 + " WHERE users.uuid = '" + uuid + "'", callback, end);
     }
-    private static void discordUpdate(String sql, system.Action4<Long, String, Long[], UUID> callback, system.Action0 end) {
+    private static void discordUpdate(String sql, Action4<Long, String, Long[], UUID> callback, Action0 end) {
         SQL.Async.rawSqlQuery(sql,
-                v -> system.toast(
+                v -> Toast.of(
                         MySql.readObject(v, "discord_id", Long.class),
                         MySql.readObject(v, "uuid", String.class),
                         MySql.readObject(v, "user_name", String.class),
@@ -308,13 +311,13 @@ public class Methods {
                 });
     }
 
-    public static void discordFind(UUID uuid, system.Action1<Long> callback) {
+    public static void discordFind(UUID uuid, Action1<Long> callback) {
         SQL.Async.rawSqlOnce("SELECT discord.discord_id FROM discord WHERE discord.uuid = '" + uuid + "'", Long.class, callback);
     }
-    public static void discordFind(long dsid, system.Action1<UUID> callback) {
+    public static void discordFind(long dsid, Action1<UUID> callback) {
         SQL.Async.rawSqlOnce("SELECT discord.`uuid` FROM discord WHERE discord.discord_id = " + dsid, String.class, uuid -> callback.invoke(ExtMethods.parseUUID(uuid).orElse(null)));
     }
-    public static void discordClear(long discordId, system.Action0 callback) {
+    public static void discordClear(long discordId, Action0 callback) {
         SQL.Async.rawSql("DELETE FROM discord WHERE discord.discord_id = " + discordId, callback);
     }
 
@@ -327,7 +330,7 @@ public class Methods {
         DONE,
         ERROR
     }
-    public static void recorderReset(int id, system.Action0 action) {
+    public static void recorderReset(int id, Action0 action) {
         SQL.Async.rawSql("UPDATE recorder SET recorder.url = @url WHERE recorder.id = @id",
                 MySql.args()
                         .add("url", null)
@@ -335,7 +338,7 @@ public class Methods {
                         .build(),
                 action);
     }
-    public static void recorderFill(UUID uuid, RecorderInstance.AudioType type, String url, String name, system.Action2<SoundFillStart, String> action) {
+    public static void recorderFill(UUID uuid, RecorderInstance.AudioType type, String url, String name, Action2<SoundFillStart, String> action) {
         action.invoke(SoundFillStart.CHECK, "");
         SQL.Async.rawSqlOnce("SELECT RecorderFirst('"+uuid+"', @url)", MySql.args().add("url", url).build(), Integer.class, id -> {
             if (id < 0) {
@@ -352,7 +355,7 @@ public class Methods {
                             return;
                         }
                         action.invoke(SoundFillStart.CONVERT, "");
-                        system.Toast1<Integer> lastProgress = system.toast(-1);
+                        Toast1<Integer> lastProgress = Toast.of(-1);
                         lime.invokeAsync(() -> RecorderInstance.createSoundFile(type, (current, total) -> {
                             int currentProgress = ((current * 100 / total) / 5) * 5;
                             if (currentProgress == lastProgress.val0) return;
@@ -376,14 +379,14 @@ public class Methods {
         });
     }
 
-    public static class PayDayInput implements system.IJson<JsonObject> {
+    public static class PayDayInput implements IJson<JsonObject> {
         private final JsonObject json;
         private PayDayInput(JsonObject json) { this.json = json; }
         public JsonObject toJson() { return json; }
 
-        public static PayDayInput create() { return new PayDayInput(system.json.object().build()); }
+        public static PayDayInput create() { return new PayDayInput(org.lime.system.json.object().build()); }
     }
-    public static class PayDayOutput extends system.IJson.ILoad<JsonObject> {
+    public static class PayDayOutput extends IJson.ILoad<JsonObject> {
         public final int level;
         public final int exp;
         public final int next;
@@ -395,31 +398,31 @@ public class Methods {
         }
 
         public HashMap<String, String> args() {
-            return system.map.<String, String>of()
+            return map.<String, String>of()
                     .add("level", String.valueOf(level))
                     .add("exp", String.valueOf(exp))
                     .add("next", String.valueOf(next))
                     .build();
         }
     }
-    public static void payDay(HashMap<UUID, PayDayInput> input, system.Action1<HashMap<UUID, PayDayOutput>> callback) {
+    public static void payDay(HashMap<UUID, PayDayInput> input, Action1<HashMap<UUID, PayDayOutput>> callback) {
         SQL.Async.rawSqlOnce("SELECT PayDay(@json)",
-                MySql.args().add("json", system.IJson.toJson(input, UUID::toString).toString()).build(),
+                MySql.args().add("json", IJson.toJson(input, UUID::toString).toString()).build(),
                 String.class,
-                v -> callback.invoke(PayDayOutput.parse(PayDayOutput::new, system.json.parse(v).getAsJsonObject(), UUID::fromString))
+                v -> callback.invoke(PayDayOutput.parse(PayDayOutput::new, json.parse(v).getAsJsonObject(), UUID::fromString))
         );
     }
 
     private static final String DonateVIP_SQL = "SELECT * FROM donate_vip";
-    public static void donateVip(system.Action1<HashMap<UUID, TabManager.DonateInfo>> callback) {
+    public static void donateVip(Action1<HashMap<UUID, TabManager.DonateInfo>> callback) {
         SQL.Async.rawSqlQuery(
                 DonateVIP_SQL,
-                set -> system.toast(UUID.fromString(MySql.readObject(set, "uuid", String.class)), MySql.readObject(set, "static_id", Integer.class)),
-                list -> callback.invoke(system.map.<UUID, TabManager.DonateInfo>of().add(list, kv -> kv.val0, kv -> new TabManager.DonateInfo(Optional.ofNullable(kv.val1))).build())
+                set -> Toast.of(UUID.fromString(MySql.readObject(set, "uuid", String.class)), MySql.readObject(set, "static_id", Integer.class)),
+                list -> callback.invoke(map.<UUID, TabManager.DonateInfo>of().add(list, kv -> kv.val0, kv -> new TabManager.DonateInfo(Optional.ofNullable(kv.val1))).build())
         );
     }
 
-    public static void setIsLogPrison(int id, boolean isLog, system.Action0 callback) {
+    public static void setIsLogPrison(int id, boolean isLog, Action0 callback) {
         SQL.Async.rawSql("UPDATE prison SET is_log = "+(isLog ? 1 : 0)+" WHERE id = " + id, callback);
     }
 
@@ -427,7 +430,7 @@ public class Methods {
         SQL.Async.rawSql("UPDATE user_crafts SET use_count = "+useCount+" WHERE id = " + craftID, () -> {});
     }
 
-    private static void banUser(BanListRow.Type type, String user, String reason, String owner, system.Action0 callback) {
+    private static void banUser(BanListRow.Type type, String user, String reason, String owner, Action0 callback) {
         SQL.Async.rawSql("INSERT INTO ban_list (ban_list.`type`, ban_list.user, ban_list.reason, ban_list.owner) VALUES (@type, @user, @reason, @owner)",
                 MySql.args()
                         .add("type", type.name())
@@ -437,14 +440,14 @@ public class Methods {
                         .build(),
                 callback);
     }
-    public static void banUser(UUID uuid, String reason, String owner, system.Action0 callback) {
+    public static void banUser(UUID uuid, String reason, String owner, Action0 callback) {
         banUser(BanListRow.Type.UUID, uuid.toString(), reason, owner, callback);
     }
-    public static void banUser(InetAddress ip, String reason, String owner, system.Action0 callback) {
+    public static void banUser(InetAddress ip, String reason, String owner, Action0 callback) {
         banUser(BanListRow.Type.IP, ip.getHostAddress(), reason, owner, callback);
     }
 
-    private static void pardonUser(BanListRow.Type type, String user, system.Action0 callback) {
+    private static void pardonUser(BanListRow.Type type, String user, Action0 callback) {
         SQL.Async.rawSql("DELETE FROM ban_list WHERE ban_list.`type` = @type AND ban_list.user = @user",
                 MySql.args()
                         .add("type", type.name())
@@ -452,20 +455,20 @@ public class Methods {
                         .build(),
                 callback);
     }
-    public static void pardonUser(UUID uuid, system.Action0 callback) {
+    public static void pardonUser(UUID uuid, Action0 callback) {
         pardonUser(BanListRow.Type.UUID, uuid.toString(), callback);
     }
-    public static void pardonUser(InetAddress ip, system.Action0 callback) {
+    public static void pardonUser(InetAddress ip, Action0 callback) {
         pardonUser(BanListRow.Type.IP, ip.getHostAddress(), callback);
     }
 
-    public static void ipListByUUIDs(Collection<UUID> uuids, system.Action1<Set<InetAddress>> ips) {
+    public static void ipListByUUIDs(Collection<UUID> uuids, Action1<Set<InetAddress>> ips) {
         if (uuids.isEmpty()) {
             ips.invoke(Collections.emptySet());
             return;
         }
         SQL.Async.rawSqlQuery("SELECT ip_list.ip FROM ip_list WHERE ip_list.uuid IN ('"+uuids.stream().map(UUID::toString).collect(Collectors.joining("','"))+"') GROUP BY ip_list.ip",
-                set -> system.funcEx(()->InetAddress.getByName(MySql.readObject(set, "ip", String.class))).optional().invoke(),
+                set -> Execute.funcEx(()->InetAddress.getByName(MySql.readObject(set, "ip", String.class))).optional().invoke(),
                 list -> ips.invoke(list.stream().flatMap(Optional::stream).collect(Collectors.toSet())));
     }
     public static void predonateWhitelist(Collection<String> append, Collection<String> ignored) {
@@ -473,10 +476,10 @@ public class Methods {
         SQL.Async.rawSql("UPDATE predonate SET predonate.whitelist = 'ERROR' WHERE predonate.name IN @ignored", MySql.args().add("ignored", new ArrayList<>(ignored)).build(), () -> {});
     }
 
-    public static void bankOPG(int totalSafe, system.Action1<Integer> callback) {
+    public static void bankOPG(int totalSafe, Action1<Integer> callback) {
         SQL.Async.rawSqlOnce("SELECT BankSafeBoxOPG("+totalSafe+")", Integer.class, callback);
     }
-    public static void bankReturnOPG(int count, system.Action0 callback) {
+    public static void bankReturnOPG(int count, Action0 callback) {
         SQL.Async.rawSql("SELECT BankSafeBoxReturn("+count+")", callback);
     }
 
@@ -519,38 +522,38 @@ public class Methods {
         );
     }
 
-    public static void rejoinCreate(String name, @Nullable UUID owner, system.Action0 callback) {
+    public static void rejoinCreate(String name, @Nullable UUID owner, Action0 callback) {
         SQL.Async.rawSql(
                 "INSERT INTO rejoin (name, owner) VALUES (@name, @owner)",
                 MySql.args().add("name", name).add("owner", owner).build(),
                 callback);
     }
-    public static void rejoinDelete(String identifier, system.Action0 callback) {
+    public static void rejoinDelete(String identifier, Action0 callback) {
         SQL.Async.rawSql(
                 "DELETE FROM rejoin WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
                 MySql.args().add("identifier", identifier).build(),
                 callback);
     }
-    public static void rejoinSet(String identifier, @Nullable UUID owner, system.Action0 callback) {
+    public static void rejoinSet(String identifier, @Nullable UUID owner, Action0 callback) {
         SQL.Async.rawSql(
                 "UPDATE rejoin SET rejoin.owner = @owner WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
                 MySql.args().add("identifier", identifier).add("owner", owner).build(),
                 callback);
     }
-    public static void rejoinRename(String identifier, String name, system.Action0 callback) {
+    public static void rejoinRename(String identifier, String name, Action0 callback) {
         SQL.Async.rawSql(
                 "UPDATE rejoin SET rejoin.name = @name WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
                 MySql.args().add("identifier", identifier).add("name", name).build(),
                 callback);
     }
-    public static void rejoinSelect(UUID owner, @Nullable String identifier, system.Action0 callback) {
+    public static void rejoinSelect(UUID owner, @Nullable String identifier, Action0 callback) {
         SQL.Async.rawSql(
                 "UPDATE rejoin SET rejoin.select = IF(CONCAT(rejoin.name,':',rejoin.index) = @identifier,1,0) WHERE rejoin.owner = @owner",
                 MySql.args().add("identifier", identifier).add("owner", owner).build(),
                 callback);
     }
 
-    public static void hasteDonate(system.Action1<Calendar> callback) {
+    public static void hasteDonate(Action1<Calendar> callback) {
         SQL.Async.rawSqlOnce(
                 String.join(" ",
                 "SELECT TIMESTAMPADD(SECOND, SUM(dl.time), donate_list.date) AS `end_time`",

@@ -2,9 +2,8 @@ package org.lime.gp.player.module.needs.thirst;
 
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffectType;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.*;
 
@@ -52,7 +51,7 @@ public class ThirstData {
     }
 
     public JsonObject toJson() {
-        return system.json
+        return json
                 .object()
                 .add("v", THIRST_VERSION)
                 .add("value", value)

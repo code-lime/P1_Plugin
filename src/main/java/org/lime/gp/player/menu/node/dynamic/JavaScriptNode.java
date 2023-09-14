@@ -11,7 +11,9 @@ import org.lime.gp.player.menu.node.connect.input.ActionInput;
 import org.lime.gp.player.menu.node.connect.input.StringInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.ObjectOutput;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -46,10 +48,10 @@ public class JavaScriptNode extends BaseNode {
     }
     */
     public JavaScriptNode(int id, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
                 .add("js", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add("output", ActionOutput::new)
                 .add("result", ObjectOutput::new)
                 .build());

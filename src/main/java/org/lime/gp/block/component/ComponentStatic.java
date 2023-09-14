@@ -11,7 +11,8 @@ import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.execute.*;
+import org.lime.system.toast.*;
 import org.lime.unsafe;
 
 import java.lang.reflect.Constructor;
@@ -63,7 +64,7 @@ public abstract class ComponentStatic<T extends JsonElement> {
             lime._plugin.getJarClassesNames()
                     .stream()
                     .filter(v -> v.startsWith(packageFilter))
-                    .map(system.<String, Class<?>>funcEx(Class::forName).throwable())
+                    .map(Execute.<String, Class<?>>funcEx(Class::forName).throwable())
             //Stream.of(Components.class.getDeclaredClasses())
                     .filter(ComponentStatic.class::isAssignableFrom)
                     .flatMap(v -> constructor(v, BlockInfo.class, JsonElement.class)
@@ -73,7 +74,7 @@ public abstract class ComponentStatic<T extends JsonElement> {
                             .or(() -> constructor(v, BlockInfo.class, JsonNull.class))
                             .or(() -> constructor(v, BlockInfo.class))
                             .stream()
-                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(InfoComponent.Component.class)).map(_c -> system.toast(_c, c, v)))
+                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(InfoComponent.Component.class)).map(_c -> Toast.of(_c, c, v)))
                     )
                     .forEach(kv -> {
                         components.put(kv.val0.name(), new ComponentLink() {

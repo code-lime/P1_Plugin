@@ -9,7 +9,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.player.module.Death;
@@ -31,7 +33,7 @@ public class Infection implements Listener, CustomUI.IUI {
                 .withInit(Infection::init)
                 .withInstance(Instance)
                 .<JsonObject>addConfig("config", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .addObject("images", _v -> _v
                                         .add("whole", Arrays.asList("E517:7", "E514:7"))
                                         .add("half", Arrays.asList("E516:7", "E513:7"))
@@ -144,7 +146,7 @@ public class Infection implements Listener, CustomUI.IUI {
             }
         }
         public JsonObject toJson() {
-            return system.json
+            return json
                     .object()
                     .add("v", THIRST_VERSION)
                     .add("value", value)
@@ -163,7 +165,7 @@ public class Infection implements Listener, CustomUI.IUI {
                 if (Death.isDamageLay(player.getUniqueId())) Death.kill(player, Death.Reason.INFECTION);
             }
         }
-        public InfectionData invoke(system.Action1<InfectionData> func) {
+        public InfectionData invoke(Action1<InfectionData> func) {
             func.invoke(this);
             return this;
         }

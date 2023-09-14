@@ -22,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.lime.Position;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
@@ -30,7 +29,8 @@ import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Grants;
 import org.lime.gp.player.perm.Perms;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.json;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,12 +40,12 @@ public class CoreProtectHandle implements Listener {
         return CoreElement.create(CoreProtectHandle.class)
                 .withInit(CoreProtectHandle::init)
                 .withUninit(CoreProtectHandle::uninit)
-                .<JsonArray>addConfig("inspecting", v -> v.withDefault(system.json.array().add("coreprotect.lookup").build()).withInvoke(CoreProtectHandle::config))
+                .<JsonArray>addConfig("inspecting", v -> v.withDefault(json.array().add("coreprotect.lookup").build()).withInvoke(CoreProtectHandle::config))
                 .withInstance();
     }
 
     public static Component toLine(CoreProtectAPI.ParseResult result) {
-        String time = system.formatMiniCalendar(system.getMoscowTime(result.getTimestamp()), true);
+        String time = Time.formatMiniCalendar(Time.moscowTime(result.getTimestamp()), true);
         return Component.join(JoinConfiguration.separator(Component.empty()),
                 Component.text("[").color(NamedTextColor.GRAY),
                 Component.text(time).style(b -> b

@@ -19,18 +19,20 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PlayerData;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.io.File;
 import java.util.*;
 
 public class ResetUser {
-    private static final HashMap<String, system.Toast2<UUID, Integer>> cacheValues = new HashMap<>();
+    private static final HashMap<String, Toast2<UUID, Integer>> cacheValues = new HashMap<>();
 
     private static String getNextCacheValue() {
         String value;
 
-        do value = "confirm#" + system.rand(1000, 9999);
+        do value = "confirm#" + RandomUtils.rand(1000, 9999);
         while (cacheValues.containsKey(value));
 
         return value;
@@ -47,7 +49,7 @@ public class ResetUser {
                             if (args.length != 1) return false;
                             String key = args[0];
                             if (key.startsWith("confirm#")) {
-                                system.Toast2<UUID, Integer> cacheValue = cacheValues.remove(key);
+                                Toast2<UUID, Integer> cacheValue = cacheValues.remove(key);
                                 if (cacheValue != null) {
                                     resetUser(cacheValue.val0, s::sendMessage);
                                     return true;
@@ -58,9 +60,9 @@ public class ResetUser {
                                 return true;
                             }
 
-                            system.Action1<UserRow> onUser = user -> {
+                            Action1<UserRow> onUser = user -> {
                                 String value = getNextCacheValue();
-                                cacheValues.put(value, system.toast(user.uuid, 60));
+                                cacheValues.put(value, Toast.of(user.uuid, 60));
                                 s.sendMessage(Component.empty()
                                         .append(Component.text("Найден игрок для сброса:")
                                                 .append(Component.newline())
@@ -87,7 +89,7 @@ public class ResetUser {
                                         )
                                         .color(NamedTextColor.YELLOW));
                             };
-                            system.Action0 onNotFound = () -> {
+                            Action0 onNotFound = () -> {
                                 s.sendMessage(Component.empty()
                                         .color(NamedTextColor.RED)
                                         .append(Component.text("Игрок ")
@@ -117,7 +119,7 @@ public class ResetUser {
         });
     }
 
-    private static void resetUser(UUID uuid, system.Action1<Component> callback) {
+    private static void resetUser(UUID uuid, Action1<Component> callback) {
         Methods.SQL.Async.rawSqlOnce("SELECT users.id FROM users WHERE users.uuid = '"+uuid+"'", Integer.class, out_id -> {
             if (out_id == null) {
                 callback.invoke(Component.empty()

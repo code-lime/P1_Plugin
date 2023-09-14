@@ -11,7 +11,8 @@ import org.bukkit.event.Listener;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.module.loot.PopulateLootEvent;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,20 +27,20 @@ public class ModifyLootTableOld implements Listener {
                 .withInstance()
                 .<JsonObject>addConfig("loottable", v -> v.withInvoke(ModifyLootTableOld::config).withDefault(new JsonObject()));
     }
-    private static final HashMap<MinecraftKey, system.Toast2<net.minecraft.world.level.storage.loot.LootTable, Boolean>> lootTables = new HashMap<>();
+    private static final HashMap<MinecraftKey, Toast2<net.minecraft.world.level.storage.loot.LootTable, Boolean>> lootTables = new HashMap<>();
     private static final Gson GSON = LootSerialization.createLootTableSerializer().create();
     public static void config(JsonObject json) {
-        HashMap<MinecraftKey, system.Toast2<net.minecraft.world.level.storage.loot.LootTable, Boolean>> lootTables = new HashMap<>();
+        HashMap<MinecraftKey, Toast2<net.minecraft.world.level.storage.loot.LootTable, Boolean>> lootTables = new HashMap<>();
         json.entrySet().forEach(kv -> {
             net.minecraft.world.level.storage.loot.LootTable lootTable = GSON.fromJson(kv.getValue(), net.minecraft.world.level.storage.loot.LootTable.class);
             Arrays.stream(kv.getKey().split(" "))
                     .forEach(key -> {
-                        system.Toast2<net.minecraft.world.level.storage.loot.LootTable, Boolean> value;
+                        Toast2<net.minecraft.world.level.storage.loot.LootTable, Boolean> value;
                         if (key.startsWith("+")) {
                             key = key.substring(1);
-                            value = system.toast(lootTable, true);
+                            value = Toast.of(lootTable, true);
                         } else {
-                            value = system.toast(lootTable, false);
+                            value = Toast.of(lootTable, false);
                         }
                         lootTables.put(new MinecraftKey(key), value);
                     });

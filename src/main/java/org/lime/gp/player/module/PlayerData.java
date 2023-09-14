@@ -15,7 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +61,7 @@ public class PlayerData {
         return cache.computeIfAbsent(uuid, _uuid -> {
             String playerData = playerData(_uuid);
             return lime.existConfig(playerData)
-                    ? new DirtyJsonPersistentDataContainer(system.json.parse(lime.readAllConfig(playerData)).getAsJsonObject())
+                    ? new DirtyJsonPersistentDataContainer(json.parse(lime.readAllConfig(playerData)).getAsJsonObject())
                     : new DirtyJsonPersistentDataContainer();
         });
     }
@@ -142,7 +142,7 @@ public class PlayerData {
             if (!(obj instanceof JsonPersistentDataContainer _obj)) return false;
             return Objects.equals(this.customDataTags, _obj.customDataTags);
         }
-        public JsonObject toJson() { return system.json.object().add(this.customDataTags, NamespacedKey::toString, v -> v).build(); }
+        public JsonObject toJson() { return json.object().add(this.customDataTags, NamespacedKey::toString, v -> v).build(); }
         public int hashCode() {
             int hashCode = 3;
             return hashCode += this.customDataTags.hashCode();
@@ -154,7 +154,7 @@ public class PlayerData {
         }
         @Override public void readFromBytes(byte[] bytes, boolean clear) throws IOException {
             if (clear) this.customDataTags.clear();
-            fromJson(system.json.parse(new String(bytes)).getAsJsonObject()).forEach(this::setJson);
+            fromJson(json.parse(new String(bytes)).getAsJsonObject()).forEach(this::setJson);
         }
 
         @Override public byte[] serializeToBytes() throws IOException {
@@ -175,10 +175,10 @@ public class PlayerData {
             if (Objects.equals(Double.class, type)) return this.createAdapter(Double.class, JsonPrimitive.class, JsonPrimitive::new, JsonPrimitive::getAsDouble);
             if (Objects.equals(String.class, type)) return this.createAdapter(String.class, JsonPrimitive.class, JsonPrimitive::new, JsonPrimitive::getAsString);
             if (Objects.equals(byte[].class, type)) return this.createAdapter(byte[].class, JsonPrimitive.class, array -> new JsonPrimitive(Base64.getEncoder().encodeToString(array)), n2 -> Base64.getDecoder().decode(n2.getAsString()));
-            if (Objects.equals(int[].class, type)) return this.createAdapter(int[].class, JsonArray.class, array -> system.json.array().add(List.of(array)).build(), n2 -> Streams.stream(n2.iterator()).mapToInt(JsonElement::getAsInt).toArray());
-            if (Objects.equals(long[].class, type)) return this.createAdapter(long[].class, JsonArray.class, array -> system.json.array().add(List.of(array)).build(), n2 -> Streams.stream(n2.iterator()).mapToLong(JsonElement::getAsInt).toArray());
+            if (Objects.equals(int[].class, type)) return this.createAdapter(int[].class, JsonArray.class, array -> json.array().add(List.of(array)).build(), n2 -> Streams.stream(n2.iterator()).mapToInt(JsonElement::getAsInt).toArray());
+            if (Objects.equals(long[].class, type)) return this.createAdapter(long[].class, JsonArray.class, array -> json.array().add(List.of(array)).build(), n2 -> Streams.stream(n2.iterator()).mapToLong(JsonElement::getAsInt).toArray());
             if (Objects.equals(PersistentDataContainer[].class, type)) return this.createAdapter(PersistentDataContainer[].class, JsonArray.class,
-                    containerArray -> system.json.array().add(List.of(containerArray), v -> ((JsonPersistentDataContainer)v).toJson()).build(),
+                    containerArray -> json.array().add(List.of(containerArray), v -> ((JsonPersistentDataContainer)v).toJson()).build(),
                     tag -> Streams.stream(tag.iterator()).map(JsonElement::getAsJsonObject).map(JsonPersistentDataContainer::new).toArray(PersistentDataContainer[]::new));
             if (Objects.equals(PersistentDataContainer.class, type)) return this.createAdapter(JsonPersistentDataContainer.class, JsonObject.class, JsonPersistentDataContainer::toJson, JsonPersistentDataContainer::new);
             throw new IllegalArgumentException("Could not find a valid TagAdapter implementation for the requested type " + type.getSimpleName());

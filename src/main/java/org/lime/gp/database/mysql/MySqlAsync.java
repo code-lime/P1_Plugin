@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.lime.system;
 import org.lime.gp.lime;
+import org.lime.system.Time;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public class MySqlAsync {
     private final MySql instance;
@@ -14,7 +16,7 @@ public class MySqlAsync {
         this.instance = instance;
     }
 
-    final system.LockToast2<Boolean, Double> debug = system.toast(false, 0.0).lock();
+    final LockToast2<Boolean, Double> debug = Toast.lock(false, 0.0);
 
     public boolean isDebug() { return debug.get0(); }
     public boolean isFilterDebug(double time) { return time >= debug.get1(); }
@@ -30,25 +32,25 @@ public class MySqlAsync {
         return is_menu;
     }*/
 
-    private final system.LockToast1<Integer> nextCall = system.toast(0).lock();
+    private final LockToast1<Integer> nextCall = Toast.of(0).lock();
     private int nextCallIndex() { return nextCall.edit0(v -> v + 1); }
 
-    public debug rawSql(String query, system.Action0 callback) { return rawSql(query, null, callback); }
+    public debug rawSql(String query, Action0 callback) { return rawSql(query, null, callback); }
 
-    public <T>debug rawSqlOnce(String query, Class<T> tClass, system.Action1<T> callback) { return rawSqlOnce(query, null, tClass, callback); }
-    public <T>debug rawSqlOnce(String query, system.Func1<ResultSet, T> reader, system.Action1<T> callback) { return rawSqlOnce(query, null, reader, callback); }
-    public <T>debug rawSqlQuery(String query, Class<T> tClass, system.Action1<List<T>> callback) { return rawSqlQuery(query, null, tClass, callback); }
-    public <T>debug rawSqlQuery(String query, system.Func1<ResultSet, T> reader, system.Action1<List<T>> callback) { return rawSqlQuery(query, null, reader, callback); }
+    public <T>debug rawSqlOnce(String query, Class<T> tClass, Action1<T> callback) { return rawSqlOnce(query, null, tClass, callback); }
+    public <T>debug rawSqlOnce(String query, Func1<ResultSet, T> reader, Action1<T> callback) { return rawSqlOnce(query, null, reader, callback); }
+    public <T>debug rawSqlQuery(String query, Class<T> tClass, Action1<List<T>> callback) { return rawSqlQuery(query, null, tClass, callback); }
+    public <T>debug rawSqlQuery(String query, Func1<ResultSet, T> reader, Action1<List<T>> callback) { return rawSqlQuery(query, null, reader, callback); }
 
     public String nowTime() {
-        return system.formatCalendar(system.getMoscowNow(), true);
+        return Time.formatCalendar(Time.moscowNow(), true);
     }
 
-    public debug rawSql(String query, Map<String, Object> args, system.Action0 callback) {
+    public debug rawSql(String query, Map<String, Object> args, Action0 callback) {
         int index = nextCallIndex();
-        MySql.calls.put(index, system.toast("SQL." + query, nowTime()));
+        MySql.calls.put(index, Toast.of("SQL." + query, nowTime()));
         debug debug = new debug();
-        system.Toast1<String> _sql = system.toast(query);
+        Toast1<String> _sql = Toast.of(query);
         this.instance.callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {
             String _lower = _sql.val0.toLowerCase();
             if (_lower.startsWith("select")) {
@@ -77,12 +79,12 @@ public class MySqlAsync {
         return debug;
     }
 
-    public <T>debug rawSqlOnce(String query, Map<String, Object> args, Class<T> tClass, system.Action1<T> callback) { return rawSqlOnce(query, args, reader -> MySql.readObject(reader, 1, tClass), callback); }
-    public <T>debug rawSqlOnce(String query, Map<String, Object> args, system.Func1<ResultSet, T> reader, system.Action1<T> callback) {
+    public <T>debug rawSqlOnce(String query, Map<String, Object> args, Class<T> tClass, Action1<T> callback) { return rawSqlOnce(query, args, reader -> MySql.readObject(reader, 1, tClass), callback); }
+    public <T>debug rawSqlOnce(String query, Map<String, Object> args, Func1<ResultSet, T> reader, Action1<T> callback) {
         int index = nextCallIndex();
-        MySql.calls.put(index, system.toast("SQL_ONCE." + query, nowTime()));
+        MySql.calls.put(index, Toast.of("SQL_ONCE." + query, nowTime()));
         debug debug = new debug();
-        system.Toast1<String> _sql = system.toast(query);
+        Toast1<String> _sql = Toast.of(query);
         this.instance.callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {
             T ret;
             try (ResultSet set = stmt.executeQuery()) {
@@ -97,12 +99,12 @@ public class MySqlAsync {
         return debug;
     }
 
-    public <T>debug rawSqlQuery(String query, Map<String, Object> args, Class<T> tClass, system.Action1<List<T>> callback) { return rawSqlQuery(query, args, reader -> MySql.readObject(reader, 1, tClass), callback); }
-    public <T>debug rawSqlQuery(String query, Map<String, Object> args, system.Func1<ResultSet, T> reader, system.Action1<List<T>> callback) {
+    public <T>debug rawSqlQuery(String query, Map<String, Object> args, Class<T> tClass, Action1<List<T>> callback) { return rawSqlQuery(query, args, reader -> MySql.readObject(reader, 1, tClass), callback); }
+    public <T>debug rawSqlQuery(String query, Map<String, Object> args, Func1<ResultSet, T> reader, Action1<List<T>> callback) {
         int index = nextCallIndex();
-        MySql.calls.put(index, system.toast("SQL_QUERY." + query, nowTime()));
+        MySql.calls.put(index, Toast.of("SQL_QUERY." + query, nowTime()));
         debug debug = new debug();
-        system.Toast1<String> _sql = system.toast(query);
+        Toast1<String> _sql = Toast.of(query);
         this.instance.callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {
             List<T> ret = new ArrayList<>();
             try (ResultSet set = stmt.executeQuery()) {
@@ -128,20 +130,20 @@ public class MySqlAsync {
     public <T>T RawSqlOnce(String query, Class<T> tClass) {
         return RawSqlOnce(query, null, tClass);
     }
-    public <T>T RawSqlOnce(String query, system.Func1<ResultSet, T> reader) {
+    public <T>T RawSqlOnce(String query, Func1<ResultSet, T> reader) {
         return RawSqlOnce(query, null, reader);
     }
 
     public <T>List<T> RawSqlQuery(String query, Class<T> tClass) {
         return RawSqlQuery(query, null, tClass);
     }
-    public <T>List<T> RawSqlQuery(String query, system.Func1<ResultSet, T> reader) {
+    public <T>List<T> RawSqlQuery(String query, Func1<ResultSet, T> reader) {
         return RawSqlQuery(query, null, reader);
     }
 
     public void RawSql(String query, Map<String, Object> args) {
         Connection conn = toMySQL();
-        system.Toast1<String> _sql = system.toast(query);
+        Toast1<String> _sql = Toast.of(query);
         try (PreparedStatement stmt = prepareStatement(conn, _sql, args)) {
             stmt.execute();
         } catch (Exception e) {
@@ -155,10 +157,10 @@ public class MySqlAsync {
     public <T>T RawSqlOnce(String query, Map<String, Object> args, Class<T> tClass) {
         return RawSqlOnce(query, args, reader -> ReadObject(reader, 1, tClass));
     }
-    public <T>T RawSqlOnce(String query, Map<String, Object> args, system.Func1<ResultSet, T> reader) {
+    public <T>T RawSqlOnce(String query, Map<String, Object> args, Func1<ResultSet, T> reader) {
         T ret = null;
         Connection conn = toMySQL();
-        system.Toast1<String> _sql = system.toast(query);
+        Toast1<String> _sql = Toast.of(query);
         try (PreparedStatement stmt = prepareStatement(conn, _sql, args); ResultSet set = stmt.executeQuery()) {
             if (set.next()) ret = reader.invoke(set);
         } catch (Exception e) {
@@ -173,10 +175,10 @@ public class MySqlAsync {
     public <T>List<T> RawSqlQuery(String query, Map<String, Object> args, Class<T> tClass) {
         return RawSqlQuery(query, args, reader -> ReadObject(reader, 1, tClass));
     }
-    public <T>List<T> RawSqlQuery(String query, Map<String, Object> args, system.Func1<ResultSet, T> reader) {
+    public <T>List<T> RawSqlQuery(String query, Map<String, Object> args, Func1<ResultSet, T> reader) {
         List<T> ret = new ArrayList<>();
         Connection conn = toMySQL();
-        system.Toast1<String> _sql = system.toast(query);
+        Toast1<String> _sql = Toast.of(query);
         try (PreparedStatement stmt = prepareStatement(conn, _sql, args); ResultSet set = stmt.executeQuery()) {
             while (set.next()) ret.add(reader.invoke(set));
         } catch (Exception e) {

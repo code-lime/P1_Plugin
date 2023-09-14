@@ -33,7 +33,9 @@ import org.lime.gp.database.rows.DiscordRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.TabManager;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.web;
 
 import java.util.*;
@@ -77,7 +79,7 @@ public class Discord implements Listener {
                                                     return;
                                                 }
                                             }
-                                            system.LockToast2<Boolean, Message> convertBIF = system.<Boolean, Message>toast(false, null).lock();
+                                            LockToast2<Boolean, Message> convertBIF = Toast.lock(false, null);
                                             Methods.recorderFill(row.uuid, type, attachment.getUrl(), attachment.getFileName(), (action, reason) -> {
                                                 if (action == Methods.SoundFillStart.CONVERT_BIF) {
                                                     convertBIF.invoke(kv -> {
@@ -151,7 +153,7 @@ public class Discord implements Listener {
                                 .add("discord_id", String.valueOf(discord_id));
                         LangMessages.Message.Discord_Check.sendMessage(player, args);
 
-                        auth_callback.put(uuid, system.toast(() -> Methods.addDiscord(discord_id, uuid, () -> {
+                        auth_callback.put(uuid, Toast.of(() -> Methods.addDiscord(discord_id, uuid, () -> {
                             e.getMessage().reply("<@"+discord_id+"> связан с ником " + nickName).queue(TIMED_MESSAGE);
 
                             Player __player = Bukkit.getPlayer(uuid);
@@ -233,7 +235,7 @@ public class Discord implements Listener {
                                     ).build();
                             jda.addEventListener(ListenDS.discordsrvListener);
                         })
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("debug", false)
                                 .add("update", 5 * 20)
                                 .add("token", "")
@@ -257,14 +259,14 @@ public class Discord implements Listener {
     private static String lastStatus = "";
     public static void init() {
         AnyEvent.addEvent("discord.auth", AnyEvent.type.none, player -> {
-            system.Toast2<system.Action0, Long> callback = auth_callback.remove(player.getUniqueId());
+            Toast2<Action0, Long> callback = auth_callback.remove(player.getUniqueId());
             if (callback == null) return;
             callback.val0.invoke();
             UUID uuid = player.getUniqueId();
             lime.once(() -> updateSingle(uuid), 3);
         });
         AnyEvent.addEvent("discord.cancel", AnyEvent.type.none, player -> {
-            system.Toast2<system.Action0, Long> callback = auth_callback.remove(player.getUniqueId());
+            Toast2<Action0, Long> callback = auth_callback.remove(player.getUniqueId());
             if (callback == null) return;
             LangMessages.Message.Discord_Cancel.sendMessage(player);
         });
@@ -467,7 +469,7 @@ public class Discord implements Listener {
     @EventHandler public static void onJoin(PlayerJoinEvent e) { updateSingle(e.getPlayer().getUniqueId()); }
     @EventHandler public static void onLeave(PlayerQuitEvent e) { updateSingle(e.getPlayer().getUniqueId()); }
 
-    private static final HashMap<UUID, system.Toast2<system.Action0, Long>> auth_callback = new HashMap<>();
+    private static final HashMap<UUID, Toast2<Action0, Long>> auth_callback = new HashMap<>();
 
     public static void sendMessageToChannel(long channelID, String message) {
         JDA jda = getJDA();
@@ -479,7 +481,7 @@ public class Discord implements Listener {
         sendMessageToWebhook(webhook, message, true);
     }
     public static void sendMessageToWebhook(String webhook, String message, boolean async) {
-        var executor = web.method.POST.create(webhook, system.json.object().add("content", message).build().toString())
+        var executor = web.method.POST.create(webhook, json.object().add("content", message).build().toString())
                 .header("Content-Type", "application/json")
                 .none();
         if (async) executor.executeAsync((v,a) -> {});

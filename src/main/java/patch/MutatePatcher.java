@@ -38,7 +38,8 @@ import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.MovingObjectPositionEntity;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
 
@@ -50,11 +51,11 @@ class MutatePatcher {
     private static final String OBJECT_CONSTRUCTOR = "<init>";
 
     public static void patch(JarArchive version_archive, JarArchive bukkit_archive, JarArchive plugin_archive) {
-        Native.log("TEST: " + Native.infoFromLambda(system.func(ItemCustomTool::new)));
+        Native.log("TEST: " + Native.infoFromLambda(Execute.func(ItemCustomTool::new)));
 
         Native.log("Modify "+bukkit_archive.name+" jar...");
         bukkit_archive
-                .patchMethod(IMethodFilter.of(system.func(org.bukkit.inventory.ItemStack::getMaxStackSize)),
+                .patchMethod(IMethodFilter.of(Execute.func(org.bukkit.inventory.ItemStack::getMaxStackSize)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
@@ -135,12 +136,12 @@ class MutatePatcher {
                                 }).toArray());
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.func(CraftItemStack::getMaxStackSize)),
+                .patchMethod(IMethodFilter.of(Execute.func(CraftItemStack::getMaxStackSize)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
-                                Native.writeMethod(system.func(ItemStackSizeEvent::call_getMaxStackSizeBukkit), visitor::visitMethodInsn);
+                                Native.writeMethod(Execute.func(ItemStackSizeEvent::call_getMaxStackSizeBukkit), visitor::visitMethodInsn);
                                 /*visitor.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/item/ItemStackSizeEvent",
@@ -158,12 +159,12 @@ class MutatePatcher {
 
         version_archive
                 .of(net.minecraft.world.item.ItemStack.class)
-                .patchMethod(IMethodFilter.of(system.func(net.minecraft.world.item.ItemStack::getMaxStackSize)),
+                .patchMethod(IMethodFilter.of(Execute.func(net.minecraft.world.item.ItemStack::getMaxStackSize)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
-                                Native.writeMethod(system.func(ItemStackSizeEvent::call_getMaxStackSizeNMS), visitor::visitMethodInsn);
+                                Native.writeMethod(Execute.func(ItemStackSizeEvent::call_getMaxStackSizeNMS), visitor::visitMethodInsn);
                                 /*visitor.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/item/ItemStackSizeEvent",
@@ -178,12 +179,12 @@ class MutatePatcher {
                                 Native.log("Replace full method");
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.func(net.minecraft.world.item.ItemStack::getMaxDamage)),
+                .patchMethod(IMethodFilter.of(Execute.func(net.minecraft.world.item.ItemStack::getMaxDamage)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
-                                Native.writeMethod(system.func(ItemMaxDamageEvent::call_getMaxDamage), visitor::visitMethodInsn);
+                                Native.writeMethod(Execute.func(ItemMaxDamageEvent::call_getMaxDamage), visitor::visitMethodInsn);
                                 /*visitor.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/item/ItemMaxDamageEvent",
@@ -202,12 +203,12 @@ class MutatePatcher {
 
         version_archive
                 .of(EntityLiving.class)
-                .patchMethod(IMethodFilter.of(system.func(EntityLiving::getEquipmentSlotForItem)),
+                .patchMethod(IMethodFilter.of(Execute.func(EntityLiving::getEquipmentSlotForItem)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitInsn(int opcode) {
                                 if (opcode == Opcodes.ARETURN) {
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
-                                    Native.writeMethod(system.func(EntityEquipmentSlotEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(EntityEquipmentSlotEvent::execute), super::visitMethodInsn);
                                     /*super.visitMethodInsn(
                                             Opcodes.INVOKESTATIC,
                                             "net/minecraft/world/entity/EntityEquipmentSlotEvent",
@@ -220,14 +221,14 @@ class MutatePatcher {
                                 super.visitInsn(opcode);
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.func(EntityLiving::isDamageSourceBlocked)),
+                .patchMethod(IMethodFilter.of(Execute.func(EntityLiving::isDamageSourceBlocked)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
 
                                 visitor.visitVarInsn(Opcodes.ALOAD, 0);
                                 visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                                Native.writeMethod(system.func(DamageSourceBlockEvent::execute), visitor::visitMethodInsn);
+                                Native.writeMethod(Execute.func(DamageSourceBlockEvent::execute), visitor::visitMethodInsn);
                                 /*visitor.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/entity/DamageSourceBlockEvent",
@@ -243,7 +244,7 @@ class MutatePatcher {
                                 Native.log("Replace full method");
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.func(EntityLiving::canDisableShield)),
+                .patchMethod(IMethodFilter.of(Execute.func(EntityLiving::canDisableShield)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
@@ -259,7 +260,7 @@ class MutatePatcher {
 
         version_archive
                 .of(EntityHuman.class)
-                .patchMethod(IMethodFilter.of(system.action(EntityHuman::attack)),
+                .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::attack)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int index = 0;
                             private int var_flag = 0;
@@ -269,7 +270,7 @@ class MutatePatcher {
                                     index++;
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
                                     super.visitVarInsn(Opcodes.ILOAD, var_flag);
-                                    Native.writeMethod(system.func(EntityAttackSweepEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(EntityAttackSweepEvent::execute), super::visitMethodInsn);
                                     super.visitVarInsn(Opcodes.ISTORE, var_flag);
                                     Native.log("Event added `EntityAttackSweepEvent`");
                                 }
@@ -289,7 +290,7 @@ class MutatePatcher {
                             private int critical = 0;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-                                if (critical == 0 && Native.isMethod(system.func(EntityHuman::isSprinting), owner, name, descriptor)) {
+                                if (critical == 0 && Native.isMethod(Execute.func(EntityHuman::isSprinting), owner, name, descriptor)) {
                                     critical = 1;
                                 }
                             }
@@ -300,15 +301,15 @@ class MutatePatcher {
                                     critical = 2;
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
                                     super.visitVarInsn(Opcodes.ALOAD, 1);
-                                    Native.writeMethod(system.func(PlayerAttackMultiplyCriticalEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(PlayerAttackMultiplyCriticalEvent::execute), super::visitMethodInsn);
                                     Native.log("Event added `PlayerAttackMultiplyCriticalEvent`");
                                 }
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.action(EntityHuman::tick)),
+                .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::tick)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                                if (Native.isMethod(system.func(net.minecraft.world.item.ItemStack::isSame), owner, name, descriptor)) {
+                                if (Native.isMethod(Execute.func(net.minecraft.world.item.ItemStack::isSame), owner, name, descriptor)) {
                                     super.visitInsn(Opcodes.POP2);
                                     super.visitInsn(Opcodes.ICONST_0);
                                     Native.log("Same removed");
@@ -317,12 +318,12 @@ class MutatePatcher {
                                 }
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.action(EntityHuman::resetAttackStrengthTicker)),
+                .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::resetAttackStrengthTicker)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitInsn(int opcode) {
                                 if (opcode == Opcodes.RETURN) {
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
-                                    Native.writeMethod(system.action(PlayerAttackStrengthResetEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.action(PlayerAttackStrengthResetEvent::execute), super::visitMethodInsn);
                                     /*super.visitMethodInsn(
                                             Opcodes.INVOKESTATIC,
                                             "net/minecraft/world/entity/player/PlayerAttackStrengthResetEvent",
@@ -338,7 +339,7 @@ class MutatePatcher {
                 .patch();
 
         version_archive
-                .patchMethod(IMethodFilter.of(system.func(EntityCaveSpider::doHurtTarget)),
+                .patchMethod(IMethodFilter.of(Execute.func(EntityCaveSpider::doHurtTarget)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitIntInsn(int opcode, int operand) {
                                 if (opcode == Opcodes.BIPUSH) {
@@ -348,15 +349,15 @@ class MutatePatcher {
                                 super.visitIntInsn(opcode, operand);
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.func(RecipeRepair::assemble)),
+                .patchMethod(IMethodFilter.of(Execute.func(RecipeRepair::assemble)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int index = 0;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                                if (opcode == Opcodes.INVOKEVIRTUAL && Native.isMethod(system.func(Item::canBeDepleted), owner, name, descriptor)) {
+                                if (opcode == Opcodes.INVOKEVIRTUAL && Native.isMethod(Execute.func(Item::canBeDepleted), owner, name, descriptor)) {
                                     index++;
-                                } else if (opcode == Opcodes.INVOKEVIRTUAL && index == 2 && Native.isMethod(system.func(net.minecraft.world.item.ItemStack::getItem), owner, name, descriptor)) {
+                                } else if (opcode == Opcodes.INVOKEVIRTUAL && index == 2 && Native.isMethod(Execute.func(net.minecraft.world.item.ItemStack::getItem), owner, name, descriptor)) {
                                     index++;
-                                    Native.writeMethod(system.func(ItemMaxDamageEvent::call_getMaxDamageItem), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(ItemMaxDamageEvent::call_getMaxDamageItem), super::visitMethodInsn);
                                     /*super.visitMethodInsn(
                                             Opcodes.INVOKESTATIC,
                                             "net/minecraft/world/item/ItemMaxDamageEvent",
@@ -374,11 +375,11 @@ class MutatePatcher {
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int index = 0;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                                if (opcode == Opcodes.INVOKEVIRTUAL && Native.isMethod(system.action(ContainerGrindstone::broadcastChanges), owner, name, descriptor)) {
+                                if (opcode == Opcodes.INVOKEVIRTUAL && Native.isMethod(Execute.action(ContainerGrindstone::broadcastChanges), owner, name, descriptor)) {
                                     index++;
-                                } else if (opcode == Opcodes.INVOKEVIRTUAL && index == 2 && Native.isMethod(system.func(net.minecraft.world.item.ItemStack::getItem), owner, name, descriptor)) {
+                                } else if (opcode == Opcodes.INVOKEVIRTUAL && index == 2 && Native.isMethod(Execute.func(net.minecraft.world.item.ItemStack::getItem), owner, name, descriptor)) {
                                     index++;
-                                    Native.writeMethod(system.func(ItemMaxDamageEvent::call_getMaxDamageItem), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(ItemMaxDamageEvent::call_getMaxDamageItem), super::visitMethodInsn);
                                     /*super.visitMethodInsn(
                                             Opcodes.INVOKESTATIC,
                                             "net/minecraft/world/item/ItemMaxDamageEvent",
@@ -392,7 +393,7 @@ class MutatePatcher {
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.action(BiomeSettings::addDefaultMonsterRoom)),
+                .patchMethod(IMethodFilter.of(Execute.action(BiomeSettings::addDefaultMonsterRoom)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
@@ -429,7 +430,7 @@ class MutatePatcher {
                         super.visitEnd();
                     }
                 }), Opcodes.ACC_PUBLIC, "nativeData", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(NBTTagCompound.class)), "", new String[0])
-                .patchMethod(IMethodFilter.of(system.action(FoodMetaData::readAdditionalSaveData)),
+                .patchMethod(IMethodFilter.of(Execute.action(FoodMetaData::readAdditionalSaveData)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int index = 0;
                             @Override public void visitLineNumber(int line, Label start) {
@@ -438,7 +439,7 @@ class MutatePatcher {
                                 index++;
                                 super.visitVarInsn(Opcodes.ALOAD, 0);
                                 super.visitVarInsn(Opcodes.ALOAD, 1);
-                                Native.writeMethod(system.action(IFoodNative::readNativeSaveData), super::visitMethodInsn);
+                                Native.writeMethod(Execute.action(IFoodNative::readNativeSaveData), super::visitMethodInsn);
                                 /*super.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/food/IFoodNative",
@@ -449,7 +450,7 @@ class MutatePatcher {
                                 Native.log("Native added");
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.action(FoodMetaData::addAdditionalSaveData)),
+                .patchMethod(IMethodFilter.of(Execute.action(FoodMetaData::addAdditionalSaveData)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int index = 0;
                             @Override public void visitLineNumber(int line, Label start) {
@@ -458,7 +459,7 @@ class MutatePatcher {
                                 index++;
                                 super.visitVarInsn(Opcodes.ALOAD, 0);
                                 super.visitVarInsn(Opcodes.ALOAD, 1);
-                                Native.writeMethod(system.action(IFoodNative::addNativeSaveData), super::visitMethodInsn);
+                                Native.writeMethod(Execute.action(IFoodNative::addNativeSaveData), super::visitMethodInsn);
                                 /*super.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/food/IFoodNative",
@@ -472,7 +473,7 @@ class MutatePatcher {
                 .patch();
 
         version_archive
-                .patchMethod(IMethodFilter.of(system.action(BlockSnow::randomTick)),
+                .patchMethod(IMethodFilter.of(Execute.action(BlockSnow::randomTick)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
@@ -481,7 +482,7 @@ class MutatePatcher {
                                 visitor.visitIntInsn(Opcodes.ALOAD, 2);
                                 visitor.visitIntInsn(Opcodes.ALOAD, 3);
                                 visitor.visitIntInsn(Opcodes.ALOAD, 4);
-                                Native.writeMethod(system.action(BlockSnowTickEvent::execute), visitor::visitMethodInsn);
+                                Native.writeMethod(Execute.action(BlockSnowTickEvent::execute), visitor::visitMethodInsn);
                                 /*visitor.visitMethodInsn(
                                         Opcodes.INVOKESTATIC,
                                         "net/minecraft/world/level/block/BlockSnowTickEvent",
@@ -502,17 +503,17 @@ class MutatePatcher {
                                 Native.log("Replace full method");
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.action(WorldServer::tickChunk)),
+                .patchMethod(IMethodFilter.of(Execute.action(WorldServer::tickChunk)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             private int snowAccumulation = 0;
                             @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
                                 if (opcode == Opcodes.GETSTATIC) {
-                                    if (Native.isField(system.func(() -> Blocks.ICE), owner, name, descriptor)) {
-                                        Native.FieldInfo FROSTED_ICE = Native.infoFromField(system.func(() -> Blocks.FROSTED_ICE));
+                                    if (Native.isField(Execute.func(() -> Blocks.ICE), owner, name, descriptor)) {
+                                        Native.FieldInfo FROSTED_ICE = Native.infoFromField(Execute.func(() -> Blocks.FROSTED_ICE));
                                         super.visitFieldInsn(opcode, FROSTED_ICE.owner(), FROSTED_ICE.name(), FROSTED_ICE.descriptor());
                                         Native.log("Replace ice");
                                         return;
-                                    } else if (snowAccumulation == 0 && Native.isField(system.func(() -> GameRules.RULE_SNOW_ACCUMULATION_HEIGHT), owner, name, descriptor)) {
+                                    } else if (snowAccumulation == 0 && Native.isField(Execute.func(() -> GameRules.RULE_SNOW_ACCUMULATION_HEIGHT), owner, name, descriptor)) {
                                         snowAccumulation = 1;
                                         Native.log("SnowAccumulation: 0 -> 1");
                                     }
@@ -534,7 +535,7 @@ class MutatePatcher {
                                     super.visitIntInsn(Opcodes.ALOAD, 0);
                                     super.visitIntInsn(Opcodes.ALOAD, 1);
                                     super.visitIntInsn(Opcodes.ILOAD, maxHeightVar);
-                                    Native.writeMethod(system.action(SnowAccumulationHeightEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.action(SnowAccumulationHeightEvent::execute), super::visitMethodInsn);
                                     super.visitIntInsn(Opcodes.ISTORE, maxHeightVar);
                                     snowAccumulation = 3;
                                     Native.log("SnowAccumulation: 2 -> 3");
@@ -544,13 +545,13 @@ class MutatePatcher {
                                 super.visitInsn(opcode);
                             }
                         }))
-                .patchMethod(IMethodFilter.of(system.func(BiomeBase::getTemperature)),
+                .patchMethod(IMethodFilter.of(Execute.func(BiomeBase::getTemperature)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitInsn(int opcode) {
                                 if (opcode == Opcodes.FRETURN) {
                                     super.visitIntInsn(Opcodes.ALOAD, 0);
                                     super.visitIntInsn(Opcodes.ALOAD, 1);
-                                    Native.writeMethod(system.action(BiomeTemperatureEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.action(BiomeTemperatureEvent::execute), super::visitMethodInsn);
                                     /*super.visitMethodInsn(
                                             Opcodes.INVOKESTATIC,
                                             "net/minecraft/world/level/biome/BiomeTemperatureEvent",
@@ -588,15 +589,15 @@ class MutatePatcher {
                             }
 
                             private interface CarrotAction<T extends Entity & ISteerable>
-                                    extends system.Func3<Item.Info, EntityTypes<T>, Integer, ItemCarrotStick<T>> { }
+                                    extends Func3<Item.Info, EntityTypes<T>, Integer, ItemCarrotStick<T>> { }
 
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                                if (opcode == Opcodes.INVOKESPECIAL && Native.isMethod(system.func(InstrumentItem::new), owner, name, descriptor)) {
-                                    Native.writeMethod(system.func(InstrumentSoundItem::new), super::visitMethodInsn);
+                                if (opcode == Opcodes.INVOKESPECIAL && Native.isMethod(Execute.func(InstrumentItem::new), owner, name, descriptor)) {
+                                    Native.writeMethod(Execute.func(InstrumentSoundItem::new), super::visitMethodInsn);
                                     Native.log("Replace 'InstrumentItem::new' to 'InstrumentSoundItem::new'");
                                     return;
                                 } else if (isWarped && opcode == Opcodes.INVOKESPECIAL && Native.isMethod((CarrotAction<?>)ItemCarrotStick::new, owner, name, descriptor)) {
-                                    Native.writeMethod(system.func(ItemCustomTool::new), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(ItemCustomTool::new), super::visitMethodInsn);
                                     Native.log("Replace 'ItemCarrotStick::new' to 'ItemCustomTool::new'");
                                     isWarped = false;
                                     return;
@@ -610,7 +611,7 @@ class MutatePatcher {
                                 if (value instanceof Float raw && raw == 8.0) {
                                     super.visitIntInsn(Opcodes.ALOAD, 0);
                                     super.visitIntInsn(Opcodes.ALOAD, 1);
-                                    Native.writeMethod(system.func(EntityTridentBaseDamageEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(EntityTridentBaseDamageEvent::execute), super::visitMethodInsn);
                                     /*super.visitMethodInsn(
                                             Opcodes.INVOKESTATIC,
                                             "net/minecraft/world/entity/projectile/EntityTridentBaseDamageEvent",
@@ -633,7 +634,7 @@ class MutatePatcher {
                             int var_damage = -1;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-                                if (critical == 0 && Native.isMethod(system.func(EntityArrow::isCritArrow), owner, name, descriptor))
+                                if (critical == 0 && Native.isMethod(Execute.func(EntityArrow::isCritArrow), owner, name, descriptor))
                                     critical = 1;
                             }
 
@@ -659,7 +660,7 @@ class MutatePatcher {
                                     super.visitVarInsn(Opcodes.ILOAD, var_damage);
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
                                     super.visitVarInsn(Opcodes.ALOAD, 1);
-                                    Native.writeMethod(system.func(PlayerArrowCriticalEvent::execute), super::visitMethodInsn);
+                                    Native.writeMethod(Execute.func(PlayerArrowCriticalEvent::execute), super::visitMethodInsn);
                                     Native.log("Event added `PlayerArrowCriticalEvent`");
                                     super.visitVarInsn(Opcodes.ISTORE, var_damage);
                                 }
@@ -696,7 +697,7 @@ L14
 FRAME SAME
                             */
                         }))
-                .patchMethod(IMethodFilter.of(system.func(EntityStrider::getControllingPassenger)),
+                .patchMethod(IMethodFilter.of(Execute.func(EntityStrider::getControllingPassenger)),
                         MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
                             @Override public void visitCode() {
                                 visitor.visitCode();
@@ -709,7 +710,7 @@ FRAME SAME
                             }
                         }));
 
-        for (system.Action1<CommandDispatcher<CommandListenerWrapper>> method : List.<system.Action1<CommandDispatcher<CommandListenerWrapper>>>of(
+        for (Action1<CommandDispatcher<CommandListenerWrapper>> method : List.<Action1<CommandDispatcher<CommandListenerWrapper>>>of(
                 CommandMe::register,
                 CommandTell::register,
                 CommandTeamMsg::register,

@@ -6,8 +6,11 @@ import java.util.stream.Stream;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.item.Items;
+import org.lime.system.utils.RandomUtils;
 
 public interface Checker {
     default boolean check(ItemStack item) { return Items.getGlobalKeyByItem(item).map(this::check).orElse(false); }
@@ -19,7 +22,7 @@ public interface Checker {
 
     Optional<IItemCreator> getRandomCreator();
 
-    static Checker createCheck(system.Func1<String, Boolean> filter) {
+    static Checker createCheck(Func1<String, Boolean> filter) {
         return new Checker() {
             private Set<String> keys = Collections.emptySet();
             private Set<Material> whitelist = Collections.emptySet();
@@ -64,16 +67,16 @@ public interface Checker {
             }
             @Override public Optional<IItemCreator> getRandomCreator() {
                 tryReload();
-                return creators.isEmpty() ? Optional.empty() : Optional.of(system.rand(creators));
+                return creators.isEmpty() ? Optional.empty() : Optional.of(RandomUtils.rand(creators));
             }
         };
     }
 
     static Checker createCheck(Collection<String> regexList) {
-        return createCheck(value -> regexList.stream().anyMatch(regex -> system.compareRegex(value, regex)));
+        return createCheck(value -> regexList.stream().anyMatch(regex -> Regex.compareRegex(value, regex)));
     }
     static Checker createCheck(String regex) {
-        return createCheck(value -> system.compareRegex(value, regex));
+        return createCheck(value -> Regex.compareRegex(value, regex));
     }
     static Checker empty() {
         return new Checker() {

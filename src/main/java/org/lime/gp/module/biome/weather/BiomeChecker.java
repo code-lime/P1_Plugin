@@ -7,7 +7,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.biome.BiomeBase;
 import org.bukkit.block.Biome;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,7 +29,7 @@ public interface BiomeChecker {
 
     IRegistry<BiomeBase> BIOMES = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
 
-    static BiomeChecker createCheck(system.Func1<String, Boolean> filter) {
+    static BiomeChecker createCheck(Func1<String, Boolean> filter) {
         HashSet<String> keys = new HashSet<>();
         HashSet<BiomeBase> list = new HashSet<>();
         BIOMES.entrySet()
@@ -46,12 +48,12 @@ public interface BiomeChecker {
     }
 
     static BiomeChecker createCheck(Collection<String> regexList) {
-        BiomeChecker checker = createCheck(value -> regexList.stream().anyMatch(regex -> system.compareRegex(value, regex)));
+        BiomeChecker checker = createCheck(value -> regexList.stream().anyMatch(regex -> Regex.compareRegex(value, regex)));
         if (checker.isEmpty()) lime.logOP("Biome in list "+(regexList.isEmpty() ? "[]" : ("p'"+String.join("', '", regexList)+"']"))+" is EMPTY. Maybe error...");
         return checker;
     }
     static BiomeChecker createCheck(String regex) {
-        BiomeChecker checker = createCheck(value -> system.compareRegex(value, regex));
+        BiomeChecker checker = createCheck(value -> Regex.compareRegex(value, regex));
         if (checker.isEmpty()) lime.logOP("Biome in '"+regex+"' is EMPTY. Maybe error...");
         return checker;
     }

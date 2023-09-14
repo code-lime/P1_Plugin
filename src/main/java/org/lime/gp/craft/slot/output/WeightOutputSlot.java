@@ -2,7 +2,7 @@ package org.lime.gp.craft.slot.output;
 
 import com.google.gson.JsonObject;
 import net.minecraft.world.item.ItemStack;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public class WeightOutputSlot implements IOutputSlot {
     }
 
     private IOutputSlot random() {
-        double value = system.rand(0, totalWeight);
+        double value = RandomUtils.rand(0, totalWeight);
         for (WeightData item : weights) {
             value -= item.weight;
             if (value <= 0) return item.item;

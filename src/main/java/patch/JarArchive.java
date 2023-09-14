@@ -1,6 +1,7 @@
 package patch;
 
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.objectweb.asm.*;
 
 import java.io.ByteArrayInputStream;
@@ -70,7 +71,7 @@ public class JarArchive {
         return of(filter.tClass()).patchMethod(filter, patcher).patch();
     }
 
-    public <T>JarArchive patch(Class<T> tClass, system.Func1<ClassWriter, ClassVisitor> visitor) {
+    public <T>JarArchive patch(Class<T> tClass, Func1<ClassWriter, ClassVisitor> visitor) {
         String className = Native.classFile(tClass);
         Optional.ofNullable(this.entries.get(className))
                 .ifPresentOrElse(bytes -> {

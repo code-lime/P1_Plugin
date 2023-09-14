@@ -12,7 +12,9 @@ import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.IterableUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,12 +46,12 @@ public class Sounds {
                         : location
                 ), () -> lime.logOP("Sound '"+key+"' not founded!"));
     }
-    private static final List<system.Func1<Integer, Optional<IReplaceInfo>>> mapper = new ArrayList<>();
-    public static void registryReplaceEntity(system.Func1<Integer, Optional<IReplaceInfo>> mapper) {
+    private static final List<Func1<Integer, Optional<IReplaceInfo>>> mapper = new ArrayList<>();
+    public static void registryReplaceEntity(Func1<Integer, Optional<IReplaceInfo>> mapper) {
         Sounds.mapper.add(mapper);
     }
     private static Optional<IReplaceInfo> getMappedInfo(int id) {
-        for (system.Func1<Integer, Optional<IReplaceInfo>> item : mapper) {
+        for (Func1<Integer, Optional<IReplaceInfo>> item : mapper) {
             Optional<IReplaceInfo> result = item.invoke(id);
             if (result.isEmpty()) continue;
             return result;
@@ -69,7 +71,7 @@ public class Sounds {
                 .stream()
                 .flatMap(v -> v.getValue().getAsJsonObject().entrySet().stream())
                 .flatMap(v -> v.getValue().getAsJsonObject().entrySet().stream())
-                .filter(system.distinctBy(Map.Entry::getKey))
+                .filter(IterableUtils.distinctBy(Map.Entry::getKey))
                 .forEach(kv -> {
                     try {
                         sounds.put(kv.getKey(), ISound.parse(sounds, kv.getValue()));
@@ -82,7 +84,7 @@ public class Sounds {
         Sounds.sounds.putAll(sounds);
     }
 
-    private static final system.LockToast1<Integer> ignoringEntitySound = system.toast(0).lock();
+    private static final LockToast1<Integer> ignoringEntitySound = Toast.of(0).lock();
     private static void onPacket(PacketPlayOutEntitySound packet, PacketEvent event) {
         if (ignoringEntitySound.get0() > 0) return;
         replaceSound(packet.getSound().value())
@@ -100,7 +102,7 @@ public class Sounds {
                 });
     }
 
-    private static final system.LockToast1<Integer> ignoringNamedSound = system.toast(0).lock();
+    private static final LockToast1<Integer> ignoringNamedSound = Toast.of(0).lock();
     private static void onPacket(PacketPlayOutNamedSoundEffect packet, PacketEvent event) {
         if (ignoringNamedSound.get0() > 0) return;
         replaceSound(packet.getSound().value())

@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
@@ -27,7 +26,8 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.WaterRecyclerComponent;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.utils.MathUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,8 +50,8 @@ public class WaterRecyclerInstance extends BlockInstance implements CustomTileMe
         double maxDeltaLevel = Math.min(waterLevel, component.inTickLevel);
         if (maxDeltaLevel <= 0) return;
         maxDeltaLevel = Math.min(Math.min(component.totalClearLevel - clearLevel, maxDeltaLevel), component.inTickLevel);
-        clearLevel = system.round(Math.min(clearLevel + maxDeltaLevel, component.totalClearLevel), 5);
-        waterLevel = system.round(Math.max(waterLevel - maxDeltaLevel, 0), 5);
+        clearLevel = MathUtils.round(Math.min(clearLevel + maxDeltaLevel, component.totalClearLevel), 5);
+        waterLevel = MathUtils.round(Math.max(waterLevel - maxDeltaLevel, 0), 5);
         syncDisplayVariable();
         saveData();
     }
@@ -60,8 +60,8 @@ public class WaterRecyclerInstance extends BlockInstance implements CustomTileMe
         clearLevel = json.getAsDouble("clearLevel").orElse(0.0);
         syncDisplayVariable();
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add("waterLevel", waterLevel)
                 .add("clearLevel", clearLevel);
     }
@@ -111,8 +111,8 @@ public class WaterRecyclerInstance extends BlockInstance implements CustomTileMe
     }
     private void syncDisplayVariable() {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
-            map.put("water_level", "" + (int)Math.ceil(waterLevel));
-            map.put("clear_level", "" + (int)Math.floor(clearLevel));
+            map.put("water_level", String.valueOf((int) Math.ceil(waterLevel)));
+            map.put("clear_level", String.valueOf((int) Math.floor(clearLevel)));
             return true;
         }));
     }

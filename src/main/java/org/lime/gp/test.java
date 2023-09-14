@@ -21,7 +21,9 @@ import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.List;
 
@@ -56,7 +58,7 @@ public class test {
                                         )).add("age", "3")
                                 )
                 )))
-                .add(info -> new ShrubComponent(info, system.json.object()
+                .add(info -> new ShrubComponent(info, json.object()
                         .addObject("age", v -> v
                                 .add("count", 3)
                                 .add("step_ticks", 5 * 20)
@@ -66,7 +68,7 @@ public class test {
                 )
         );
         org.lime.gp.item.Items.addHardcodeItem("test.shrub",
-                system.json.object()
+                json.object()
                         .add("item", "STONE")
                         .add("id", -100)
                         .add("name", "Test Shrub")
@@ -95,14 +97,14 @@ public class test {
                                         )).add("has", "true")
                                 )
                 )))
-                .add(info -> new CropsComponent(info, system.json.object()
+                .add(info -> new CropsComponent(info, json.object()
                         .add("offset", "0 0 0")
                         .add("filter", "test.crops")
                         .build())
                 )
         );
         org.lime.gp.item.Items.addHardcodeItem("test.crops",
-                system.json.object()
+                json.object()
                         .add("item", "STONE")
                         .add("id", -101)
                         .add("name", "Test Crops")
@@ -116,7 +118,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.seed.1",
-                system.json.object()
+                json.object()
                         .add("item", "FEATHER")
                         .add("id", -102)
                         .add("name", "Test Seed 1")
@@ -146,7 +148,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.seed.2",
-                system.json.object()
+                json.object()
                         .add("item", "FEATHER")
                         .add("id", -103)
                         .add("name", "Test Seed 2")
@@ -188,7 +190,7 @@ public class test {
                                         ))
                                 )
                 )))
-                .add(info -> new WaitingComponent(info, system.json.object()
+                .add(info -> new WaitingComponent(info, json.object()
                         .add("progress", 5)
                         .add("max_count", 3)
                         .add("type", "test.waiting.thirst")
@@ -196,7 +198,7 @@ public class test {
                 )
         );
         org.lime.gp.item.Items.addHardcodeItem("test.waiting.item.water",
-                system.json.object()
+                json.object()
                         .add("item", Material.POTION.name())
                         .add("id", -100)
                         .add("name", "test.waiting.item.water")
@@ -209,7 +211,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.waiting.item.water.ignore",
-                system.json.object()
+                json.object()
                         .add("item", Material.POTION.name())
                         .add("id", -101)
                         .add("name", "test.waiting.item.water.ignore")
@@ -222,7 +224,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.waiting.item.single",
-                system.json.object()
+                json.object()
                         .add("item", Material.STONE.name())
                         .add("id", -102)
                         .add("name", "test.waiting.item.single")
@@ -259,7 +261,7 @@ public class test {
 
     private static void enableArmorTags() {
         org.lime.gp.item.Items.addHardcodeItem("test.armor.tag1",
-                system.json.object()
+                json.object()
                         .add("item", Material.GRASS_BLOCK.name())
                         .add("id", -100)
                         .add("name", "test.armor.tag1")
@@ -270,7 +272,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.armor.tag2",
-                system.json.object()
+                json.object()
                         .add("item", Material.DIRT_PATH.name())
                         .add("id", -101)
                         .add("name", "test.armor.tag2")
@@ -292,7 +294,7 @@ public class test {
                                         ))
                                 )
                 )))
-                .add(info -> new LimitComponent(info, system.json.object()
+                .add(info -> new LimitComponent(info, json.object()
                         .add("type", "test_limit_3")
                         .build())
                 )
@@ -306,7 +308,7 @@ public class test {
                                         ))
                                 )
                 )))
-                .add(info -> new LimitComponent(info, system.json.object()
+                .add(info -> new LimitComponent(info, json.object()
                         .add("type", "test_limit_3")
                         .build())
                 )
@@ -320,13 +322,13 @@ public class test {
                                         ))
                                 )
                 )))
-                .add(info -> new LimitComponent(info, system.json.object()
+                .add(info -> new LimitComponent(info, json.object()
                         .add("type", "test_limit_4")
                         .build())
                 )
         );
         org.lime.gp.item.Items.addHardcodeItem("test.limit.3",
-                system.json.object()
+                json.object()
                         .add("item", Material.STRUCTURE_BLOCK.name())
                         .add("id", -100)
                         .add("name", "Test Limit (3)")
@@ -344,7 +346,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.limit.3.double",
-                system.json.object()
+                json.object()
                         .add("item", Material.STRUCTURE_BLOCK.name())
                         .add("id", -100)
                         .add("name", "Test Limit (3) Double")
@@ -362,7 +364,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.limit.4",
-                system.json.object()
+                json.object()
                         .add("item", Material.STRUCTURE_BLOCK.name())
                         .add("id", -101)
                         .add("name", "Test Limit (4)")
@@ -382,7 +384,7 @@ public class test {
     }
     private static void enableLevelMutate() {
         org.lime.gp.item.Items.addHardcodeItem("test.level.mutate.3",
-                system.json.object()
+                json.object()
                         .add("item", Material.CARROT.name())
                         .add("id", -100)
                         .add("name", "Test Level Mutate (3 sec)")
@@ -394,7 +396,7 @@ public class test {
                         .build()
         );
         org.lime.gp.item.Items.addHardcodeItem("test.level.mutate.10",
-                system.json.object()
+                json.object()
                         .add("item", Material.APPLE.name())
                         .add("id", -101)
                         .add("name", "Test Level Mutate (10 sec)")

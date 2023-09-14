@@ -16,7 +16,9 @@ import net.minecraft.world.level.dimension.DimensionManager;
 import org.bukkit.NamespacedKey;
 import org.lime.gp.extension.JsonNBT;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -74,7 +76,7 @@ public record CustomPacketPlayOutLogin(
         NBTTagCompound registry = BiomeModify.nbt(RegistrySynchronization.NETWORK_CODEC, this.registryHolder);
         NBTTagList list = registry.getCompound("minecraft:worldgen/biome").getList("value", NBTBase.TAG_COMPOUND);
         List<NBTTagCompound> globalList = new ArrayList<>();
-        system.Toast1<Integer> maxID = system.toast(-1);
+        Toast1<Integer> maxID = Toast.of(-1);
         list.forEach(_item -> {
             NBTTagCompound item = (NBTTagCompound) _item;
             maxID.val0 = Math.max(maxID.val0, item.getInt("id"));
@@ -112,7 +114,7 @@ public record CustomPacketPlayOutLogin(
             list.add(vannila);
             list.add(lime);
         });
-        lime.writeAllConfig("tmp.codec", system.toFormat(JsonNBT.toJson(registry)));
+        lime.writeAllConfig("tmp.codec", json.format(JsonNBT.toJson(registry)));
         buf.writeNbt(registry);
 
 

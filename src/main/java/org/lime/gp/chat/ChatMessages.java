@@ -21,7 +21,8 @@ import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.menu.LangEnum;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.FriendRow;
@@ -250,7 +251,7 @@ public class ChatMessages implements Listener {
         }
         UUID uuid = player.getUniqueId();
         UserRow.getBy(uuid).ifPresentOrElse(user -> {
-            system.Action1<Integer> sms = (phone) -> {
+            Action1<Integer> sms = (phone) -> {
                 if (Death.isDamageLay(uuid) && phone != 103) {
                     LangMessages.Message.Sms_Error_Die.sendMessage(player);
                     return;

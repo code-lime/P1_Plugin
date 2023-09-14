@@ -12,7 +12,9 @@ import org.lime.gp.module.JavaScript;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PredonateWhitelist;
 import org.lime.gp.player.perm.Perms;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,13 +41,13 @@ public class Tables {
         KeyedTable.updateAll();
     }
 
-    public static debug getTable(String table, system.Action1<ITable<? extends BaseRow>> callback) {
+    public static debug getTable(String table, Action1<ITable<? extends BaseRow>> callback) {
         if (table.startsWith("!sql "))
             return Methods.SQL.Async.rawSqlQuery(table.substring(5), AnyRow::new,
                     rows -> callback.invoke(new StaticTable<>(rows)));
         if (table.startsWith("!json ")) {
             JavaScript.getJsString(table.substring(6))
-                .map(system.json::parse)
+                .map(json::parse)
                 .ifPresent(json -> {
                     List<AnyRow> rows = new ArrayList<>();
                     json.getAsJsonArray().forEach(item -> {
@@ -67,9 +69,9 @@ public class Tables {
         return KeyedTable.tables.getOrDefault(table, null);
     }
 
-    public static List<system.Toast2<String, String>> getListRow(String prefix, BaseRow row) {
+    public static List<Toast2<String, String>> getListRow(String prefix, BaseRow row) {
         return row.appendToReplace(new HashMap<>()).entrySet().stream()
-                .map(kv -> system.toast(prefix + kv.getKey(), kv.getValue())).collect(Collectors.toList());
+                .map(kv -> Toast.of(prefix + kv.getKey(), kv.getValue())).collect(Collectors.toList());
     }
 
     public static final KeyedTable<AAnyRow> ABAN_TABLE = KeyedTable.of("aban", AAnyRow::new)

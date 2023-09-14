@@ -11,7 +11,9 @@ import org.lime.gp.player.menu.node.connect.input.ObjectInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.StringOutput;
 import org.lime.json.JsonElementOptional;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,17 +31,17 @@ public class ToStringNode extends BaseNode {
     private final int count;
 
     public ToStringNode(int id, int count, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
                 .add(IntStream.range(0, count)
                         .map(v -> v + 1)
-                        .mapToObj(i -> system.<String, system.Func2<String, Optional<JsonElement>, IInput>>toast("value_" + i, (key, def) -> new ObjectInput(key, def.map(JsonElementOptional::of).flatMap(JsonElementOptional::getAsObject).orElse(null))))
+                        .mapToObj(i -> Toast.<String, Func2<String, Optional<JsonElement>, IInput>>of("value_" + i, (key, def) -> new ObjectInput(key, def.map(JsonElementOptional::of).flatMap(JsonElementOptional::getAsObject).orElse(null))))
                         .iterator())
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add("output", ActionOutput::new)
                 .add(IntStream.range(0, count)
                         .map(v -> v + 1)
-                        .mapToObj(i -> system.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>toast("text_" + i, StringOutput::new))
+                        .mapToObj(i -> Toast.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of("text_" + i, StringOutput::new))
                         .iterator())
                 .build());
         this.count = count;

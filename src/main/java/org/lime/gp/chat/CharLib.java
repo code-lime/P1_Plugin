@@ -3,7 +3,7 @@ package org.lime.gp.chat;
 import com.google.gson.JsonObject;
 import org.lime.gp.lime;
 import org.bukkit.entity.Player;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -24,14 +24,14 @@ public final class CharLib {
     static {
         HashMap<Character, Integer> sizeMap = new HashMap<>();
         HashMap<Integer, String> spaceSize = new HashMap<>();
-        
+
         HashMap<Character, Integer> sizeMapMini = new HashMap<>();
         HashMap<Integer, String> spaceSizeMini = new HashMap<>();
 
         try (InputStream stream = lime._plugin.getResource("symbols.json")) {
-            JsonObject json = system.json.parse(new String(stream.readAllBytes())).getAsJsonObject();
-            json.getAsJsonObject("size").entrySet().forEach(kv -> sizeMap.put(kv.getKey().charAt(0), kv.getValue().getAsInt()));
-            json.getAsJsonObject("space").entrySet().forEach(kv -> spaceSize.put(Integer.parseInt(kv.getKey()), kv.getValue().getAsString()));
+            JsonObject _json = json.parse(new String(stream.readAllBytes())).getAsJsonObject();
+            _json.getAsJsonObject("size").entrySet().forEach(kv -> sizeMap.put(kv.getKey().charAt(0), kv.getValue().getAsInt()));
+            _json.getAsJsonObject("space").entrySet().forEach(kv -> spaceSize.put(Integer.parseInt(kv.getKey()), kv.getValue().getAsString()));
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
@@ -40,9 +40,9 @@ public final class CharLib {
         spaceSizeMini.putAll(spaceSize);
 
         try (InputStream stream = lime._plugin.getResource("symbols.mini.json")) {
-            JsonObject json = system.json.parse(new String(stream.readAllBytes())).getAsJsonObject();
-            json.getAsJsonObject("size").entrySet().forEach(kv -> sizeMapMini.put(kv.getKey().charAt(0), kv.getValue().getAsInt()));
-            json.getAsJsonObject("space").entrySet().forEach(kv -> spaceSizeMini.put(Integer.parseInt(kv.getKey()), kv.getValue().getAsString()));
+            JsonObject _json = json.parse(new String(stream.readAllBytes())).getAsJsonObject();
+            _json.getAsJsonObject("size").entrySet().forEach(kv -> sizeMapMini.put(kv.getKey().charAt(0), kv.getValue().getAsInt()));
+            _json.getAsJsonObject("space").entrySet().forEach(kv -> spaceSizeMini.put(Integer.parseInt(kv.getKey()), kv.getValue().getAsString()));
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }

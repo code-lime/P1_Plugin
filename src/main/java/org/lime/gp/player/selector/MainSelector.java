@@ -1,7 +1,8 @@
 package org.lime.gp.player.selector;
 
 import org.lime.Position;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -12,7 +13,7 @@ public abstract class MainSelector extends ISelector {
     public abstract void onCallback(Position mainPos, BlockFace mainFace);
     protected abstract boolean isFilter(Block block);
 
-    public static MainSelector create(system.Func1<Block, Boolean> filter, system.Action2<Position, BlockFace> callback) {
+    public static MainSelector create(Func1<Block, Boolean> filter, Action2<Position, BlockFace> callback) {
         return new MainSelector() {
             @Override public void onCallback(Position mainPos, BlockFace mainFace) { callback.invoke(mainPos, mainFace); }
             @Override protected boolean isFilter(Block block) { return filter.invoke(block); }

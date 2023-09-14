@@ -6,7 +6,6 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
-import org.bukkit.Bukkit;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
@@ -17,7 +16,7 @@ import org.lime.gp.block.component.list.DecayComponent;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.DecayMutateSetting;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 public class DecayInstance extends BlockComponentInstance<DecayComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable, IDisplayVariable {
     public DecayInstance(DecayComponent component, CustomTileMetadata metadata) {
@@ -49,8 +48,8 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
         }
     }
 
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add("decay", decayPercent());
     }
 

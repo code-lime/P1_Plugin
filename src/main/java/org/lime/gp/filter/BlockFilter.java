@@ -11,7 +11,9 @@ import org.bukkit.entity.EntityType;
 import org.lime.gp.filter.data.IFilterData;
 import org.lime.gp.filter.data.IFilterInfo;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -19,7 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class BlockFilter<T extends IFilterData<T>> implements IFilter<T> {
-    private final system.Func1<IBlockData, Boolean> filter;
+    private final Func1<IBlockData, Boolean> filter;
     public BlockFilter(IFilterInfo<T> filterInfo, String argLine) { filter = createBlockTest(argLine); }
     @Override public boolean isFilter(T data) { return data.blockData().map(filter).orElse(false); }
 
@@ -32,7 +34,7 @@ public class BlockFilter<T extends IFilterData<T>> implements IFilter<T> {
 
     private static Set<net.minecraft.world.level.block.Block> blockSet(String regex) {
         Set<Block> blocks = Arrays.stream(Material.values())
-                .filter(system.filterRegex(Material::name, regex)::invoke)
+                .filter(Regex.filterRegex(Material::name, regex)::invoke)
                 .map(CraftMagicNumbers::getBlock)
                 .collect(Collectors.toSet());
         if (blocks.isEmpty()) lime.logOP("Materials in '"+regex+"' is EMPTY! Maybe error...");
@@ -45,7 +47,7 @@ public class BlockFilter<T extends IFilterData<T>> implements IFilter<T> {
             blocks.forEach(block -> {
                 BlockStateList<Block, IBlockData> blockParams = block.getStateDefinition();
                 IBlockState<?> state = blockParams.getProperty(key);
-                system.filterRegex(getAllNames(state), v -> v, regexValue)
+                Regex.filterRegex(getAllNames(state), v -> v, regexValue)
                         .forEach(value -> varProps.put(state, value));
             });
             if (varProps.isEmpty()) lime.logOP("Block '"+blockRegex+"' property '"+key+"' in '"+regexValue+"' is EMPTY! Maybe error...");
@@ -63,13 +65,13 @@ public class BlockFilter<T extends IFilterData<T>> implements IFilter<T> {
         if (types.isEmpty()) lime.logOP("EntityTypes in '"+regex+"' is EMPTY! Maybe error...");
         return types::contains;*/
     }
-    /*private static <T extends Enum<T>>system.Func1<T, Boolean> regexChecker(T[] tClass, String regex) {
+    /*private static <T extends Enum<T>>Func1<T, Boolean> regexChecker(T[] tClass, String regex) {
         Set<T> types = system.filterRegex(List.of(tClass.getEnumConstants()), Enum::name, regex)
                 .collect(Collectors.toSet());
         if (types.isEmpty()) lime.logOP("EntityTypes in '"+regex+"' is EMPTY! Maybe error...");
         return types::contains;
     }*/
-    public static system.Func1<IBlockData, Boolean> createBlockTest(String filterLine) {
+    public static Func1<IBlockData, Boolean> createBlockTest(String filterLine) {
         String[] argArray = filterLine.split(Pattern.quote(";"));
         HashMap<String, String> variable = new HashMap<>();
         for (String argItem : argArray) {

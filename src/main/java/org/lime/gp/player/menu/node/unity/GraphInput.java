@@ -9,7 +9,9 @@ import org.lime.gp.player.menu.node.connect.IInput;
 import org.lime.gp.player.menu.node.connect.IOutput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.ObjectOutput;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -19,21 +21,21 @@ public class GraphInput extends BaseNode {
 
     private static class ObjectDefaultOutput extends ObjectOutput {
         public Object defValue;
-        public ObjectDefaultOutput(String key, List<system.Toast2<Integer, String>> target, Object defValue) {
+        public ObjectDefaultOutput(String key, List<Toast2<Integer, String>> target, Object defValue) {
             super(key, target);
             this.defValue = defValue;
         }
     }
 
     public GraphInput(int id, JsonObject json, NodeCreator.NodeGroup group) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add(group.controlInput.stream()
-                        .map(v -> system.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>toast(v, ActionOutput::new))
+                        .map(v -> Toast.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of(v, ActionOutput::new))
                         .iterator()
                 )
                 .add(group.valueInput.entrySet().stream()
-                        .map(kv -> system.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>toast(kv.getKey(), (key, list) -> new ObjectDefaultOutput(key, list, kv.getValue())))
+                        .map(kv -> Toast.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of(kv.getKey(), (key, list) -> new ObjectDefaultOutput(key, list, kv.getValue())))
                         .iterator()
                 )
                 .build());
@@ -50,7 +52,7 @@ public class GraphInput extends BaseNode {
     public void invokeGraphNode(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable) {
         invokeGraphNode(player, nodes, variable, null);
     }
-    public void invokeGraphNode(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable, system.Action1<Map<String, Object>> graphOutput) {
+    public void invokeGraphNode(Player player, Map<Integer, BaseNode> nodes, Map<String, Object> variable, Action1<Map<String, Object>> graphOutput) {
         Map<Integer, Map<String, Object>> data = new HashMap<>();
         if (graphOutput != null) {
             Map<String, Object> _data = new HashMap<>();

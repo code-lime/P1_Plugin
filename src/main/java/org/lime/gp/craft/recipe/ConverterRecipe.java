@@ -18,7 +18,9 @@ import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.craft.slot.output.RangeOutputSlot;
 import org.lime.gp.item.data.Checker;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +35,8 @@ public class ConverterRecipe extends AbstractRecipe {
 
     public interface IConverterOutput {
         Stream<IOutputSlot> slots();
-        default Stream<system.Toast2<IOutputSlot, Optional<String>>> slotsWithGroups() {
-            return slots().map(v -> system.toast(v, Optional.empty()));
+        default Stream<Toast2<IOutputSlot, Optional<String>>> slotsWithGroups() {
+            return slots().map(v -> Toast.of(v, Optional.empty()));
         }
 
         static IConverterOutput ofString(String str) {
@@ -44,8 +46,8 @@ public class ConverterRecipe extends AbstractRecipe {
         static IConverterOutput ofMap(Map<IOutputSlot, Optional<String>> output) {
             return new IConverterOutput() {
                 @Override public Stream<IOutputSlot> slots() { return output.keySet().stream(); }
-                @Override public Stream<system.Toast2<IOutputSlot, Optional<String>>> slotsWithGroups() {
-                    return output.entrySet().stream().map(v -> system.toast(v.getKey(), v.getValue()));
+                @Override public Stream<Toast2<IOutputSlot, Optional<String>>> slotsWithGroups() {
+                    return output.entrySet().stream().map(v -> Toast.of(v.getKey(), v.getValue()));
                 }
             };
         }
@@ -73,12 +75,12 @@ public class ConverterRecipe extends AbstractRecipe {
     }
 
     @Override public boolean canCraftInDimensions(int i, int j) { return i == 1 && j == 1; }
-    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) { return system.rand(output.slots().toList()).create(false, variable); }
-    @Override public ItemStack getResultItem(IRegistryCustom custom) { return system.rand(output.slots().toList()).create(false, IOutputVariable.empty()); }
+    @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) { return RandomUtils.rand(output.slots().toList()).create(false, variable); }
+    @Override public ItemStack getResultItem(IRegistryCustom custom) { return RandomUtils.rand(output.slots().toList()).create(false, IOutputVariable.empty()); }
 
     @Override protected Stream<RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
         List<RecipeCrafting> recipes = new ArrayList<>();
-        system.Toast1<Integer> index = system.toast(0);
+        Toast1<Integer> index = Toast.of(0);
         output.slotsWithGroups().forEach(kv -> {
             IOutputSlot result = kv.val0;
             index.val0++;

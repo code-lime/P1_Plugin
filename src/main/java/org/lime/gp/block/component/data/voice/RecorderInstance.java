@@ -28,7 +28,10 @@ import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.voice.Radio;
 import org.lime.gp.player.voice.Voice;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import javax.annotation.Nullable;
 import javax.sound.sampled.*;
@@ -41,7 +44,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         return CoreElement.create(RecorderInstance.class)
                 .withInit(RecorderInstance::init);
     }
-    public static final system.LockToast2<Long, Long> nextAsyncTimes = system.toast(0L, 0L).lock();
+    public static final LockToast2<Long, Long> nextAsyncTimes = Toast.of(0L, 0L).lock();
     public static void init() {
         AnyEvent.addEvent("convert.bifs", AnyEvent.type.owner_console, p -> convertAllToBIFs());
         AnyEvent.addEvent("recorder.play", AnyEvent.type.other, v -> v
@@ -73,7 +76,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         );
 
         AnyEvent.addEvent("delta.show.recorder", AnyEvent.type.owner_console, p -> lime.logOP("[Recorder] DeltaShow:\n" + nextAsyncTimes.call(v -> String.join("\n",
-                " - Last call: " + system.formatCalendar(system.getMoscowTime(v.val0), true),
+                " - Last call: " + Time.formatCalendar(Time.moscowTime(v.val0), true),
                 " - Delta call: " + v.val1 + "ms"
         ))));
         ThreadPool.Type.Async.executeRepeat(() -> TimeoutData.values(MusicPlayer.class).forEach(MusicPlayer::nextFrame), nextAsyncTimes);
@@ -94,8 +97,8 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         public final long startTime;
         public final AudioSupplier supplier;
         public final OpusEncoder encoder;
-        public final system.LockToast1<UUID> connection = system.<UUID>toast(null).lock();
-        public final system.LockToast1<Boolean> active = system.toast(true).lock();
+        public final LockToast1<UUID> connection = system.<UUID>toast(null).lock();
+        public final LockToast1<Boolean> active = Toast.of(true).lock();
         public int framePosition = 0;
         public long waitFrame = 0;
 
@@ -149,8 +152,8 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         public final Radio.SenderInfo sender;
         public final long startTime;
         public final byte[][] bifs;
-        public final system.LockToast1<UUID> connection = system.<UUID>toast(null).lock();
-        public final system.LockToast1<Boolean> active = system.toast(true).lock();
+        public final LockToast1<UUID> connection = Toast.lock(null);
+        public final LockToast1<Boolean> active = Toast.of(true).lock();
         public int position = 0;
         public long waitFrame = 0;
 
@@ -198,8 +201,8 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     @Override public void read(JsonObjectOptional json) {
         syncDisplayVariable();
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object();
+    @Override public json.builder.object write() {
+        return json.object();
     }
 
     private int tick = 0;
@@ -227,7 +230,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         /*musicPlayer = new MusicPlayer(sound, Radio.SenderInfo.block(unique(), metadata().position()), Voice.API.getAudioConverter().bytesToShorts(system.funcEx(Files::readAllBytes)
                 .throwable()
                 .invoke(lime.getConfigFile("sounds/" + sound + ".bin").toPath())));*/
-        musicPlayer = new MusicPlayer(sound, Radio.SenderInfo.block(unique(), metadata().position()), readBIFs(system.funcEx(Files::readAllBytes)
+        musicPlayer = new MusicPlayer(sound, Radio.SenderInfo.block(unique(), metadata().position()), readBIFs(Execute.funcEx(Files::readAllBytes)
                 .throwable()
                 .invoke(lime.getConfigFile("sounds/" + sound + ".bif").toPath())));
         musicPlayer.connection.set0(connectionUUID);
@@ -247,7 +250,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
         WAV
     }
     
-    private static byte[][] generateFrames(byte[] sound, system.Action2<Integer, Integer> progress) {
+    private static byte[][] generateFrames(byte[] sound, Action2<Integer, Integer> progress) {
         short[] shorts = Voice.API.getAudioConverter().bytesToShorts(sound);
         int shortLength = shorts.length;
         int frameCount = (int)Math.ceil(shorts.length / 960.0);
@@ -265,7 +268,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     }
 
     public interface ISoundOut {
-        default void goodOrError(system.Action1<GoodOut> good, system.Action1<ErrorOut> error) {
+        default void goodOrError(Action1<GoodOut> good, Action1<ErrorOut> error) {
             if (this instanceof GoodOut _good) good.invoke(_good);
             else if (this instanceof ErrorOut _error) error.invoke(_error);
         }
@@ -273,7 +276,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     public record GoodOut(UUID soundUUID, double totalSec) implements ISoundOut {}
     public record ErrorOut(String text) implements ISoundOut {}
 
-    public static ISoundOut createSoundFile(AudioType audioType, system.Action2<Integer, Integer> bifProgress, byte[] audio) {
+    public static ISoundOut createSoundFile(AudioType audioType, Action2<Integer, Integer> bifProgress, byte[] audio) {
         if (audio.length > 10 * 1024 * 1024) return new ErrorOut("Максимальный размер файла - 10MB");
         try (ByteArrayInputStream file = new ByteArrayInputStream(audio)) {
             AudioInputStream finalInputStream = switch (audioType) {
@@ -348,7 +351,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
                     lime.logOP("Start convert file '" + uuid + ".bin'");
                     try {
                         byte[] bytes = Files.readAllBytes(lime.getConfigFile("sounds/" + uuid + ".bin").toPath());
-                        system.Toast1<Integer> progress = system.toast(-1);
+                        Toast1<Integer> progress = Toast.of(-1);
                         byte[][] frames = generateFrames(bytes, (current, total) -> {
                             int newProgress = current * 100 / total;
                             if (progress.val0 == newProgress) return;

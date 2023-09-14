@@ -8,7 +8,9 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 import org.lime.gp.module.biome.time.DateTime;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.module.EntityPosition;
@@ -85,7 +87,7 @@ public class UserRow extends BaseRow {
     public static boolean hasBy(UUID uuid) { return Tables.USER_TABLE.hasOther("uuid", uuid.toString()); }
     public static Optional<UserRow> getBy(UUID uuid) { return Tables.USER_TABLE.getOther("uuid", uuid.toString()); }
     public static Optional<UserRow> getBy(Player player) { return getBy(player.getUniqueId()); }
-    public static Optional<UserRow> getBy(int id) { return Tables.USER_TABLE.get(id + ""); }
+    public static Optional<UserRow> getBy(int id) { return Tables.USER_TABLE.get(String.valueOf(id)); }
     public static Optional<UserRow> getByTimedID(int timed_id) { return Optional.ofNullable(TabManager.getUUIDorNull(timed_id)).flatMap(UserRow::getBy); }
 
     public Optional<Integer> getCityID() {
@@ -105,13 +107,13 @@ public class UserRow extends BaseRow {
         //map.put("birthday_date", system.formatCalendar(birthdayDate, false));
         map.put("role", String.valueOf(role));
         map.put("work", String.valueOf(work));
-        map.put("work_time", system.formatCalendar(workTime, true));
+        map.put("work_time", Time.formatCalendar(workTime, true));
         map.put("wanted", String.valueOf(wanted));
         map.put("exp", String.valueOf(exp));
         map.put("phone_regen", Tables.valueOfInt(phoneRegen));
         map.put("card_regen", Tables.valueOfInt(cardRegen));
-        map.put("create_date", system.formatCalendar(CreateDate, true));
-        map.put("connect_date", system.formatCalendar(ConnectDate, true));
+        map.put("create_date", Time.formatCalendar(CreateDate, true));
+        map.put("connect_date", Time.formatCalendar(ConnectDate, true));
         map.put("timed_id", Tables.valueOfInt(TabManager.getPayerIDorNull(uuid)));
         map.put("is_online", isOnline() ? "true" : "false");
         return map;

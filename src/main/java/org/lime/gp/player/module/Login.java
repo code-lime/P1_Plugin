@@ -35,7 +35,11 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
-import org.lime.system;
+import org.lime.system.Time;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -117,13 +121,13 @@ public class Login implements Listener {
                 }))
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("main")
-                        .withDefault(new JsonPrimitive(system.getString(new Vector(0, 70, 0))))
-                        .withInvoke(json -> main = system.getLocation(lime.MainWorld, json.getAsString()))
+                        .withDefault(new JsonPrimitive(MathUtils.getString(new Vector(0, 70, 0))))
+                        .withInvoke(json -> main = MathUtils.getLocation(lime.MainWorld, json.getAsString()))
                 )
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("login")
-                        .withDefault(new JsonPrimitive(system.getString(new Vector(0, 70, 0))))
-                        .withInvoke(json -> login = system.getLocation(lime.LoginWorld, json.getAsString()))
+                        .withDefault(new JsonPrimitive(MathUtils.getString(new Vector(0, 70, 0))))
+                        .withInvoke(json -> login = MathUtils.getLocation(lime.LoginWorld, json.getAsString()))
                 )
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("login_sync_chunks")
@@ -132,8 +136,8 @@ public class Login implements Listener {
                                         ? Streams.stream(json.getAsJsonArray().iterator()).map(JsonElement::getAsString)
                                         : Stream.of(json.getAsString()))
                                 .map(_v -> _v.replace("..", ":").split(":"))
-                                .map(_args -> system.toast(Integer.parseInt(_args[0]),Integer.parseInt(_args[1]),Integer.parseInt(_args[2]),Integer.parseInt(_args[3])))
-                                .map(_v -> system.toast(Math.min(_v.val0, _v.val2), Math.min(_v.val1, _v.val3), Math.max(_v.val0, _v.val2), Math.max(_v.val1, _v.val3)))
+                                .map(_args -> Toast.of(Integer.parseInt(_args[0]),Integer.parseInt(_args[1]),Integer.parseInt(_args[2]),Integer.parseInt(_args[3])))
+                                .map(_v -> Toast.of(Math.min(_v.val0, _v.val2), Math.min(_v.val1, _v.val3), Math.max(_v.val0, _v.val2), Math.max(_v.val1, _v.val3)))
                                 .flatMap(_v -> IntStream.range(_v.val0, _v.val2 + 1)
                                         .boxed()
                                         .flatMap(x -> IntStream.range(_v.val1, _v.val3 + 1).mapToObj(z -> new ChunkCoordIntPair(x,z)))
@@ -148,8 +152,8 @@ public class Login implements Listener {
                                 ? Streams.stream(json.getAsJsonArray().iterator()).map(JsonElement::getAsString)
                                 : Stream.of(json.getAsString()))
                                 .map(_v -> _v.replace("..", ":").split(":"))
-                                .map(_args -> system.toast(Integer.parseInt(_args[0]),Integer.parseInt(_args[1]),Integer.parseInt(_args[2]),Integer.parseInt(_args[3])))
-                                .map(_v -> system.toast(Math.min(_v.val0, _v.val2), Math.min(_v.val1, _v.val3), Math.max(_v.val0, _v.val2), Math.max(_v.val1, _v.val3)))
+                                .map(_args -> Toast.of(Integer.parseInt(_args[0]),Integer.parseInt(_args[1]),Integer.parseInt(_args[2]),Integer.parseInt(_args[3])))
+                                .map(_v -> Toast.of(Math.min(_v.val0, _v.val2), Math.min(_v.val1, _v.val3), Math.max(_v.val0, _v.val2), Math.max(_v.val1, _v.val3)))
                                 .flatMap(_v -> IntStream.range(_v.val0, _v.val2 + 1)
                                         .boxed()
                                         .flatMap(x -> IntStream.range(_v.val1, _v.val3 + 1).mapToObj(z -> new ChunkCoordIntPair(x,z)))
@@ -213,15 +217,15 @@ public class Login implements Listener {
         return player.getWorld() == lime.LoginWorld;
     }
 
-    private static final Map<UUID, Map<UUID, String>> multiList = system.map.<UUID, Map<UUID, String>>of()
+    private static final Map<UUID, Map<UUID, String>> multiList = map.<UUID, Map<UUID, String>>of()
             .add(UUID.fromString("ce6e763f-a669-40eb-866d-019e6ddca12c"),
-                    system.map.<UUID, String>of(true)
+                    map.<UUID, String>of(true)
                         .add(UUID.fromString("00000000-0000-1000-0000-000000000000"), "Code_Lime#2")
                         .add(UUID.fromString("00000000-0000-1000-0001-000000000001"), "Code_Lime#3")
                         .build()
             )
             .add(UUID.fromString("f76d2058-a107-413c-973e-101fb20c9fdb"),
-                    system.map.<UUID, String>of(true)
+                    map.<UUID, String>of(true)
                             .add(UUID.fromString("00000000-0000-1000-0000-000000000001"), "Aleks_Bur#2")
                             .build()
             ).build();
@@ -247,7 +251,7 @@ public class Login implements Listener {
                 .map(InetSocketAddress::getAddress)
                 .map(InetAddress::getHostAddress)
                 .ifPresent(ip -> Methods.addIP(ip, uuid));
-        Methods.updateUser(uuid, player.getName(), system.getMoscowNow());
+        Methods.updateUser(uuid, player.getName(), Time.moscowNow());
     }
     @EventHandler public static void on(PlayerLoginEvent e) {
         Player player = e.getPlayer();

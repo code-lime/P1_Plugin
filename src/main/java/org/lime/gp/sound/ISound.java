@@ -8,7 +8,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +34,7 @@ public abstract class ISound {
                 case "tags" -> new TagSound(parse(sounds, json.get("none")), json.getAsJsonObject("values")
                         .entrySet()
                         .stream()
-                        .map(kv -> system.toast(kv.getKey(), parse(sounds, kv.getValue())))
+                        .map(kv -> Toast.of(kv.getKey(), parse(sounds, kv.getValue())))
                         .toList()
                 );
                 default -> throw new IllegalArgumentException("Type '" + json.get("type").getAsString() + "' not founded!");
@@ -40,11 +42,11 @@ public abstract class ISound {
         } else if (value.isJsonArray()) return new RandomlySound(Streams.stream(value.getAsJsonArray().iterator()).map(v -> parse(sounds, v)).toList());
         throw new IllegalArgumentException("Exception in format '" + value + "'");
     }
-    private static system.Func0<Double> parseDouble(String value) {
+    private static Func0<Double> parseDouble(String value) {
         String[] args = value.split("\\.\\.");
         double from = Double.parseDouble(args[0]);
         double to = args.length == 1 ? from : Double.parseDouble(args[1]);
-        return () -> system.rand(from, to);
+        return () -> RandomUtils.rand(from, to);
     }
 
     public abstract void playSound(Player player, Collection<String> tags);

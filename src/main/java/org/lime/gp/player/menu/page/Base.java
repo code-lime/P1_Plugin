@@ -15,7 +15,10 @@ import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.menu.ActionSlot;
-import org.lime.system;
+import org.lime.system.delete.DeleteHandle;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.IterableUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,18 +32,18 @@ public abstract class Base implements Logged.ILoggedDelete {
 
     public List<ActionSlot> action = new ArrayList<>();
     public List<Integer> roleWhite = new ArrayList<>();
-    public List<system.Toast2<String, String>> args = new ArrayList<>();
-    public List<system.Toast2<String, String>> sqlArgs = new ArrayList<>();
+    public List<Toast2<String, String>> args = new ArrayList<>();
+    public List<Toast2<String, String>> sqlArgs = new ArrayList<>();
     public boolean isLogged;
     public boolean isLockMenu;
 
-    private final system.DeleteHandle deleteHandle = new system.DeleteHandle();
+    private final DeleteHandle deleteHandle = new DeleteHandle();
 
     public Base(JsonObject json) {
         if (json.has("action")) json.get("action").getAsJsonArray().forEach(kv -> action.add(ActionSlot.parse(this, kv.getAsJsonObject())));
-        if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> args.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
+        if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(arg -> args.add(Toast.of(arg.getKey(), arg.getValue().getAsString())));
         if (json.has("role_white")) json.get("role_white").getAsJsonArray().forEach(arg -> roleWhite.add(arg.getAsInt()));
-        if (json.has("sql_args")) json.get("sql_args").getAsJsonObject().entrySet().forEach(arg -> sqlArgs.add(system.toast(arg.getKey(), arg.getValue().getAsString())));
+        if (json.has("sql_args")) json.get("sql_args").getAsJsonObject().entrySet().forEach(arg -> sqlArgs.add(Toast.of(arg.getKey(), arg.getValue().getAsString())));
         isLogged = !json.has("is_logged") || json.get("is_logged").getAsBoolean();
         isLockMenu = json.has("is_lock_menu") && json.get("is_lock_menu").getAsBoolean();
     }
@@ -82,19 +85,19 @@ public abstract class Base implements Logged.ILoggedDelete {
         send_apply.add("page_path_current", getLoggedKey());
 
         send_apply.join(apply);
-        for (system.Toast2<String, String> arg : this.args) send_apply.add(arg.val0, ChatHelper.formatText(arg.val1, send_apply));
+        for (Toast2<String, String> arg : this.args) send_apply.add(arg.val0, ChatHelper.formatText(arg.val1, send_apply));
 
-        system.waitAllAnyAsyns(
+        IterableUtils.waitAllAnyAsyns(
                 sqlArgs.stream()
-                .map(v -> system.toast("!sql " + ChatHelper.formatText(v.val1, send_apply), v.val0))
+                .map(v -> Toast.of("!sql " + ChatHelper.formatText(v.val1, send_apply), v.val0))
                 .collect(Collectors.toList()),
-                (String table, system.Action1<ITable<? extends BaseRow>> callback) -> Tables
+                (String table, Action1<ITable<? extends BaseRow>> callback) -> Tables
                 .getTable(table, callback)
                 .withSQL(isLogged ? (sql) -> Logged.log(player, sql, this) : null),
                 argsTableData -> {
                     Apply table_apply = send_apply.copy();
                     HashMap<String, ITable<? extends BaseRow>> customTables = new HashMap<>();
-                    for (system.Toast3<String, String, ITable<? extends BaseRow>> dat : argsTableData) {
+                    for (Toast3<String, String, ITable<? extends BaseRow>> dat : argsTableData) {
                         if (dat.val1.startsWith("!")) customTables.put(dat.val1.substring(1), dat.val2);
                         else dat.val2.getFirstRow().ifPresent(v -> table_apply.add(dat.val1 + ".", v));
                     }

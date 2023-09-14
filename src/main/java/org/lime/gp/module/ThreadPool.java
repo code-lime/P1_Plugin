@@ -1,11 +1,12 @@
 package org.lime.gp.module;
 
 import com.google.gson.JsonObject;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.TestData;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class ThreadPool {
         return CoreElement.create(ThreadPool.class)
                 .sortType(CoreElement.SortType.First)
                 .<JsonObject>addConfig("thread_pool", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 //.add("database", 10)
                                 .add("async", 5)
                                 .build())
@@ -31,15 +32,15 @@ public class ThreadPool {
 
         private ThreadPoolExecutor pool = null;
 
-        /*public void execute(system.Action0 func) {
+        /*public void execute(Action0 func) {
             if (TestData.ENABLE_TYPE.get0().isSQL()) return;
             pool.execute(func);
         }
-        public <T>void execute(T instance, system.Action1<T> func) {
+        public <T>void execute(T instance, Action1<T> func) {
             if (TestData.ENABLE_TYPE.get0().isSQL()) return;
             pool.execute(() -> func.invoke(instance));
         }*/
-        public void executeRepeat(system.Action0 func) {
+        public void executeRepeat(Action0 func) {
             pool.execute(() -> {
                 while (true) {
                     if (DISABLE_TOKEN.get0()) return;
@@ -57,7 +58,7 @@ public class ThreadPool {
                 }
             });
         }
-        public void executeRepeat(system.Action0 func, system.LockToast2<Long, Long> loggerTimes) {
+        public void executeRepeat(Action0 func, LockToast2<Long, Long> loggerTimes) {
             loggerTimes.set0(System.currentTimeMillis());
             loggerTimes.set1(0L);
             pool.execute(() -> {
@@ -85,14 +86,14 @@ public class ThreadPool {
     }
 
     //private static ThreadPoolExecutor executor;
-    public static void config(JsonObject json) {
+    public static void config(JsonObject _json) {
         boolean modify = false;
         for (Type type : Type.values()) {
-            if (!json.has(type.name())) {
+            if (!_json.has(type.name())) {
                 modify = true;
-                json.addProperty(type.name(), 5);
+                _json.addProperty(type.name(), 5);
             }
-            int THREAD_COUNT = json.get(type.name()).getAsInt();
+            int THREAD_COUNT = _json.get(type.name()).getAsInt();
 
             ThreadPoolExecutor pool = type.pool;
             List<Runnable> runnableList = new ArrayList<>();
@@ -102,7 +103,7 @@ public class ThreadPool {
             runnableList.forEach(pool::execute);
             type.pool = pool;
         }
-        if (modify) lime.writeAllConfig("thread_pool", system.toFormat(json));
+        if (modify) lime.writeAllConfig("thread_pool", json.format(_json));
         /*
         List<Runnable> runnableList = new ArrayList<>();
         if (executor != null) runnableList.addAll(executor.shutdownNow());
@@ -117,7 +118,7 @@ public class ThreadPool {
     public static void init() {
 
     }
-    private static system.LockToast1<Boolean> DISABLE_TOKEN = system.toast(false).lock();
+    private static LockToast1<Boolean> DISABLE_TOKEN = Toast.lock(false);
     public static void uninit() {
         for (Type type : Type.values())
             if (type.pool != null)

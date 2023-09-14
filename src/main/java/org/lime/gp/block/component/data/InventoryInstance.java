@@ -34,14 +34,17 @@ import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
 
 public class InventoryInstance extends BlockComponentInstance<InventoryComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable, BlockDisplay.Displayable {
     private final InventorySubcontainer items_container;
     private boolean changed = true;
-    private final system.LockToast1<IBuilder> display = system.<IBuilder>toast(null).lock();
+    private final LockToast1<IBuilder> display = Toast.lock(null);
     public InventoryInstance(InventoryComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
         items_container = new InventorySubcontainer(6 * 9) {
@@ -69,15 +72,15 @@ public class InventoryInstance extends BlockComponentInstance<InventoryComponent
                 .flatMap(Collection::stream)
                 .map(JsonElementOptional::getAsString)
                 .map(v -> v.orElse(null))
-                .map(system::loadItem)
+                .map(ItemUtils::loadItem)
                 .map(CraftItemStack::asNMSCopy)
                 .toList();
         int length = Math.min(items.size(), items_container.items.size());
         for (int i = 0; i < length; i++) items_container.setItem(i, items.get(i));
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
-                .addArray("items", v -> v.add(items_container.items, _v -> system.saveItem(_v == null || _v.is(net.minecraft.world.item.Items.AIR) ? null : _v.asBukkitMirror())));
+    @Override public json.builder.object write() {
+        return json.object()
+                .addArray("items", v -> v.add(items_container.items, _v -> ItemUtils.saveItem(_v == null || _v.is(net.minecraft.world.item.Items.AIR) ? null : _v.asBukkitMirror())));
     }
 
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {

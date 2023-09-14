@@ -18,7 +18,9 @@ import org.lime.gp.item.CartographyBrush;
 import org.lime.gp.item.CartographyBucket;
 import org.lime.gp.module.DrawMap;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.UUID;
 
@@ -28,7 +30,7 @@ public class PaintingInstance extends BlockInstance implements CustomTileMetadat
     }
 
     @Override public void read(JsonObjectOptional json) { }
-    @Override public system.json.builder.object write() { return system.json.object(); }
+    @Override public json.builder.object write() { return json.object(); }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
         EntityHuman human = event.player();
         UUID uuid = human.getUUID();
@@ -40,7 +42,7 @@ public class PaintingInstance extends BlockInstance implements CustomTileMetadat
                     .map(v -> ChatHexColor.parseColor("#" + v).getValue())
                     .orElse(0xFFFFFF));
             Color brush_color = DrawMap.to(brush.color);
-            system.Toast3<Integer, Integer, Integer> delta = system.toast(
+            Toast3<Integer, Integer, Integer> delta = Toast.of(
                     Math.abs(display_color.getRed() - brush_color.getRed()),
                     Math.abs(display_color.getGreen() - brush_color.getGreen()),
                     Math.abs(display_color.getBlue() - brush_color.getBlue()));
@@ -49,7 +51,7 @@ public class PaintingInstance extends BlockInstance implements CustomTileMetadat
             delta.val1 *= 50;
             delta.val2 *= 50;
 
-            system.Toast3<Integer, Integer, Integer> bucket = system.toast(0,0,0);
+            Toast3<Integer, Integer, Integer> bucket = Toast.of(0,0,0);
             CartographyBucket.modifyData(player.getInventory().getItemInOffHand(), data -> {
                 bucket.val0 = delta.val0;
                 bucket.val1 = delta.val1;

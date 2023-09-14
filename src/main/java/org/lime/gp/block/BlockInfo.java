@@ -15,7 +15,8 @@ import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.data.MultiBlockInstance;
 import org.lime.gp.block.component.list.MultiBlockComponent;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.execute.*;
+import org.lime.system.json;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public final class BlockInfo {
         this.components.put(component.name(), component);
         return this;
     }
-    public BlockInfo add(system.Func1<BlockInfo, ComponentStatic<?>> component) {
+    public BlockInfo add(Func1<BlockInfo, ComponentStatic<?>> component) {
         return add(component.invoke(this));
     }
     @SuppressWarnings("unchecked")
@@ -62,7 +63,7 @@ public final class BlockInfo {
         return setBlock(position, Collections.emptyMap());
     }
     public TileEntityLimeSkull setBlock(Position position, InfoComponent.Rotation.Value rotation) {
-        return setBlock(position, Collections.singletonMap("display", system.json.object().add("rotation", rotation.angle + "").build()));
+        return setBlock(position, Collections.singletonMap("display", json.object().add("rotation", String.valueOf(rotation.angle)).build()));
     }
     public TileEntityLimeSkull setBlock(Position position, Map<String, JsonObject> data) {
         return Blocks.setBlock(position, this, data);
@@ -73,7 +74,7 @@ public final class BlockInfo {
     }
     public List<TileEntityLimeSkull> setMultiBlock(Player player, Position position, Map<String, JsonObject> data, InfoComponent.Rotation.Value rotation) {
         data = new HashMap<>(data);
-        data.compute("display", (k,v) -> (v == null ? system.json.object() : system.json.object().add(v)).add("rotation", rotation.angle + "").build());
+        data.compute("display", (k,v) -> (v == null ? json.object() : json.object().add(v)).add("rotation", String.valueOf(rotation.angle)).build());
         List<TileEntityLimeSkull> skulls = new ArrayList<>();
         TileEntityLimeSkull skull = setBlock(position, data);
         skulls.add(skull);

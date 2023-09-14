@@ -1,39 +1,18 @@
 package org.lime.gp.player.module;
 
-import org.lime.gp.admin.AnyEvent;
-import org.lime.gp.chat.Apply;
-import org.lime.gp.chat.LangMessages;
-import org.lime.gp.database.Methods;
-import org.lime.gp.database.mysql.MySql;
-import org.lime.gp.lime;
-import org.lime.gp.access.ReflectionAccess;
-import org.lime.packetwrapper.WrapperPlayServerPlayerInfo;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.PlayerInfoData;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.mojang.authlib.GameProfile;
-
-import org.bukkit.scoreboard.ScoreboardManager;
-import org.lime.core;
-import org.lime.plugin.CoreData;
-import org.lime.plugin.CoreElement;
-import org.lime.system;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.level.EnumGamemode;
-
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
@@ -42,13 +21,26 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
+import org.lime.gp.access.ReflectionAccess;
+import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.chat.LangMessages;
+import org.lime.gp.database.Methods;
+import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreData;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.Toast;
+import org.lime.system.utils.IterableUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @SuppressWarnings("unused")
 public class TabManager implements Listener {
@@ -65,7 +57,7 @@ public class TabManager implements Listener {
                 .withInstance(Instance)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("tab")
-                        .withDefault(system.json.object().add("debug", new JsonPrimitive(false)).add("update_single", 1.0).add("update_wait", 5.0).build())
+                        .withDefault(json.object().add("debug", new JsonPrimitive(false)).add("update_single", 1.0).add("update_wait", 5.0).build())
                         .withInvoke(json -> {
                             tab_update_single = json.get("update_single").getAsDouble();
                             tab_update_wait = json.get("update_wait").getAsDouble();
@@ -291,7 +283,7 @@ public class TabManager implements Listener {
                     BufferData buff = map.getOrDefault(uuid, BufferData.EMPTY);
                     WrappedChatComponent tab = buff.tab;
                     if (see_ids.contains(buff.id)) {
-                        lime.NextTick(() -> lime.LogOP("S:"+buff.id+":" + puuid(owner) + "/" + puuid(uuid) + ">"+ChatHelper.getLegacyText(ChatHelper.fromJson(system.json.parse(tab.getJson())))));
+                        lime.NextTick(() -> lime.LogOP("S:"+buff.id+":" + puuid(owner) + "/" + puuid(uuid) + ">"+ChatHelper.getLegacyText(ChatHelper.fromJson(json.parse(tab.getJson())))));
                     }
                     data.add(new PlayerInfoData(info.getProfile(), info.getLatency(), info.getGameMode(), tab));
                 });
@@ -343,7 +335,7 @@ public class TabManager implements Listener {
 
         PlayerData.displayIndexing.entrySet().removeIf(v -> v.getValue().isRemove());
 
-        HashMap<String, String> args = system.map.<String, String>of()
+        HashMap<String, String> args = map.<String, String>of()
                 .add("tps", String.valueOf(Bukkit.getTPS()[0]))
                 .add("online", String.valueOf(Bukkit.getOnlinePlayers().size()))
                 .build();
@@ -356,7 +348,7 @@ public class TabManager implements Listener {
             PlayerData.getPlayerData(uuid);
         });
 
-        Methods.SQL.Async.rawSqlQuery(sql_query, set -> system.toast(
+        Methods.SQL.Async.rawSqlQuery(sql_query, set -> Toast.of(
                 UUID.fromString(MySql.readObject(set, "owner", String.class)),
                 UUID.fromString(MySql.readObject(set, "uuid", String.class)),
                 MySql.readObject(set, "tab", String.class),
@@ -376,7 +368,7 @@ public class TabManager implements Listener {
                     Map<UUID, BufferData> _map = buffer.getOrDefault(owner, null);
                     if (_map == null) _map = new HashMap<>();
                     _map.put(uuid, new BufferData(ChatHelper.formatComponent(tab),
-                                system.reverse(Arrays.stream(name.split("\n")))
+                                IterableUtils.reverse(Arrays.stream(name.split("\n")))
                                     .filter(v -> !v.isEmpty())
                                     .map(ChatHelper::formatComponent)
                                     .collect(Collectors.toList()),
@@ -445,7 +437,7 @@ public class TabManager implements Listener {
             String user_uuid = uuid.toString();
             PlayerData.getPlayerData(uuid);
 
-            lime.Once(() -> DataReader.SQL.Async.RawSqlQuery(sql_query.replace("{user_uuid}", user_uuid), set -> system.toast(MySql.ReadObject(set, "uuid", String.class), MySql.ReadObject(set, "text", String.class)), lines -> {
+            lime.Once(() -> DataReader.SQL.Async.RawSqlQuery(sql_query.replace("{user_uuid}", user_uuid), set -> Toast.of(MySql.ReadObject(set, "uuid", String.class), MySql.ReadObject(set, "text", String.class)), lines -> {
                 bufferTab.compute(uuid, (k, v) -> {
                     ConcurrentHashMap<UUID, Component> __v = v == null ? new ConcurrentHashMap<>() : v;
                     lines.forEach(kv -> __v.put(UUID.fromString(kv.val0), ChatHelper.FormatComponent(kv.val1)));

@@ -23,7 +23,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.item.settings.list.DyeColorSetting;
 
 import java.util.Map;
@@ -227,7 +228,7 @@ public interface CauldronBlockInteraction {
         }
         return EnumInteractionResult.sidedSuccess(world.isClientSide);
     }
-    static EnumInteractionResult emptyBucket(CauldronInstance cauldron, World world, BlockPosition pos, EntityHuman player, EnumHand hand, ItemStack stack, system.Action1<CauldronInstance> edit, SoundEffect soundEvent) {
+    static EnumInteractionResult emptyBucket(CauldronInstance cauldron, World world, BlockPosition pos, EntityHuman player, EnumHand hand, ItemStack stack, Action1<CauldronInstance> edit, SoundEffect soundEvent) {
         if (!world.isClientSide) {
             edit.invoke(cauldron); //CauldronLevelChangeEvent.ChangeReason.BUCKET_EMPTY
             Item item = stack.getItem();

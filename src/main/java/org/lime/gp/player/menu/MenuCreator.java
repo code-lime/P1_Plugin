@@ -13,7 +13,9 @@ import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.page.Base;
 import org.lime.gp.chat.ChatHelper;
 import org.bukkit.entity.Player;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -88,7 +90,7 @@ public class MenuCreator {
         }
         try {
             if (DEBUG) {
-                String args_json = system.toFormat(system.json.object().add(apply.list()).build());
+                String args_json = json.format(json.object().add(apply.list()).build());
                 lime.logOP(Component.text("MENU." + menu + "[" + page + "] ").append(Component.text("[args]").hoverEvent(HoverEvent.showText(Component.text("Click to copy:\n\n").append(Component.text(args_json)))).clickEvent(ClickEvent.copyToClipboard(args_json))));
             }
             return _menu.show(player, page, caller, apply);
@@ -119,7 +121,7 @@ public class MenuCreator {
         if (_menu == null) return false;
         try {
             if (DEBUG) {
-                String args_json = system.toFormat(system.json.object().add(apply.list()).build());
+                String args_json = json.format(json.object().add(apply.list()).build());
                 lime.logOP(Component.text("MENU." + menu + "[" + page + "] ").append(Component.text("[args]").hoverEvent(HoverEvent.showText(Component.text("Click to copy:\n\n").append(Component.text(args_json)))).clickEvent(ClickEvent.copyToClipboard(args_json))));
             }
             return _menu.show(null, page, null, apply);

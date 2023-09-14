@@ -38,7 +38,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.item.Items;
@@ -47,7 +46,7 @@ import org.lime.gp.item.settings.list.BulletSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.ui.ImageBuilder;
-import org.lime.system;
+import org.lime.system.utils.RandomUtils;
 
 import java.time.Duration;
 import java.util.*;
@@ -126,14 +125,14 @@ public class Bullets implements Listener {
                         })
                         .filter(ticks -> !(entity instanceof Player player && gmList.contains(player.getGameMode())))
                         .ifPresent(ticks -> {
-                            float rnd = (float) system.rand(0.0, 0.5);
+                            float rnd = (float) RandomUtils.rand(0.0, 0.5);
                             entity.showTitle(Title.title(BLUR.withColor(TextColor.color(rnd, rnd, 0.5f)).build(), Component.empty(), Title.Times.times(Duration.ZERO, Duration.ofMillis(250), Duration.ZERO)));
                             entity.addPotionEffect(TASER_FREEZE);
                             if (ticks % 10 == 0 && entity instanceof CraftLivingEntity centity) {
                                 EntityLiving eentity = centity.getHandle();
                                 eentity.level.broadcastEntityEvent(eentity, (byte)2);
                                 if (eentity instanceof EntityPlayer eplayer)
-                                    eplayer.connection.send(new ClientboundHurtAnimationPacket(entity.getEntityId(), system.rand(0, 360)));
+                                    eplayer.connection.send(new ClientboundHurtAnimationPacket(entity.getEntityId(), RandomUtils.rand(0, 360)));
                                 ReflectionAccess.playHurtSound_EntityLiving.call(eentity, new Object[] { eentity.damageSources().generic() });
                             }
                         });
@@ -145,7 +144,7 @@ public class Bullets implements Listener {
                 PersistentDataContainer container = arrow.getPersistentDataContainer();
                 Optional.ofNullable(container.get(TICK_ROTATION_KEY, PersistentDataType.DOUBLE))
                         .map(_v -> _v * modify)
-                        .filter(system::rand_is)
+                        .filter(RandomUtils::rand_is)
                         .ifPresent(v -> {
                             tags.add("bullet:no_ground");
                             arrow.setGravity(false);
@@ -203,12 +202,12 @@ public class Bullets implements Listener {
                             bulletSetting.map(v -> v.bullet_action).ifPresent(action -> {
                                 switch (action) {
                                     case TASER -> {
-                                        entity.getBukkitEntity().getPersistentDataContainer().set(TASER_TICKS, PersistentDataType.INTEGER, system.rand(5 * 20, 10 * 20));
-                                        if (entity.getBukkitEntity() instanceof Player player && system.rand_is(0.4)) Knock.knock(player);
+                                        entity.getBukkitEntity().getPersistentDataContainer().set(TASER_TICKS, PersistentDataType.INTEGER, RandomUtils.rand(5 * 20, 10 * 20));
+                                        if (entity.getBukkitEntity() instanceof Player player && RandomUtils.rand_is(0.4)) Knock.knock(player);
                                     }
                                     case TRAUMATIC -> {
                                         if (entity.getBukkitEntity() instanceof LivingEntity lentity) lentity.addPotionEffect(TRAUMATIC_FREEZE);
-                                        if (entity.getBukkitEntity() instanceof Player player && system.rand_is(0.12)) Knock.knock(player);
+                                        if (entity.getBukkitEntity() instanceof Player player && RandomUtils.rand_is(0.12)) Knock.knock(player);
                                     }
                                     default -> {}
                                 }

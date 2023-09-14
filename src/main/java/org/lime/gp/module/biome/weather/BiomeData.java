@@ -6,7 +6,7 @@ import net.minecraft.world.level.biome.BiomeFog;
 import org.lime.gp.extension.JsonNBT;
 import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.Optional;
 
@@ -86,8 +86,8 @@ public record BiomeData(
         snow.ifPresent(value -> SeasonKey.setTemperature(element, value ? -0.5f : 0.8f));
     }
 
-    public system.json.builder.object saveJson() {
-        system.json.builder.object raw = system.json.object();
+    public json.builder.object saveJson() {
+        json.builder.object raw = json.object();
 
         fog.map(TextColor::color).map(TextColor::asHexString).ifPresent(value -> raw.add("fog_color", value));
         water.map(TextColor::color).map(TextColor::asHexString).ifPresent(value -> raw.add("water_color", value));

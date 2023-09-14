@@ -7,11 +7,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.lime;
 import org.lime.gp.player.module.needs.INeedEffect;
 import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.gp.town.ChurchManager;
-import org.lime.system;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -19,8 +19,8 @@ import java.util.stream.Stream;
 
 public class StateData {
     private static final HashMap<String, StateData> dats = new HashMap<>();
-    public static final List<system.Toast2<Checker, StateData>> includes = new ArrayList<>();
-    public static final Map<system.IRange, List<INeedEffect<?>>> needs = new HashMap<>();
+    public static final List<Toast2<Checker, StateData>> includes = new ArrayList<>();
+    public static final Map<IRange, List<INeedEffect<?>>> needs = new HashMap<>();
 
     public static @Nullable StateData getStateBy(String key) { return dats.get(key); }
     public static Collection<String> getStateKeys() { return dats.keySet(); }
@@ -123,19 +123,19 @@ public class StateData {
         effects.entrySet().forEach(kv -> parse(kv.getKey(), kv.getValue().getAsJsonObject(), colors, null).forEach(dat -> dats.put(dat.key, dat)));
         if (!dats.containsKey("default")) throw new IllegalArgumentException("StateData.default not founded!");
 
-        List<system.Toast2<Checker, StateData>> includes = new ArrayList<>();
+        List<Toast2<Checker, StateData>> includes = new ArrayList<>();
         json.get("invoke").getAsJsonObject().entrySet().forEach(kv -> {
             String _data = kv.getValue().getAsString();
             StateData data = dats.getOrDefault(_data, null);
             if (data == null) throw new IllegalArgumentException("StateData." + _data + " not founded!");
-            includes.add(system.toast(Checker.createCheck(kv.getKey()), data));
+            includes.add(Toast.of(Checker.createCheck(kv.getKey()), data));
         });
 
-        Map<system.IRange, List<INeedEffect<?>>> needs = new HashMap<>();
+        Map<IRange, List<INeedEffect<?>>> needs = new HashMap<>();
         if (json.has("needs")) json.get("needs").getAsJsonObject().entrySet().forEach(kv -> {
             List<INeedEffect<?>> values = new ArrayList<>();
             kv.getValue().getAsJsonArray().forEach(item -> values.add(INeedEffect.parse(item.getAsJsonObject())));
-            needs.put(system.IRange.parse(kv.getKey()), values);
+            needs.put(IRange.parse(kv.getKey()), values);
         });
 
         StateData.dats.clear();

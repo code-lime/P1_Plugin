@@ -50,9 +50,8 @@ import net.minecraft.world.level.storage.loot.LootTableInfo;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryView;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.map.CraftMapView;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.execute.*;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -69,7 +68,7 @@ public class ReflectionAccess {
 
     public static final reflection.field<Float> destroySpeed_BlockData = reflection.field.<Float>ofMojang(BlockBase.BlockData.class, "destroySpeed").nonFinal();
 
-    public static final Class<?> a_ClientboundLevelChunkPacketData = system.<Class<?>>func(() -> {
+    public static final Class<?> a_ClientboundLevelChunkPacketData = Execute.<Class<?>>func(() -> {
         try {
             for (Class<?> tClass : ClientboundLevelChunkPacketData.class.getDeclaredClasses())
                 if (tClass.getSimpleName().equals("a"))
@@ -80,7 +79,7 @@ public class ReflectionAccess {
         }
     }).invoke();
     public static final reflection.constructor<?> init_a_ClientboundLevelChunkPacketData = reflection.constructor.of(a_ClientboundLevelChunkPacketData, Integer.TYPE, Integer.TYPE, TileEntityTypes.class, NBTTagCompound.class);
-    public static final system.Func4<Integer, Integer, TileEntityTypes<?>, NBTTagCompound, Object> init_a_ClientboundLevelChunkPacketData_Func = init_a_ClientboundLevelChunkPacketData::newInstance;
+    public static final Func4<Integer, Integer, TileEntityTypes<?>, NBTTagCompound, Object> init_a_ClientboundLevelChunkPacketData_Func = init_a_ClientboundLevelChunkPacketData::newInstance;
     public static final reflection.field<NBTTagCompound> tag_a_ClientboundLevelChunkPacketData = reflection.field.<NBTTagCompound>of(a_ClientboundLevelChunkPacketData, "d").nonFinal();
 
     public static final reflection.field<IteratorSafeOrderedReferenceSet<Chunk>> entityTickingChunks_ChunkProviderServer = reflection.field.<IteratorSafeOrderedReferenceSet<Chunk>>ofMojang(ChunkProviderServer.class, "entityTickingChunks").nonFinal();
@@ -123,7 +122,7 @@ public class ReflectionAccess {
     public static final reflection.field<byte[]> buffer_ClientboundLevelChunkPacketData = reflection.field.<byte[]>ofMojang(ClientboundLevelChunkPacketData.class, "buffer").nonFinal();
     public static final reflection.field<LongOpenHashSet> sentChunks_PlayerLoaderData_PlayerChunkLoader = reflection.field.ofMojang(PlayerChunkLoader.PlayerLoaderData.class, "sentChunks");
     public static final reflection.field<Double> lastLocX_PlayerLoaderData_PlayerChunkLoader = reflection.field.ofMojang(PlayerChunkLoader.PlayerLoaderData.class, "lastLocX");
-    public static final Class<?> class_CraftMetaItem = system.<String, Class<?>>funcEx(Class::forName).throwable().invoke(CraftItemStack.class.getName().replace("CraftItemStack", "CraftMetaItem"));//unhandledTags
+    public static final Class<?> class_CraftMetaItem = Execute.<String, Class<?>>funcEx(Class::forName).throwable().invoke(CraftItemStack.class.getName().replace("CraftItemStack", "CraftMetaItem"));//unhandledTags
     public static final reflection.field<Map<String, NBTBase>> unhandledTags_CraftMetaItem = reflection.field.of(class_CraftMetaItem, "unhandledTags");
     public static final reflection.constructor<NBTTagCompound> initMap_NBTTagCompound = reflection.constructor.of(NBTTagCompound.class, Map.class);
 

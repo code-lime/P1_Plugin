@@ -4,8 +4,8 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import org.lime.system;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.system.toast.*;
 
 public abstract class BaseRow {
     protected BaseRow(ResultSet set) { }
@@ -13,11 +13,11 @@ public abstract class BaseRow {
     public String applyToString(String line) { return applyToString(line, '{', '}'); }
     public String applyToString(String line, char start, char end) { return applyToString(line, start, end, new HashMap<>()); }
     @SuppressWarnings("unchecked")
-    public String applyToString(String line, system.Toast2<String, String>... map) { return applyToString(line, '{', '}', map); }
+    public String applyToString(String line, Toast2<String, String>... map) { return applyToString(line, '{', '}', map); }
     @SuppressWarnings("unchecked")
-    public String applyToString(String line, char start, char end, system.Toast2<String, String>... map) {
+    public String applyToString(String line, char start, char end, Toast2<String, String>... map) {
         HashMap<String, String> _map = new HashMap<>();
-        for (system.Toast2<String, String> kv : map) _map.put(kv.val0, kv.val1);
+        for (Toast2<String, String> kv : map) _map.put(kv.val0, kv.val1);
         return applyToString(line, start, end, _map);
     }
     public String applyToString(String line, HashMap<String, String> map) { return applyToString(line, '{', '}', map); }

@@ -4,21 +4,22 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 
 import org.bukkit.Location;
-import org.lime.system;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.module.EntityPosition;
+import org.lime.system.utils.MathUtils;
 
 public class CompassTargetRow extends BaseRow {
     public int id;
     public java.util.UUID uuid;
     public String target;
     public enum TargetType {
-        Position(target -> system.getLocation(lime.MainWorld, target)),
+        Position(target -> MathUtils.getLocation(lime.MainWorld, target)),
         Entity(target -> EntityPosition.entityLocations.getOrDefault(java.util.UUID.fromString(target), null));
 
-        final system.Func1<String, Location> parse;
-        TargetType(system.Func1<String, Location> parse) {
+        final Func1<String, Location> parse;
+        TargetType(Func1<String, Location> parse) {
             this.parse = parse;
         }
         public Location getLocation(String target) {
@@ -49,7 +50,7 @@ public class CompassTargetRow extends BaseRow {
 
     @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
         map = super.appendToReplace(map);
-        map.put("id", id + "");
+        map.put("id", String.valueOf(id));
         map.put("uuid", uuid.toString());
         map.put("target", target);
         map.put("type", type.name());

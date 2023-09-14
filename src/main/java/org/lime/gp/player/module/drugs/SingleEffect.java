@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.DrugsSetting;
-import org.lime.system;
+import org.lime.system.json;
 
 public class SingleEffect {
     public int id;
@@ -17,7 +17,7 @@ public class SingleEffect {
     }
 
     public JsonObject save() {
-        return system.json.object()
+        return json.object()
                 .add("effect_timer", effect_timer)
                 .build();
     }

@@ -6,7 +6,8 @@ import net.minecraft.world.inventory.Slot;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.event.inventory.ClickType;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Objects;
 
@@ -15,7 +16,7 @@ public final class GroupSlot extends BaseActionSlot {
         super(slot, view, slotType, slotTypeIndex);
     }
 
-    private final system.Toast2<String, net.minecraft.world.item.ItemStack> lastItem = system.toast(null, ViewContainer.NONE);
+    private final Toast2<String, net.minecraft.world.item.ItemStack> lastItem = Toast.of(null, ViewContainer.NONE);
 
     @Override public net.minecraft.world.item.ItemStack item() {
         int count = view.groups.size();

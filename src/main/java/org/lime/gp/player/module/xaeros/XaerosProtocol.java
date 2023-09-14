@@ -5,7 +5,8 @@ import net.minecraft.network.PacketDataSerializer;
 import org.bukkit.entity.Player;
 import org.lime.gp.player.module.xaeros.packet.*;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class XaerosProtocol {
     }
 
     private static final HashMap<Class<? extends IOutPacket>, Integer> packetToId = new HashMap<>();
-    private static final HashMap<Integer, system.Func1<PacketDataSerializer, IInPacket>> idToPacket = new HashMap<>();
+    private static final HashMap<Integer, Func1<PacketDataSerializer, IInPacket>> idToPacket = new HashMap<>();
 
     public static CoreElement create() {
         return CoreElement.create(XaerosProtocol.class)
@@ -53,7 +54,7 @@ public class XaerosProtocol {
     public static Optional<IInPacket> toPacket(byte[] raw) {
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.wrappedBuffer(raw));
         int packetId = serializer.readByte();
-        system.Func1<PacketDataSerializer, IInPacket> creator = idToPacket.get(packetId);
+        Func1<PacketDataSerializer, IInPacket> creator = idToPacket.get(packetId);
         return creator == null ? Optional.empty() : Optional.of(creator.invoke(serializer));
     }
     public static byte[] toRaw(IOutPacket packet) {

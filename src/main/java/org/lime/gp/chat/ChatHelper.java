@@ -9,7 +9,8 @@ import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.network.chat.IChatBaseComponent;
-import org.lime.*;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.Component;
@@ -31,6 +32,7 @@ import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
+import org.lime.system.utils.EnumUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -97,7 +99,7 @@ public class ChatHelper {
     private static String txtFix(String txt) {
         return txt.replace("<", "<<").replace(">", ">>");
     }
-    public static system.Func1<String, String> jsFix(Map<String, String> _args) {
+    public static Func1<String, String> jsFix(Map<String, String> _args) {
         return _text -> {
             try {
                 String key = _text;
@@ -278,7 +280,7 @@ public class ChatHelper {
                 if (input.length() != 5 || input.charAt(0) != 'u') return false;
                 return ExtMethods.parseUnsignedInt(input.substring(1), 16).isPresent();
             }, (input, style) -> Component.text((char)Integer.parseUnsignedInt(input.substring(1), 16), style.build()));
-            /*FORMAT*/        IFormatter.createEmpty(input -> system.tryParse(ChatColor.class, input).isPresent(), (input, style) -> {
+            /*FORMAT*/        IFormatter.createEmpty(input -> EnumUtils.tryParse(ChatColor.class, input).isPresent(), (input, style) -> {
                 ChatColor color = ChatColor.valueOf(input);
                 if (color.isColor()) {
                     style.color(new ChatColorHex(color).toTextColor());
@@ -399,16 +401,16 @@ public class ChatHelper {
             }
         }
 
-        public final system.Func1<String, Boolean> check;
-        public final system.Func2<String, Style.Builder, Component> tryParse;
-        private IFormatter(system.Func1<String, Boolean> check, system.Func2<String, Style.Builder, Component> tryParse) {
+        public final Func1<String, Boolean> check;
+        public final Func2<String, Style.Builder, Component> tryParse;
+        private IFormatter(Func1<String, Boolean> check, Func2<String, Style.Builder, Component> tryParse) {
             this.tryParse = tryParse;
             this.check = check;
         }
-        public static void create(system.Func1<String, Boolean> check, system.Func2<String, Style.Builder, Component> tryParse) {
+        public static void create(Func1<String, Boolean> check, Func2<String, Style.Builder, Component> tryParse) {
             formats.add(new IFormatter(check, tryParse));
         }
-        public static void createEmpty(system.Func1<String, Boolean> check, system.Action2<String, Style.Builder> tryParse) {
+        public static void createEmpty(Func1<String, Boolean> check, Action2<String, Style.Builder> tryParse) {
             create(check, (a1, a2) -> {
                 tryParse.invoke(a1,a2);
                 return Component.empty();
@@ -464,7 +466,7 @@ public class ChatHelper {
     public static String replaceBy(String text, char start, char end, HashMap<String, String> replace) {
         return replaceBy(text, start, end, v -> replace.getOrDefault(v, null));
     }
-    public static String replaceBy(String text, char start, char end, system.Func1<String, String> invoke) {
+    public static String replaceBy(String text, char start, char end, Func1<String, String> invoke) {
         StringBuilder builder = new StringBuilder();
         List<ITag> tags = parseToTags(text, start, end);
         int length = tags.size();
@@ -485,19 +487,19 @@ public class ChatHelper {
         return new StringBuilder(rev).reverse().toString();
     }
 
-    private static system.Toast3<String, String, Integer> getBetween(String str, int offset, char start, char end) {
+    private static Toast3<String, String, Integer> getBetween(String str, int offset, char start, char end) {
         String _str = str;
 
         String doubleStart = start + "" + start;
         String doubleEnd = end + "" + end;
         String doubleEmpty = "\1\1";
-        system.Func1<String, String> doubleReplace = _val -> _val.replace(doubleStart, String.valueOf(start)).replace(doubleEnd, String.valueOf(end));
+        Func1<String, String> doubleReplace = _val -> _val.replace(doubleStart, String.valueOf(start)).replace(doubleEnd, String.valueOf(end));
 
         str = reverse(reverse(str.replace(doubleStart, doubleEmpty)).replace(doubleEnd, doubleEmpty));
 
-        if (offset >= str.length()) return system.toast("", null, 0);
+        if (offset >= str.length()) return Toast.of("", null, 0);
         int start_index = str.indexOf(start, offset);
-        if (start_index == -1) return system.toast(doubleReplace.invoke(_str.substring(offset)), null, 0);
+        if (start_index == -1) return Toast.of(doubleReplace.invoke(_str.substring(offset)), null, 0);
         int index = start_index;
         int count = 0;
         while (true)
@@ -521,14 +523,14 @@ public class ChatHelper {
                 if (count < 0) break;
             }
         }
-        return system.toast(doubleReplace.invoke(_str.substring(offset, start_index)), doubleReplace.invoke(_str.substring(start_index + 1, index)), index + 1);
+        return Toast.of(doubleReplace.invoke(_str.substring(offset, start_index)), doubleReplace.invoke(_str.substring(start_index + 1, index)), index + 1);
     }
 
     public static List<ITag> parseToTags(String text, char start, char end) {
         List<ITag> tags = new ArrayList<>();
         int offset = 0;
         while (true) {
-            system.Toast3<String, String, Integer> getter = getBetween(text, offset, start, end);
+            Toast3<String, String, Integer> getter = getBetween(text, offset, start, end);
             if (getter.val1 == null)  {
                 tags.add(new Text(getter.val0));
                 return tags;
@@ -576,7 +578,7 @@ public class ChatHelper {
         return getTextSize(player, getText(text));
     }
     public static String getText(Component text) {
-        system.Toast1<String> onlyText = system.toast("");
+        Toast1<String> onlyText = Toast.of("");
         ComponentFlattener.textOnly().flatten(text, txt -> onlyText.val0 += txt);
         return onlyText.val0;
     }

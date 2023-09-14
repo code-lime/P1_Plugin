@@ -23,23 +23,28 @@ import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
+import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.player.menu.LangEnum;
-import org.lime.gp.player.module.*;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.gp.player.module.*;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
-import org.lime.gp.player.voice.Voice;
-import org.lime.system;
-import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.module.needs.thirst.Thirst;
-import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.voice.Voice;
+import org.lime.plugin.CoreElement;
+import org.lime.system.Time;
+import org.lime.system.execute.Action1;
+import org.lime.system.json;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast3;
+import org.lime.system.utils.MathUtils;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -75,7 +80,7 @@ public class Administrator implements Listener {
             this.perm = perm;
         }
     }
-    public static final ConcurrentLinkedQueue<system.Toast3<Double, Location, String>> rooms = new ConcurrentLinkedQueue<>();
+    public static final ConcurrentLinkedQueue<Toast3<Double, Location, String>> rooms = new ConcurrentLinkedQueue<>();
     public static final ConcurrentHashMap<UUID, Integer> target_list = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<UUID, Location> back_locations = new ConcurrentHashMap<>();
 
@@ -84,7 +89,7 @@ public class Administrator implements Listener {
                 .withInstance()
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("aban")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("center", "0 10 0")
                                 .add("distance", 5.0)
                                 .add("world", 0)
@@ -99,13 +104,13 @@ public class Administrator implements Listener {
                         )
                         .withInvoke(json -> {
                             distance = json.get("distance").getAsDouble();
-                            center = system.getLocation(Bukkit.getWorlds().get(json.get("world").getAsInt()), json.get("center").getAsString());
-                            List<system.Toast3<Double, Location, String>> list = new ArrayList<>();
+                            center = MathUtils.getLocation(Bukkit.getWorlds().get(json.get("world").getAsInt()), json.get("center").getAsString());
+                            List<Toast3<Double, Location, String>> list = new ArrayList<>();
                             json.get("rooms").getAsJsonObject().entrySet().forEach(kv -> {
                                 JsonObject _json = kv.getValue().getAsJsonObject();
-                                list.add(system.toast(
+                                list.add(Toast.of(
                                         _json.get("distance").getAsDouble(),
-                                        system.getLocation(Bukkit.getWorlds().get(_json.get("world").getAsInt()), kv.getKey()),
+                                        MathUtils.getLocation(Bukkit.getWorlds().get(_json.get("world").getAsInt()), kv.getKey()),
                                         _json.has("name") && !_json.get("name").isJsonNull() ? _json.get("name").getAsString() : null
                                 ));
                             });
@@ -135,13 +140,13 @@ public class Administrator implements Listener {
                                 s.sendMessage("User '"+args[0]+"' not founded!");
                                 return true;
                             }
-                            Integer time = "null".equals(args[1]) ? null : system.formattedTime(args[1]);
+                            Integer time = "null".equals(args[1]) ? null : Time.formattedTime(args[1]);
                             String reason = Arrays.stream(args).skip(2).collect(Collectors.joining(" "));
                             String userDisplay = UserRow.getBy(uuid)
                                     .map(row -> row.firstName + " " + row.lastName + " (" + row.userName + ")")
                                     .orElseGet(uuid::toString);
                             Methods.aBanAdd(uuid, reason, time, s instanceof Player sp ? sp.getUniqueId() : null,
-                                    () -> s.sendMessage("User '"+ userDisplay +"' was sent to aban for " + (time == null ? "∞" : system.formatTotalTime(time, system.FormatTime.HOUR_TIME)) + " with reason: " + reason));
+                                    () -> s.sendMessage("User '"+ userDisplay +"' was sent to aban for " + (time == null ? "∞" : Time.formatTotalTime(time, Time.Format.HOUR_TIME)) + " with reason: " + reason));
                             return true;
                         })
                 )
@@ -167,7 +172,7 @@ public class Administrator implements Listener {
                             };
                         })
                         .withExecutor((s,args) -> {
-                            system.Action1<List<Methods.WarnInfo>> callback_list = warns -> {
+                            Action1<List<Methods.WarnInfo>> callback_list = warns -> {
                                 List<Component> warnActive = warns.stream().filter(v -> !v.isEnd()).map(v -> v.toLine(" - ")).toList();
                                 List<Component> warnEnd = warns.stream().filter(Methods.WarnInfo::isEnd).map(v -> v.toLine(" - ")).toList();
                                 if (warnActive.isEmpty() && warnEnd.isEmpty()) {
@@ -213,7 +218,7 @@ public class Administrator implements Listener {
                                             s.sendMessage("User '"+find_user+"' not founded!");
                                             yield true;
                                         }
-                                        Integer time = "null".equals(args[2]) ? null : system.formattedTime(args[2]);
+                                        Integer time = "null".equals(args[2]) ? null : Time.formattedTime(args[2]);
                                         String reason = Arrays.stream(args).skip(3).collect(Collectors.joining(" "));
                                         s.sendMessage("Варн выдан!");
                                         Methods.aWarnAdd(uuid, reason, time, s instanceof Player sp ? sp.getUniqueId() : null, callback_list);
@@ -246,13 +251,13 @@ public class Administrator implements Listener {
                                 s.sendMessage("User '"+args[0]+"' not founded!");
                                 return true;
                             }
-                            Integer time = "null".equals(args[1]) ? null : system.formattedTime(args[1]);
+                            Integer time = "null".equals(args[1]) ? null : Time.formattedTime(args[1]);
                             String reason = Arrays.stream(args).skip(2).collect(Collectors.joining(" "));
                             String userDisplay = UserRow.getBy(uuid)
                                     .map(row -> row.firstName + " " + row.lastName + " (" + row.userName + ")")
                                     .orElseGet(uuid::toString);
                             Methods.aMuteAdd(uuid, reason, time, s instanceof Player sp ? sp.getUniqueId() : null,
-                                    () -> s.sendMessage("User '"+ userDisplay +"' was muted for " + (time == null ? "∞" : system.formatTotalTime(time, system.FormatTime.HOUR_TIME)) + " with reason: " + reason));
+                                    () -> s.sendMessage("User '"+ userDisplay +"' was muted for " + (time == null ? "∞" : Time.formatTotalTime(time, Time.Format.HOUR_TIME)) + " with reason: " + reason));
                             return true;
                         })
                 )
@@ -413,7 +418,7 @@ public class Administrator implements Listener {
             if (player == null) return;
             effects.forEach(player::addPotionEffect);
             Thirst.thirstReset(player);
-            CustomUI.TextUI.show(player, "До выхода: " + (row.timeToEnd == null ? "Неограничено" : system.formatTotalTime(row.timeToEnd, system.FormatTime.DAY_TIME)) + (isNullOrEmpty(row.reason) ? "" : (" | Причина: " + row.reason)), 15);
+            CustomUI.TextUI.show(player, "До выхода: " + (row.timeToEnd == null ? "Неограничено" : Time.formatTotalTime(row.timeToEnd, Time.Format.DAY_TIME)) + (isNullOrEmpty(row.reason) ? "" : (" | Причина: " + row.reason)), 15);
             Location playerLoc = player.getLocation();
             if (lime.isLay(player)) {
                 Death.up(player);
@@ -519,10 +524,10 @@ public class Administrator implements Listener {
     private static boolean sync = false;
     private static List<Integer> getRooms(Location location) {
         List<Integer> rooms = new ArrayList<>();
-        List<system.Toast3<Double, Location, String>> _rooms = new ArrayList<>(Administrator.rooms);
+        List<Toast3<Double, Location, String>> _rooms = new ArrayList<>(Administrator.rooms);
         int size = _rooms.size();
         for (int i = 0; i < size; i++) {
-            system.Toast3<Double, Location, String> kv = _rooms.get(i);
+            Toast3<Double, Location, String> kv = _rooms.get(i);
             if (kv.val1.getWorld() != location.getWorld()) continue;
             if (kv.val1.distance(location) < kv.val0) rooms.add(i);
         }

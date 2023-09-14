@@ -15,7 +15,9 @@ import org.bukkit.util.Vector;
 import org.lime.display.transform.LocalLocation;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
 
 public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self) implements IStep {
     @Override public void execute(Player player, LocalLocation position) {
@@ -35,7 +37,7 @@ public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self
         JsonObjectOptional config = JsonObjectOptional.of(json);
 
         config.getAsInt("count").ifPresent(builder::count);
-        config.getAsString("offset").map(system::getVector).ifPresent(v -> builder.offset(v.getX(), v.getY(), v.getZ()));
+        config.getAsString("offset").map(MathUtils::getVector).ifPresent(v -> builder.offset(v.getX(), v.getY(), v.getZ()));
         config.getAsDouble("extra").ifPresent(builder::extra);
         config.getAsBoolean("force").ifPresent(builder::force);
         config.getAsJsonObject("data").map(data -> {

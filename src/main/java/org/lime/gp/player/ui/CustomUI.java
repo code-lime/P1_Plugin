@@ -28,6 +28,10 @@ import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.RemoteExecuteSetting;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.plugin.CoreElement;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -94,7 +98,7 @@ public class CustomUI implements Listener {
                     if (!ExtMethods.isPlayerLoaded(player)) return;
                     UUID uuid = player.getUniqueId();
                     Integer count = is_show.getOrDefault(uuid, null);
-                    system.Func1<CustomBossBattle, PacketPlayOutBoss> action = count != null
+                    Func1<CustomBossBattle, PacketPlayOutBoss> action = count != null
                             ? PacketPlayOutBoss::createUpdateNamePacket
                             : PacketPlayOutBoss::createAddPacket;
                     is_show.put(uuid, 3);
@@ -131,7 +135,7 @@ public class CustomUI implements Listener {
                 json.get("owner").getAsString(),
                 json.get("repo").getAsString(),
                 json.get("branch").getAsString(),
-                system.map.<String, String>of()
+                map.<String, String>of()
                     .add(json.get("headers")
                         .getAsJsonObject()
                         .entrySet()
@@ -167,7 +171,7 @@ public class CustomUI implements Listener {
         }
         public void share() {
             lime.logOP("[Share] Setup remote generator...");
-            String jsonString = system.json.object()
+            String jsonString = json.object()
                 .addArray("execute", _v -> _v
                     .add(Items.creatorIDs.values()
                         .stream()
@@ -198,7 +202,7 @@ public class CustomUI implements Listener {
                     .map(JsonElement::getAsJsonObject)
                     .executeAsync((logger, _code) -> {
                         String logID = logger.get("id").getAsString();
-                        system.Toast2<BukkitTask, Integer> task = system.toast(null, 5);
+                        Toast2<BukkitTask, Integer> task = Toast.of(null, 5);
                         lime.logOP("[Share] Remote generator logs:");
                         task.val0 = lime.repeat(() -> {
                             if (task.val1 <= 0) {
@@ -208,7 +212,7 @@ public class CustomUI implements Listener {
                             }
                             task.val1--;
                             web.method.POST
-                                    .create(url, system.json.object()
+                                    .create(url, json.object()
                                             .add("logger", logID)
                                             .build()
                                             .toString()
@@ -270,7 +274,7 @@ public class CustomUI implements Listener {
 
     public static class TextGlobalUI extends GUI {
         private TextGlobalUI() { super(IType.ACTIONBAR); }
-        private static system.Toast3<String, Integer, TextColor> showTexts = null;
+        private static Toast3<String, Integer, TextColor> showTexts = null;
 
         public static void show(String text) {
             show(text, 3);
@@ -279,7 +283,7 @@ public class CustomUI implements Listener {
             show(text, 3, NamedTextColor.WHITE);
         }
         public static void show(String text, int ticks, TextColor color) {
-            showTexts = system.toast(text, ticks, color);
+            showTexts = Toast.of(text, ticks, color);
             CustomUI.update();
         }
         public static void hide() {
@@ -299,13 +303,13 @@ public class CustomUI implements Listener {
     }
     public static class TextUI extends GUI {
         private TextUI() { super(IType.ACTIONBAR); }
-        private static final HashMap<UUID, system.Toast2<String, Integer>> showTexts = new HashMap<>();
+        private static final HashMap<UUID, Toast2<String, Integer>> showTexts = new HashMap<>();
 
         public static void show(Player player, String text) {
             show(player, text, 3);
         }
         public static void show(Player player, String text, int ticks) {
-            showTexts.put(player.getUniqueId(), system.toast(text, ticks));
+            showTexts.put(player.getUniqueId(), Toast.of(text, ticks));
             CustomUI.updatePlayer(player);
         }
         public static void hide(Player player) {
@@ -314,7 +318,7 @@ public class CustomUI implements Listener {
         }
         @Override public Collection<ImageBuilder> getUI(Player player) {
             UUID uuid = player.getUniqueId();
-            system.Toast2<String, Integer> uses = showTexts.getOrDefault(uuid, null);
+            Toast2<String, Integer> uses = showTexts.getOrDefault(uuid, null);
             if (uses == null) return Collections.emptyList();
             uses.val1--;
             if (uses.val1 <= 0) showTexts.remove(uuid);
@@ -323,13 +327,13 @@ public class CustomUI implements Listener {
     }
     public static class TitleUI extends GUI {
         private TitleUI() { super(IType.BOSSBAR); }
-        private static final HashMap<UUID, system.Toast2<String, Integer>> showTexts = new HashMap<>();
+        private static final HashMap<UUID, Toast2<String, Integer>> showTexts = new HashMap<>();
 
         public static void show(Player player, String text) {
             show(player, text, 3);
         }
         public static void show(Player player, String text, int ticks) {
-            showTexts.put(player.getUniqueId(), system.toast(text, ticks));
+            showTexts.put(player.getUniqueId(), Toast.of(text, ticks));
             CustomUI.updatePlayer(player);
         }
         public static void hide(Player player) {
@@ -338,7 +342,7 @@ public class CustomUI implements Listener {
         }
         @Override public Collection<ImageBuilder> getUI(Player player) {
             UUID uuid = player.getUniqueId();
-            system.Toast2<String, Integer> uses = showTexts.getOrDefault(uuid, null);
+            Toast2<String, Integer> uses = showTexts.getOrDefault(uuid, null);
             if (uses == null) return Collections.emptyList();
             uses.val1--;
             if (uses.val1 <= 0) showTexts.remove(uuid);

@@ -9,7 +9,8 @@ import org.lime.gp.player.menu.node.BaseNode;
 import org.lime.gp.player.menu.node.global.RunNode;
 import org.lime.gp.player.menu.node.unity.GraphInput;
 import org.lime.json.JsonElementOptional;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -23,7 +24,7 @@ public class NodeCreator {
                 );
     }
     public static void init() {
-        AnyEvent.addEvent("open.node", AnyEvent.type.owner, builder -> builder.createParam(v -> v, () -> nodeRunList.keySet().stream().map(v -> v + "").toList()), NodeCreator::runNode);
+        AnyEvent.addEvent("open.node", AnyEvent.type.owner, builder -> builder.createParam(v -> v, () -> nodeRunList.keySet().stream().toList()), NodeCreator::runNode);
     }
     public static void config(JsonObject json) {
         nodeGroups.values().forEach(v -> v.nodeList.values().forEach(BaseNode::delete));
@@ -33,11 +34,11 @@ public class NodeCreator {
         nodeGroups.values().forEach(NodeGroup::loadNodes);
         nodeGroups.values().forEach(group -> group.nodeList.values().forEach(node -> {
             if (node instanceof RunNode runNode)
-                nodeRunList.computeIfAbsent(runNode.key, k -> new ArrayList<>()).add(system.toast(group, runNode));
+                nodeRunList.computeIfAbsent(runNode.key, k -> new ArrayList<>()).add(Toast.of(group, runNode));
         }));
     }
     public static HashMap<String, NodeGroup> nodeGroups = new HashMap<>();
-    public static HashMap<String, List<system.Toast2<NodeGroup, RunNode>>> nodeRunList = new HashMap<>();
+    public static HashMap<String, List<Toast2<NodeGroup, RunNode>>> nodeRunList = new HashMap<>();
 
     public static class NodeGroup {
         public final HashMap<Integer, BaseNode> nodeList = new HashMap<>();

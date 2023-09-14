@@ -29,7 +29,9 @@ import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.ItemNMS;
 import org.lime.gp.item.Items;
-import org.lime.system;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -66,10 +68,10 @@ public class ClickerRecipe extends AbstractRecipe {
                 }
             };
         }
-        static Action ofRepair(system.IRange repair) {
+        static Action ofRepair(IRange repair) {
             return new Action() {
                 @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
-                    system.Toast1<Integer> index = system.toast(0);
+                    Toast1<Integer> index = Toast.of(0);
                     return recipe.input.get(0).getWhitelistIngredientsShow().map(firstItem -> {
                         index.val0++;
                         NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
@@ -117,7 +119,7 @@ public class ClickerRecipe extends AbstractRecipe {
         static Action ofCombine(List<Enchantment> enchantments) {
             return new Action() {
                 @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
-                    system.Toast1<Integer> index = system.toast(0);
+                    Toast1<Integer> index = Toast.of(0);
                     List<String> whitelistSecond = recipe.input.get(1).getWhitelistKeys().toList();
                     return Stream.concat(
                             whitelistSecond.contains(Items.getMaterialKey(Material.ENCHANTED_BOOK))
@@ -258,7 +260,7 @@ public class ClickerRecipe extends AbstractRecipe {
     public static ClickerRecipe ofDefault(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<IOutputSlot> output, boolean replace, int clicks, String clicker_type) {
         return new ClickerRecipe(key, group, category, input, Action.ofDefault(output, replace), clicks, clicker_type);
     }
-    public static ClickerRecipe ofRepair(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, system.IRange repair, int clicks, String clicker_type) {
+    public static ClickerRecipe ofRepair(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, IRange repair, int clicks, String clicker_type) {
         return new ClickerRecipe(key, group, category, input, Action.ofRepair(repair), clicks, clicker_type);
     }
     public static ClickerRecipe ofCombine(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<Enchantment> enchantments, int clicks, String clicker_type) {

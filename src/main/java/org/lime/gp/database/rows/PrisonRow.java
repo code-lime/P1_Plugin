@@ -5,10 +5,10 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 import org.lime.Position;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.system.Time;
 
 public class PrisonRow extends BaseRow {
     public int id;
@@ -41,7 +41,7 @@ public class PrisonRow extends BaseRow {
         map.put("reason", String.valueOf(reason));
         map.put("is_log", String.valueOf(isLog));
         map.put("out_pos", outPos.toSave());
-        map.put("end_time", system.formatCalendar(endTime, true));
+        map.put("end_time", Time.formatCalendar(endTime, true));
         return map;
     }
 }

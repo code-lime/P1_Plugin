@@ -11,7 +11,9 @@ import org.lime.gp.player.menu.node.connect.input.StringInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.StringOutput;
 import org.lime.gp.player.ui.EditorUI;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -23,13 +25,13 @@ public class SignInput extends BaseNode {
     private final StringOutput[] outputText;
 
     public SignInput(int id, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
                 .add("line_0", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
                 .add("line_1", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
                 .add("line_2", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
                 .add("line_3", (key, def) -> new StringInput(key, def.map(JsonElement::getAsString).orElse("")))
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add("output", ActionOutput::new)
                 .add("line_0", StringOutput::new)
                 .add("line_1", StringOutput::new)

@@ -18,13 +18,15 @@ import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.gp.player.perm.Perms;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -37,15 +39,15 @@ public class Knock implements Listener {
                 .withInstance();
     }
 
-    private static final HashMap<UUID, system.Toast2<Long, Location>> knockCooldown = new HashMap<>();
+    private static final HashMap<UUID, Toast2<Long, Location>> knockCooldown = new HashMap<>();
     public static void init() {
         lime.repeat(Knock::update, 0.1);
         lime.repeatTicks(Knock::updateLock, 1);
     }
     public static void knock(Player player) {
         if (lime.isSit(player) || lime.isLay(player)) return;
-        system.Toast2<Long, Location> knock = knockCooldown.getOrDefault(player.getUniqueId(), null);
-        if (knock == null) knockCooldown.put(player.getUniqueId(), system.toast(System.currentTimeMillis() + KNOCK_TIME_MS, player.getLocation().clone()));
+        Toast2<Long, Location> knock = knockCooldown.getOrDefault(player.getUniqueId(), null);
+        if (knock == null) knockCooldown.put(player.getUniqueId(), Toast.of(System.currentTimeMillis() + KNOCK_TIME_MS, player.getLocation().clone()));
         else knock.val0 = System.currentTimeMillis() + KNOCK_TIME_MS;
     }
     public static void unKnock(Player player) {
@@ -66,7 +68,7 @@ public class Knock implements Listener {
         knockCooldown.entrySet().removeIf(kv -> {
             Player player = Bukkit.getPlayer(kv.getKey());
             if (player == null) return true;
-            system.Toast2<Long, Location> knock = kv.getValue();
+            Toast2<Long, Location> knock = kv.getValue();
             if (now > knock.val0) return true;
             if (lime.isSit(player)) return false;
             if (lime.isLay(player)) return false;
@@ -84,7 +86,7 @@ public class Knock implements Listener {
                 .ifPresent(target -> Items.getItemCreator(e.getItem())
                     .filter(v -> e.getBase().getFinalDamage() != 0)
                     .map(v -> v instanceof ItemCreator _v ? _v : null)
-                    .filter(v -> v.getOptional(BatonSetting.class).map(_v -> system.rand_is(_v.chance)).orElse(false))
+                    .filter(v -> v.getOptional(BatonSetting.class).map(_v -> RandomUtils.rand_is(_v.chance)).orElse(false))
                     .filter(v -> Perms.getCanData(e.getDamageOwner().getUniqueId()).isCanUse(v.getKey()))
                     .ifPresent(v -> Knock.knock(target))
                 );

@@ -4,7 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.gp.lime;
 import org.lime.gp.extension.Cooldown;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -34,17 +35,17 @@ public class SelectObject {
     }
 
     public class InvokeAction {
-        public system.Action1<Player> owner;
-        public system.Action1<Player> other;
-        public system.Action1<Player> call;
+        public Action1<Player> owner;
+        public Action1<Player> other;
+        public Action1<Player> call;
 
-        public InvokeAction(system.Action1<Player> owner, system.Action1<Player> other, system.Action1<Player> call) {
+        public InvokeAction(Action1<Player> owner, Action1<Player> other, Action1<Player> call) {
             this.other = other;
             this.owner = owner;
             this.call = call;
         }
 
-        private void TryInvoke(UUID uuid, system.Action1<Player> callback) {
+        private void TryInvoke(UUID uuid, Action1<Player> callback) {
             Player player = uuid == null ? null : Bukkit.getPlayer(uuid);
             if (player == null) return;
             callback.invoke(player);

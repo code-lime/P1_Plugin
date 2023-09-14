@@ -22,13 +22,14 @@ import org.lime.display.Displays;
 import org.lime.display.EditedDataWatcher;
 import org.lime.display.MoveObjectDisplay;
 import org.lime.gp.lime;
-import org.lime.system;
 import org.lime.gp.chat.ChatHelper;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public class DrawText {
     public static CoreElement create() {
@@ -40,7 +41,7 @@ public class DrawText {
     public static void init() {
         Displays.initDisplay(TEXT_MANAGER);
         lime.repeatTicks(() -> shows.values().removeIf(IShow::tryRemove), 1);
-        /*system.Toast1<Double> a = system.toast(0.0);
+        /*Toast1<Double> a = Toast.of(0.0);
 
         load(() -> Stream.of(new IShowID("tmp.gen") {
 
@@ -164,7 +165,7 @@ public class DrawText {
     public interface IShowGroup {
         Stream<IShow> list();
 
-        static <T>IShowGroup create(Collection<T> data, system.Func1<T, IShow> show) {
+        static <T>IShowGroup create(Collection<T> data, Func1<T, IShow> show) {
             return () -> data.stream().map(show);
         }
     }

@@ -44,6 +44,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.plugin.CoreElement;
+import org.lime.system.utils.MathUtils;
 
 import java.util.*;
 import java.util.List;
@@ -100,7 +101,7 @@ public class NPC {
         public NPCObject(String key, JsonObject json) {
             this.key = key;
 
-            location = system.getLocation(json.has("world") ? Bukkit.getWorlds().get(json.get("world").getAsInt()) : lime.MainWorld, json.get("location").getAsString());
+            location = MathUtils.getLocation(json.has("world") ? Bukkit.getWorlds().get(json.get("world").getAsInt()) : lime.MainWorld, json.get("location").getAsString());
             skin = json.get("skin").getAsString();
             menu = json.has("menu") ? json.get("menu").getAsString() : null;
             single = !json.has("single") || json.get("single").getAsBoolean();

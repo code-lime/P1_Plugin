@@ -35,7 +35,12 @@ import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.gp.player.voice.Voice;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.MathUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 
@@ -46,7 +51,7 @@ public class SingleModules implements Listener {
                 .withInstance()
                 .addEmpty("execute_file", () -> {
                     if (!lime.existConfig("execute")) return;
-                    system.json.parse(lime.readAllConfig("execute")).getAsJsonArray().forEach(cmd -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.getAsString()));
+                    json.parse(lime.readAllConfig("execute")).getAsJsonArray().forEach(cmd -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.getAsString()));
                 });
     }
     private static class MoveData {
@@ -72,7 +77,7 @@ public class SingleModules implements Listener {
 
 
     public static void init() {
-        final HashMap<Material, Material> mapReplace = system.map.<Material, Material>of()
+        final HashMap<Material, Material> mapReplace = map.<Material, Material>of()
                 .add(Material.GRASS_BLOCK, Material.DIRT_PATH)
                 //.add(Material.ICE, Material.AIR)
                 .build();
@@ -106,7 +111,7 @@ public class SingleModules implements Listener {
                 if (health < maxHealth) player.setHealth(Math.min(maxHealth, health + 0.5));
             });
             nowLocation.forEach((pos, material) -> {
-                if (system.rand_is(0.1))
+                if (RandomUtils.rand_is(0.1))
                     cacheMoveLocation.computeIfAbsent(pos, MoveData::new).onMove();
             });
             cacheMoveLocation.entrySet().removeIf(kv -> {
@@ -163,7 +168,7 @@ public class SingleModules implements Listener {
         Player player = e.getPlayer();
         if (lime.isLay(player)) return;
         Block bed = e.getBed();
-        String bedLoc = system.getString(bed.getLocation());
+        String bedLoc = MathUtils.getString(bed.getLocation());
         if (beds.containsKey(bedLoc)) return;
         float yaw = 0;
         switch (((Bed)bed.getBlockData()).getFacing()) {
@@ -275,7 +280,7 @@ public class SingleModules implements Listener {
         Collections.shuffle(blocks);
         int length = blocks.size();
         length = Math.max(length / 3, length);
-        for (int i = 0; i < length; i++) blocks.get(i).setType(system.rand(Material.ROOTED_DIRT, Material.COARSE_DIRT));
+        for (int i = 0; i < length; i++) blocks.get(i).setType(RandomUtils.rand(Material.ROOTED_DIRT, Material.COARSE_DIRT));
         lime.nextTick(() -> {
             switch (block.getType()) {
                 case DIRT:
@@ -283,7 +288,7 @@ public class SingleModules implements Listener {
                 case PODZOL: break;
                 default: return;
             }
-            block.setType(system.rand(Material.ROOTED_DIRT, Material.COARSE_DIRT));
+            block.setType(RandomUtils.rand(Material.ROOTED_DIRT, Material.COARSE_DIRT));
         });
     }
     @EventHandler public static void on(InventoryOpenEvent e) {

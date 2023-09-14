@@ -8,8 +8,8 @@ import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.gp.item.settings.Setting;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -53,12 +53,12 @@ public class InfoComponent {
                 return valueOf("ANGLE_" + angle_name);
             }
 
-            public system.Toast3<Integer, Integer, Integer> rotate(system.Toast3<Integer, Integer, Integer> pos) {
+            public Toast3<Integer, Integer, Integer> rotate(Toast3<Integer, Integer, Integer> pos) {
                 return switch (this) {
-                    case ANGLE_0, ANGLE_45 -> system.toast(pos.val0, pos.val1, pos.val2);
-                    case ANGLE_90, ANGLE_135 -> system.toast(-pos.val2, pos.val1, pos.val0);
-                    case ANGLE_180, ANGLE_225 -> system.toast(-pos.val0, pos.val1, -pos.val2);
-                    case ANGLE_270, ANGLE_315 -> system.toast(pos.val2, pos.val1, -pos.val0);
+                    case ANGLE_0, ANGLE_45 -> Toast.of(pos.val0, pos.val1, pos.val2);
+                    case ANGLE_90, ANGLE_135 -> Toast.of(-pos.val2, pos.val1, pos.val0);
+                    case ANGLE_180, ANGLE_225 -> Toast.of(-pos.val0, pos.val1, -pos.val2);
+                    case ANGLE_270, ANGLE_315 -> Toast.of(pos.val2, pos.val1, -pos.val0);
                 };
             }
         }
@@ -88,9 +88,9 @@ public class InfoComponent {
         }
     }
     public static final class GenericDynamicComponent<T extends BlockInstance> extends ComponentDynamic<JsonObject, T> {
-        private final system.Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance;
+        private final Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance;
         private final String name;
-        public GenericDynamicComponent(String name, BlockInfo info, system.Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) {
+        public GenericDynamicComponent(String name, BlockInfo info, Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) {
             super(info);
             this.createInstance = createInstance;
             this.name = name;
@@ -101,7 +101,7 @@ public class InfoComponent {
         @Override public Class<T> classInstance() { throw new ToDoException("CLASS COMPONENT"); }
         @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 
-        public static <T extends BlockInstance>GenericDynamicComponent<T> of(String name, BlockInfo info, system.Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) { return new GenericDynamicComponent<>(name, info, createInstance); }
+        public static <T extends BlockInstance>GenericDynamicComponent<T> of(String name, BlockInfo info, Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) { return new GenericDynamicComponent<>(name, info, createInstance); }
         public static String getName(String name) { return name + ".generic"; }
     }
 }

@@ -3,7 +3,7 @@ package org.lime.gp.player.module.needs.thirst;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.format.TextColor;
 import org.lime.gp.player.ui.ImageBuilder;
-import org.lime.system;
+import org.lime.system.utils.IterableUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +56,7 @@ public class StateColor {
             default:
                 return ImageBuilder.empty;
         }
-        return system.getOrDefault(list, level, ImageBuilder.empty);
+        return IterableUtils.getOrDefault(list, level, ImageBuilder.empty);
     }
 
     public StateColor(List<ImageBuilder> whole, List<ImageBuilder> half, List<ImageBuilder> empty) {

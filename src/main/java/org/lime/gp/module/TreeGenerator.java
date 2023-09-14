@@ -6,7 +6,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 public class TreeGenerator implements Listener {
     public static CoreElement create() {
@@ -20,7 +22,7 @@ public class TreeGenerator implements Listener {
             Material material = original;
             switch (material) {
                 case OAK_LEAVES:
-                    if (system.rand_is(0.10)) material = system.rand_is(0.30) ? Material.FLOWERING_AZALEA_LEAVES : Material.AZALEA_LEAVES;
+                    if (RandomUtils.rand_is(0.10)) material = RandomUtils.rand_is(0.30) ? Material.FLOWERING_AZALEA_LEAVES : Material.AZALEA_LEAVES;
                     break;
                 default:
                     break;

@@ -9,12 +9,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.docs.IGroup;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.reflection;
-import org.lime.system;
 import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.data.ItemCreator;
@@ -24,6 +22,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.unsafe;
 
 public abstract class ItemSetting<T extends JsonElement> implements IItemSetting {
@@ -57,7 +57,7 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
             settings = lime._plugin.getJarClassesNames()
                     .stream()
                     .filter(v -> v.startsWith(packageFilter))
-                    .map(system.<String, Class<?>>funcEx(Class::forName).throwable())
+                    .map(Execute.<String, Class<?>>funcEx(Class::forName).throwable())
                     .filter(ItemSetting.class::isAssignableFrom)
                     .flatMap(v -> constructor(v, ItemCreator.class, JsonElement.class)
                             .or(() -> constructor(v, ItemCreator.class, JsonArray.class))
@@ -66,7 +66,7 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
                             .or(() -> constructor(v, ItemCreator.class, JsonNull.class))
                             .or(() -> constructor(v, ItemCreator.class))
                             .stream()
-                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(Setting.class)).map(_c -> system.toast(_c, c, v)))
+                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(Setting.class)).map(_c -> Toast.of(_c, c, v)))
                     )
                     .collect(Collectors.toMap(kv -> kv.val0.name(), kv -> new SettingLink() {
                         private final Constructor<?> constructor = kv.val1;

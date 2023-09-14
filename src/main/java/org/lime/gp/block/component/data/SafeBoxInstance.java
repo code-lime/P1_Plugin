@@ -43,7 +43,12 @@ import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -71,16 +76,16 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                 .ifPresent(items -> IntStream.range(0, items.size())
                         .forEach(i -> items.get(i)
                                 .flatMap(JsonElementOptional::getAsString)
-                                .map(system::loadItem)
+                                .map(ItemUtils::loadItem)
                                 .map(CraftItemStack::asNMSCopy)
                                 .ifPresent(item -> items_container.setItem(i, item))
                         ));
         syncDisplayVariable();
     }
-    @Override public system.json.builder.object write() {
-        return system.json.object()
+    @Override public json.builder.object write() {
+        return json.object()
                 .add("time_to_close", timeToClose)
-                .add("items", system.json.array().add(items_container.getContents(), item -> item == null || item.isEmpty() ? null : system.saveItem(item.asBukkitMirror())));
+                .add("items", json.array().add(items_container.getContents(), item -> item == null || item.isEmpty() ? null : ItemUtils.saveItem(item.asBukkitMirror())));
     }
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
         if (component().small) TimeoutData.put(metadata.key.uuid(), SafeBoxCounter.class, new SafeBoxCounter(metadata.position()));
@@ -117,7 +122,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         Methods.bankOPG(count, cash -> InsertSetting.createOf(component().insert, cash)
                 .forEach(item -> items_container.addItem(CraftItemStack.asNMSCopy(item)))
         );
-        system.randomize(items_container.items);
+        RandomUtils.randomize(items_container.items);
         saveData();
     }
     @Override public void onRemove(CustomTileMetadata metadata, TileEntitySkullEventRemove event) {
@@ -184,12 +189,12 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         event.player().openMenu(new ITileInventory() {
             public final List<Integer> values = component.small ? Arrays.asList(-1, 1) : Arrays.asList(-2,-1,1,2);
             public final int[] progress = new int[9];
-            public final int[] data = IntStream.range(0, 9).map(v -> system.rand(values)).toArray();
+            public final int[] data = IntStream.range(0, 9).map(v -> RandomUtils.rand(values)).toArray();
             private IChatBaseComponent title = createTitle();
-            public final Map<Integer, ItemStack> preview = system.map.<Integer, ItemStack>of()
+            public final Map<Integer, ItemStack> preview = map.<Integer, ItemStack>of()
                     .add((component.small
-                        ? Stream.of(system.toast(1, 10015), system.toast(0, 0), system.toast(-1, 10016))
-                        : Stream.of(system.toast(2, 10011), system.toast(1, 10012), system.toast(0, 0), system.toast(-1, 10013), system.toast(-2, 10014))
+                        ? Stream.of(Toast.of(1, 10015), Toast.of(0, 0), Toast.of(-1, 10016))
+                        : Stream.of(Toast.of(2, 10011), Toast.of(1, 10012), Toast.of(0, 0), Toast.of(-1, 10013), Toast.of(-2, 10014))
                     ).toList(), kv -> kv.val0, kv -> {
                         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(Material.BARRIER);
                         ItemMeta meta = item.getItemMeta();

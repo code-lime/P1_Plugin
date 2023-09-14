@@ -11,7 +11,9 @@ import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.list;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import java.util.*;
 
 public class PacketManager {
@@ -31,28 +33,28 @@ public class PacketManager {
 
     public static class Adapter extends PacketAdapter {
         public static class Builder {
-            private final HashMap<PacketType, List<system.Action2<PacketType, PacketEvent>>> receiving = new HashMap<>();
-            private final HashMap<PacketType, List<system.Action2<PacketType, PacketEvent>>> sending = new HashMap<>();
+            private final HashMap<PacketType, List<Action2<PacketType, PacketEvent>>> receiving = new HashMap<>();
+            private final HashMap<PacketType, List<Action2<PacketType, PacketEvent>>> sending = new HashMap<>();
 
-            public Builder add(PacketType type, system.Action2<PacketType, PacketEvent> func) {
+            public Builder add(PacketType type, Action2<PacketType, PacketEvent> func) {
                 return add(Collections.singletonList(type), func);
             }
-            public Builder add(PacketType type, system.Action1<PacketEvent> func) {
+            public Builder add(PacketType type, Action1<PacketEvent> func) {
                 return add(Collections.singletonList(type), func);
             }
 
             @SuppressWarnings("unchecked")
-            public <T extends Packet<?>>Builder add(Class<T> packetClass, system.Action2<T, PacketEvent> func) {
+            public <T extends Packet<?>>Builder add(Class<T> packetClass, Action2<T, PacketEvent> func) {
                 return add(PacketType.fromClass(packetClass), e -> func.invoke((T)e.getPacket().getHandle(), e));
             }
 
-            public Builder add(PacketType[] types, system.Action2<PacketType, PacketEvent> func) {
+            public Builder add(PacketType[] types, Action2<PacketType, PacketEvent> func) {
                 return add(Arrays.asList(types), func);
             }
-            public Builder add(PacketType[] types, system.Action1<PacketEvent> func) {
+            public Builder add(PacketType[] types, Action1<PacketEvent> func) {
                 return add(Arrays.asList(types), func);
             }
-            public Builder add(List<PacketType> types, system.Action2<PacketType, PacketEvent> func) {
+            public Builder add(List<PacketType> types, Action2<PacketType, PacketEvent> func) {
                 types.forEach(type -> (type.isServer() ? sending : receiving).compute(type, (k, v) -> {
                     if (v == null) v = new ArrayList<>();
                     v.add(func);
@@ -60,7 +62,7 @@ public class PacketManager {
                 }));
                 return this;
             }
-            public Builder add(List<PacketType> types, system.Action1<PacketEvent> func) {
+            public Builder add(List<PacketType> types, Action1<PacketEvent> func) {
                 add(types,  (a,b) -> func.invoke(b));
                 return this;
             }
@@ -70,16 +72,16 @@ public class PacketManager {
             }
             public void listen() { if (!receiving.isEmpty() || !sending.isEmpty()) ProtocolLibrary.getProtocolManager().addPacketListener(build()); }
         }
-        private final HashMap<PacketType, List<system.Action2<PacketType, PacketEvent>>> receiving = new HashMap<>();
-        private final HashMap<PacketType, List<system.Action2<PacketType, PacketEvent>>> sending = new HashMap<>();
+        private final HashMap<PacketType, List<Action2<PacketType, PacketEvent>>> receiving = new HashMap<>();
+        private final HashMap<PacketType, List<Action2<PacketType, PacketEvent>>> sending = new HashMap<>();
         private Adapter(Builder builder) {
-            super(lime._plugin, system.list.<PacketType>of().add(builder.receiving.keySet()).add(builder.sending.keySet()).build());
+            super(lime._plugin, list.<PacketType>of().add(builder.receiving.keySet()).add(builder.sending.keySet()).build());
             this.receiving.putAll(builder.receiving);
             this.sending.putAll(builder.sending);
         }
-        private void invoke(PacketEvent event, HashMap<PacketType, List<system.Action2<PacketType, PacketEvent>>> map) {
+        private void invoke(PacketEvent event, HashMap<PacketType, List<Action2<PacketType, PacketEvent>>> map) {
             PacketType type = event.getPacketType();
-            List<system.Action2<PacketType, PacketEvent>> list = map.getOrDefault(type, null);
+            List<Action2<PacketType, PacketEvent>> list = map.getOrDefault(type, null);
             if (list == null) return;
             list.forEach(func -> func.invoke(type, event));
         }

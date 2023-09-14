@@ -14,13 +14,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.map.MapPalette;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.gp.map.MapMonitor;
+import org.lime.plugin.CoreElement;
 import org.lime.reflection;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -29,14 +31,14 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
 public final class DrawMap {
     private static final class CacheBuffer implements Listener {
-        private static final ConcurrentHashMap<system.Toast2<UUID, Integer>, byte[]> cacheBuffer = new ConcurrentHashMap<>();
+        private static final ConcurrentHashMap<Toast2<UUID, Integer>, byte[]> cacheBuffer = new ConcurrentHashMap<>();
         private static void remove(UUID uuid) { cacheBuffer.entrySet().removeIf(kv -> kv.getKey().val0.equals(uuid)); }
         @EventHandler private static void on(PlayerQuitEvent e) { remove(e.getPlayer().getUniqueId()); }
         @EventHandler private static void on(PlayerJoinEvent e) { remove(e.getPlayer().getUniqueId()); }
@@ -157,24 +159,24 @@ public final class DrawMap {
                     return def;
                 }));
     }
-    public static void config(JsonObject json) {
+    public static void config(JsonObject _json) {
         images.clear();
         File dir = lime.getConfigFile("images");
         if (!dir.exists()) dir.mkdir();
         String path = dir.getAbsolutePath();
         for (Images img : Images.values()) {
-            String file = img.parse(json);
+            String file = img.parse(_json);
             Path file_path;
             if (file == null) {
                 lime.logOP(ChatColor.GOLD + "Image not founded: '" + img.path() + "'");
-                img.addDefault(json);
+                img.addDefault(_json);
             }
             else if (!Files.exists(file_path = Paths.get(path, file))) {
                 lime.logOP(ChatColor.GOLD + "Image file not founded: '" + file_path + "'");
             }
-            else images.put(img, Images.Data.read(img.rotation, system.<File, BufferedImage>funcEx(ImageIO::read).throwable().invoke(file_path.toFile())));
+            else images.put(img, Images.Data.read(img.rotation, Execute.<File, BufferedImage>funcEx(ImageIO::read).throwable().invoke(file_path.toFile())));
         }
-        lime.writeAllConfig("images", system.toFormat(json));
+        lime.writeAllConfig("images", json.format(_json));
     }
 
     private record hsv(double h,double s,double v) {
@@ -249,16 +251,16 @@ public final class DrawMap {
         }
         File colorConverterFile = lime.getConfigFile("colorConverter.cls");
         if (colorConverterFile.exists()) {
-            System.arraycopy(system.funcEx(Files::readAllBytes).throwable().invoke(colorConverterFile.toPath()), 0, colorConverter, 0, colorConverter.length);
+            System.arraycopy(Execute.funcEx(Files::readAllBytes).throwable().invoke(colorConverterFile.toPath()), 0, colorConverter, 0, colorConverter.length);
         } else {
-            List<system.Toast2<hsv, Byte>> hsvColors = new ArrayList<>();
+            List<Toast2<hsv, Byte>> hsvColors = new ArrayList<>();
             for (int i = 4; i < colors.length; i++) {
                 java.awt.Color color = colors[i];
-                hsvColors.add(system.toast(rgb2hsv(rgb.of(color)), (byte)i));
+                hsvColors.add(Toast.of(rgb2hsv(rgb.of(color)), (byte)i));
             }
             int length = 256 * 256 * 256;
             int step = length / 100;
-            system.LockToast1<Integer> last = system.toast(0).lock();
+            LockToast1<Integer> last = Toast.of(0).lock();
             IntStream.range(0, length)
                     .boxed()
                     .toList()
@@ -276,7 +278,7 @@ public final class DrawMap {
                     });
             lime.logOP("[100%] Color " + length + " / " + length+ "...");
             lime.logOP("[----] Saving colors...");
-            system.<Path, byte[], Path>funcEx(Files::write).throwable().invoke(colorConverterFile.toPath(), colorConverter);
+            Execute.<Path, byte[], Path>funcEx(Files::write).throwable().invoke(colorConverterFile.toPath(), colorConverter);
             lime.logOP("[----] Saved!");
         }
     }
@@ -330,7 +332,7 @@ public final class DrawMap {
     public Color pixel(int x, int y) { return to(colors[x % 128 + (y % 128) * 128]); }
     public DrawMap pixel(int x, int y, Color color) { return pixel(x,y,to(color)); }
     public DrawMap pixel(int x, int y, byte color) { colors[x % 128 + (y % 128) * 128] = color; return this; }
-    public DrawMap pixel(system.Toast2<Integer, Integer> pos, byte color) { return pixel(pos.val0, pos.val1, color); }
+    public DrawMap pixel(Toast2<Integer, Integer> pos, byte color) { return pixel(pos.val0, pos.val1, color); }
     private static int in(int value, int min, int max) { return Math.max(Math.min(value, max), min); }
     private static int in(int value) { return in(value, 0, 128); }
     public DrawMap rectangle(int x, int y, int sizeX, int sizeY, Color color) {
@@ -360,7 +362,7 @@ public final class DrawMap {
         }
         return this;
     }
-    public DrawMap rectangleFunc(int x, int y, int sizeX, int sizeY, system.Action1<Byte> func) {
+    public DrawMap rectangleFunc(int x, int y, int sizeX, int sizeY, Action1<Byte> func) {
         int _tX = in(x);
         int _tY = in(y);
         int tX = in(x+sizeX);
@@ -370,7 +372,7 @@ public final class DrawMap {
                 func.invoke(colors[_x + _y * 128]);
         return this;
     }
-    public DrawMap rectangleFunc(int x, int y, int sizeX, int sizeY, system.Func1<Byte, Byte> func) {
+    public DrawMap rectangleFunc(int x, int y, int sizeX, int sizeY, Func1<Byte, Byte> func) {
         int _tX = in(x);
         int _tY = in(y);
         int tX = in(x+sizeX);
@@ -409,7 +411,7 @@ public final class DrawMap {
         int tX = in(x+sizeX);
         int sizeY = pixels.length / sizeX;
         int tY = in(y+sizeY);
-        Map<Byte, Byte> tCs = system.map.<Byte, Byte>of().add(colors.entrySet(), Map.Entry::getKey, kv -> to(kv.getValue())).build();
+        Map<Byte, Byte> tCs = map.<Byte, Byte>of().add(colors.entrySet(), Map.Entry::getKey, kv -> to(kv.getValue())).build();
         for (int _x = in(x); _x < tX; _x++)
             for (int _y = in(y); _y < tY; _y++) {
                 Byte color = tCs.getOrDefault(pixels[(_x - x) + (_y - y) * sizeX], null);
@@ -442,12 +444,12 @@ public final class DrawMap {
                     pixel(_x, _y, color);
         return this;
     }
-    public DrawMap line(int from, int to, system.Func1<Integer, system.Toast2<Integer, Integer>> func, Color color) {
+    public DrawMap line(int from, int to, Func1<Integer, Toast2<Integer, Integer>> func, Color color) {
         byte tC = to(color);
         for (int i = from; i < to; i++) pixel(func.invoke(i), tC);
         return this;
     }
-    public DrawMap draw(system.Action1<DrawMap> invoke) {
+    public DrawMap draw(Action1<DrawMap> invoke) {
         invoke.invoke(this);
         return this;
     }
@@ -465,7 +467,7 @@ public final class DrawMap {
         CacheBuffer.cacheBuffer.clear();
     }
     public static void sendMap(Player player, int mapID, byte[] data) {
-        system.Toast2<UUID, Integer> kv = system.toast(player.getUniqueId(), mapID);
+        Toast2<UUID, Integer> kv = Toast.of(player.getUniqueId(), mapID);
         byte[] old = CacheBuffer.cacheBuffer.getOrDefault(kv, null);
         if (Arrays.compare(old, data) == 0) return;
         PacketManager.sendPacket(player, new PacketPlayOutMap(

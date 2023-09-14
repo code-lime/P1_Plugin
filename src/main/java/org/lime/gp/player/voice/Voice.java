@@ -46,7 +46,8 @@ import org.lime.core;
 import org.lime.gp.player.module.Death;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.player.menu.LangEnum;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RadioInstance;
 import org.lime.gp.chat.Apply;
@@ -62,6 +63,7 @@ import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -277,7 +279,7 @@ public class Voice implements VoicechatPlugin {
             {
                 int value = ((((int)shorts[i]) * volume) / 100);
                 if (noise > 0) {
-                    int delta = (int)(system.rand(MIN_NOISE, MAX_NOISE) * noise);
+                    int delta = (int)(RandomUtils.rand(MIN_NOISE, MAX_NOISE) * noise);
                     int ofDelta = NoiseModify.getOrDefault(id, delta);
                     delta = lerp(delta, ofDelta, LERP_NOISE);
                     NoiseModify.put(id, delta);
@@ -345,7 +347,7 @@ public class Voice implements VoicechatPlugin {
             ItemStack item = player.getInventory().getItemInMainHand();
             byte[] bytes = packet.getOpusEncodedData();
             Cooldown.setCooldown(uuid, "voice.active", 0.25);
-            system.Toast1<Boolean> use = system.toast(false);
+            Toast1<Boolean> use = Toast.of(false);
             Location location = player.getLocation();
             Items.getOptional(RadioSetting.class, item)
                 .ifPresent(setting -> RadioData.getData(item)

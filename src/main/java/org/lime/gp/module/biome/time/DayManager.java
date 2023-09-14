@@ -11,7 +11,7 @@ import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
-import org.lime.system;
+import org.lime.system.json;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +22,7 @@ public class DayManager {
         return CoreElement.create(DayManager.class)
                 .<JsonObject>addConfig("config", v -> v
                         .withParent("time")
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("cycle", 40 * 60)
                                 .build()
                         )

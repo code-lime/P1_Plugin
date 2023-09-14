@@ -1,8 +1,6 @@
 package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonObject;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
@@ -11,16 +9,16 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.data.DecayInstance;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
+import org.lime.system.range.*;
 
 @InfoComponent.Component(name = "decay") public class DecayComponent extends ComponentDynamic<JsonObject, DecayInstance> {
-    public final system.IRange ticks;
+    public final IRange ticks;
     public final String replace;
     public final int displayCount;
     
     public DecayComponent(BlockInfo info, JsonObject json) {
         super(info, json);
-        ticks = system.IRange.parse(json.get("ticks").getAsString());
+        ticks = IRange.parse(json.get("ticks").getAsString());
         replace = json.get("replace").getAsString();
         displayCount = json.has("display_count") ? json.get("display_count").getAsInt() : 0;
     }

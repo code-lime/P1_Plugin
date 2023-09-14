@@ -2,10 +2,11 @@ package org.lime.gp.database.mysql;
 
 import java.sql.PreparedStatement;
 
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 public interface ConnectionInvoke {
-    void invoke(PreparedStatement statement, system.Action1<String> onStep) throws Exception;
+    void invoke(PreparedStatement statement, Action1<String> onStep) throws Exception;
 
     default ConnectionInvokeData<Object> toData() {
         return (v,a) -> {

@@ -15,7 +15,9 @@ import org.lime.gp.database.rows.PreDonateRow;
 import org.lime.gp.database.tables.KeyedTable;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.IterableUtils;
 import org.lime.web;
 
 import java.util.*;
@@ -39,7 +41,7 @@ public class PredonateWhitelist {
         Map<String, Boolean> sets = Tables.PREDONATE_TABLE.getRows()
                 .stream()
                 .filter(v -> v.whitelist == PreDonateRow.State.NONE)
-                .filter(system.distinctBy(v -> v.name))
+                .filter(IterableUtils.distinctBy(v -> v.name))
                 .collect(Collectors.toMap(v -> v.name, v -> switch (v.type) {
                     case QIWI, TRADEMC -> Arrays.asList(300.0, 700.0, 1500.0, 4000.0, 10000.0).contains(v.amount);
                     case DIAKA -> Arrays.asList(190.0, 440.0, 940.0, 2500.0, 6200.0).contains(v.amount);
@@ -82,7 +84,7 @@ public class PredonateWhitelist {
     public static void onUpdate(PreDonateRow row, KeyedTable.Event event) {
         sync();
     }
-    public static void getByNameUUID(String user, system.Action2<UUID, String> callback) {
+    public static void getByNameUUID(String user, Action2<UUID, String> callback) {
         try {
             String[] split = user.split("-");
             String uuid = split.length > 1 ? ("0".repeat(8) + "-" + "0".repeat(4) + "-" + "0".repeat(4) + "-" + "0".repeat(4)  + "-" + StringUtils.leftPad(split[split.length - 1], 12, '0')) : user;

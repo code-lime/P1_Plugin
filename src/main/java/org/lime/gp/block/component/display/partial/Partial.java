@@ -14,8 +14,7 @@ import org.lime.gp.block.component.display.partial.list.*;
 
 import com.google.gson.JsonObject;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system;
-import org.openjdk.nashorn.internal.scripts.JO;
+import org.lime.system.toast.*;
 
 public abstract class Partial {
     private final UUID uuid;
@@ -76,7 +75,7 @@ public abstract class Partial {
         );
     }
     public static IIndexGroup allDocs(String title, IDocsLink docs) {
-        system.Toast1<IIndexGroup> partial = system.toast(null);
+        Toast1<IIndexGroup> partial = Toast.of(null);
         IIndexGroup variable = JsonGroup.of("VARIABLE", Variable.docs(docs, IIndexDocs.remote(() -> partial.val0)));
 
         IIndexGroup viewPartial = JsonGroup.of("VIEW_PARTIAL", ViewPartial.docs(docs, variable));

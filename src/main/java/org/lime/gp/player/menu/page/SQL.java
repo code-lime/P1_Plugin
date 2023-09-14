@@ -10,7 +10,8 @@ import org.lime.gp.database.rows.AnyRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.ActionSlot;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public class SQL extends Base {
     }
 
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        Methods.SQL.Async.rawSqlQuery(apply.apply(sql), (set) -> system.toast(UUID.fromString(MySql.readObject(set, "uuid", String.class)), AnyRow.of(set)), (list) -> list.forEach(kv -> {
+        Methods.SQL.Async.rawSqlQuery(apply.apply(sql), (set) -> Toast.of(UUID.fromString(MySql.readObject(set, "uuid", String.class)), AnyRow.of(set)), (list) -> list.forEach(kv -> {
             Player to = Bukkit.getPlayer(kv.val0);
             if (to == null) return;
             called.invoke(to, apply.add(kv.val1), false);

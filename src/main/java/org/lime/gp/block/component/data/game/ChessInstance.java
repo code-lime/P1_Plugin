@@ -7,7 +7,9 @@ import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.map.MapMonitor;
 import org.lime.gp.module.DrawMap;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -65,7 +67,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         isNowBlack = json.getAsBoolean("isNowBlack").orElse(false);
         winType = json.getAsEnum(WinType.class, "winType").orElse(WinType.NONE);
     }
-    @Override public system.json.builder.object write() {
+    @Override public json.builder.object write() {
         return super.write()
                 .add("isNowBlack", isNowBlack)
                 .add("winType", winType.name());
@@ -101,7 +103,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         }
     }
 
-    public record Selector(system.Toast2<Integer, Integer> index, Map<system.Toast2<Integer, Integer>, system.Action0> target) {
+    public record Selector(Toast2<Integer, Integer> index, Map<Toast2<Integer, Integer>, Action0> target) {
     }
 
     public enum Type {
@@ -129,9 +131,9 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public void select(Player player, int x, int y, int size, MapMonitor.ClickType click, DrawMap map) {
             if (winType != WinType.NONE) return;
             if (click.isClick) {
-                system.Toast2<Integer, Integer> index = system.toast(x,y);
+                Toast2<Integer, Integer> index = Toast.of(x,y);
                 if (select != null && select.target.containsKey(index)) {
-                    system.Action0 modify_action = select.target.remove(index);
+                    Action0 modify_action = select.target.remove(index);
                     if (modify_action != null) modify_action.invoke();
                     if (getOf(select.index) instanceof GameElement moved) {
                         if ((y == 0 && !moved.isBlack) || (y == count - 1 && moved.isBlack)) {
@@ -140,7 +142,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
                                     .map(v -> v instanceof GameElement c ? c : null)
                                     .filter(Objects::nonNull)
                                     .collect(Collectors.groupingBy(TypeElement::type, Collectors.counting()));
-                            system.Func1<Boolean, GameElement> create = switch (Type.byWeight()
+                            Func1<Boolean, GameElement> create = switch (Type.byWeight()
                                     .filter(v -> count.getOrDefault(v, 0L) < v.count)
                                     .findFirst()
                                     .orElse(Type.Pawn)) {
@@ -168,8 +170,8 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
                 getAll()
                         .map(v -> v instanceof King c ? c : null)
                         .filter(Objects::nonNull)
-                        .map(v -> v.isBlack ? system.toast(1,0) : system.toast(0,1))
-                        .reduce(system.toast(0,0), (v1,v2) -> system.toast(v1.val0+v2.val0, v1.val1+v2.val1))
+                        .map(v -> v.isBlack ? Toast.of(1,0) : Toast.of(0,1))
+                        .reduce(Toast.of(0,0), (v1,v2) -> Toast.of(v1.val0+v2.val0, v1.val1+v2.val1))
                         .invoke((black_count, white_count) -> {
                             if (black_count == 0) winType = WinType.WHITE;
                             else if (white_count == 0) winType = WinType.BLACK;
@@ -183,10 +185,10 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         }
         @Override public void draw(int x, int y, int size, DrawMap map) {
             if (winType != WinType.NONE) return;
-            if (select != null && select.target.containsKey(system.toast(x,y))) map.rectangle(x * SIZE_BOX, y * SIZE_BOX, SIZE_BOX, SIZE_BOX, TARGET_BORDER, false);
+            if (select != null && select.target.containsKey(Toast.of(x,y))) map.rectangle(x * SIZE_BOX, y * SIZE_BOX, SIZE_BOX, SIZE_BOX, TARGET_BORDER, false);
         }
 
-        @Override public system.json.builder.object write() { return system.json.object().add("type", type().name()); }
+        @Override public json.builder.object write() { return json.object().add("type", type().name()); }
         public abstract Type type();
     }
     public class Empty extends TypeElement {
@@ -202,23 +204,23 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
             if (winType != WinType.NONE) return;
             super.draw(x, y, size, map);
 
-            ((select != null && system.toast(x,y).equals(select.index)) ? image_select() : image()).draw(map, x * size + 2, y * size + 2);
+            ((select != null && Toast.of(x,y).equals(select.index)) ? image_select() : image()).draw(map, x * size + 2, y * size + 2);
         }
 
         public abstract Selector selectMap(int x, int y);
         public abstract DrawMap.Images image();
         public abstract DrawMap.Images image_select();
 
-        @Override public system.json.builder.object write() {
+        @Override public json.builder.object write() {
             return super.write()
                     .add("isBlack", isBlack);
         }
 
-        protected void line(int x, int y, int dx, int dy, HashMap<system.Toast2<Integer, Integer>, system.Action0> points) {
+        protected void line(int x, int y, int dx, int dy, HashMap<Toast2<Integer, Integer>, Action0> points) {
             x += dx;
             y += dy;
             while (in(x, y)) {
-                system.Toast2<Integer, Integer> point_index = system.toast(x, y);
+                Toast2<Integer, Integer> point_index = Toast.of(x, y);
                 if (!(getOf(point_index) instanceof GameElement checker)) {
                     points.put(point_index, null);
                     x += dx;
@@ -236,7 +238,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
             super(isBlack);
             this.isMoved = isMoved;
         }
-        @Override public system.json.builder.object write() {
+        @Override public json.builder.object write() {
             return super.write()
                     .add("isMoved", isMoved);
         }
@@ -250,18 +252,18 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public DrawMap.Images image() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_PAWN : DrawMap.Images.CHESS_FIGURE_WHITE_PAWN; }
         @Override public DrawMap.Images image_select() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_PAWN_SELECT : DrawMap.Images.CHESS_FIGURE_WHITE_PAWN_SELECT; }
         @Override public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Action0> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Action0> points = new HashMap<>();
             int fore = isBlack ? 1 : -1;
             int foreDamage = fore;
-            system.Toast2<Integer, Integer> index;
-            if (in(x, y + fore) && getOf(index = system.toast(x, y + fore)).type() == Type.Empty) points.put(index, null);
+            Toast2<Integer, Integer> index;
+            if (in(x, y + fore) && getOf(index = Toast.of(x, y + fore)).type() == Type.Empty) points.put(index, null);
             if (y == (isBlack ? 1 : count - 2) && !points.isEmpty()) {
                 fore *= 2;
-                if (in(x, y + fore) && getOf(index = system.toast(x, y + fore)).type() == Type.Empty) points.put(index, null);
+                if (in(x, y + fore) && getOf(index = Toast.of(x, y + fore)).type() == Type.Empty) points.put(index, null);
             }
-            if (in(x + 1, y + foreDamage) && getOf(index = system.toast(x + 1, y + foreDamage)) instanceof GameElement element && element.isBlack != isBlack) points.put(index, null);
-            if (in(x - 1, y + foreDamage) && getOf(index = system.toast(x - 1, y + foreDamage)) instanceof GameElement element && element.isBlack != isBlack) points.put(index, null);
-            return new Selector(system.toast(x, y), points);
+            if (in(x + 1, y + foreDamage) && getOf(index = Toast.of(x + 1, y + foreDamage)) instanceof GameElement element && element.isBlack != isBlack) points.put(index, null);
+            if (in(x - 1, y + foreDamage) && getOf(index = Toast.of(x - 1, y + foreDamage)) instanceof GameElement element && element.isBlack != isBlack) points.put(index, null);
+            return new Selector(Toast.of(x, y), points);
         }
     }
     public class Knight extends GameElement {
@@ -273,13 +275,13 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public DrawMap.Images image() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_KNIGHT : DrawMap.Images.CHESS_FIGURE_WHITE_KNIGHT; }
         @Override public DrawMap.Images image_select() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_KNIGHT_SELECT : DrawMap.Images.CHESS_FIGURE_WHITE_KNIGHT_SELECT; }
 
-        private static final List<system.Toast2<Integer, Integer>> paths = new ArrayList<>();
-        private static system.Toast2<Integer, Integer> rotate(system.Toast2<Integer, Integer> pos) {
-            return system.toast(pos.val1, -pos.val0);
+        private static final List<Toast2<Integer, Integer>> paths = new ArrayList<>();
+        private static Toast2<Integer, Integer> rotate(Toast2<Integer, Integer> pos) {
+            return Toast.of(pos.val1, -pos.val0);
         }
         static {
-            system.Toast2<Integer, Integer> path1 = system.toast(1, 2);
-            system.Toast2<Integer, Integer> path2 = system.toast(-1, 2);
+            Toast2<Integer, Integer> path1 = Toast.of(1, 2);
+            Toast2<Integer, Integer> path2 = Toast.of(-1, 2);
             for (int i = 0; i < 4; i++) {
                 path1 = rotate(path1);
                 path2 = rotate(path2);
@@ -289,16 +291,16 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         }
 
         @Override public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Action0> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Action0> points = new HashMap<>();
             paths.forEach(path -> path.invoke((_x, _y) -> {
-                system.Toast2<Integer, Integer> index;
+                Toast2<Integer, Integer> index;
                 if (in(x + _x, y + _y)) {
-                    TypeElement typeElement = getOf(index = system.toast(x + _x, y + _y));
+                    TypeElement typeElement = getOf(index = Toast.of(x + _x, y + _y));
                     if ((typeElement instanceof GameElement element && element.isBlack != isBlack) || typeElement.type() == Type.Empty)
                         points.put(index, null);
                 }
             }));
-            return new Selector(system.toast(x, y), points);
+            return new Selector(Toast.of(x, y), points);
         }
     }
     public class Bishop extends GameElement {
@@ -310,14 +312,14 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public DrawMap.Images image() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_BISHOP : DrawMap.Images.CHESS_FIGURE_WHITE_BISHOP; }
         @Override public DrawMap.Images image_select() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_BISHOP_SELECT : DrawMap.Images.CHESS_FIGURE_WHITE_BISHOP_SELECT; }
         @Override public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Action0> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Action0> points = new HashMap<>();
 
             line(x, y, -1, 1, points);
             line(x, y, 1, 1, points);
             line(x, y, -1, -1, points);
             line(x, y, 1, -1, points);
 
-            return new Selector(system.toast(x, y), points);
+            return new Selector(Toast.of(x, y), points);
         }
     }
     public class Rook extends MovedGameElement {
@@ -327,14 +329,14 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public DrawMap.Images image() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_ROOK : DrawMap.Images.CHESS_FIGURE_WHITE_ROOK; }
         @Override public DrawMap.Images image_select() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_ROOK_SELECT : DrawMap.Images.CHESS_FIGURE_WHITE_ROOK_SELECT; }
         @Override public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Action0> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Action0> points = new HashMap<>();
 
             line(x, y, 1, 0, points);
             line(x, y, -1, 0, points);
             line(x, y, 0, 1, points);
             line(x, y, 0, -1, points);
 
-            return new Selector(system.toast(x, y), points);
+            return new Selector(Toast.of(x, y), points);
         }
     }
     public class Queen extends GameElement {
@@ -346,7 +348,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public DrawMap.Images image() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_QUEEN : DrawMap.Images.CHESS_FIGURE_WHITE_QUEEN; }
         @Override public DrawMap.Images image_select() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_QUEEN_SELECT : DrawMap.Images.CHESS_FIGURE_WHITE_QUEEN_SELECT; }
         @Override public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Action0> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Action0> points = new HashMap<>();
 
             line(x, y, 1, 0, points);
             line(x, y, -1, 0, points);
@@ -358,7 +360,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
             line(x, y, -1, -1, points);
             line(x, y, 1, -1, points);
 
-            return new Selector(system.toast(x, y), points);
+            return new Selector(Toast.of(x, y), points);
         }
     }
     public class King extends MovedGameElement {
@@ -368,13 +370,13 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         @Override public DrawMap.Images image() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_KING : DrawMap.Images.CHESS_FIGURE_WHITE_KING; }
         @Override public DrawMap.Images image_select() { return isBlack ? DrawMap.Images.CHESS_FIGURE_BLACK_KING_SELECT : DrawMap.Images.CHESS_FIGURE_WHITE_KING_SELECT; }
 
-        private static final List<system.Toast2<Integer, Integer>> paths = new ArrayList<>();
-        private static system.Toast2<Integer, Integer> rotate(system.Toast2<Integer, Integer> pos) {
-            return system.toast(pos.val1, -pos.val0);
+        private static final List<Toast2<Integer, Integer>> paths = new ArrayList<>();
+        private static Toast2<Integer, Integer> rotate(Toast2<Integer, Integer> pos) {
+            return Toast.of(pos.val1, -pos.val0);
         }
         static {
-            system.Toast2<Integer, Integer> path1 = system.toast(0, 1);
-            system.Toast2<Integer, Integer> path2 = system.toast(1, 1);
+            Toast2<Integer, Integer> path1 = Toast.of(0, 1);
+            Toast2<Integer, Integer> path2 = Toast.of(1, 1);
             for (int i = 0; i < 4; i++) {
                 path1 = rotate(path1);
                 path2 = rotate(path2);
@@ -384,11 +386,11 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
         }
 
         @Override public Selector selectMap(int x, int y) {
-            HashMap<system.Toast2<Integer, Integer>, system.Action0> points = new HashMap<>();
+            HashMap<Toast2<Integer, Integer>, Action0> points = new HashMap<>();
             paths.forEach(path -> path.invoke((_x, _y) -> {
-                system.Toast2<Integer, Integer> index;
+                Toast2<Integer, Integer> index;
                 if (in(x + _x, y + _y)) {
-                    TypeElement typeElement = getOf(index = system.toast(x + _x, y + _y));
+                    TypeElement typeElement = getOf(index = Toast.of(x + _x, y + _y));
                     if ((typeElement instanceof GameElement element && element.isBlack != isBlack) || typeElement.type() == Type.Empty)
                         points.put(index, null);
                 }
@@ -398,7 +400,7 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
                     && !rook.isMoved
                     && Stream.of(1, 2, 3).allMatch(v -> getOf(v, y) instanceof Empty)
             ) {
-                points.put(system.toast(2, y), () -> {
+                points.put(Toast.of(2, y), () -> {
                     rook.isMoved = true;
                     setOf(0, y, new Empty());
                     setOf(3, y, rook);
@@ -408,14 +410,14 @@ public class ChessInstance extends ITableGameInstance<ChessInstance.TypeElement>
                     && !rook.isMoved
                     && Stream.of(5, 6).allMatch(v -> getOf(v, y) instanceof Empty)
             ) {
-                points.put(system.toast(6, y), () -> {
+                points.put(Toast.of(6, y), () -> {
                     rook.isMoved = true;
                     setOf(7, y, new Empty());
                     setOf(5, y, rook);
                 });
             }
 
-            return new Selector(system.toast(x, y), points);
+            return new Selector(Toast.of(x, y), points);
         }
     }
 }

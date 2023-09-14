@@ -7,24 +7,24 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.range.*;
 
 import java.util.Optional;
 
 public class RangeOutputSlot implements IOutputSlot {
     private final String key;
-    private final system.IRange amount;
+    private final IRange amount;
 
     public RangeOutputSlot(String key, int amount) {
-        this(key, new system.OnceRange(amount));
+        this(key, new OnceRange(amount));
     }
-    public RangeOutputSlot(String key, system.IRange amount) {
+    public RangeOutputSlot(String key, IRange amount) {
         this.key = key;
         this.amount = amount;
     }
 
     private RangeOutputSlot(String[] args) {
-        this(args[0], args.length > 1 ? system.IRange.parse(args[1]) : new system.OnceRange(1));
+        this(args[0], args.length > 1 ? IRange.parse(args[1]) : new OnceRange(1));
     }
     public RangeOutputSlot(JsonPrimitive json) {
         this(json.getAsString().split("\\*"));

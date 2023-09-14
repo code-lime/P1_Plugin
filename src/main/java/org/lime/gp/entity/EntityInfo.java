@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.world.entity.EntityLimeMarker;
 import org.bukkit.Location;
 import org.lime.gp.entity.component.ComponentStatic;
-import org.lime.system;
+import org.lime.system.execute.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public final class EntityInfo {
         this.components.put(component.name(), component);
         return this;
     }
-    public EntityInfo add(system.Func1<EntityInfo, ComponentStatic<?>> component) {
+    public EntityInfo add(Func1<EntityInfo, ComponentStatic<?>> component) {
         return add(component.invoke(this));
     }
     @SuppressWarnings("unchecked")

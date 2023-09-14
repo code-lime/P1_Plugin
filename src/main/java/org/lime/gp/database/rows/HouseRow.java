@@ -15,13 +15,16 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.Position;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 
 import com.google.gson.JsonObject;
+import org.lime.system.utils.MathUtils;
 
 public class HouseRow extends BaseRow {
     public enum HouseType {
@@ -77,7 +80,7 @@ public class HouseRow extends BaseRow {
         this.type = type == null ? null : HouseType.valueOf(type);
         private_flags = MySql.readObject(set, "private", Long.class);
         String data = MySql.readObject(set, "data", String.class);
-        this.data = data == null ? null : system.json.parse(data).getAsJsonObject();
+        this.data = data == null ? null : json.parse(data).getAsJsonObject();
     }
 
     public boolean inZone(Location location) {
@@ -116,8 +119,8 @@ public class HouseRow extends BaseRow {
         map.put("rent", String.valueOf(rent));
         map.put("cash", String.valueOf(cash));
         map.put("owner", Tables.valueOfInt(ownerID));
-        map.put("pos1", system.getString(posMin));
-        map.put("pos2", system.getString(posMax));
+        map.put("pos1", MathUtils.getString(posMin));
+        map.put("pos2", MathUtils.getString(posMax));
         map.put("posMain", posMain.toSave());
         map.put("posFace", posFace.name());
         map.put("type", type == null ? "" : type.name());
@@ -135,11 +138,11 @@ public class HouseRow extends BaseRow {
 
     public static List<HouseRow> getInHouse(Player player) { return getInHouse(player, null); }
     public static List<HouseRow> getInHouse(Location pos) { return getInHouse(pos, null); }
-    public static List<HouseRow> getInHouse(Player player, system.Func1<HouseRow, Boolean> filter) {
+    public static List<HouseRow> getInHouse(Player player, Func1<HouseRow, Boolean> filter) {
         Location location = player.getLocation();
         return location.getWorld() == lime.LoginWorld ? getInHouse(location, filter) : Collections.emptyList();
     }
-    public static List<HouseRow> getInHouse(Location pos, system.Func1<HouseRow, Boolean> filter) {
+    public static List<HouseRow> getInHouse(Location pos, Func1<HouseRow, Boolean> filter) {
         List<HouseRow> rows = new ArrayList<>();
         Tables.HOUSE_TABLE.forEach(row -> {
             if (row.inZone(pos) && (filter == null || filter.invoke(row)))
@@ -148,7 +151,7 @@ public class HouseRow extends BaseRow {
         return rows;
     }
 
-    public static List<Player> getInHouse(system.Func1<HouseRow, Boolean> filter) {
+    public static List<Player> getInHouse(Func1<HouseRow, Boolean> filter) {
         List<Player> players = new ArrayList<>();
         Tables.HOUSE_TABLE.forEach(row -> Bukkit.getOnlinePlayers().forEach(player -> {
             Location location = player.getLocation();

@@ -5,7 +5,8 @@ import org.bukkit.craftbukkit.v1_19_R3.scoreboard.CraftScoreboard;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 
@@ -52,7 +53,7 @@ public class ScoreboardManager {
         if (!_score.isScoreSet()) return _default;
         return _score.getScore();
     }
-    public static Integer get(String score, String key, system.Func0<Integer> _default) {
+    public static Integer get(String score, String key, Func0<Integer> _default) {
         Objective obj = objective(score, true);
         Score _score = obj.getScore(key);
         if (!_score.isScoreSet()) {
@@ -75,10 +76,10 @@ public class ScoreboardManager {
         set(score, key, newValue);
         return newValue;
     }
-    public static Integer edit(String score, String key, system.Func1<Integer, Integer> func, int _default) {
+    public static Integer edit(String score, String key, Func1<Integer, Integer> func, int _default) {
         return edit(score, key, func, () -> _default);
     }
-    public static Integer edit(String score, String key, system.Func1<Integer, Integer> func, system.Func0<Integer> _default) {
+    public static Integer edit(String score, String key, Func1<Integer, Integer> func, Func0<Integer> _default) {
         Integer value = func.invoke(get(score, key, _default));
         if (value == null) reset(score, key);
         else set(score, key, value);

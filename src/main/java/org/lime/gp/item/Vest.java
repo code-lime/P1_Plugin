@@ -33,8 +33,9 @@ import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.json.JsonArrayOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system.Action1;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
+import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -194,17 +195,17 @@ public class Vest implements Listener {
         private static JsonArray saveItems(List<ItemStack> items) {
             JsonArray arr = new JsonArray();
             for (ItemStack item : items)
-                arr.add(item != null && item.getType() != Material.AIR ? system.saveItem(item) : null);
+                arr.add(item != null && item.getType() != Material.AIR ? ItemUtils.saveItem(item) : null);
             return arr;
         }
         private static List<ItemStack> loadItems(JsonArrayOptional json) {
             List<ItemStack> items = new ArrayList<>();
-            json.forEach(item -> items.add(item.getAsString().map(system::loadItem).orElseGet(() -> new ItemStack(Material.AIR))));
+            json.forEach(item -> items.add(item.getAsString().map(ItemUtils::loadItem).orElseGet(() -> new ItemStack(Material.AIR))));
             return items;
         }
     }
 
-    private static boolean openFilterInventory(Player player, VestInventory vest, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
+    private static boolean openFilterInventory(Player player, VestInventory vest, boolean readonly, Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
         //tick();
         dirtyCount = 4;
         player.closeInventory();
@@ -235,7 +236,7 @@ public class Vest implements Listener {
                 .computeIfAbsent(slot, (_slot) -> VestData.read(PlayerData.getPlayerData(uuid), slot).createInventory(player).orElse(null));
         return vest != null && openFilterInventory(player, vest, false, item -> item, item -> false);
     }
-    public static boolean openVestTarget(Player viewer, Player target, EquipmentSlot slot, boolean readonly, system.Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, system.Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
+    public static boolean openVestTarget(Player viewer, Player target, EquipmentSlot slot, boolean readonly, Func1<net.minecraft.world.item.ItemStack, net.minecraft.world.item.ItemStack> filter, Func1<net.minecraft.world.item.ItemStack, Boolean> click) {
         UUID uuid = target.getUniqueId();
         VestInventory vest = inventoryVest
                 .computeIfAbsent(uuid, (_uuid) -> new HashMap<>())
@@ -274,7 +275,7 @@ public class Vest implements Listener {
         });
     }
 
-    public static boolean dropDieItems(Player player, Location location, system.Action1<ItemStack> callback) {
+    public static boolean dropDieItems(Player player, Location location, Action1<ItemStack> callback) {
         //tick();
         dirtyCount = 4;
         List<ItemStack> items = dieTick(player.getUniqueId());
@@ -283,7 +284,7 @@ public class Vest implements Listener {
         items.forEach(callback);
         return true;
     }
-    private static boolean tryRemoveSingle(CraftInventory inventory, system.Func1<ItemStack, Boolean> filter) {
+    private static boolean tryRemoveSingle(CraftInventory inventory, Func1<ItemStack, Boolean> filter) {
         ItemStack[] items = inventory.getStorageContents();
         for (int slot = 0; slot < items.length; ++slot) {
             ItemStack item = items[slot];
@@ -294,7 +295,7 @@ public class Vest implements Listener {
         }
         return false;
     }
-    public static boolean tryRemoveSingleItem(Player player, system.Func1<ItemStack, Boolean> filter) {
+    public static boolean tryRemoveSingleItem(Player player, Func1<ItemStack, Boolean> filter) {
         UUID uuid = player.getUniqueId();
         for (EquipmentSlot slot : new EquipmentSlot[] { EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET }) {
             VestInventory vest = inventoryVest

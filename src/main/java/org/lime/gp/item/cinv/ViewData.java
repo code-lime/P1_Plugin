@@ -5,7 +5,9 @@ import net.minecraft.world.entity.player.EntityHuman;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.extension.JManager;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Map;
 
@@ -61,7 +63,7 @@ public class ViewData {
     public void groupsShowLength(int value) { groupsShowLength = value; }
 
     private JsonObject save() {
-        return system.json.object()
+        return json.object()
                 .add("groupIndex", groupIndex)
                 .add("groupOffset", groupOffset)
                 .add("itemsOffset", itemsOffset)

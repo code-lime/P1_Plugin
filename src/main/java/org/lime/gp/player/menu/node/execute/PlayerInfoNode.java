@@ -11,7 +11,9 @@ import org.lime.gp.player.menu.node.connect.input.ActionInput;
 import org.lime.gp.player.menu.node.connect.output.ActionOutput;
 import org.lime.gp.player.menu.node.connect.output.IntOutput;
 import org.lime.gp.player.menu.node.connect.output.StringOutput;
-import org.lime.system;
+import org.lime.system.map;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +28,9 @@ public class PlayerInfoNode extends BaseNode {
     private final StringOutput outputUserName;
 
     public PlayerInfoNode(int id, JsonObject json) {
-        super(id, json, system.map.<String, system.Func2<String, Optional<JsonElement>, IInput>>of()
+        super(id, json, map.<String, Func2<String, Optional<JsonElement>, IInput>>of()
                 .add("input", (key, def) -> new ActionInput(key))
-                .build(), system.map.<String, system.Func2<String, List<system.Toast2<Integer, String>>, IOutput>>of()
+                .build(), map.<String, Func2<String, List<Toast2<Integer, String>>, IOutput>>of()
                 .add("output", ActionOutput::new)
                 .add("id", IntOutput::new)
                 .add("uuid", StringOutput::new)

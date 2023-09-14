@@ -1,7 +1,9 @@
 package org.lime.gp.player.module.needs.food;
 
 import org.lime.json.JsonObjectOptional;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,8 +13,8 @@ public class TypedFoodLevel implements IFoodLevel {
     private final Map<FoodType, Float> values = Stream.of(FoodType.Dessert, FoodType.Fruit, FoodType.Meat, FoodType.Cereals)
             .collect(Collectors.toMap(v -> v, v -> (float)v.maxCount));
 
-    private final system.Action0 onChange;
-    public TypedFoodLevel(system.Action0 onChange) {
+    private final Action0 onChange;
+    public TypedFoodLevel(Action0 onChange) {
         this.onChange = onChange;
     }
 
@@ -21,7 +23,7 @@ public class TypedFoodLevel implements IFoodLevel {
     }
 
     @Override public boolean addLevel(FoodType type, float level) {
-        system.Toast2<Boolean, Boolean> isChanged = system.toast(false, false);
+        Toast2<Boolean, Boolean> isChanged = Toast.of(false, false);
         values.computeIfPresent(type, (_type, value) -> {
             float _value = IFoodLevel.limit(_type, value + level);
             if (_value != value) isChanged.val0 = true;
@@ -84,8 +86,8 @@ public class TypedFoodLevel implements IFoodLevel {
     @Override public void load(JsonObjectOptional json) {
         values.entrySet().forEach(kv -> kv.setValue(json.getAsFloat(kv.getKey().name().toLowerCase()).orElseGet(kv::getValue)));
     }
-    @Override public system.json.builder.object save() {
-        return system.json.object().add(values, kv -> kv.name().toLowerCase(), kv -> kv);
+    @Override public json.builder.object save() {
+        return json.object().add(values, kv -> kv.name().toLowerCase(), kv -> kv);
     }
 
     @Override public boolean isVanilla() { return false; }

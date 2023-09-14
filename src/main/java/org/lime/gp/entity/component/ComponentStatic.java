@@ -3,7 +3,8 @@ package org.lime.gp.entity.component;
 import com.google.gson.*;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.lime;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -18,7 +19,7 @@ public abstract class ComponentStatic<T extends JsonElement> {
     public String name() { return _name; }
 
     private static final Map<Class<?>, String> componentKeys;
-    private static final Map<String, system.Func2<EntityInfo, JsonElement, ComponentStatic<?>>> components;
+    private static final Map<String, Func2<EntityInfo, JsonElement, ComponentStatic<?>>> components;
 
     private static Optional<Constructor<?>> constructor(Class<?> tClass, Class<?>... args) {
         try { return Optional.of(org.lime.reflection.access(tClass.getDeclaredConstructor(args))); }
@@ -38,7 +39,7 @@ public abstract class ComponentStatic<T extends JsonElement> {
                             .or(() -> constructor(v, EntityInfo.class, JsonNull.class))
                             .or(() -> constructor(v, EntityInfo.class))
                             .stream()
-                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(InfoComponent.Component.class)).map(_c -> system.toast(_c, c)))
+                            .flatMap(c -> Arrays.stream(v.getAnnotationsByType(InfoComponent.Component.class)).map(_c -> Toast.of(_c, c)))
                     )
                     .forEach(kv -> {
                         components.put(kv.val0.name(), (creator, json) -> {

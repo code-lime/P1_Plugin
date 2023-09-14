@@ -8,7 +8,11 @@ import org.lime.gp.lime;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.item.settings.list.FoodSetting;
 import org.lime.gp.player.module.needs.INeedEffect;
-import org.lime.system;
+import org.lime.system.Regex;
+import org.lime.system.json;
+import org.lime.system.range.IRange;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +54,7 @@ public enum FoodType {
     public static float FoodStep = 0.5f;
 
     public static final Map<Material, Map<FoodType, FoodSetting.Info>> MaterialFood = new HashMap<>();
-    public static final Map<system.IRange, List<INeedEffect<?>>> Needs = new HashMap<>();
+    public static final Map<IRange, List<INeedEffect<?>>> Needs = new HashMap<>();
 
     public static FoodType parse(String name) {
         for (FoodType type : FoodType.values()) {
@@ -63,7 +67,7 @@ public enum FoodType {
     public static CoreElement create() {
         return CoreElement.create(FoodType.class)
                 .<JsonObject>addConfig("food", v -> v
-                        .withDefault(system.json.object()
+                        .withDefault(json.object()
                                 .add("vanilla", IsVanilla)
                                 .addObject("step", _v -> _v
                                         .add("food", FoodStep)
@@ -72,7 +76,7 @@ public enum FoodType {
                                 .addObject("types", _v -> _v
                                         .add(List.of(FoodType.values()),
                                                 type -> type.name().toLowerCase(),
-                                                type -> system.json.object()
+                                                type -> json.object()
                                                         .add("weight", type.weight)
                                         )
                                 )
@@ -100,9 +104,9 @@ public enum FoodType {
                                                 .entrySet()
                                                 .stream()
                                                 .collect(Collectors.toMap(_v -> FoodType.parse(_v.getKey()), _v -> FoodSetting.Info.of(_v.getValue().getAsJsonObject())));
-                                        system.Toast1<Boolean> isEmpty = system.toast(true);
+                                        Toast1<Boolean> isEmpty = Toast.of(true);
                                         Arrays.stream(Material.values())
-                                                .filter(system.<Material>filterRegex(Enum::name, kv.getKey())::invoke)
+                                                .filter(Regex.<Material>filterRegex(Enum::name, kv.getKey())::invoke)
                                                 .forEach(material -> {
                                                     isEmpty.val0 = false;
                                                     materialFood.put(material, info);
@@ -110,11 +114,11 @@ public enum FoodType {
                                         if (isEmpty.val0) lime.logOP("Materials in '"+kv.getKey()+"' is EMPTY! Maybe error...");
                                     });
 
-                            Map<system.IRange, List<INeedEffect<?>>> needs = new HashMap<>();
+                            Map<IRange, List<INeedEffect<?>>> needs = new HashMap<>();
                             if (json.has("needs")) json.get("needs").getAsJsonObject().entrySet().forEach(kv -> {
                                 List<INeedEffect<?>> values = new ArrayList<>();
                                 kv.getValue().getAsJsonArray().forEach(item -> values.add(INeedEffect.parse(item.getAsJsonObject())));
-                                needs.put(system.IRange.parse(kv.getKey()), values);
+                                needs.put(IRange.parse(kv.getKey()), values);
                             });
 
                             MaterialFood.clear();

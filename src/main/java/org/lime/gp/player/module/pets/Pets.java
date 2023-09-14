@@ -7,7 +7,9 @@ import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
-import org.lime.system;
+import org.lime.system.json;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.HashMap;
 
@@ -18,7 +20,7 @@ public class Pets {
                         .withDefault(new JsonObject())
                         .withInvoke(Pets::config)
                         .orText("pets.js", _v -> _v
-                                .withInvoke(t -> Pets.config(system.json.parse(JavaScript.getJsString(t).orElseThrow()).getAsJsonObject()))
+                                .withInvoke(t -> Pets.config(json.parse(JavaScript.getJsString(t).orElseThrow()).getAsJsonObject()))
                                 .withDefault("{}")
                         )
                 );

@@ -29,7 +29,8 @@ import org.lime.gp.player.module.HandCuffs;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.sound.Sounds;
-import org.lime.system;
+import org.lime.system.toast.*;
+import org.lime.system.execute.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -171,7 +172,7 @@ public class WeaponLoader implements Listener {
                 if (item == null) return;
                 Items.getOptional(WeaponSetting.class, item)
                         .ifPresent(weapon -> WeaponSetting.getMagazine(item)
-                                .map(_v -> system.toast(weapon, _v))
+                                .map(_v -> Toast.of(weapon, _v))
                                 .ifPresent(vv -> {
                                     Items.dropGiveItem(player, vv.val1, false);
                                     WeaponSetting.setMagazine(item, null);
@@ -182,7 +183,7 @@ public class WeaponLoader implements Listener {
                                 })
                         );
                 Items.getOptional(MagazineSetting.class, item)
-                        .flatMap(v -> MagazineSetting.getBullets(item).map(_v -> system.toast(v, _v)))
+                        .flatMap(v -> MagazineSetting.getBullets(item).map(_v -> Toast.of(v, _v)))
                         .ifPresent(vv -> {
                             List<ItemStack> bullets = vv.val1;
                             int length = bullets.size();
