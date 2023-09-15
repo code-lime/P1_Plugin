@@ -36,6 +36,7 @@ import org.bukkit.util.Vector;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.ObjectDisplay;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
@@ -70,19 +71,54 @@ import java.util.stream.Stream;
 public class TownInventory implements Listener {
     private static boolean debug = false;
 
+    private record ImagePoint(int x, int y) {
+        public static ImagePoint parse(String text) {
+            String[] args = text.split(" ", 2);
+            return new ImagePoint(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+        }
+    }
     private static class DisplayHtml {
         public final String sql;
         public final List<Toast2<String, String>> args = new ArrayList<>();
         public final String file;
         public final String html;
+        public final String loadingUrl;
+        public final ImagePoint htmlSize;
+        public final ImagePoint htmlOffset;
+        public final ImagePoint resultSize;
 
         private static final String HTML_EMPTY = "!EMPTY";
+        public static final String DEFAULT_LOADING_URL = "https://cdn.discordapp.com/attachments/853050024099577866/864120999301873674/1f3d9-fe0f.png";
 
         public DisplayHtml(JsonObject json) {
             sql = json.get("sql").getAsString();
             if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(kv -> args.add(Toast.of(kv.getKey(), kv.getValue().getAsString())));
             file = json.get("file").getAsString();
-            html = lime.existConfig(file, ".html") ? lime.readAllConfig(file, ".html") : HTML_EMPTY;
+            if (lime.existConfig(file, ".html")) {
+                HashMap<String, String> params = new HashMap<>();
+                this.html = lime.readAllConfig(file, ".html")
+                        .lines()
+                        .dropWhile(line -> {
+                            if (!line.startsWith("#")) return false;
+                            String[] args = line.substring(1).split("=", 2);
+                            params.put(args[0].trim(), args.length > 1 ? args[1].trim() : "true");
+                            return true;
+                        })
+                        .collect(Collectors.joining("\n"));
+                this.loadingUrl = params.getOrDefault("loading_url", DEFAULT_LOADING_URL);
+                this.htmlSize = ImagePoint.parse(params.getOrDefault("html.size", "128 128"));
+                this.htmlOffset = ImagePoint.parse(params.getOrDefault("html.offset", "0 0"));
+                this.resultSize = ImagePoint.parse(params.getOrDefault("result.size", "128 128"));
+
+                lime.logOP("Params: " + params.entrySet().stream().map(v -> v.getKey() + "=" + v.getValue()).collect(Collectors.joining(", ")));
+
+            } else {
+                this.html = HTML_EMPTY;
+                this.loadingUrl = DEFAULT_LOADING_URL;
+                this.htmlSize = new ImagePoint(128, 128);
+                this.htmlOffset = new ImagePoint(0, 0);
+                this.resultSize = new ImagePoint(128, 128);
+            }
         }
 
         public void generate(Action1<HashMap<Integer, String>> callback) {
@@ -98,11 +134,12 @@ public class TownInventory implements Listener {
             }, callback));
         }
         public void generateMap(Action1<HashMap<Integer, byte[]>> callback) {
-            generate(html -> generateMap(html, callback));
+            generate(html -> generateMap(html, callback, htmlSize, htmlOffset, resultSize));
         }
         private static final ConcurrentHashMap<String, Toast2<byte[], Integer>> buffer = new ConcurrentHashMap<>();
         @SuppressWarnings("unused")
-        public static void generateMap(String html, Action1<byte[]> callback) {
+        public static void generateMap(String html, Action1<byte[]> callback, ImagePoint htmlSize, ImagePoint offset, ImagePoint resultSize) {
+            if (!HTML_RENDER) return;
             Toast2<byte[], Integer> data = buffer.getOrDefault(html, null);
             if (data != null) {
                 if (data.val1-- <= 0) buffer.remove(html);
@@ -110,18 +147,19 @@ public class TownInventory implements Listener {
                 return;
             }
             lime.invokeAsync(() -> {
-                BufferedImage image = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+                BufferedImage image = new BufferedImage(htmlSize.x, htmlSize.y, BufferedImage.TYPE_INT_ARGB);
                 Graphics graphics = image.createGraphics();
                 JEditorPane jep = new JEditorPane("text/html", html);
-                jep.setSize(128, 128);
+                jep.setSize(htmlSize.x, htmlSize.y);
                 jep.print(graphics);
-                return DrawMap.of().fill(image).save();
+                return DrawMap.of().fillPart(image, offset.x, offset.y, resultSize.x, resultSize.y).save();
             }, bytes -> {
                 buffer.put(html, Toast.of(bytes, RandomUtils.rand(15, 20)));
                 callback.invoke(bytes);
             });
         }
-        public static void generateMap(HashMap<Integer, String> htmls, Action1<HashMap<Integer,byte[]>> callback) {
+        public static void generateMap(HashMap<Integer, String> htmls, Action1<HashMap<Integer,byte[]>> callback, ImagePoint htmlSize, ImagePoint offset, ImagePoint resultSize) {
+            if (!HTML_RENDER) return;
             HashMap<Integer, byte[]> _data = new HashMap<>();
             htmls.entrySet().removeIf(kv -> {
                 String html = kv.getValue();
@@ -133,17 +171,18 @@ public class TownInventory implements Listener {
             });
 
             lime.invokeAsync(() -> htmls.forEach((house_id, html) -> {
-                BufferedImage image = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+                BufferedImage image = new BufferedImage(htmlSize.x, htmlSize.y, BufferedImage.TYPE_INT_ARGB);
                 Graphics graphics = image.createGraphics();
                 JEditorPane jep = new JEditorPane("text/html", html);
-                jep.setSize(128, 128);
+                jep.setSize(htmlSize.x, htmlSize.y);
                 jep.print(graphics);
-                byte[] bytes = DrawMap.of().fill(image).save();
+                byte[] bytes = DrawMap.of().fillPart(image, offset.x, offset.y, resultSize.x, resultSize.y).save();
                 _data.put(house_id, bytes);
                 buffer.put(html, Toast.of(bytes, RandomUtils.rand(15, 20)));
             }), () -> callback.invoke(_data));
         }
         public static void generateAllMap(Action1<HashMap<Integer, byte[]>> callback) {
+            if (!HTML_RENDER) return;
             ImmutableList.copyOf(displays.values()).forEach(displayHtml -> displayHtml.generateMap(callback));
         }
     }
@@ -243,7 +282,17 @@ public class TownInventory implements Listener {
 
     public static final HashMap<String, PrivatePattern> patterns = new HashMap<>();
 
+    private static boolean HTML_RENDER = true;
+
     public static void init() {
+        AnyEvent.addEvent("html.render", AnyEvent.type.owner_console, v -> v.createParam("enable", "disable"), (p, v)-> {
+            HTML_RENDER = v.equals("enable");
+            Displays.uninitDisplay(HOME_MANAGER);
+            DisplayHtml.buffer.clear();
+            HomeDisplay.house_list.clear();
+            DrawMap.bufferReset();
+            Displays.initDisplay(HOME_MANAGER);
+        });
         Displays.initDisplay(HOME_MANAGER);
 
         /*lime.repeat(() -> {
@@ -315,18 +364,15 @@ public class TownInventory implements Listener {
         private final int houseRowID;
         private byte[] mapData;
 
-        private static final byte[] loadingMapIcon;
-        static {
-            loadingMapIcon = DrawMap.of().draw(draw -> {
-                try {
-                    draw.fill(ImageIO.read(new URL("https://cdn.discordapp.com/attachments/853050024099577866/864120999301873674/1f3d9-fe0f.png")));
-                } catch (Exception e) {
-                    draw.pixel(0,0,Color.RED);
-                }
-            }).save();
-        }
-        private static byte[] getLoadingMapIcon() { return Arrays.copyOf(loadingMapIcon, loadingMapIcon.length); }
+        private static final Map<String, byte[]> loadingMapIcons = new HashMap<>();
 
+        private static byte[] getLoadingMapIcon(String url) {
+            byte[] bytes = loadingMapIcons.computeIfAbsent(url, _url -> DrawMap.of().draw(draw -> {
+                try { draw.fill(ImageIO.read(new URL(_url))); }
+                catch (Exception e) { draw.pixel(0, 0, Color.RED); }
+            }).save());
+            return Arrays.copyOf(bytes, bytes.length);
+        }
         
         @SuppressWarnings("deprecation")
         protected HomeDisplay(HouseRow row) {
@@ -340,7 +386,8 @@ public class TownInventory implements Listener {
             ItemStack map = new ItemStack(Material.FILLED_MAP);
             MapMeta meta = (MapMeta)map.getItemMeta();
             meta.setMapId(mapID);
-            mapData = getLoadingMapIcon();
+            DisplayHtml html = displays.get(HtmlType.getPageType(row));
+            mapData = getLoadingMapIcon(html == null ? DisplayHtml.DEFAULT_LOADING_URL : html.loadingUrl);
             map.setItemMeta(meta);
             entity.setItem(CraftItemStack.asNMSCopy(map), true, false);
         }
@@ -378,7 +425,7 @@ public class TownInventory implements Listener {
             UUID uuid = player.getUniqueId();
             openList.values().remove(uuid);
             openList.put(houseRowID, uuid);
-            Tables.HOUSE_TABLE.get(houseRowID + "").ifPresent(row -> MenuCreator.show(player, "town.house.open", Apply.of().add("house_", row).add("is_shift", isShift ? "true" : "false")));
+            Tables.HOUSE_TABLE.get(String.valueOf(houseRowID)).ifPresent(row -> MenuCreator.show(player, "town.house.open", Apply.of().add("house_", row).add("is_shift", isShift ? "true" : "false")));
         }
 
         public static HomeDisplay create(Integer integer, HouseRow houseRow) {

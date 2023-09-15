@@ -326,6 +326,15 @@ public final class DrawMap {
         else for (int i = 0; i < length; i++) colors[i] = to(buff[i], colors[i]);
         return this;
     }
+    public DrawMap fillPart(BufferedImage image, int startX, int startY, int width, int height) {
+        if (image == null) return this;
+        int[] buff = new int[128 * 128];
+        image.getRGB(startX, startY, width, height, buff, 0, 128);
+        int length = buff.length;
+        if (image.getTransparency() == Transparency.OPAQUE) for (int i = 0; i < length; i++) colors[i] = to(buff[i]);
+        else for (int i = 0; i < length; i++) colors[i] = to(buff[i], colors[i]);
+        return this;
+    }
     public void fill(Color color) {
         Arrays.fill(colors, to(color));
     }
