@@ -43,7 +43,7 @@ public class DayManager {
             @Override public Collection<ImageBuilder> getUI(Player player) {
                 if (player.getInventory().getItemInMainHand().getType() != Material.CLOCK) return Collections.emptyList();
                 DateTime now = now();
-                return Collections.singleton(ImageBuilder.of(player, now.toFormat("dd.SS.yyyy HH:mm:ss"))
+                return Collections.singleton(ImageBuilder.of(player, now.toFormat("dd.yyyySS HH:mm:ss"))
                         .withColor(switch (now.getSeasonIndex()) {
                             case 1 -> TextColor.color(0xF0F329);
                             case 2 -> TextColor.color(0xE7E7E7);

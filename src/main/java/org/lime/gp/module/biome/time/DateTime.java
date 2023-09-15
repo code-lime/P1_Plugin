@@ -15,9 +15,9 @@ public class DateTime {
     public static DateTime ofHours(double totalHours) { return new DateTime(Math.round(totalHours * 3600)); }
 
     public int getYear() { return (int) getRoundYears() + 1000; }
-    public int getSeasonIndex() { return (int) (getRoundSeasons() % YEAR_TO_SEASONS) + 1; }
+    public int getSeasonIndex() { return (int) (getRoundYears() % SEASON_IN_YEARS) + 1; }
     public SeasonKey getSeasonKey() { return SeasonKey.byIndex(getSeasonIndex()); }
-    public int getDay() { return (int) (getRoundDays() % SEASON_TO_DAYS) + 1; }
+    public int getDay() { return (int) (getRoundDays() % YEAR_TO_DAYS) + 1; }
     public int getHour() { return (int) (getRoundHours() % DAY_TO_HOURS); }
     public int getMinute() { return (int) (getRoundMinutes() % HOUR_TO_MINUTES); }
     public int getSecond() { return (int) (getRoundSeconds() % MINUTE_TO_SECONDS); }
@@ -25,25 +25,22 @@ public class DateTime {
     public static final int MINUTE_TO_SECONDS = 60;
     public static final int HOUR_TO_MINUTES = 60;
     public static final int DAY_TO_HOURS = 24;
-    public static final int SEASON_TO_DAYS = 30;
-    public static final int YEAR_TO_SEASONS = 3;
+    public static final int YEAR_TO_DAYS = 90;
+    public static final int SEASON_IN_YEARS = 3;
 
-    public long getRoundYears() { return getRoundSeasons() / YEAR_TO_SEASONS; }
-    public long getRoundSeasons() { return getRoundDays() / SEASON_TO_DAYS; }
+    public long getRoundYears() { return getRoundDays() / YEAR_TO_DAYS; }
     public long getRoundDays() { return getRoundHours() / DAY_TO_HOURS; }
     public long getRoundHours() { return getRoundMinutes() / HOUR_TO_MINUTES; }
     public long getRoundMinutes() { return getRoundSeconds() / MINUTE_TO_SECONDS; }
     public long getRoundSeconds() { return totalSeconds; }
 
-    public double getTotalYears() { return getTotalSeasons() / YEAR_TO_SEASONS; }
-    public double getTotalSeasons() { return getTotalDays() / SEASON_TO_DAYS; }
+    public double getTotalYears() { return getTotalDays() / YEAR_TO_DAYS; }
     public double getTotalDays() { return getTotalHours() / DAY_TO_HOURS; }
     public double getTotalHours() { return getTotalMinutes() / HOUR_TO_MINUTES; }
     public double getTotalMinutes() { return getTotalSeconds() / MINUTE_TO_SECONDS; }
     public double getTotalSeconds() { return totalSeconds; }
 
-    public DateTime addYears(double value) { return addSeasons(value * YEAR_TO_SEASONS); }
-    public DateTime addSeasons(double value) { return addDays(value * SEASON_TO_DAYS); }
+    public DateTime addYears(double value) { return addDays(value * YEAR_TO_DAYS); }
     public DateTime addDays(double value) { return addHours(value * DAY_TO_HOURS); }
     public DateTime addHours(double value) { return addMinutes(value * HOUR_TO_MINUTES); }
     public DateTime addMinutes(double value) { return addSeconds(value * MINUTE_TO_SECONDS); }
@@ -62,10 +59,10 @@ public class DateTime {
         long totalMinutes = totalSeconds / MINUTE_TO_SECONDS;
         long totalHours = totalMinutes / HOUR_TO_MINUTES;
         long totalDays = totalHours / DAY_TO_HOURS;
-        long totalSeasons = totalDays / SEASON_TO_DAYS;
-        int year = (int) (totalSeasons / YEAR_TO_SEASONS) + 1000;
-        int season = (int) (totalSeasons % YEAR_TO_SEASONS) + 1;
-        int day = (int) (totalDays % SEASON_TO_DAYS) + 1;
+        long totalYears = totalDays / YEAR_TO_DAYS;
+        int year = (int) totalYears + 1000;
+        int season = (int) (totalYears % SEASON_IN_YEARS) + 1;
+        int day = (int) (totalDays % YEAR_TO_DAYS) + 1;
         int hour = (int) (totalHours % DAY_TO_HOURS);
         int minute = (int) (totalMinutes % HOUR_TO_MINUTES);
         int second = (int) (totalSeconds % MINUTE_TO_SECONDS);
@@ -104,17 +101,18 @@ ss: Seconds with leading zero
         return format;
     }
 
-    @Override public String toString() { return toFormat("yyyy-SS-dd HH:mm:ss"); }
+    @Override public String toString() { return toFormat("yyyy-dd HH:mm:ss"); }
 
     private static long parseDate(String value) {
         String[] parts = value.split("-");
+        if (parts.length != 2) throw new IllegalArgumentException("Date '"+value+"' not formatted by 'yyyy-dd'");
         long years = Integer.parseInt(parts[0]) - 1000;
-        long seasons = SeasonKey.byPrefix(parts[1]).index - 1;
-        long days = Integer.parseInt(parts[2]) - 1;
-        return ((years * YEAR_TO_SEASONS + seasons) * SEASON_TO_DAYS + days) * DAY_TO_HOURS * HOUR_TO_MINUTES * MINUTE_TO_SECONDS;
+        long days = Integer.parseInt(parts[1]) - 1;
+        return (years * YEAR_TO_DAYS + days) * DAY_TO_HOURS * HOUR_TO_MINUTES * MINUTE_TO_SECONDS;
     }
     private static long parseTime(String value) {
         String[] parts = value.split(":");
+        if (parts.length != 3) throw new IllegalArgumentException("Date '"+value+"' not formatted by 'HH:mm:ss'");
         long hours = Integer.parseInt(parts[0]);
         long minutes = Integer.parseInt(parts[1]);
         long seconds = Integer.parseInt(parts[2]);
