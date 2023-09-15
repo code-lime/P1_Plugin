@@ -1,6 +1,9 @@
 package org.lime.gp.player.module;
 
+import org.bukkit.entity.FishHook;
+import org.bukkit.inventory.EquipmentSlot;
 import org.lime.core;
+import org.lime.gp.item.settings.list.FishingRodSetting;
 import org.lime.plugin.CoreElement;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -29,12 +32,16 @@ public class Fishing implements Listener {
         switch (e.getState()) {
             case FISHING -> {
                 List<String> tags = new ArrayList<>();
+                FishHook hook = e.getHook();
                 if (Vest.tryRemoveSingleItem(e.getPlayer(), item -> Items.getOptional(BaitSetting.class, item).map(bait -> {
                     tags.addAll(bait.tags);
                     return true;
                 }).orElse(false))) {
-                    e.getHook().getScoreboardTags().addAll(tags);
+                    hook.getScoreboardTags().addAll(tags);
                 }
+                if (e.getHand() != null)
+                    Items.getOptional(FishingRodSetting.class, e.getPlayer().getInventory().getItem(e.getHand()))
+                            .ifPresent(v -> hook.setVelocity(hook.getVelocity().multiply(v.launchMultiply)));
             }
             case CAUGHT_FISH -> {
                 Entity ent = e.getCaught();
