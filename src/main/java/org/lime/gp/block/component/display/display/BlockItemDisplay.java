@@ -1,7 +1,9 @@
 package org.lime.gp.block.component.display.display;
 
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
@@ -24,6 +26,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.ItemDisplay> {
+    private static final DataWatcherObject<ItemStack> DATA_ITEM_STACK_ID = EditedDataWatcher.getDataObject(Display.ItemDisplay.class, "DATA_ITEM_STACK_ID");
+
     @Override public double getDistance() { return Double.POSITIVE_INFINITY; }
     @Override public Location location() { return data.location(); }
 
@@ -125,7 +129,7 @@ public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.I
 
     @Override protected void editDataWatcher(Player player, EditedDataWatcher dataWatcher) {
         super.editDataWatcher(player, dataWatcher);
-        dataWatcher.setCustom(EditedDataWatcher.DATA_ITEM_STACK_ID, data.item());
+        dataWatcher.setCustom(DATA_ITEM_STACK_ID, data.item());
     }
     @Override protected Display.ItemDisplay createEntity(Location location) {
         Display.ItemDisplay itemFrame = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, ((CraftWorld)location.getWorld()).getHandle());

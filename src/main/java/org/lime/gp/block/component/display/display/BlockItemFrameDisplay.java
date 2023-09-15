@@ -2,7 +2,9 @@ package org.lime.gp.block.component.display.display;
 
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.entity.decoration.EntityItemFrame;
+import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.bukkit.entity.Player;
@@ -19,6 +21,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BlockItemFrameDisplay extends ObjectDisplay<ItemFrameDisplayObject, EntityItemFrame> {
+    private static final DataWatcherObject<ItemStack> DATA_ITEM = EditedDataWatcher.getDataObject(EntityItemFrame.class, "DATA_ITEM");
+    private static final DataWatcherObject<Integer> DATA_ROTATION = EditedDataWatcher.getDataObject(EntityItemFrame.class, "DATA_ROTATION");
+
+
     @Override public double getDistance() { return Double.POSITIVE_INFINITY; }
     @Override public Location location() { return data.location(); }
 
@@ -50,8 +56,8 @@ public class BlockItemFrameDisplay extends ObjectDisplay<ItemFrameDisplayObject,
 
     @Override protected void editDataWatcher(Player player, EditedDataWatcher dataWatcher) {
         super.editDataWatcher(player, dataWatcher);
-        dataWatcher.setCustom(EditedDataWatcher.DATA_ITEM, data.item());
-        dataWatcher.setCustom(EditedDataWatcher.DATA_ROTATION, data.rotation().ordinal());
+        dataWatcher.setCustom(DATA_ITEM, data.item());
+        dataWatcher.setCustom(DATA_ROTATION, data.rotation().ordinal());
     }
     @Override protected EntityItemFrame createEntity(Location location) {
         EntityItemFrame itemFrame = new EntityItemFrame(

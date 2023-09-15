@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 
@@ -132,7 +133,7 @@ public class DrawText {
         static IShow create(Player player, Location location, Component text, double sec) {
             UUID uuid = player.getUniqueId();
             long next = System.currentTimeMillis() + Math.round(sec * 1000);
-            String id = getNext() + "";
+            String id = String.valueOf(getNext());
             return new IShow() {
                 @Override public String getID() { return id; }
 
@@ -145,7 +146,7 @@ public class DrawText {
         }
         static IShow create(Location location, Component text, double sec) {
             long next = System.currentTimeMillis() + Math.round(sec * 1000);
-            String id = getNext() + "";
+            String id = String.valueOf(getNext());
             return new IShow() {
                 @Override public String getID() { return id; }
 
@@ -178,6 +179,7 @@ public class DrawText {
     }
 
     public static class TextDisplay extends MoveObjectDisplay<IShow, Display.TextDisplay> {
+        private static final DataWatcherObject<IChatBaseComponent> DATA_TEXT_ID = EditedDataWatcher.getDataObject(Display.TextDisplay.class, "DATA_TEXT_ID");
         private IShow show;
         private Integer last_parent = null;
 
@@ -201,12 +203,7 @@ public class DrawText {
                 return;
             }
             keyOf(player, "last_text", component);
-            /*lime.logOP(Component.text("Set DataWatcher text for '"+player.getName()+"': ")
-                    .append(Component.text("TEXT")
-                            .hoverEvent(HoverEvent.showText(component))
-                            .color(NamedTextColor.AQUA))
-            );*/
-            dataWatcher.setCustom(EditedDataWatcher.DATA_TEXT_ID, ChatHelper.toNMS(component));
+            dataWatcher.setCustom(DATA_TEXT_ID, ChatHelper.toNMS(component));
         }
 
         @Override public void update(IShow iShow, double delta) {

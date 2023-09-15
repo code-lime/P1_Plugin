@@ -4,7 +4,9 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.google.gson.JsonElement;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.Entity;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -33,6 +35,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Drugs implements Listener {
+    private static final DataWatcherObject<Integer> DATA_TICKS_FROZEN = EditedDataWatcher.getDataObject(Entity.class, "DATA_TICKS_FROZEN");
+
     public static final HashMap<UUID, GroupEffect> players = new HashMap<>();
 
     public static CoreElement create() {
@@ -78,8 +82,8 @@ public class Drugs implements Listener {
                     if (packet.id() == id) return;
                     if (freezeList.containsKey(packet.id())) {
                         List<DataWatcher.b<?>> data = new ArrayList<>(packet.packedItems());
-                        data.removeIf(item -> item.id() == EditedDataWatcher.DATA_TICKS_FROZEN.getId());
-                        data.add(new DataWatcher.Item<>(EditedDataWatcher.DATA_TICKS_FROZEN, 10000).value());
+                        data.removeIf(item -> item.id() == DATA_TICKS_FROZEN.getId());
+                        data.add(new DataWatcher.Item<>(DATA_TICKS_FROZEN, 10000).value());
                         packet = new PacketPlayOutEntityMetadata(packet.id(), data);
                         event.setPacket(new PacketContainer(event.getPacketType(), packet));
                     }
