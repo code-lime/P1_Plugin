@@ -63,6 +63,7 @@ public class MySqlAsync {
                     stmt.executeUpdate();
                 } catch (Throwable th) {
                     log.invoke("-" + th);
+                    throw th;
                 }
                 log.invoke("S:f+");
             }
