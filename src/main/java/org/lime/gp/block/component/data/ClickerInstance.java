@@ -222,13 +222,16 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         if (player.getAttackCooldown() <= 0.9) return;
         boolean isHand = clicker.getType().isAir();
         boolean isCanHand = component.hand_click;
+        int clickCount = 1;
         if (isHand) {
             if (!isCanHand) return;
         } else {
-            if (Items.getOptional(ClickerSetting.class, clicker).filter(v -> v.types.contains(clicker_type)).isEmpty()) {
+            ClickerSetting clickerSetting = Items.getOptional(ClickerSetting.class, clicker).filter(v -> v.types.contains(clicker_type)).orElse(null);
+            if (clickerSetting == null) {
                 DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
                 return;
             }
+            clickCount = clickerSetting.clicks;
             ItemMeta meta = clicker.getItemMeta();
             if (meta instanceof Damageable damageable) {
                 int value = damageable.getDamage() + hurt(clicker);
@@ -246,7 +249,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
             return;
         }
-        clicks++;
+        clicks += clickCount;
         Location location = metadata().location(0.5,0.5,0.5);
         if (component.particle != null) Particle.BLOCK_DUST
                 .builder()
