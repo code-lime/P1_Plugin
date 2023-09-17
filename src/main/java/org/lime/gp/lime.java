@@ -285,7 +285,6 @@ public class lime extends core {
 
         add(ChurchManager.create());
         add(Prison.create());
-        add(NPC.create());
 
         List<Component> shows = new ArrayList<>();
 
