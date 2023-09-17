@@ -82,15 +82,17 @@ public class SingleModules implements Listener {
                 //.add(Material.ICE, Material.AIR)
                 .build();
 
-        final HashMap<Position, MoveData> cacheMoveLocation = new HashMap<>();
+        //final HashMap<Position, MoveData> cacheMoveLocation = new HashMap<>();
         lime.repeat(() -> {
-            HashMap<Position, Material> nowLocation = new HashMap<>();
+            //HashMap<Position, Material> nowLocation = new HashMap<>();
             Bukkit.getOnlinePlayers().forEach(player -> {
                 Location location = player.getLocation();
+                /*
                 Block path = location.clone().add(0, -1, 0).getBlock();
                 Material block_type = path.getType();
                 if (mapReplace.containsKey(block_type))
                     nowLocation.put(Position.of(path.getLocation()), block_type);
+                */
 
                 if (!lime.isLay(player)) return;
                 if (!beds.containsValue(player.getUniqueId())) return;
@@ -110,11 +112,11 @@ public class SingleModules implements Listener {
                 double health = player.getHealth();
                 if (health < maxHealth) player.setHealth(Math.min(maxHealth, health + 0.5));
             });
-            nowLocation.forEach((pos, material) -> {
+            /*nowLocation.forEach((pos, material) -> {
                 if (RandomUtils.rand_is(0.1))
                     cacheMoveLocation.computeIfAbsent(pos, MoveData::new).onMove();
-            });
-            cacheMoveLocation.entrySet().removeIf(kv -> {
+            });*/
+            /*cacheMoveLocation.entrySet().removeIf(kv -> {
                 Block block = kv.getKey().getBlock();
                 Material material = mapReplace.getOrDefault(block.getType(), null);
                 if (material == null) return true;
@@ -123,20 +125,7 @@ public class SingleModules implements Listener {
                     return true;
                 }
                 return false;
-            });
-            /*
-            cacheMoveLocation.entrySet().removeIf(kv -> {
-                Position location = kv.getKey();
-                if (nowLocation.containsKey(location)) return true;
-                Block block = location.getBlock();
-                Material material = mapReplace.getOrDefault(block.getType(), null);
-                if (material == null) return true;
-                if (system.rand_is(0.1)) kv.
-                    cacheMoveLocation.computeIfAbsent() block.setType(material);
-                return true;
-            });
-            cacheMoveLocation.putAll(nowLocation);
-            */
+            });*/
         }, 5);
         lime.repeat(() -> Bukkit.getOnlinePlayers().forEach(player -> {
             player.removePotionEffect(PotionEffectType.DOLPHINS_GRACE);
