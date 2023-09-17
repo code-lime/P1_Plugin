@@ -7,7 +7,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventory;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.LangMessages;
@@ -16,7 +15,6 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.WalletSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.PlayerData;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -134,8 +132,33 @@ public final class WalletInventory implements Listener {
         writeWallet(uuid, inventory);
         return out;
     }
-    public static boolean dropDieItems(Player player, Location location, Action1<ItemStack> callback) {
-        return false;
+    public static boolean extractItems(Player player, boolean extractWallet, Action1<ItemStack> callback) {
+        if (!extractWallet) return false;
+        UUID uuid = player.getUniqueId();
+        Inventory inventory = inventoryWallets.getOrDefault(uuid, null);
+        boolean hasItems = false;
+        if (inventory != null) {
+            inventory.close();
+            ItemStack[] items = inventory.getContents();
+            if (items != null) {
+                for (ItemStack item : items) {
+                    if (item != null && !item.getType().isAir()) {
+                        callback.invoke(item);
+                        hasItems = true;
+                    }
+                }
+            }
+            inventory.clear();
+        } else {
+            for (ItemStack item : readItems(uuid)) {
+                if (item != null && !item.getType().isAir()) {
+                    callback.invoke(item);
+                    hasItems = true;
+                }
+            }
+            if (hasItems) writeItems(uuid, Collections.emptyList());
+        }
+        return hasItems;
     }
 }
 
