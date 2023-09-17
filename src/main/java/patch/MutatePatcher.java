@@ -336,6 +336,17 @@ class MutatePatcher {
                                 super.visitInsn(opcode);
                             }
                         }))
+                .patchMethod(IMethodFilter.of(EntityHuman.class, "hurtCurrentlyUsedShield", Type.getMethodType(Type.VOID_TYPE, Type.FLOAT_TYPE), true),
+                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                            private boolean changed = false;
+                            @Override public void visitLdcInsn(Object value) {
+                                if (!changed && value instanceof Float raw && raw == 3.0f) {
+                                    changed = true;
+                                    value = 0.001f;
+                                }
+                                super.visitLdcInsn(value);
+                            }
+                        }))
                 .patch();
 
         version_archive
