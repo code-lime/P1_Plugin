@@ -37,6 +37,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CropsInstance extends BaseAgeableInstance<CropsComponent> implements BlockDisplay.Displayable, CustomTileMetadata.Lootable, CustomTileMetadata.Interactable {
+    @Override protected String debugKey() { return "crops"; }
+
     public CropsInstance(CropsComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
         setItem(null, false);
@@ -44,12 +46,8 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
 
     private static final AgeableData EMPTY = new AgeableData() {
-        @Override public double tickAgeModify() {
-            return 0;
-        }
-        @Override public int limitAge() {
-            return 0;
-        }
+        @Override public double tickAgeModify() { return 0; }
+        @Override public int limitAge() { return 0; }
     };
 
     @Override public AgeableData ageableData() {
@@ -63,15 +61,16 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
     public void setItem(org.bukkit.inventory.ItemStack item, boolean save) {
         ItemStack oldHead = head;
-        if (item == null) {
-            head = new org.bukkit.inventory.ItemStack(Material.AIR);
-        }
-        else {
-            head = item.clone();
-        }
+        if (item == null) head = new org.bukkit.inventory.ItemStack(Material.AIR);
+        else head = item.clone();
+
         if (head.equals(oldHead)) return;
+        writeDebug("Set item: " + ItemUtils.saveItem(item));
         syncItem();
-        if (save) saveData();
+        if (save) {
+            writeDebug("Save data item");
+            saveData();
+        }
         syncDisplayVariable();
     }
     public void syncItem() {
@@ -83,15 +82,19 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         setItem(json.getAsString("item").map(ItemUtils::loadItem).orElse(null), false);
     }
     @Override public json.builder.object write() {
-        return super.write()
+        var obj = super.write()
                 .add("item", head.getType().isAir() ? null : ItemUtils.saveItem(head));
+        writeDebug("Write: " + obj.build());
+        return obj;
     }
 
     @Override public Optional<IModelBlock> onDisplayAsync(Player player, World world, BlockPosition position, IBlockData data) {
         return Optional.of(IModelBlock.of(null, model.get0(), BlockDisplay.getChunkSize(10), Double.POSITIVE_INFINITY));
     }
     @Override public void onLoot(CustomTileMetadata metadata, PopulateLootEvent event) {
+        writeDebug("OL.0");
         if (!head.getType().isAir()) {
+            writeDebug("OL.1: " + ItemUtils.saveItem(head));
             event.addItem(head);
         }
     }
@@ -101,6 +104,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
     }
 
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        writeDebug("OI.0");
         EnumHand hand = event.hand();
         EntityHuman player = event.player();
         UUID uuid = player.getUUID();
@@ -109,9 +113,11 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         net.minecraft.world.item.ItemStack itemStack = player.getItemInHand(hand);
 
         if (!head.getType().isAir()) {
+            writeDebug("OI.ITEM.1: " + ItemUtils.saveItem(head));
             net.minecraft.world.item.ItemStack outputItem = CraftItemStack.asNMSCopy(head);
             setItem(null, true);
             Items.getOptional(CropsSetting.class, outputItem).filter(v -> age() == v.limitAge()).ifPresentOrElse(data -> {
+                writeDebug("OI.ITEM.1");
                 net.minecraft.world.item.ItemStack handItem = itemStack;
                 IPopulateLoot loot = IPopulateLoot.of(world, List.of(
                         IPopulateLoot.var(Parameters.ThisEntity, player),
@@ -121,33 +127,48 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
                         IPopulateLoot.var(Parameters.Tool, itemStack)
                 ));
                 String key = "crops/" + Items.getGlobalKeyByItem(outputItem).orElse("none").toLowerCase();
+                writeDebug("OI.ITEM.2: " + key);
                 LevelModule.onHarvest(uuid, key);
                 for (ItemStack item : ModifyLootTable.getLoot(uuid, key, data.loot, loot).generateLoot(loot)) {
+                    writeDebug("OI.ITEM.3: " + ItemUtils.saveItem(item));
                     net.minecraft.world.item.ItemStack _item = CraftItemStack.asNMSCopy(item);
                     if (handItem.isEmpty()) {
+                        writeDebug("OI.ITEM.4");
                         player.setItemInHand(hand, _item);
                         handItem = _item;
                     } else if (!player.addItem(_item)) {
+                        writeDebug("OI.ITEM.5");
                         player.drop(_item, false);
                     }
+                    writeDebug("OI.ITEM.6");
                 }
+                writeDebug("OI.ITEM.7");
             }, () -> {
+                writeDebug("OI.ITEM.8");
                 if (itemStack.isEmpty()) {
+                    writeDebug("OI.ITEM.9");
                     player.setItemInHand(hand, outputItem);
                 } else if (!player.addItem(outputItem)) {
+                    writeDebug("OI.ITEM.10");
                     player.drop(outputItem, false);
                 }
+                writeDebug("OI.ITEM.11");
             });
             age(0);
         } else {
+            writeDebug("OI.AIR.2");
             if (!Items.has(CropsSetting.class, itemStack)) return EnumInteractionResult.PASS;
+            writeDebug("OI.AIR.3");
             if (!component().filter.check(itemStack)) return EnumInteractionResult.PASS;
+            writeDebug("OI.AIR.4");
             setItem(CraftItemStack.asBukkitCopy(itemStack.copyWithCount(1)), true);
             age(0);
             if (!player.getAbilities().instabuild) {
+                writeDebug("OI.AIR.5");
                 itemStack.shrink(1);
             }
         }
+        writeDebug("OI.2");
         return EnumInteractionResult.sidedSuccess(world.isClientSide);
     }
 

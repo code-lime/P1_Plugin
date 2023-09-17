@@ -16,23 +16,29 @@ import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.player.level.LevelModule;
+import org.lime.system.json;
 
 import java.util.List;
 import java.util.UUID;
 
 public class ShrubInstance extends BaseAgeableInstance<ShrubComponent> implements CustomTileMetadata.Interactable {
-    public ShrubInstance(ShrubComponent component, CustomTileMetadata metadata) {
-        super(component, metadata);
-    }
+    @Override protected String debugKey() { return "shrub"; }
 
-    @Override public AgeableData ageableData() {
-        return component();
+    public ShrubInstance(ShrubComponent component, CustomTileMetadata metadata) { super(component, metadata); }
+
+    @Override public json.builder.object write() {
+        var obj = super.write();
+        writeDebug("Write: " + obj.build());
+        return obj;
     }
+    @Override public AgeableData ageableData() { return component(); }
 
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        writeDebug("OI.0");
         ShrubComponent component = component();
         int age = age();
         if (age != component.limitAge()) return EnumInteractionResult.PASS;
+        writeDebug("OI.1");
 
         EnumHand hand = event.hand();
         EntityHuman player = event.player();
@@ -49,6 +55,7 @@ public class ShrubInstance extends BaseAgeableInstance<ShrubComponent> implement
                 IPopulateLoot.var(Parameters.Tool, itemStack)
         ));
         String key = "shrub/" + component.info().getKey().toLowerCase();
+        writeDebug("OI.2: " + key);
         LevelModule.onHarvest(uuid, key);
         ModifyLootTable.getLoot(uuid, key, component.loot, loot)
                 .generateLoot(loot)
@@ -57,6 +64,7 @@ public class ShrubInstance extends BaseAgeableInstance<ShrubComponent> implement
         world.playSound(null, pos, SoundEffects.SWEET_BERRY_BUSH_PICK_BERRIES, SoundCategory.BLOCKS, 1.0F, 0.8F + world.random.nextFloat() * 0.4F);
         age -= component.ageRemove;
         age(age);
+        writeDebug("OI.3");
         return EnumInteractionResult.sidedSuccess(world.isClientSide);
     }
 }
