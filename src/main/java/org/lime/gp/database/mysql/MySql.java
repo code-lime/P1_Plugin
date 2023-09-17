@@ -117,32 +117,28 @@ public final class MySql implements Closeable {
     }
     public static String toSqlObject(Object value) {
         if (value == null) return "NULL";
-        else if (value instanceof Date) {
+        else if (value instanceof Date date) {
             Calendar calendar = Calendar.getInstance();
-            calendar.setTime((Date) value);
+            calendar.setTime(date);
             return fromCalendar(calendar);
-        } else if (value instanceof Calendar) return fromCalendar((Calendar) value);
-        else if (value instanceof Number) {
-            return value.toString();
-        }
-        else if (value instanceof UUID) return "'"+value+"'";
-        else if (value instanceof Boolean) return ((Boolean)value) ? "1" : "0";
-        else if (value instanceof Iterable<?>) return toSqlObject(Streams.stream((Iterable<?>) value));
-        else if (value instanceof Iterator<?>) return toSqlObject(Streams.stream((Iterator<?>) value));
-        else if (value instanceof Array) return toSqlObject(toList((Array)value));
-        else if (value instanceof String) return "'" + value.toString().replace("\\", "\\\\").replace("'", "\\'") + "'";
-        else if (value instanceof JsonPrimitive) {
-            JsonPrimitive primitive = (JsonPrimitive)value;
+        } else if (value instanceof Calendar calendar) return fromCalendar(calendar);
+        else if (value instanceof Number number) return number.toString();
+        else if (value instanceof UUID uuid) return "'"+uuid+"'";
+        else if (value instanceof Boolean bool) return bool ? "1" : "0";
+        else if (value instanceof Iterable<?> iterable) return toSqlObject(Streams.stream(iterable));
+        else if (value instanceof Iterator<?> iterator) return toSqlObject(Streams.stream(iterator));
+        else if (value instanceof Array array) return toSqlObject(toList(array));
+        else if (value instanceof String str) return "'" + str.replace("\\", "\\\\").replace("'", "\\'") + "'";
+        else if (value instanceof JsonPrimitive primitive) {
             if (primitive.isNumber()) return toSqlObject(primitive.getAsNumber());
             else if (primitive.isBoolean()) return toSqlObject(primitive.getAsBoolean());
             else return toSqlObject(primitive.getAsString());
         }
-        else if (value instanceof Stream<?>) {
-            String str = ((Stream<?>)value).map(MySql::toSqlObject).collect(Collectors.joining(","));
+        else if (value instanceof Stream<?> stream) {
+            String str = stream.map(MySql::toSqlObject).collect(Collectors.joining(","));
             return "(" + (str.isEmpty() ? "NULL" : str) + ")";
         }
-        else if (value instanceof ScriptObjectMirror) {
-            ScriptObjectMirror obj = (ScriptObjectMirror)value;
+        else if (value instanceof ScriptObjectMirror obj) {
             if (obj.isArray()) {
                 JsonArray json = new JsonArray();
                 obj.values().forEach(v -> json.add(toSqlObject(v)));
