@@ -283,13 +283,15 @@ public class Perms implements Listener {
         String block_key = Blocks.getBlockKey(block);
         if (data.isCanBreak(block_key) || Optional.ofNullable(owners.get(pos)).filter(v -> uuid.equals(v.val0)).filter(v -> block_key.equals(v.val2)).isPresent()) {
             owners.remove(pos);
-            Block farmland = block.getLocation().add(0, -1, 0).getBlock();
-            if (farmland.getType() == Material.FARMLAND) {
-                double chance = data.getBreakFarmReplace(material);
-                if (chance != 0 && RandomUtils.rand_is(chance)) {
-                    farmland.setType(Material.COARSE_DIRT);
+            lime.onceTicks(() -> {
+                Block farmland = block.getLocation().add(0, -1, 0).getBlock();
+                if (farmland.getType() == Material.FARMLAND) {
+                    double chance = data.getBreakFarmReplace(material);
+                    if (chance != 0 && RandomUtils.rand_is(chance)) {
+                        farmland.setType(Material.COARSE_DIRT);
+                    }
                 }
-            }
+            }, 5);
             return;
         }
         e.setCancelled(true);
