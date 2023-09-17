@@ -24,6 +24,7 @@ import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.joml.Vector3f;
+import org.lime.Position;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.IDisplayVariable;
@@ -35,6 +36,7 @@ import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.WaitingRecipe;
 import org.lime.gp.craft.slot.output.IOutputVariable;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.ThirstSetting;
@@ -56,9 +58,19 @@ import java.util.*;
 public class WaitingInstance extends BlockComponentInstance<WaitingComponent> implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable, CustomTileMetadata.Damageable, CustomTileMetadata.Lootable, IDisplayVariable {
     public WaitingInstance(WaitingComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
+        writeDebug("ctor");
     }
 
-    private static final boolean DEBUG = false;
+    //private static final Position DEBUG_LOCATION = new Position(lime.MainWorld, 1736, 11, 821);
+    private void writeDebug(String line) { writeDebug(() -> line); }
+    private void writeDebug(List<String> lines) {
+        String save = this.metadata().position().toSave();
+        lines.forEach(line -> lime.logToFile("waiting/"+save, "[{time}] " + line));
+    }
+    private void writeDebug(Func0<String> line) {
+        String save = this.metadata().position().toSave();
+        lime.logToFile("waiting/"+save, "[{time}] " + line.invoke());
+    }
 
     private static abstract class BaseInput {
         public abstract String color();
@@ -256,8 +268,10 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
     private long endTime = 0;
 
     private int lastShowProgress = -1;
+    private int readLoader = 0;
 
     @Override public void read(JsonObjectOptional json) {
+        writeDebug("Read: " + json);
         last_click = json.getAsString("last_click").map(UUID::fromString).orElse(null);
         input = json.getAsJsonObject("input")
                 .flatMap(input -> input.getAsString("type")
@@ -275,6 +289,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                         .map(CraftItemStack::asNMSCopy)
                         .filter(item -> {
                             if (item.isEmpty()) {
+                                writeDebug("!!!READ WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
                                 lime.logOP("!!!WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
                                 return false;
                             }
@@ -282,13 +297,14 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                         })
                         .ifPresent(items::add)
                 ));
-        syncRecipe("READ", false);
+        readLoader = 200;
     }
     @Override public json.builder.object write() {
         if (items.removeIf(Objects::isNull)) {
+            writeDebug("!!!WRITE WARNING!!! FOUND EMPTY ITEMS IN WAITING INSTANCE");
             lime.logOP("!!!WARNING!!! FOUND EMPTY ITEMS IN WAITING INSTANCE");
         }
-        return json.object()
+        var obj = json.object()
                 .add("input", input.save())
                 .addArray("items", v -> v.add(items.stream()
                         .map(CraftItemStack::asBukkitCopy)
@@ -297,6 +313,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 ))
                 .add("start_time", startTime)
                 .add("last_click", last_click);
+        writeDebug("Write: " + obj.build());
+        return obj;
     }
 
     private ReadonlyInventory createReadonly() {
@@ -362,11 +380,18 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
 
     private int ticks = 0;
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
+        if (readLoader > 0) {
+            readLoader--;
+            if (readLoader > 0 && last_click != null && UserRow.getBy(last_click).isEmpty()) return;
+            readLoader = 0;
+            syncRecipe("READ", false);
+        }
         WaitingComponent component = component();
 
         if (component.debug) updateDebug();
         if (endTime == 0 || startTime == 0) {
             if (lastShowProgress != 0) {
+                writeDebug("OT.0: " + lastShowProgress + " -> 0");
                 lastShowProgress = 0;
                 syncDisplayVariable();
             }
@@ -386,52 +411,72 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
 
         int showProgress = Math.min(Math.max((int)Math.ceil(currentDelta * component.progress / totalDelta), 1), component.progress);
         if (showProgress != lastShowProgress) {
+            writeDebug("OT.1: " + lastShowProgress + " -> " + showProgress);
             lastShowProgress = showProgress;
             syncDisplayVariable();
         }
         if (currentDelta >= totalDelta) {
+            writeDebug("DETECT DELTA: " + currentDelta + " >= " + totalDelta);
             syncRecipe("TIME_END", false)
                     .ifPresent(recipe -> recipe
                             .assembleWithCount(createReadonly(), event.getWorld().registryAccess(), IOutputVariable.of(last_click))
                             .invoke((item, count) -> {
+                                writeDebug("Craft '"+recipe.getId()+"' * " + count + " done!");
                                 for (int i = 0; i < count; i++)
                                     LevelModule.onCraft(last_click, recipe.getId());
 
-                                if (DEBUG) lime.logOP("Result: " + item);
+                                writeDebug(() -> "Result: " + ItemUtils.saveItem(item.asBukkitCopy()));
                                 if (item.isEmpty()) input = new EmptyInput();
                                 else if (Items.has(ThirstSetting.class, item)) input = new WaterInput(item);
                                 else input = new ItemInput(item);
+                                writeDebug("Swap: " + input);
                                 items.clear();
                                 syncRecipe("TIME_END_RESYNC", true);
                                 saveData();
+                                writeDebug("DELTA END!");
                             })
                     );
         }
     }
 
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        writeDebug("OI.0");
         EntityHuman entityhuman = event.player();
         Toast2<BaseInput, EnumInteractionResult> result = input.interact(this, metadata, event);
-        if (input != result.val0) input = result.val0;
+        writeDebug("OI.1");
+        if (input != result.val0) {
+            writeDebug("OI.2: " + input + " -> " + result.val0);
+            input = result.val0;
+        }
+        writeDebug("OI.3");
         if (input.readDirty()) {
             last_click = entityhuman.getUUID();
+            writeDebug("OI.4: " + last_click);
             syncRecipe("INTERACT", true);
             saveData();
 
             syncDisplayVariable();
         }
+        writeDebug("OI.5: " + result.val1);
         return result.val1;
     }
     @Override public void onDamage(CustomTileMetadata metadata, BlockDamageEvent event) {
+        writeDebug("OD.0");
         Player player = event.getPlayer();
         if (player.isSneaking()) {
+            writeDebug("OD.1");
             List<org.bukkit.inventory.ItemStack> items = new ArrayList<>();
             input = input.loot(items);
+            writeDebug("ON DROP:");
+            writeDebug(" - Item count: " + this.items.size());
             this.items.removeIf(item -> {
+                writeDebug(() -> " - Drop: " + ItemUtils.saveItem(item.asBukkitCopy()));
                 items.add(item.asBukkitCopy());
                 return true;
             });
+            writeDebug(" - Drop count: " + items.size());
             if (!input.readDirty() && items.isEmpty()) return;
+            writeDebug("OD.2");
             last_click = player.getUniqueId();
             syncRecipe("DAMAGE", true);
             saveData();
@@ -439,6 +484,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             syncDisplayVariable();
 
             if (items.isEmpty()) return;
+            writeDebug("OD.3");
             Items.dropGiveItem(player, items, true);
             Location location = event.getBlock().getLocation();
             location.getWorld().playSound(location, Sound.ENTITY_ITEM_FRAME_REMOVE_ITEM, org.bukkit.SoundCategory.BLOCKS, 1.0f, 0.25f);
@@ -446,12 +492,15 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
     }
 
     private Optional<WaitingRecipe> syncRecipe(String prefix, boolean resetTime) {
-        if (DEBUG) lime.logOP("SR.0: " + prefix);
+        boolean CHANGED = false;
+        List<String> logs = new ArrayList<>(); // writeDebug("Write: " + obj);
+        logs.add("SR.0: " + prefix);
         int total_sec = 0;
         WaitingComponent component = component();
         WaitingRecipe recipe = null;
+        logs.add("SR.1");
         if (last_click != null) {
-            if (DEBUG) lime.logOP("SR.1");
+            logs.add("SR.1.0: " + last_click);
             String waiting_type = component.type;
             Perms.ICanData canData = Perms.getCanData(last_click);
             World world = metadata().skull.getLevel();
@@ -462,75 +511,116 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                     .findFirst()
                     .orElse(null);
             if (recipe != null) total_sec = recipe.total_sec;
-            if (DEBUG) lime.logOP("SR.2: " + recipe + " / " + total_sec + " with " + input);
+            logs.add("SR.1.1: " + recipe + " / " + total_sec + " with " + input);
         }
-        if (DEBUG) lime.logOP("SR.3");
+        logs.add("SR.2: " + resetTime);
         boolean change = false;
         if (resetTime) {
             if (startTime != 0 || endTime != 0) change = true;
+            logs.add("SR.2.1: " + startTime + " / " + endTime);
             startTime = 0;
             endTime = 0;
+            logs.add("SR.2.2: " + startTime + " / " + endTime);
+            CHANGED = true;
         }
+        logs.add("SR.3: " + startTime + " / " + endTime + " AND " + total_sec);
         if (startTime == 0) {
+            logs.add("SR.3.0: " + total_sec);
             if (total_sec > 0) {
-                if (DEBUG) lime.logOP("SR.3.0");
                 startTime = System.currentTimeMillis();
                 endTime = startTime + total_sec * 1000L;
+                logs.add("SR.3.1: " + startTime + " / " + endTime);
+                CHANGED = true;
                 change = true;
             } else if (endTime != 0) {
-                if (DEBUG) lime.logOP("SR.3.1");
+                logs.add("SR.3.2");
                 endTime = 0;
+                CHANGED = true;
                 change = true;
+                logs.add("SR.3.3: " + startTime + " / " + endTime);
             }
+            logs.add("SR.3.4: " + startTime + " / " + endTime);
         } else if (endTime == 0) {
-            if (DEBUG) lime.logOP("SR.3.2");
-            if (total_sec <= 0) startTime = 0;
-            else endTime = startTime + total_sec * 1000L;
+            logs.add("SR.3.5: " + total_sec);
+            if (total_sec <= 0) {
+                startTime = 0;
+                logs.add("SR.3.6: " + startTime + " / " + endTime);
+            }
+            else {
+                endTime = startTime + total_sec * 1000L;
+                logs.add("SR.3.7: " + startTime + " / " + endTime);
+            }
+            CHANGED = true;
             change = true;
+            logs.add("SR.3.8");
         } else if (total_sec <= 0) {
-            if (DEBUG) lime.logOP("SR.3.3");
+            logs.add("SR.3.9: " + total_sec);
             startTime = 0;
             endTime = 0;
+            CHANGED = true;
             change = true;
+            logs.add("SR.3.10: " + startTime + " / " + endTime);
         }
-        //if (DEBUG) lime.logOP("SR.3.4: " + startTime + " -> " + endTime + " = " + (endTime - startTime));
+        logs.add("SR.4: " + startTime + " -> " + endTime + " = " + (endTime - startTime) + " || " + change);
         if (startTime == 0 || endTime == 0) {
             int showProgress = 0;
+            logs.add("SR.4.1: " + lastShowProgress);
             if (showProgress != lastShowProgress) {
                 lastShowProgress = showProgress;
+                logs.add("SR.4.2: " + lastShowProgress);
+                CHANGED = true;
                 syncDisplayVariable();
             }
-            if (change) saveData();
+            logs.add("SR.4.3");
+            if (change) {
+                logs.add("SR.4.4");
+                saveData();
+                CHANGED = true;
+            }
+            logs.add("SR.4.5");
+            if (CHANGED) writeDebug(logs);
             return Optional.empty();
         } else if (change) {
+            logs.add("SR.4.6");
             long currentTime = System.currentTimeMillis();
             double currentDelta = currentTime - startTime;
             double totalDelta = endTime - startTime;
+            logs.add("SR.4.7: " + startTime + " / " + endTime + " / " + currentTime + " : " + currentDelta + " / " + totalDelta);
 
             component = component();
 
             int showProgress = (int)Math.ceil(currentDelta * component.progress / totalDelta);
+            logs.add("SR.4.8: " + showProgress + " / " + lastShowProgress);
             if (showProgress != lastShowProgress) {
+                logs.add("SR.4.9");
                 lastShowProgress = showProgress;
                 syncDisplayVariable();
             }
+            logs.add("SR.4.10");
             saveData();
+            CHANGED = true;
         }
-        if (DEBUG) lime.logOP("SR.3.5: " + recipe);
+        logs.add("SR.5: " + recipe);
+        if (CHANGED) writeDebug(logs);
         return Optional.of(recipe);
     }
 
     @Override public void onLoot(CustomTileMetadata metadata, PopulateLootEvent event) {
         List<org.bukkit.inventory.ItemStack> items = new ArrayList<>();
         input.loot(items);
+        writeDebug("ON LOOT:");
+        writeDebug(" - Item count: " + this.items.size());
         this.items.removeIf(item -> {
+            writeDebug(() -> " - Drop: " + ItemUtils.saveItem(item.asBukkitCopy()));
             items.add(item.asBukkitCopy());
             return true;
         });
+        writeDebug(" - Drop count: " + items.size());
         event.addItems(items);
     }
 
     @Override public final void syncDisplayVariable() {
+        writeDebug("syncDisplayVariable");
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(map -> {
                 int size = items.size();
