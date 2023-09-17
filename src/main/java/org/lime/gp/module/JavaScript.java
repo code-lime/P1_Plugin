@@ -6,8 +6,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
+import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.chat.ChatMessages;
@@ -19,9 +18,7 @@ import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.reflection;
 import org.lime.system.json;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
@@ -76,10 +73,10 @@ public class JavaScript {
             Cooldown.setCooldown(UUID.fromString(uuid), key, sec);
             return true;
         }
-        public void show_npc(String uuid, String npc) { NPC.show(UUID.fromString(uuid), npc); }
-        public void hide_npc(String uuid, String npc) { NPC.hide(UUID.fromString(uuid), npc); }
+        public void show_npc(String uuid, String npc) { EPlayerModule.show(UUID.fromString(uuid), npc); }
+        public void hide_npc(String uuid, String npc) { EPlayerModule.hide(UUID.fromString(uuid), npc); }
 
-        public List<String> shows_npc(String uuid) { return NPC.shows(UUID.fromString(uuid)); }
+        public List<String> shows_npc(String uuid) { return EPlayerModule.shows(UUID.fromString(uuid)); }
 
         public Vector getCoord(String uuid) { return Bukkit.getPlayer(UUID.fromString(uuid)).getLocation().toVector(); }
 
