@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPosition;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.block.state.IBlockDataHolder;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -11,6 +12,7 @@ import org.bukkit.util.Vector;
 import org.lime.gp.filter.data.IFilterInfo;
 import org.lime.gp.filter.data.IFilterParameterInfo;
 import org.lime.gp.module.biome.time.SeasonKey;
+import org.lime.gp.module.biome.weather.BiomeChecker;
 import org.lime.gp.module.biome.weather.WeatherType;
 import org.lime.system.json;
 import org.lime.system.range.IRange;
@@ -43,7 +45,15 @@ public class Parameters {
     private static final Map<String, IFilterParameterInfo<IPopulateSpawn, ?>> allInfo = Stream.<IFilterParameterInfo<IPopulateSpawn, ?>>builder()
             .add(ThisEntity.createInfoEqualsIgnoreCase("this", v -> v.getBukkitEntity().getType().name()))
             .add(FloorBlock.createInfoEqualsIgnoreCase("block", IBlockDataHolder::toString))
-            .add(Origin.createInfoEqualsIgnoreCase("biome", (v, world) -> world.getBiome(new BlockPosition(v.getBlockX(), v.getBlockY(), v.getBlockZ())).unwrapKey().map(ResourceKey::location).map(MinecraftKey::toString).orElse("NULL")))
+            .add(Origin.createInfoWorldFilter("biome",
+                    (v, world) -> world.getBiome(new BlockPosition((int)v.getX(), (int)v.getY(), (int)v.getZ()))
+                            .unwrapKey()
+                            .map(ResourceKey::location)
+                            .map(MinecraftKey::toString)
+                            .orElse("NULL"),
+                    BiomeChecker::createCheck,
+                    (checker, v, world) -> checker.check(world.getBiome(new BlockPosition((int)v.getX(), (int)v.getY(), (int)v.getZ())).value())
+            ))
             .add(Origin.createInfoFilter("position", v -> MathUtils.getDouble(v.getX()) + " " + MathUtils.getDouble(v.getY()) + " " + MathUtils.getDouble(v.getZ()), s -> {
                 String[] args = s.split(" ");
                 return Toast.of(IRange.parse(args[0]), IRange.parse(args[1]), IRange.parse(args[2]));
