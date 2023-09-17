@@ -29,13 +29,15 @@ public interface INeedEffect<T extends INeedEffect<T>> {
     }
     interface Mutate extends INeedEffect<Mutate> {
         double value();
-
-        static Mutate parse(Type<Mutate> type, JsonObject json) {
-            double mutate = json.get("mutate").getAsDouble();
+        static Mutate of(Type<Mutate> type, double value) {
             return new Mutate() {
                 @Override public Type<Mutate> type() { return type; }
-                @Override public double value() { return mutate; }
+                @Override public double value() { return value; }
             };
+        }
+
+        static Mutate parse(Type<Mutate> type, JsonObject json) {
+            return of(type, json.get("mutate").getAsDouble());
         }
     }
     interface Effect extends INeedEffect<Effect> {

@@ -19,7 +19,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
@@ -74,7 +73,9 @@ public class Skins implements Listener {
 
     private static PropertyMap map(Player player) { return ((CraftPlayer)player).getHandle().getGameProfile().getProperties(); }
     //private static com.mojang.authlib.properties.Property of(Player player, String key) { return of(map(player), key); }
-    private static com.mojang.authlib.properties.Property of(PropertyMap properties, String key) { return properties.containsKey(key) ? properties.get(key).iterator().next() : null; }
+    private static com.mojang.authlib.properties.Property of(PropertyMap properties, String key) {
+        return properties.containsKey(key) ? properties.get(key).iterator().next() : null;
+    }
 
     private static void updateSkin(Player player) {
         Bukkit.getOnlinePlayers().forEach(other -> {
@@ -102,13 +103,13 @@ public class Skins implements Listener {
             lime.nextTick(() -> player.teleport(loc));
         });
     }
-    public static Toast2<String, String> getSkinData(Player player) {
+    public static Property getProperty(Player player) {
         if (player == null) return null;
         EntityPlayer ep = ((CraftPlayer)player).getHandle();
         if (ep == null) return null;
         com.mojang.authlib.properties.Property textures = of(ep.getGameProfile().getProperties(), "textures");
         if (textures == null) return null;
-        return Toast.of(textures.getValue(), textures.getSignature());
+        return new Property(textures.getValue(), textures.getSignature());
     }
     public static String getSkinURL(Player player) {
         if (player == null) return null;
@@ -134,6 +135,9 @@ public class Skins implements Listener {
         properties.put("textures", new com.mojang.authlib.properties.Property("textures", value, signature));
         if (old_textures == null || !save) return;
         properties.put("old_textures", new com.mojang.authlib.properties.Property("old_textures", old_textures.getValue(), old_textures.getSignature()));
+    }
+    public static void setProfile(GameProfile profile, Property property, boolean save) {
+        setProfile(profile, property.value, property.signature, save);
     }
     private static void resetProfile(GameProfile profile) {
         PropertyMap properties = profile.getProperties();
@@ -200,8 +204,8 @@ public class Skins implements Listener {
             if (lime.existConfig(path)) skins.put(md5, new Property(json.parse(lime.readAllConfig(path)).getAsJsonObject()));
             else
             {
-                Property prop = genSkin(url);
-                lime.writeAllConfig(path, prop.ToJson().toString());
+                Property prop = genProperty(url);
+                lime.writeAllConfig(path, prop.toJson().toString());
                 skins.put(md5, prop);
             }
         });
@@ -214,28 +218,24 @@ public class Skins implements Listener {
         properties.clear();
         profile.setProperty(new ProfileProperty("textures", skin.value, skin.signature));
     }
-    private static class Property {
-        private String value;
-        private String signature;
+    public static class Property {
+        private final String value;
+        private final String signature;
 
         public Property(JsonObject json) { this(json.get("value").getAsString(), json.get("signature").getAsString()); }
-        public Property(skin.uploaded uploaded) {
-            this(uploaded.value, uploaded.signature);
-        }
+        public Property(skin.uploaded uploaded) { this(uploaded.value, uploaded.signature); }
         public Property(String value, String signature) {
             this.value = value;
             this.signature = signature;
         }
-        public JsonObject ToJson() {
+        public JsonObject toJson() {
             JsonObject json = new JsonObject();
             json.addProperty("value", value);
             json.addProperty("signature", signature);
             return json;
         }
     }
-    private static Property genSkin(String url) {
-        return new Property(org.lime.skin.upload(url));
-    }
+    public static Property genProperty(String url) { return new Property(org.lime.skin.upload(url)); }
 }
 
 

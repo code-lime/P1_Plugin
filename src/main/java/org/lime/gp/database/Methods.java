@@ -580,7 +580,35 @@ public class Methods {
                 Calendar.class,
                 callback);
     }
+
+    public static void addDeath(int userID, DateTime dieDate, Location location, String skin, String equipment, Action0 callback) {
+        SQL.Async.rawSql(
+                "INSERT INTO death (user_id, die_date, location, skin, equipment) VALUES (@user_id, @die_date, @location, @skin, @equipment)",
+                MySql.args()
+                        .add("user_id", userID)
+                        .add("die_date", dieDate.toString())
+                        .add("location", MathUtils.getString(location))
+                        .add("skin", skin)
+                        .add("equipment", equipment)
+                        .build(),
+                callback);
+    }
+    public static void lootDeath(int deathId, Action1<String> callbackEquipment) {
+        SQL.Async.rawSqlOnce("SELECT LootDeath("+deathId+")", String.class,
+                str -> callbackEquipment.invoke(str.isBlank() ? null : str));
+    }
 }
+/*
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`user_id` INT(11) NOT NULL,
+	`die_date` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_unicode_ci',
+	`location` TEXT NOT NULL COLLATE 'utf8mb4_unicode_ci',
+	`skin_value` TEXT NOT NULL COLLATE 'utf8mb4_unicode_ci',
+	`skin_signature` TEXT NOT NULL COLLATE 'utf8mb4_unicode_ci',
+	`status` ENUM('SHOW','HIDE') NOT NULL DEFAULT 'SHOW' COLLATE 'utf8mb4_unicode_ci',
+	`create_date` DATETIME NOT NULL DEFAULT current_timestamp(),
+	`last_update` DATETIME NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+*/
 
 
 

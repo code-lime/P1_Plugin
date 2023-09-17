@@ -3,9 +3,7 @@ package org.lime.gp.player.module;
 import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PreEntityGetUpSitEvent;
-import dev.geco.gsit.api.event.PrePlayerGetUpPlayerSitEvent;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
-import dev.geco.gsit.api.event.PrePlayerPlayerSitEvent;
 import dev.geco.gsit.objects.GetUpReason;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
 import net.minecraft.world.effect.MobEffect;
@@ -50,7 +48,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.util.Vector;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -68,7 +65,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.system.json;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 import org.lime.system.utils.RandomUtils;
 
@@ -282,14 +278,10 @@ public class Death implements Listener {
         if (!item.hasItemMeta()) return builder;
         return builder.append(json.builder.byObject(item.getItemMeta().serialize()).build().toString());
     }
-    public static void kill(Player player, Reason reason) {
-        DieInfo dieInfo = up(player);
-        Knock.unKnock(player);
-        HandCuffs.unLockAny(player);
-        TargetMove.unTarget(player.getUniqueId());
-
-        StringBuilder log = new StringBuilder("[{time}] ").append(player.getName()).append("[").append(player.getUniqueId()).append("] killed '").append(reason.key).append("' ");
-        for (PotionEffectType type : PotionEffectType.values()) player.removePotionEffect(type);
+    public static List<ItemStack> extractInventoryDrop(Player player, boolean extractAll) {
+        return extractInventoryDrop(player, extractAll, new StringBuilder());
+    }
+    public static List<ItemStack> extractInventoryDrop(Player player, boolean extractAll, StringBuilder log) {
         player.closeInventory();
         List<ItemStack> dropped = new ArrayList<>();
         PlayerInventory inventory = player.getInventory();
@@ -324,18 +316,32 @@ public class Death implements Listener {
         });
         else log.append("EMPTY ");
         log.append("wallet ");
-        if (!WalletInventory.dropDieItems(player, location, item -> {
+        if (!WalletInventory.extractItems(player, extractAll, item -> {
             log.append(toLog(item)).append(' ');
             CoreProtectHandle.logDrop(location, player, item);
         })) log.append("EMPTY ");
         log.append("vest ");
-        if (!Vest.dropDieItems(player, location, item -> {
+        if (!Vest.extractItems(player, item -> {
             log.append(toLog(item)).append(' ');
             CoreProtectHandle.logDrop(location, player, item);
             dropped.add(item);
         })) log.append("EMPTY ");
         log.append("from ").append(MathUtils.getString(location.toVector())).append(" in ").append(location.getWorld().getKey());
         lime.logToFile("kills", log.toString());
+
+        inventory.clear();
+        return dropped;
+    }
+    public static void kill(Player player, Reason reason) {
+        DieInfo dieInfo = up(player);
+        Knock.unKnock(player);
+        HandCuffs.unLockAny(player);
+        TargetMove.unTarget(player.getUniqueId());
+
+        StringBuilder log = new StringBuilder("[{time}] ").append(player.getName()).append("[").append(player.getUniqueId()).append("] killed '").append(reason.key).append("' ");
+        for (PotionEffectType type : PotionEffectType.values()) player.removePotionEffect(type);
+
+        List<ItemStack> dropped = extractInventoryDrop(player, false, log);
 
         if (!dropped.isEmpty()) {
             List<ItemStack> out = new ArrayList<>();
@@ -346,10 +352,11 @@ public class Death implements Listener {
                 }
                 return false;
             });
+            Location location = player.getLocation().clone();
             if (!out.isEmpty()) Items.dropItem(location, out);
             if (!dropped.isEmpty()) BackPackInstance.dropItems(player, location, dropped);
         }
-        inventory.clear();
+
         player.setHealth(6);
         player.setExp(0);
         player.setLevel(0);

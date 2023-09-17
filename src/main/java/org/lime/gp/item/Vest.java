@@ -22,7 +22,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.item.data.Checker;
@@ -33,7 +32,6 @@ import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.module.PlayerData;
 import org.lime.json.JsonArrayOptional;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.system.utils.ItemUtils;
 
@@ -275,7 +273,7 @@ public class Vest implements Listener {
         });
     }
 
-    public static boolean dropDieItems(Player player, Location location, Action1<ItemStack> callback) {
+    public static boolean extractItems(Player player, Action1<ItemStack> callback) {
         //tick();
         dirtyCount = 4;
         List<ItemStack> items = dieTick(player.getUniqueId());

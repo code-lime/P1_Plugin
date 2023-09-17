@@ -1,6 +1,6 @@
 package org.lime.gp.database.tables;
 
-import org.lime.core;
+import org.lime.gp.player.module.DeathGame;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.admin.BanList;
@@ -161,5 +161,11 @@ public class Tables {
             .build();
     public static final KeyedTable<ReJoinRow> REJOIN_TABLE = KeyedTable.of("rejoin", ReJoinRow::new)
             .keyed("index", v -> String.valueOf(v.index))
+            .build();
+    public static final KeyedTable<DeathRow> DEATH_TABLE = KeyedTable.of("death", DeathRow::new)
+            .optional()
+            .keyed("id", v -> String.valueOf(v.id))
+            .event(KeyedTable.Event.Removed, DeathGame::onUpdate)
+            .event(KeyedTable.Event.Updated, DeathGame::onUpdate)
             .build();
 }
