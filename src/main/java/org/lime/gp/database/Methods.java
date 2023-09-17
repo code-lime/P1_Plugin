@@ -7,9 +7,11 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.lime.Position;
+import org.lime.gp.module.biome.time.DateTime;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
@@ -26,12 +28,14 @@ import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.system.json;
 import org.lime.system.map;
+import org.lime.system.utils.MathUtils;
 import org.lime.web;
 
 import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class Methods {
@@ -74,7 +78,8 @@ public class Methods {
             lime.logOP("Dump of " + dump.size() + " calls:\n   " + String.join("\n   ", dump));
         });
         lime.repeat(Methods::update, 1);
-        lime.repeat(Methods::updateCityStatus, 1, 10);
+        lime.repeat(Methods::updateTableList, 10);
+        lime.once(Methods::updateTableList, 1);
 
         for (int i = 0; i < 5; i++)
             threads.add(new Thread(Methods::threadAction));
@@ -85,15 +90,19 @@ public class Methods {
         SQL.close();
         threads.forEach(Thread::stop);
     }
-    private static boolean CITY_ENABLE = false;
+    private static final ConcurrentHashMap<String, Boolean> TABLE_ENABLE = new ConcurrentHashMap<>();
+    public static boolean isTableEnable(String table) {
+        return TABLE_ENABLE.computeIfAbsent(table, v -> false);
+    }
     public static void update() {
         SQL.Async.rawSql("SELECT OnUpdate()", () -> {});
     }
-    public static void updateCityStatus() {
-        SQL.Async.rawSqlOnce(
-                "SELECT COUNT(1) FROM information_schema.tables WHERE `table_schema` = DATABASE() AND `table_name` = 'city'",
-                Integer.class,
-                status -> CITY_ENABLE = status > 0
+    public static void updateTableList() {
+        SQL.Async.rawSqlQuery(
+                "SELECT `table_name` FROM information_schema.`tables` WHERE `table_schema` = DATABASE() AND `table_name` IN @tables",
+                MySql.args().add("tables", TABLE_ENABLE.keySet()).build(),
+                String.class,
+                tables -> TABLE_ENABLE.entrySet().forEach(kv -> kv.setValue(tables.contains(kv.getKey())))
         );
     }
 
@@ -125,9 +134,11 @@ public class Methods {
         }
     }
     public static void callLog(int from, CallType type, String message, Action1<Integer> callback) {
+        if (!isTableEnable("calls")) return;
         SQL.Async.rawSqlOnce("SELECT CallLog(@from,@type,@message,@now)", MySql.args().add("from", from).add("type", type.name()).add("message", message).add("now", Time.moscowNow()).build(), Integer.class, callback);
     }
     public static void smsLog(int from_id, int to_id, String message, Action1<Integer> callback) {
+        if (!isTableEnable("calls")) return;
         SQL.Async.rawSqlOnce("SELECT Sms(@from_id,@to_id,@msg)", MySql.args().add("from_id", from_id).add("to_id", to_id).add("msg", message).build(), Integer.class, callback);
     }
     public static void isIgnore(int player, int other, Action1<Boolean> callback_ignore) {
@@ -254,10 +265,11 @@ public class Methods {
         SQL.Async.rawSqlOnce("SELECT discord_id FROM discord WHERE discord.uuid = '"+uuid+"'", Long.class, callback);
     }
     public static void discordRoleList(Action1<Map<Long, Object>> callback) {
+        boolean cityEnable = isTableEnable("city");
         List<String> unions = new ArrayList<>();
         unions.add("SELECT roles.discord_role FROM roles WHERE roles.discord_role IS NOT NULL GROUP BY roles.discord_role");
         unions.add("SELECT role_groups.discord_role FROM role_groups WHERE role_groups.discord_role IS NOT NULL GROUP BY role_groups.discord_role");
-        if (CITY_ENABLE) unions.add("SELECT city.discord_role FROM city WHERE city.discord_role IS NOT NULL GROUP BY city.discord_role");
+        if (cityEnable) unions.add("SELECT city.discord_role FROM city WHERE city.discord_role IS NOT NULL GROUP BY city.discord_role");
         SQL.Async.rawSqlQuery(String.join(" UNION ", unions), Long.class, list -> callback.invoke(map.<Long, Object>of().add(list, new Object()).build()));
     }
 
@@ -285,14 +297,16 @@ public class Methods {
     );
 
     public static void discordUpdate(Action4<Long, String, Long[], UUID> callback, Action0 end) {
+        boolean cityEnable = isTableEnable("city");
         discordUpdate(discordUpdateSQL
-                .replace("{CITY_FIELDS}", CITY_ENABLE ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
-                + (CITY_ENABLE ? discordUpdateSQL_City : ""), callback, end);
+                .replace("{CITY_FIELDS}", cityEnable ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
+                + (cityEnable ? discordUpdateSQL_City : ""), callback, end);
     }
     public static void discordUpdateSingle(UUID uuid, Action4<Long, String, Long[], UUID> callback, Action0 end) {
+        boolean cityEnable = isTableEnable("city");
         discordUpdate(discordUpdateSQL
-                .replace("{CITY_FIELDS}", CITY_ENABLE ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
-                + (CITY_ENABLE ? discordUpdateSQL_City : "")
+                .replace("{CITY_FIELDS}", cityEnable ? discordUpdateSQL_City_Fields : discordUpdateSQL_City_None_Fields)
+                + (cityEnable ? discordUpdateSQL_City : "")
                 + " WHERE users.uuid = '" + uuid + "'", callback, end);
     }
     private static void discordUpdate(String sql, Action4<Long, String, Long[], UUID> callback, Action0 end) {

@@ -241,6 +241,7 @@ public class ChatMessages implements Listener {
         }, 1);
     }
     public static boolean sms(CommandSender sender, Command command, String label, String[] args) {
+        if (!Methods.isTableEnable("calls")) return false;
         if (!(sender instanceof Player player)) return false;
         if (args.length < 2) return false;
         String message = Arrays.stream(args).skip(1).collect(Collectors.joining(" "));
