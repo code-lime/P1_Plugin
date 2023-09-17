@@ -84,11 +84,11 @@ public final class MySql implements Closeable {
         try (Connection connection = connection_func.invoke()) { return connection.isValid(100); }
         catch (Exception e) { return false; }
     }
-    public <T>void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> func, Action1<Exception> error, Action0 _finally) {
+    public <T>void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> func, Action1<Throwable> error, Action0 _finally) {
         AsyncConnection<T> connection = AsyncConnection.of(index, debug, sql, func, error, _finally);
         invokeQueue.add(() -> connection.invoke(this));
     }
-    public void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvoke func, Action1<Exception> error, Action0 _finally) {
+    public void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvoke func, Action1<Throwable> error, Action0 _finally) {
         callMySQL(index, debug, sql, func.toData(), error, _finally);
     }
 

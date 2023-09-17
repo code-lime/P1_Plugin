@@ -6,5 +6,5 @@ import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
 public interface ConnectionInvokeData<T> {
-    T invoke(PreparedStatement statement, Action1<String> onStep) throws Exception;
+    T invoke(PreparedStatement statement, Action1<String> onStep) throws Throwable;
 }

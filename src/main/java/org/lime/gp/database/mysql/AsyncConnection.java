@@ -16,10 +16,10 @@ public final class AsyncConnection<T> {
     public final SelectSQL sql;
     public final debug debug;
     public final ConnectionInvokeData<T> onData;
-    public final Action1<Exception> onError;
+    public final Action1<Throwable> onError;
     public final Action0 onFinally;
 
-    public AsyncConnection(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Exception> onError, Action0 onFinally) {
+    public AsyncConnection(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Throwable> onError, Action0 onFinally) {
         this.index = index;
         this.debug = debug;
         this.sql = sql;
@@ -28,21 +28,22 @@ public final class AsyncConnection<T> {
         this.onFinally = onFinally;
     }
 
-    public static <T>AsyncConnection<T> of(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Exception> onError, Action0 onFinally) {
+    public static <T>AsyncConnection<T> of(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Throwable> onError, Action0 onFinally) {
         return new AsyncConnection<>(index, debug, sql, onData, onError, onFinally);
     }
-    public static AsyncConnection<Object> of(int index, debug debug, SelectSQL sql, ConnectionInvoke onData, Action1<Exception> onError, Action0 onFinally) {
+    public static AsyncConnection<Object> of(int index, debug debug, SelectSQL sql, ConnectionInvoke onData, Action1<Throwable> onError, Action0 onFinally) {
         return of(index, debug, sql, onData.toData(), onError, onFinally);
     }
 
     private void log(String dat) {
+        debug.log(dat);
         Toast2<String, String> call = MySql.calls.getOrDefault(index, null);
         if (call == null) return;
         call.val1 += " & " + dat;
     }
 
     public boolean invoke(MySql sql) {
-        Exception exception = null;
+        Throwable exception = null;
 
         long startMs = System.currentTimeMillis();
 
@@ -56,7 +57,7 @@ public final class AsyncConnection<T> {
             }
             log("</P>");
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log("E");
             exception = e;
         }
