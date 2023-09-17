@@ -23,7 +23,7 @@ public class PreDonateRow extends BaseRow {
     public double amount;
     public PreDonateRow.Type type;
     public String info;
-    public Calendar create_time;
+    public Calendar createTime;
     public PreDonateRow.State state;
     public PreDonateRow.State whitelist;
 
@@ -34,7 +34,7 @@ public class PreDonateRow extends BaseRow {
         amount = MySql.readObject(set, "amount", Double.class);
         type = Type.valueOf(MySql.readObject(set, "type", String.class));
         info = MySql.readObject(set, "info", String.class);
-        create_time = MySql.readObject(set, "create_time", Calendar.class);
+        createTime = MySql.readObject(set, "create_time", Calendar.class);
         state = State.valueOf(MySql.readObject(set, "state", String.class));
         whitelist = State.valueOf(MySql.readObject(set, "whitelist", String.class));
     }
@@ -46,7 +46,7 @@ public class PreDonateRow extends BaseRow {
         map.put("amount", String.valueOf(amount));
         map.put("type", type.name());
         map.put("info", info);
-        map.put("create_time", Time.formatCalendar(create_time, true));
+        map.put("create_time", Time.formatCalendar(createTime, true));
         map.put("state", state.name());
         map.put("whitelist", whitelist.name());
         return map;

@@ -157,7 +157,7 @@ public class Tables {
             .build();
     public static final KeyedTable<LevelRow> LEVEL_TABLE = KeyedTable.of("level", LevelRow::new)
             .keyed("id", v -> String.valueOf(v.id))
-            .other("work", v -> v.user_id + "^" + v.work)
+            .other("work", v -> v.userID + "^" + v.work)
             .build();
     public static final KeyedTable<ReJoinRow> REJOIN_TABLE = KeyedTable.of("rejoin", ReJoinRow::new)
             .keyed("index", v -> String.valueOf(v.index))

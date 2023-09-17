@@ -10,7 +10,7 @@ import org.lime.gp.database.tables.Tables;
 public class LevelRow extends BaseRow {
     public final int id;
 
-    public final int user_id;
+    public final int userID;
     public final int work;
 
     public final int level;
@@ -20,7 +20,7 @@ public class LevelRow extends BaseRow {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
 
-        user_id = MySql.readObject(set, "user_id", Integer.class);
+        userID = MySql.readObject(set, "user_id", Integer.class);
         work = MySql.readObject(set, "work", Integer.class);
 
         level = MySql.readObject(set, "level", Integer.class);

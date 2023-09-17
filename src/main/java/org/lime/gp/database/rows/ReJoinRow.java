@@ -14,11 +14,11 @@ public class ReJoinRow extends BaseRow {
     public final String name;
     public final boolean select;
 
-    private final UUID gen_uuid;
-    private final String gen_name;
+    private final UUID genUUID;
+    private final String genName;
     private final String identifier;
-    public UUID genUUID() { return gen_uuid; }
-    public String genName() { return gen_name; }
+    public UUID genUUID() { return genUUID; }
+    public String genName() { return genName; }
     public String identifier() { return identifier; }
 
     public ReJoinRow(ResultSet set) {
@@ -28,8 +28,8 @@ public class ReJoinRow extends BaseRow {
         name = MySql.readObject(set, "name", String.class);
         owner = MySql.readObjectOptional(set, "owner", String.class).map(UUID::fromString);
 
-        gen_name = "Gen-" + StringUtils.leftPad(String.valueOf(index), 3, '0');
-        gen_uuid = UUID.fromString("ffffffff-aaaa-aaaa-aaaa-"+StringUtils.leftPad(String.valueOf(index), 12, '0'));
+        genName = "Gen-" + StringUtils.leftPad(String.valueOf(index), 3, '0');
+        genUUID = UUID.fromString("ffffffff-aaaa-aaaa-aaaa-"+StringUtils.leftPad(String.valueOf(index), 12, '0'));
 
         identifier = name + ":" + index;
     }
