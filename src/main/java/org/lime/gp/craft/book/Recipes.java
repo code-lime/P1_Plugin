@@ -19,7 +19,7 @@ import net.minecraft.world.item.crafting.CraftingManager;
 import net.minecraft.world.item.crafting.IRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.World;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Recipe;
@@ -110,7 +110,7 @@ public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.it
             ReflectionAccess.frozen_RegistryMaterials.set(reg, false);
             try { return IRegistry.register(reg, new MinecraftKey("lime." + STATIC_PREFIX, id), new Recipes<>(id)); }
             finally { if (back) reg.freeze(); /*ReflectionAccess.frozen_RegistryMaterials.set(reg, back);*/ }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             lime.logStackTrace(e);
             throw null;
         }

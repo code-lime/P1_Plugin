@@ -56,9 +56,9 @@ public class CustomRegistry<T> implements Registry<T> {
     }
 
     private static ChunkSection createChunkSection(int chunkPos, World level, CustomRegistry<Holder<BiomeBase>> biomeRegistry, Holder<BiomeBase> plains) {
-        DataPaletteBlock<IBlockData> states = new DataPaletteBlock<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), DataPaletteBlock.d.SECTION_STATES, level == null || level.chunkPacketBlockController == null ? null : level.chunkPacketBlockController.getPresetBlockStates(level, null, ChunkSection.getBottomBlockY(chunkPos)));
+        DataPaletteBlock<IBlockData> states = new DataPaletteBlock<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), DataPaletteBlock.d.SECTION_STATES, level == null || level.chunkPacketBlockController == null ? null : level.chunkPacketBlockController.getPresetBlockStates(level, null, chunkPos));
         DataPaletteBlock<Holder<BiomeBase>> biomes = new DataPaletteBlock<>(biomeRegistry, plains, DataPaletteBlock.d.SECTION_BIOMES, null);
-        return new ChunkSection(chunkPos, states, biomes);
+        return new ChunkSection(states, biomes);
     }
     public static ChunkSection createChunkSection(int chunkPos, World level, IRegistry<BiomeBase> biomeRegistry, BiMap<Integer, BiomeHolder> map) {
         return createChunkSection(chunkPos, level, createBiomeRegistry(biomeRegistry, map), biomeRegistry.getHolderOrThrow(Biomes.PLAINS));

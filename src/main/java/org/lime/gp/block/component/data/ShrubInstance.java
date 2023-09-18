@@ -9,7 +9,7 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.list.ShrubComponent;
 import org.lime.gp.module.loot.IPopulateLoot;

@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.block.Blocks;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
@@ -415,7 +415,7 @@ public class test {
             ItemStack itemB = Items.createItem(b).map(CraftItemStack::asNMSCopy).orElseThrow();
 
             boolean matches = net.minecraft.world.item.ItemStack.matches(itemA, itemB);
-            boolean same = net.minecraft.world.item.ItemStack.isSame(itemA, itemB);
+            boolean same = net.minecraft.world.item.ItemStack.isSameItem(itemA, itemB);
 
             lime.logOP(String.join("\n",
                     "Matches: " + matches,

@@ -20,19 +20,19 @@ public class BlockMarkerEventInteract extends PlayerEvent {
     private static final HandlerList handlers = new HandlerList();
     private final TileEntityLimeSkull skull;
     private final int entityID;
-    private final PacketPlayInUseEntity.b action;
+    private final boolean isAttack;
     private final EquipmentSlot hand;
     private final boolean isPlayerSneaking;
     private final BaseChildDisplay<?, ?, ?> clickDisplay;
     private final BlockModelDisplay parentDisplay;
 
-    protected BlockMarkerEventInteract(TileEntityLimeSkull skull, BaseChildDisplay<?, ?, ?> clickDisplay, BlockModelDisplay parentDisplay, Player player, int entityID, PacketPlayInUseEntity.b action, EquipmentSlot hand, boolean isPlayerSneaking) {
+    protected BlockMarkerEventInteract(TileEntityLimeSkull skull, BaseChildDisplay<?, ?, ?> clickDisplay, BlockModelDisplay parentDisplay, Player player, int entityID, boolean isAttack, EquipmentSlot hand, boolean isPlayerSneaking) {
         super(player);
         this.skull = skull;
         this.clickDisplay = clickDisplay;
         this.parentDisplay = parentDisplay;
         this.entityID = entityID;
-        this.action = action;
+        this.isAttack = isAttack;
         this.hand = hand;
         this.isPlayerSneaking = isPlayerSneaking;
     }
@@ -52,7 +52,7 @@ public class BlockMarkerEventInteract extends PlayerEvent {
                                                 parentDisplay,
                                                 player,
                                                 packet.getEntityId(),
-                                                packet.getActionType(),
+                                                packet.isAttack(),
                                                 enumHand == EnumHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND,
                                                 packet.isUsingSecondaryAction())
                                         )
@@ -65,8 +65,7 @@ public class BlockMarkerEventInteract extends PlayerEvent {
 
     public TileEntityLimeSkull getSkull() { return skull; }
     public int getEntityID() { return entityID; }
-    public boolean isAttack() { return action == PacketPlayInUseEntity.b.ATTACK; }
-    public boolean isInteractAt() { return action == PacketPlayInUseEntity.b.INTERACT_AT; }
+    public boolean isAttack() { return isAttack; }
     public EquipmentSlot getHand() { return hand; }
     public boolean isPlayerSneaking() { return isPlayerSneaking; }
     public BaseChildDisplay<?, ?, ?> getClickDisplay() { return clickDisplay; }

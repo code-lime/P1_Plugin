@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_20_R1.block.CraftBlock;
 import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
 import org.lime.gp.block.BlockInfo;

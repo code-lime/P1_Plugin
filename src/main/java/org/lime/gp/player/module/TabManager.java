@@ -15,7 +15,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.level.EnumGamemode;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -456,7 +456,7 @@ public class TabManager implements Listener {
     }
 
     private static ClientboundPlayerInfoUpdatePacket createPacket(EnumSet<ClientboundPlayerInfoUpdatePacket.a> actions, List<ClientboundPlayerInfoUpdatePacket.b> entries) {
-        ClientboundPlayerInfoUpdatePacket packet = new ClientboundPlayerInfoUpdatePacket(EnumSet.noneOf(ClientboundPlayerInfoUpdatePacket.a.class), Collections.emptyList());
+        ClientboundPlayerInfoUpdatePacket packet = new ClientboundPlayerInfoUpdatePacket(EnumSet.noneOf(ClientboundPlayerInfoUpdatePacket.a.class), Collections.emptySet());
     
         ReflectionAccess.actions_ClientboundPlayerInfoUpdatePacket.set(packet, actions);
         ReflectionAccess.entries_ClientboundPlayerInfoUpdatePacket.set(packet, entries);

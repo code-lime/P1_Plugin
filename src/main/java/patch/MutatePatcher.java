@@ -37,7 +37,7 @@ import net.minecraft.world.level.block.entity.TileEntitySkull;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.MovingObjectPositionEntity;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.objectweb.asm.*;
@@ -306,10 +306,10 @@ class MutatePatcher {
                                 }
                             }
                         }))
-                .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::tick)),
+                /*.patchMethod(IMethodFilter.of(Execute.action(EntityHuman::tick)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                                if (Native.isMethod(Execute.func(net.minecraft.world.item.ItemStack::isSame), owner, name, descriptor)) {
+                                if (Native.isMethod(Execute.func(net.minecraft.world.item.ItemStack::isSameItem), owner, name, descriptor)) {
                                     super.visitInsn(Opcodes.POP2);
                                     super.visitInsn(Opcodes.ICONST_0);
                                     Native.log("Same removed");
@@ -317,7 +317,7 @@ class MutatePatcher {
                                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                                 }
                             }
-                        }))
+                        }))*/
                 .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::resetAttackStrengthTicker)),
                         MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitInsn(int opcode) {

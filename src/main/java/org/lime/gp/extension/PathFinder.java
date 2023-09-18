@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.util.Vector;
 import org.lime.system.toast.*;
 

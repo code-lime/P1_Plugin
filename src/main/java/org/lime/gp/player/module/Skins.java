@@ -13,7 +13,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -98,7 +98,7 @@ public class Skins implements Listener {
         player.teleport(loc);
         lime.nextTick(() -> {
             player.teleport(loc);
-            WorldServer worldserver = ep.getLevel();
+            WorldServer worldserver = ep.serverLevel();
             worldserver.getServer().getPlayerList().respawn(ep, worldserver, true, loc, true, PlayerRespawnEvent.RespawnReason.PLUGIN);
             lime.nextTick(() -> player.teleport(loc));
         });

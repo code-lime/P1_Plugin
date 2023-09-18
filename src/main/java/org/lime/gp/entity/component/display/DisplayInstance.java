@@ -88,7 +88,7 @@ public final class DisplayInstance extends EntityInstance implements CustomEntit
         else TimeoutData.put(unique(), DisplayMap.class, new DisplayMap(map));
     }
     @Override public Optional<EntityDisplay.IEntity> onDisplay(Player player, EntityLimeMarker marker) {
-        return player.getWorld() != marker.getLevel().getWorld()
+        return player.getWorld() != marker.level().getWorld()
                 ? Optional.empty()
                 : getPartial(player.getLocation().toVector().distanceSquared(new Vector(marker.getX(), marker.getY(), marker.getZ())))
                 .map(v -> v instanceof EntityDisplay.Displayable displayable ? displayable : null)

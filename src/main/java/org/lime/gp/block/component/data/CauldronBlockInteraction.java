@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TileEntityBanner;
 import net.minecraft.world.level.gameevent.GameEvent;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.system.toast.*;

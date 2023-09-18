@@ -6,7 +6,7 @@ import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.entity.decoration.EntityItemFrame;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.display.DisplayManager;
 import org.lime.display.EditedDataWatcher;

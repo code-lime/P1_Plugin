@@ -15,7 +15,7 @@ import net.minecraft.world.inventory.Containers;
 import net.minecraft.world.inventory.InventoryClickType;
 import net.minecraft.world.inventory.Slot;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;

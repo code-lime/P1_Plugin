@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec3D;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.Vector;
 import org.lime.display.Displays;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
@@ -49,8 +50,9 @@ public class EPlayerModule implements Listener {
                         PlayerUseUnknownEntityEvent e = new PlayerUseUnknownEntityEvent(
                                 event.getPlayer(),
                                 use.getEntityId(),
-                                use.getActionType() == PacketPlayInUseEntity.b.ATTACK,
-                                enumHand == EnumHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND
+                                use.isAttack(),
+                                enumHand == EnumHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND,
+                                new Vector(vec3D.x, vec3D.y, vec3D.z)
                         );
                         lime.invokeSync(() -> click(e));
                     }

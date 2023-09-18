@@ -92,7 +92,7 @@ public class CustomEntityMetadata extends EntityMetadata {
                     Toast1<Boolean> isLazy = Toast.of(null);
                     list(LazyTickable.class)
                             .filter(v -> isLazy.val0 == null
-                                    ? (isLazy.val0 = marker.level.hasNearbyAlivePlayer(marker.getX(), marker.getY(), marker.getZ(), info.distance))
+                                    ? (isLazy.val0 = marker.level().hasNearbyAlivePlayer(marker.getX(), marker.getY(), marker.getZ(), info.distance))
                                     : isLazy.val0
                             )
                             .forEach(v -> v.onLazyTick(this, event));

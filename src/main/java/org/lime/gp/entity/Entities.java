@@ -16,7 +16,7 @@ import net.minecraft.world.entity.EntityMarkerEventDestroy;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftMarker;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftMarker;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Marker;
 import org.bukkit.entity.Player;

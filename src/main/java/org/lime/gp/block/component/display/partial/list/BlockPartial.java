@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.jetbrains.annotations.Nullable;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;

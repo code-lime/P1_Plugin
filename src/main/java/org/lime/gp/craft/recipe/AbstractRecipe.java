@@ -8,9 +8,9 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.Recipes;
 import net.minecraft.world.level.block.Blocks;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftCampfireRecipe;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftRecipe;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftNamespacedKey;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftCampfireRecipe;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftRecipe;
+import org.bukkit.craftbukkit.v1_20_R1.util.CraftNamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 

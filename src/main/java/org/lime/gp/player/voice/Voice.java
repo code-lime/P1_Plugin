@@ -35,7 +35,7 @@ import net.minecraft.world.level.storage.WorldData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -175,18 +175,19 @@ public class Voice implements VoicechatPlugin {
                     overworld.dimension(),
                     BiomeManager.obfuscateSeed(overworld.getSeed()),
                     server.getMaxPlayers(),
-                    overworld.getChunkSource().chunkMap.playerChunkManager.getTargetSendDistance(),
-                    overworld.getChunkSource().chunkMap.playerChunkManager.getTargetTickViewDistance(),
+                    overworld.getWorld().getSendViewDistance(),
+                    overworld.getWorld().getSimulationDistance(),
                     RULE_REDUCEDDEBUGINFO,
                     !RULE_DO_IMMEDIATE_RESPAWN,
                     overworld.isDebug(),
                     overworld.isFlat(),
-                    Optional.empty())
+                    Optional.empty(),
+                    player.getPortalCooldown())
             );
             Location loc = player.getLocation().clone();
             lime.nextTick(() -> {
                 player.teleport(loc);
-                WorldServer worldserver = handle.getLevel();
+                WorldServer worldserver = handle.serverLevel();
 
                 //worldserver.addNewPlayer(handle);
                 player.sendSupportedChannels();

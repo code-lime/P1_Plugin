@@ -8,7 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_19_R3.CraftOfflinePlayer;
+import org.bukkit.craftbukkit.v1_20_R1.CraftOfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;

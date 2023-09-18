@@ -7,12 +7,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
@@ -251,8 +252,10 @@ public class DrawText {
             text.moveTo(location.getX(), location.getY(), location.getZ());
             text.setText(BASE_TEXT);
             text.setTransformation(new Transformation(new Vector3f(0, 0.6f, 0), null, show.scale(), null));
-            text.setLineWidth(100000);
-            text.setBackgroundColor(0);
+
+            DataWatcher entityData = text.getEntityData();
+            entityData.set(Display.TextDisplay.DATA_LINE_WIDTH_ID, 100000);
+            entityData.set(Display.TextDisplay.DATA_BACKGROUND_COLOR_ID, 0);
             text.setBillboardConstraints(Display.BillboardConstraints.VERTICAL);
             return text;
         }

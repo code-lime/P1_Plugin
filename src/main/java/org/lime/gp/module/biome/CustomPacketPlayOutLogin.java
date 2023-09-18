@@ -74,6 +74,7 @@ public record CustomPacketPlayOutLogin(
         buf.writeCollection(this.levels, PacketDataSerializer::writeResourceKey);
 
         NBTTagCompound registry = BiomeModify.nbt(RegistrySynchronization.NETWORK_CODEC, this.registryHolder);
+        lime.writeAllConfig("tmp.codec.in", json.format(JsonNBT.toJson(registry)));
         NBTTagList list = registry.getCompound("minecraft:worldgen/biome").getList("value", NBTBase.TAG_COMPOUND);
         List<NBTTagCompound> globalList = new ArrayList<>();
         Toast1<Integer> maxID = Toast.of(-1);
@@ -114,7 +115,7 @@ public record CustomPacketPlayOutLogin(
             list.add(vannila);
             list.add(lime);
         });
-        lime.writeAllConfig("tmp.codec", json.format(JsonNBT.toJson(registry)));
+        lime.writeAllConfig("tmp.codec.out", json.format(JsonNBT.toJson(registry)));
         buf.writeNbt(registry);
 
 

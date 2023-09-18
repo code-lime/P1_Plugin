@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.chunk.ChunkSection;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.event.CraftEventFactory;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.lime.gp.lime;
@@ -69,14 +69,15 @@ public class SnowModify implements Listener {
         ChunkCoordIntPair coord = position.chunk();
         Chunk chunk = world.getChunkIfLoaded(coord.x, coord.z);
         if (chunk == null) return 0;
-        return tickSnow(world, coord, chunk.getSection(chunk.getSectionIndexFromSectionY(position.y())), count);
+        int minSection = chunk.getMinSection();
+        int sectionIndex = position.y() - minSection;
+        return tickSnow(world, coord, sectionIndex + minSection << 4, chunk.getSection(sectionIndex), count);
     }
-    private static int tickSnow(WorldServer world, ChunkCoordIntPair coord, ChunkSection section, int count) {
+    private static int tickSnow(WorldServer world, ChunkCoordIntPair coord, int yPos, ChunkSection section, int count) {
         int snowTicks = 0;
         if (section == null || section.tickingList.size() == 0) return 0;
         int offsetX = coord.getMinBlockX();
         int offsetZ = coord.getMinBlockZ();
-        int yPos = section.bottomBlockY();
         for (int i = 0; i < count; ++i) {
             int tickingBlocks = section.tickingList.size();
             int index = randomTickRandom.a(4096);

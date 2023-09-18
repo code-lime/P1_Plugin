@@ -23,9 +23,9 @@ import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.phys.Vec3D;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftSpectralArrow;
+import org.bukkit.craftbukkit.v1_20_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftSpectralArrow;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -130,7 +130,7 @@ public class Bullets implements Listener {
                             entity.addPotionEffect(TASER_FREEZE);
                             if (ticks % 10 == 0 && entity instanceof CraftLivingEntity centity) {
                                 EntityLiving eentity = centity.getHandle();
-                                eentity.level.broadcastEntityEvent(eentity, (byte)2);
+                                eentity.level().broadcastEntityEvent(eentity, (byte)2);
                                 if (eentity instanceof EntityPlayer eplayer)
                                     eplayer.connection.send(new ClientboundHurtAnimationPacket(entity.getEntityId(), RandomUtils.rand(0, 360)));
                                 ReflectionAccess.playHurtSound_EntityLiving.call(eentity, new Object[] { eentity.damageSources().generic() });
@@ -163,7 +163,7 @@ public class Bullets implements Listener {
             if (id != null) container.set(ARROW_ITEM_ID_KEY, PersistentDataType.INTEGER, id);
             projectile.setShooter(owner);
             projectile.setPickupStatus(AbstractArrow.PickupStatus.CREATIVE_ONLY);
-            handle.life = handle.level.spigotConfig.arrowDespawnRate - 20 * 20;
+            handle.life = handle.level().spigotConfig.arrowDespawnRate - 20 * 20;
         });
     }
 

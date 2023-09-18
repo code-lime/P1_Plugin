@@ -21,7 +21,7 @@ import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.chunk.*;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
@@ -275,7 +275,7 @@ public class WeatherBiomes {
 
         //HashMap<String, Integer> executors = new HashMap<>();
 
-        List<ChunkSection> sections = CustomRegistry.readSections(buffer, world, BIOME_REGISTRY, BIOME_PLAINS)
+        List<Toast2<ChunkSection, Integer>> sections = CustomRegistry.readSections(buffer, world, BIOME_REGISTRY, BIOME_PLAINS)
                 .peek(kv -> kv.invoke((section, index) -> {
                     /*boolean isTestSection;
                     if (isDebug) {
@@ -333,12 +333,11 @@ public class WeatherBiomes {
                                     executors.compute(String.join("\n", lines), (k,count) -> (count == null ? 0 : count) + 1);
                             }*/
                 }))
-                .map(v -> v.val0)
                 .toList();
         //if (isDebug) executors.forEach((key, count) -> lime.logOP("EXECUTE '"+count+"':\n" + key));
-        byte[] bytes = new byte[sections.stream().mapToInt(ChunkSection::getSerializedSize).sum()];
+        byte[] bytes = new byte[sections.stream().map(v -> v.val0).mapToInt(ChunkSection::getSerializedSize).sum()];
         PacketDataSerializer serializer = new PacketDataSerializer(getWriteBuffer(bytes));
-        for (ChunkSection section : sections) section.write(serializer, null);
+        sections.forEach(kv -> kv.val0.write(serializer, null, kv.val1));
         ReflectionAccess.buffer_ClientboundLevelChunkPacketData.set(change, bytes);
         //if (isDebug) lime.logOP("End update chunk");
     }

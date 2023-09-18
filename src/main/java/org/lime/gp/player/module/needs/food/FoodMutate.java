@@ -9,8 +9,8 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
-import org.bukkit.craftbukkit.v1_19_R3.event.CraftEventFactory;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_20_R1.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.bukkit.event.entity.EntityExhaustionEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -83,7 +83,7 @@ public class FoodMutate {
     }
     public void tick(EntityHuman human) {
         EntityPlayer player = (EntityPlayer)human;
-        EnumDifficulty enumdifficulty = player.level.getDifficulty();
+        EnumDifficulty enumdifficulty = player.level().getDifficulty();
         this.lastFoodLevel = (int) this.food.totalLevel();
         if (this.exhaustionLevel > 4.0f) {
             this.exhaustionLevel -= 4.0f;
@@ -105,7 +105,7 @@ public class FoodMutate {
         float totalFoodLevel = this.food.totalLevel();
 
         this.saturationLevel = Math.min(this.saturationLevel, totalFoodLevel);
-        boolean naturalRegeneration = player.level.getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION);
+        boolean naturalRegeneration = player.level().getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION);
         if (naturalRegeneration && this.saturationLevel > 0.0f && player.isHurt() && totalFoodLevel >= 20) {
             ++this.tickTimer;
             if (this.tickTimer >= this.saturatedRegenRate) {
@@ -118,7 +118,7 @@ public class FoodMutate {
             ++this.tickTimer;
             if (this.tickTimer >= this.unsaturatedRegenRate) {
                 player.heal(1.0f, EntityRegainHealthEvent.RegainReason.SATIATED);
-                player.causeFoodExhaustion(player.level.spigotConfig.regenExhaustion, EntityExhaustionEvent.ExhaustionReason.REGEN);
+                player.causeFoodExhaustion(player.level().spigotConfig.regenExhaustion, EntityExhaustionEvent.ExhaustionReason.REGEN);
                 this.tickTimer = 0;
             }
         } else if (totalFoodLevel <= 0) {

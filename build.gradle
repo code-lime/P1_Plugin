@@ -23,7 +23,7 @@ plugins {
 group = pluginGroup
 version = pluginVersion
 
-String _version = "1.19.4"
+String _version = "1.20.1"
 boolean _mapped = true
 
 sourceCompatibility = '17'
@@ -37,11 +37,11 @@ dependencies {
             files(libPath("LimeDisplay-1.0.jar")),
             //files(libPath("JSEngine-3.0.5.jar")),
             files(libPath("nashorn-core-15.4.jar")),
-            files(libPath("GSit-1.4.1.jar")),
+            files(libPath("GSit-1.4.12.jar")),
             files(libPath("LimeCoreProtect-1.0.jar")),
             files(libPath("ProtocolLib.jar")),
             files(libPath("JDA-5.0.0-beta.12-withDependencies.jar")),
-            files(libPath("voicechat-bukkit-1.19.4-2.4.2.jar")),
+            files(libPath("voicechat-bukkit-2.4.24.jar")),
             files(libPath("byte-buddy-1.11.18.jar")),
             files(libPath("byte-buddy-agent-1.11.18.jar")),
             files(libPath("Physics-1.11.0.jar")),

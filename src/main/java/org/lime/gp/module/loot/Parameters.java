@@ -131,9 +131,11 @@ public class Parameters {
         return param instanceof LootParameter<T> parameter ? Optional.of(parameter.nms()) : Optional.empty();
     }
 
+    /*
     public static <T> void appendTo(LootContextParameter<T> param, LootTableInfo context, LootTableInfo.Builder builder) {
         builder.withParameter(param, context.getParam(param));
     }
+    */
 }
 
 

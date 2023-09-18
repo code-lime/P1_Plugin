@@ -16,7 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -76,7 +76,7 @@ public class BiomeMobs implements Listener {
     private static final HashMap<EntityType, ISpawn> entitySpawns = new HashMap<>();
     public static void configTable(JsonObject json) {
         HashMap<EntityType, ISpawn> entitySpawns = new HashMap<>();
-        lime.combineParent(json, true, false).entrySet().forEach(kv -> entitySpawns.put(EntityType.valueOf(kv.getKey()), ISpawn.parse(kv.getValue())));
+        lime.combineParent(json, false, false).entrySet().forEach(kv -> entitySpawns.put(EntityType.valueOf(kv.getKey()), ISpawn.parse(kv.getValue())));
         BiomeMobs.entitySpawns.clear();
         BiomeMobs.entitySpawns.putAll(entitySpawns);
     }
@@ -172,13 +172,13 @@ public class BiomeMobs implements Listener {
         ISpawn spawn = entitySpawns.get(type);
         if (spawn == null) return;
         Entity handle = entity.getHandle();
-        if (!(handle.level instanceof WorldServer world)) return;
+        if (!(handle.level() instanceof WorldServer world)) return;
         Location location = entity.getLocation();
         Vector pos = location.toVector();
         IPopulateSpawn populate = IPopulateSpawn.of(world, List.of(
                 IPopulateSpawn.var(Parameters.ThisEntity, handle),
                 IPopulateSpawn.var(Parameters.Origin, pos),
-                IPopulateSpawn.var(Parameters.Weather, WeatherType.getBy(handle.level)),
+                IPopulateSpawn.var(Parameters.Weather, WeatherType.getBy(handle.level())),
                 IPopulateSpawn.var(Parameters.SeasonKey, Weather.getCurrentSeason()),
                 IPopulateSpawn.var(Parameters.SpawnReason, reason),
                 IPopulateSpawn.var(Parameters.FloorBlock, handle.getFeetBlockState())

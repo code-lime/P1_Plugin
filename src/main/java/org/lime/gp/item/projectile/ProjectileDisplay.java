@@ -4,8 +4,8 @@ import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.lime.display.ObjectDisplay;
@@ -47,7 +47,7 @@ public class ProjectileDisplay extends ObjectDisplay<ProjectileFrame, Display.It
             }
         }
         lastFrame = data;
-        entity.setInterpolationDelay_(0);
+        entity.setInterpolationDelay(0);
         entity.setTransformation(data.withOffset(offset));
         invokeAll(this::sendDataWatcher);
     }
@@ -56,7 +56,7 @@ public class ProjectileDisplay extends ObjectDisplay<ProjectileFrame, Display.It
         Display.ItemDisplay projectile = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, ((CraftWorld)location.getWorld()).getHandle());
         projectile.setPos(offset.getX(), offset.getY(), offset.getZ());
         projectile.setViewRange(Float.MAX_VALUE);
-        projectile.setInterpolationDuration_(ProjectileFrame.FRAME_DURATION);
+        projectile.setInterpolationDuration(ProjectileFrame.FRAME_DURATION);
         projectile.setTransformation(initFrame.transformation());
         projectile.setItemTransform(ItemDisplayContext.HEAD);
         ItemStack initItem = initFrame.item();

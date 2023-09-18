@@ -2,8 +2,8 @@ package org.lime.gp.item;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -150,7 +150,7 @@ public class UseSetting implements Listener {
         modifyUseItem(cplayer.getHandle(), item.handle);
     }
     public static void modifyUseItem(EntityPlayer player, net.minecraft.world.item.ItemStack item) {
-        if (player.level.isClientSide || player.getAbilities().instabuild) return;
+        if (player.level().isClientSide || player.getAbilities().instabuild) return;
         Optional<NextSetting> nextOption = Items.getOptional(NextSetting.class, item);
         if (item.isDamageableItem()) {
             item.hurtAndBreak(1, player, e2 -> {

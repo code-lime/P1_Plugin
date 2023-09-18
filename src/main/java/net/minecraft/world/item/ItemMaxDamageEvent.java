@@ -5,7 +5,7 @@ import net.minecraft.util.UnsafeInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.objectweb.asm.Type;

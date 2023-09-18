@@ -17,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.display.Displays;
 import org.lime.display.EditedDataWatcher;
@@ -153,7 +153,7 @@ public class EPlayerDisplay extends ObjectDisplay<IEPlayer, EntityPlayer> {
                 wpset.setZ(_location.getZ());
                 wpset.setYaw(_location.getYaw());
                 wpset.setPitch(_location.getPitch());
-                wpset.setOnGround(entity.isOnGround());
+                wpset.setOnGround(entity.onGround());
                 wpset.sendPacket(player);
 
                 PacketPlayOutEntityHeadRotation headPacket = new PacketPlayOutEntityHeadRotation(entity, (byte) MathHelper.floor((_location.getYaw() % 360.0F) * 256.0F / 360.0F));

@@ -13,7 +13,7 @@ import net.minecraft.world.item.crafting.RecipeItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipes;
 import net.minecraft.world.item.crafting.ShapelessRecipes;
 
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;

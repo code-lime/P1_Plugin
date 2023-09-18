@@ -33,6 +33,6 @@ public abstract class EntityMetadata {
     public Location location() {
         return location(0,0,0);
     }
-    public Location location(double x, double y, double z) { return new Vector(marker.getX() + x, marker.getY() + y, marker.getZ() + z).toLocation(marker.getLevel().getWorld(), marker.getBukkitYaw(), marker.getXRot()); }
+    public Location location(double x, double y, double z) { return new Vector(marker.getX() + x, marker.getY() + y, marker.getZ() + z).toLocation(marker.level().getWorld(), marker.getBukkitYaw(), marker.getXRot()); }
     public void moveTo(Location location) { marker.moveTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch()); }
 }

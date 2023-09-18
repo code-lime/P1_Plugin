@@ -3,13 +3,14 @@ package org.lime.gp.module.biome.weather;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import io.papermc.paper.chunk.PlayerChunkLoader;
+import io.papermc.paper.chunk.system.RegionizedPlayerChunkLoader;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.level.ChunkProviderServer;
 import net.minecraft.server.level.PlayerChunkMap;
 import net.minecraft.util.valueproviders.UniformInt;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.admin.AnyEvent;
@@ -178,10 +179,12 @@ public class Weather {
     private static void changeWeather(SeasonKey seasonKey) {
         Bukkit.getOnlinePlayers().forEach(player -> {
             if (!(player instanceof CraftPlayer cplayer)) return;
-            PlayerChunkMap chunkMap = cplayer.getHandle().getLevel().getChunkSource().chunkMap;
-            PlayerChunkLoader.PlayerLoaderData data = chunkMap.playerChunkManager.getData(cplayer.getHandle());
-            ReflectionAccess.sentChunks_PlayerLoaderData_PlayerChunkLoader.get(data).clear();
-            ReflectionAccess.lastLocX_PlayerLoaderData_PlayerChunkLoader.set(data, Double.NEGATIVE_INFINITY);
+            if (!(cplayer.getHandle().level().getChunkSource() instanceof ChunkProviderServer chunkProviderServer)) return;
+            RegionizedPlayerChunkLoader.PlayerChunkLoaderData data = cplayer.getHandle().chunkLoader;
+            //RegionizedPlayerChunkLoader loader = chunkProviderServer.chunkMap.level.playerChunkLoader;
+            //PlayerChunkLoader.PlayerLoaderData data = chunkMap.playerChunkManager.getData(cplayer.getHandle());
+            ReflectionAccess.sentChunks_RegionizedPlayerChunkLoader_PlayerChunkLoaderData.get(data).clear();
+            ReflectionAccess.lastChunkX_PlayerLoaderData_PlayerChunkLoader.set(data, Integer.MIN_VALUE);
             ViewDistance.clearPlayerView(player);
         });
         SnowModify.setBiome(seasonKey);

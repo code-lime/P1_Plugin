@@ -3,7 +3,7 @@ package org.lime.gp.block.component.display;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
@@ -65,7 +65,7 @@ public class PacketListener {
                     if (shorts.remove(posID) != null) return;
                     timeout.sync(player);
                 });
-        event.setPacket(new PacketContainer(event.getPacketType(), new PacketPlayOutMultiBlockChange(section.val0, shorts, packet.shouldSuppressLightUpdates())));
+        event.setPacket(new PacketContainer(event.getPacketType(), new PacketPlayOutMultiBlockChange(section.val0, shorts)));
     }
     public static void onPacket(ClientboundLevelChunkWithLightPacket packet, PacketEvent event) {
         long chunk = ChunkCoordIntPair.asLong(packet.getX(), packet.getZ());

@@ -52,14 +52,15 @@ public abstract class ContainerInput extends ContainerAnvil {
         });
     }
 
-    @Override public void setItemName(String newItemName) {
+    @Override public boolean setItemName(String newItemName) {
         newItemName = StringUtils.isBlank(newItemName) ? "" : newItemName;
-        if (Objects.equals(itemName, newItemName)) return;
+        if (Objects.equals(itemName, newItemName)) return false;
         itemName = newItemName;
         input(itemName);
 
         sendAllDataToRemote();
         broadcastChanges();
+        return true;
     }
 
     @Override public boolean stillValid(EntityHuman player) { return isValid(); }

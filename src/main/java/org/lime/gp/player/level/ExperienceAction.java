@@ -2,7 +2,7 @@ package org.lime.gp.player.level;
 
 import com.google.gson.JsonElement;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_20_R1.block.CraftBlock;
 import org.bukkit.entity.Entity;
 import org.lime.gp.filter.BlockFilter;
 import org.lime.system.Regex;

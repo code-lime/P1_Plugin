@@ -16,8 +16,8 @@ import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.ContainerFurnace;
 import net.minecraft.world.inventory.ContainerRecipeBook;
 import net.minecraft.world.item.crafting.IRecipe;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftNamespacedKey;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.util.CraftNamespacedKey;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.lime.core;
@@ -79,7 +79,7 @@ public class RecipePackets {
         return recipes.filter(v -> !v.isSpecial() && !(v instanceof AbstractRecipe) && (isFurnace || data.isCanCraft(v.getId().getPath())));
     }
     public static Stream<IRecipe<?>> getActiveDisplayRecipes(EntityPlayer player) {
-        IRegistryCustom custom = player.level.registryAccess();
+        IRegistryCustom custom = player.level().registryAccess();
         return getActiveRecipes(player)
                 .flatMap(v -> v instanceof IDisplayRecipe display
                         ? display.getDisplayRecipe(custom)
@@ -172,7 +172,7 @@ public class RecipePackets {
             if (container.containerId != packet.getContainerId()) return;
             PlayerRecipeBookClickEvent event = new PlayerRecipeBookClickEvent(connection.player.getBukkitEntity(), CraftNamespacedKey.fromMinecraft(parent_recipe_key), packet.isShiftDown());
             if (!event.callEvent()) return;
-            IRegistryCustom custom = connection.player.level.registryAccess();
+            IRegistryCustom custom = connection.player.level().registryAccess();
             Recipes.CRAFTING_MANAGER
                     .byKey(CraftNamespacedKey.toMinecraft(event.getRecipe()))
                     .stream()

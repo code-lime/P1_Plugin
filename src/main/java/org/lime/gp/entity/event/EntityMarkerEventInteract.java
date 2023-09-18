@@ -55,7 +55,7 @@ public class EntityMarkerEventInteract extends PlayerEvent {
                                                 parentDisplay,
                                                 player,
                                                 packet.getEntityId(),
-                                                packet.getActionType() == PacketPlayInUseEntity.b.ATTACK,
+                                                packet.isAttack(),
                                                 enumHand == EnumHand.MAIN_HAND ? EquipmentSlot.HAND : EquipmentSlot.OFF_HAND,
                                                 packet.isUsingSecondaryAction())
                                         )

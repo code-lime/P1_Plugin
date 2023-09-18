@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.potion.PotionEffect;
 import org.lime.display.Displays;

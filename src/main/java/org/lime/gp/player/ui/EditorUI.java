@@ -4,6 +4,7 @@ import io.papermc.paper.adventure.AdventureComponent;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.EntityPlayer;
@@ -14,12 +15,14 @@ import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
 import net.minecraft.world.inventory.Container;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.TileEntitySign;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -112,9 +115,18 @@ public final class EditorUI {
             if (!player.isOnline()) return;
             player.closeInventory();
 
+            TileEntitySign sign = new TileEntitySign(new BlockPosition(position.getX(), position.getY(), position.getZ()), Blocks.OAK_SIGN.defaultBlockState());
+            SignText text = new SignText();
+            for (int line = 0; line < SIGN_LINES; line++)
+                if (this.text.size() > line)
+                    text.setMessage(line, IChatBaseComponent.literal(color(this.text.get(line))));
+            sign.setText(text, true);
+
+            /*
             NBTTagCompound signNBT = new NBTTagCompound();
 
-            for (int line = 0; line < SIGN_LINES; line++) signNBT.putString("Text" + (line + 1), this.text.size() > line ? String.format("{\"text\":\"%s\"}", color(this.text.get(line))) : "");
+            for (int line = 0; line < SIGN_LINES; line++)
+                signNBT.putString("Text" + (line + 1), this.text.size() > line ? String.format("{\"text\":\"%s\"}", color(this.text.get(line))) : "");
 
             signNBT.putInt("x", position.getX());
             signNBT.putInt("y", position.getY());
@@ -122,10 +134,11 @@ public final class EditorUI {
             signNBT.putString("id", "minecraft:sign");
             signNBT.putString("Color", "black");
             signNBT.putBoolean("GlowingText", false);
+            */
 
             PacketManager.sendPacket(player, new PacketPlayOutBlockChange(position, Blocks.OAK_SIGN.defaultBlockState()));
-            PacketManager.sendPacket(player, ReflectionAccess.init_PacketPlayOutTileEntityData.newInstance(position, TileEntityTypes.SIGN, signNBT));
-            PacketManager.sendPacket(player, new PacketPlayOutOpenSignEditor(position));
+            PacketManager.sendPacket(player, ReflectionAccess.init_PacketPlayOutTileEntityData.newInstance(position, TileEntityTypes.SIGN, sign.saveWithFullMetadata()));
+            PacketManager.sendPacket(player, new PacketPlayOutOpenSignEditor(position, true));
 
             inputs.put(player, this);
         }
@@ -135,7 +148,7 @@ public final class EditorUI {
             lime.onceTicks(() -> {
                 this.callback.invoke(Arrays.asList(packet.getLines()));
                 if (!(player.isOnline() && player instanceof CraftPlayer cplayer)) return;
-                PacketManager.sendPacket(player, new PacketPlayOutBlockChange(cplayer.getHandle().level, position));
+                PacketManager.sendPacket(player, new PacketPlayOutBlockChange(cplayer.getHandle().level(), position));
             }, 2);
         }
         private String color(String input) {

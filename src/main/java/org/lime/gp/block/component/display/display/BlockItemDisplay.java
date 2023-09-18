@@ -5,7 +5,7 @@ import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.joml.Vector2d;
@@ -124,7 +124,7 @@ public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.I
     }
 
     private float calculateAngle() {
-        return data.rotation().angle - 180 + (float)data.offset_rotation();
+        return data.rotation().angle + (float)data.offset_rotation();
     }
 
     @Override protected void editDataWatcher(Player player, EditedDataWatcher dataWatcher) {

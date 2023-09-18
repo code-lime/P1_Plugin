@@ -14,7 +14,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParameterSet
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameters;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -32,7 +32,7 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
         public final LootTable base_of_proxy;
         public final MinecraftKey key;
         public LootTableProxy(MinecraftKey key, LootTable base) {
-            super(LootContextParameterSets.EMPTY, new LootSelector[0], new LootItemFunction[0]);
+            super(LootContextParameterSets.EMPTY, key, new LootSelector[0], new LootItemFunction[0]);
             this.base_of_proxy = base;
             this.key = key;
         }
@@ -49,17 +49,55 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
             base_of_proxy.getRandomItemsRaw(context, lootConsumer);
             event.append_items.forEach(item -> lootConsumer.accept(CraftItemStack.asNMSCopy(item)));
         }
+        /*
+        @Override public void getRandomItemsRaw(LootTableInfo context, Consumer<ItemStack> lootConsumer) {
+            LootTableInfo.c<LootTable> loottableinfo_c = LootTableInfo.createVisitedEntry(this);
+            if (context.pushVisitedElement(loottableinfo_c)) {
+                Consumer<ItemStack> consumer1 = LootItemFunction.decorate(this.compositeFunction, lootConsumer, context);
+                for (LootSelector lootselector : this.pools) {
+                    lootselector.addRandomItems(consumer1, context);
+                }
+                context.popVisitedElement(loottableinfo_c);
+            } else {
+                LOGGER.warn("Detected infinite loop in loot tables");
+            }
+        }
+        */
         @Override public void validate(LootCollector reporter) { base_of_proxy.validate(reporter); }
-        @Override public void fill(IInventory inventory, LootTableInfo context) { base_of_proxy.fill(inventory, context); }
         @Override public LootContextParameterSet getParamSet() { return base_of_proxy.getParamSet(); }
     }
     public static CoreElement create() {
         return CoreElement.create(PopulateLootEvent.class)
                 .withInit(PopulateLootEvent::init);
     }
-    
+
     private static void init() {
-        LootTableRegistry registry = MinecraftServer.getServer().getLootTables();
+        LootDataManager lootDataManager = MinecraftServer.getServer().getLootData();
+        Map<LootDataId<?>, ?> elements = reflection.field.<Map<LootDataId<?>, ?>>ofMojang(LootDataManager.class, "elements").get(lootDataManager);
+        /*Map<LootDataId<?>, ?> elements = reflection.dynamic.ofValue(lootDataManager)
+                .<Map<LootDataId<?>, ?>>get("elements")
+                .value;*/
+        HashMap<LootTable, MinecraftKey> lootTableToKey = new HashMap<>();
+        HashMap<LootDataId<?>, Object> idToAny = new HashMap<>();
+        elements.entrySet().forEach(kv -> {
+            LootDataId<?> id = kv.getKey();
+            if (id.type() != LootDataType.TABLE) {
+                idToAny.put(id, kv.getValue());
+                return;
+            }
+            MinecraftKey key = id.location();
+            LootTable lootTable = (LootTable)kv.getValue();
+            while (org.lime.reflection.hasField(lootTable.getClass(), "base_of_proxy"))
+                lootTable = org.lime.reflection.getField(lootTable.getClass(), "base_of_proxy", lootTable);
+            LootTableProxy proxy = new LootTableProxy(key, lootTable);
+            lootTableToKey.put(proxy, key);
+            idToAny.put(id, proxy);
+        });
+        reflection.field.ofMojang(LootDataManager.class, "lootTableToKey").set(lootDataManager, lootTableToKey);
+        reflection.field.ofMojang(LootDataManager.class, "elements").set(lootDataManager, idToAny);
+
+        /*
+        LootTableRegistry registry = MinecraftServer.getServer().getLootData().getLootTables();
         HashMap<MinecraftKey, LootTable> lootTables = new HashMap<>();
         HashMap<LootTable, MinecraftKey> lootTableToKey = new HashMap<>();
         registry.getIds().forEach(key -> {
@@ -71,39 +109,50 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
         });
         reflection.field.ofMojang(LootTableRegistry.class, "tables").set(registry, lootTables);
         registry.lootTableToKey = lootTableToKey;
+        */
     }
 
     private final MinecraftKey key;
     private final LootTableProxy proxy;
     private final LootTableInfo context;
-    private HashMap<LootContextParameter<?>, Object> parameters = null;
+    private final LootParams params;
+    //private HashMap<LootContextParameter<?>, Object> parameters = null;
     private List<org.bukkit.inventory.ItemStack> items;
     private List<org.bukkit.inventory.ItemStack> append_items = new ArrayList<>();
     public PopulateLootEvent(MinecraftKey key, LootTableProxy proxy, LootTableInfo context) {
         this.key = key;
         this.proxy = proxy;
         this.context = context;
+        this.params = ReflectionAccess.params_LootTableInfo.get(context);
         this.items = null;
     }
 
     public MinecraftKey getKey() { return key; }
-    public LootTableInfo getContext(boolean copy) {
-        if (!copy) return context;
-        LootTableInfo.Builder builder = new LootTableInfo.Builder(context.getLevel())
-                .withRandom(context.getRandom())
-                .withLuck(context.getLuck());
-        LootContextParameterSet.Builder set = LootContextParameterSet.builder();
+    //public LootTableInfo getContext(boolean copy) {
+        //if (!copy) return context;
+        /*Map<LootContextParameter<?>, Object> params = new HashMap<>();
         Parameters.all().values().forEach(param -> {
             if (context.hasParam(param.nms())) {
-                Parameters.appendTo(param.nms(), context, builder);
-                set.required(param.nms());
+                params.put(param.nms(), context.getParam(param.nms()));
+                //Parameters.appendTo(param.nms(), context, builder);
             }
         });
-        ReflectionAccess.dynamicDrops_LootTableInfo.get(context).forEach(builder::withDynamicDrop);
-        return builder.create(set.build());
-    }
+        //WorldServer world, Map<LootContextParameter<?>, Object> parameters, Map<MinecraftKey, b> dynamicDrops, float luck
+        //LootParams params = new LootParams(context.getLevel(), );
+
+        /*Map<MinecraftKey, LootParams.b> dynamicDrops = reflection.dynamic.ofValue(context)
+                .get("params")
+                .<Map<MinecraftKey, LootParams.b>>get("dynamicDrops")
+                .value;*/
+
+        //LootTableInfo.Builder builder = new LootTableInfo.Builder(new LootParams(context.getLevel(), params, dynamicDrops, context.getLuck()));
+                //.withRandom(context.getRandom())
+                //.withLuck(context.getLuck());
+        //ReflectionAccess.dynamicDrops_LootTableInfo.get(context).forEach(builder::withDynamicDrop);
+        //return new LootTableInfo.Builder(this.params).create(key);
+    //}
     public void setItems(Collection<org.bukkit.inventory.ItemStack> items) { this.items = new ArrayList<>(items); }
-    public List<ItemStack> getVanillaItems() { return proxy.base_of_proxy.getRandomItems(context); }
+    public List<ItemStack> getVanillaItems() { return proxy.base_of_proxy.getRandomItems(params); }
     public boolean isReplaced() { return this.items != null; }
     public void addItem(org.bukkit.inventory.ItemStack item) { this.append_items.add(item); }
     public void addItems(Collection<org.bukkit.inventory.ItemStack> items) { this.append_items.addAll(items); }
@@ -132,16 +181,14 @@ public class PopulateLootEvent extends Event implements Cancellable, IPopulateLo
     public <T>T get(LootContextParameter<T> parameter) { return context.getParam(parameter); }
     public <T>Optional<T> getOptional(LootContextParameter<T> parameter) { return Optional.ofNullable(context.getParamOrNull(parameter)); }
     public <T>T getOrDefault(LootContextParameter<T> parameter, T def) { return has(parameter) ? get(parameter) : def; }
-    private static final reflection.field<Map<LootContextParameter<?>, Object>> params_LootTableInfo = reflection.field
-            .ofMojang(LootTableInfo.class, "params");
-    public <T>void set(LootContextParameter<T> parameter, T value) {
+    /*public <T>void set(LootContextParameter<T> parameter, T value) {
         if (parameters == null) {
             parameters = new HashMap<>();
-            parameters.putAll(params_LootTableInfo.get(context));
+            parameters.putAll(ReflectionAccess.params_LootParams.get(params));
         }
         if (value == null) parameters.remove(parameter);
         else parameters.put(parameter, value);
-    }
+    }*/
 
     private static final HandlerList handlers = new HandlerList();
     @Override public HandlerList getHandlers() { return handlers; }
