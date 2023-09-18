@@ -239,6 +239,7 @@ public class Death implements Listener {
             dieCooldown.remove(player.getUniqueId());
             player.removeScoreboardTag("leg.broken");
         }));
+        /*
         lime.repeat(() -> {
             if (!SPAWN_LOCATIONS.isEmpty()) return;
             nextSets.removeIf(uuid -> !EntityPosition.onlinePlayers.containsKey(uuid));
@@ -267,6 +268,7 @@ public class Death implements Listener {
                 lime.once(() -> LangMessages.Message.Medic_Teleport_HP.sendMessage(player), 2);
             });
         }, 2);
+        */
 
         lime.repeat(Death::update, 0.1);
         lime.repeatTicks(Death::updateLock, 1);
