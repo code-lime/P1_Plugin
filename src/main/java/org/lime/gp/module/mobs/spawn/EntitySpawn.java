@@ -36,6 +36,7 @@ public class EntitySpawn implements ISpawn {
     public final List<String> tags = new ArrayList<>();
     public final boolean slotsEmpty;
     public final @Nullable ILoot slots;
+    public final boolean effectsEmpty;
     public final List<PotionEffect> effects = new ArrayList<>();
     public final @Nullable DespawnData despawn;
     public final Map<Attribute, Double> attributes = new HashMap<>();
@@ -93,6 +94,7 @@ public class EntitySpawn implements ISpawn {
                 .forEach(item -> tags.add(item.getAsString()));
         this.slotsEmpty = json.has("slots_empty") && json.get("slots_empty").getAsBoolean();
         this.slots = json.has("slots") ? ILoot.parse(json.get("slots")) : null;
+        this.effectsEmpty = json.has("effects_empty") && json.get("effects_empty").getAsBoolean();
         if (json.has("effects")) json.getAsJsonArray("effects")
                 .forEach(item -> effects.add(Items.parseEffect(item.getAsJsonObject())));
         this.despawn = json.has("despawn") ? DespawnData.parse(json.get("despawn").getAsJsonObject()) : null;
@@ -163,6 +165,7 @@ public class EntitySpawn implements ISpawn {
                     }
                     instance.setBaseValue(value);
                 });
+                if (effectsEmpty) living.clearActivePotionEffects();
                 effects.forEach(living::addPotionEffect);
             }
             if (despawn != null) despawn.setupData(craftEntity.getPersistentDataContainer());
