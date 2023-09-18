@@ -533,7 +533,9 @@ public class Death implements Listener {
             case SUFFOCATION:
                 if (!((CraftPlayer)player).getHandle().isInWall()) kill(player, Reason.CAUSE);
                 break;
-            case VOID: return;
+            case KILL:
+            case VOID:
+                return;
             default:
                 break;
         }
