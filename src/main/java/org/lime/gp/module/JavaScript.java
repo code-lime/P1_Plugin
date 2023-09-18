@@ -143,6 +143,13 @@ public class JavaScript {
         public Transformation createTransformation(Object dat) { return MathUtils.transformation(json.by(dat).build()); }
         public Map<String, Object> objectTransformation(Transformation transformation) { return JsonObjectOptional.of(MathUtils.transformation(transformation)).createObject(); }
         public Transformation composeTransformation(Transformation a, Transformation b) { return a.compose(b); }
+
+        public void execute(String command) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        }
+        public void execute(String uuid, String command) {
+            Bukkit.dispatchCommand(Bukkit.getPlayer(UUID.fromString(uuid)), command);
+        }
     }
 
     public static Optional<Boolean> isJsTrue(String js) { return JavaScript.js.isJsTrue(js); }
