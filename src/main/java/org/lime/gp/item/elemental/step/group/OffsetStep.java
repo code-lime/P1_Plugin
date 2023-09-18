@@ -1,12 +1,11 @@
 package org.lime.gp.item.elemental.step.group;
 
+import com.mojang.math.Transformation;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
-import org.lime.display.transform.LocalLocation;
 import org.lime.gp.item.elemental.step.IStep;
 
-public record OffsetStep(IStep step, Vector offset) implements IStep {
-    @Override public void execute(Player player, LocalLocation location) {
-        step.execute(player, location.add(offset));
+public record OffsetStep(IStep step, Transformation offset) implements IStep {
+    @Override public void execute(Player player, Transformation location) {
+        step.execute(player, location.compose(offset));
     }
 }

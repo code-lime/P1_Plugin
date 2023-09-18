@@ -1,5 +1,6 @@
 package org.lime.gp.item.elemental.step.action;
 
+import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
 import net.minecraft.server.level.EntityPlayer;
@@ -10,7 +11,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.display.transform.LocalLocation;
+import org.lime.system.utils.MathUtils;
 
 import java.util.Map;
 
@@ -29,10 +30,11 @@ public class FakeBlockStep extends IBlockStep {
         this.self = self;
     }
 
-    @Override public void execute(Player player, LocalLocation location) {
+    @Override public void execute(Player player, Transformation location) {
         if (!(player instanceof CraftPlayer cplayer)) return;
         EntityPlayer handler = cplayer.getHandle();
-        PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(new BlockPosition(location.blockX(), location.blockY(), location.blockZ()), block);
+        Vector point = MathUtils.convert(location.getTranslation());
+        PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(new BlockPosition(point.getBlockX(), point.getBlockY(), point.getBlockZ()), block);
 
         if (radius.isZero()) {
             if (!self) return;
@@ -43,7 +45,7 @@ public class FakeBlockStep extends IBlockStep {
         }
 
         World world = player.getWorld();
-        world.getNearbyPlayers(location.position().toLocation(world), radius.getX(), radius.getY(), radius.getZ()).forEach(other -> {
+        world.getNearbyPlayers(point.toLocation(world), radius.getX(), radius.getY(), radius.getZ()).forEach(other -> {
             if (!self && other == player) return;
             if (!(other instanceof CraftPlayer cother)) return;
             PlayerConnection connection = cother.getHandle().connection;

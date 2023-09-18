@@ -1,13 +1,13 @@
 package org.lime.gp.item.elemental;
 
 import com.google.gson.JsonObject;
+import com.mojang.math.Transformation;
 import org.bukkit.entity.Player;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
-import org.lime.display.transform.LocalLocation;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
+import org.lime.system.utils.MathUtils;
 
 import java.util.HashMap;
 
@@ -36,9 +36,9 @@ public class Elemental {
         Elemental.steps.putAll(steps);
     }
     public static void execute(Player player, String elemental) {
-        execute(player, elemental, new LocalLocation(player.getLocation()));
+        execute(player, elemental, MathUtils.transformation(player.getLocation()));
     }
-    public static void execute(Player player, String elemental, LocalLocation location) {
+    public static void execute(Player player, String elemental, Transformation location) {
         IStep step = steps.get(elemental);
         if (step == null) {
             lime.logOP("Elemental '"+elemental+"' not funded!");

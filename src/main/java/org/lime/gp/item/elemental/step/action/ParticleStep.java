@@ -2,6 +2,7 @@ package org.lime.gp.item.elemental.step.action;
 
 import com.destroystokyo.paper.ParticleBuilder;
 import com.google.gson.JsonObject;
+import com.mojang.math.Transformation;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -12,16 +13,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
-import org.lime.display.transform.LocalLocation;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 
 public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self) implements IStep {
-    @Override public void execute(Player player, LocalLocation position) {
-        Location location = position.position().toLocation(player.getWorld());
+    @Override public void execute(Player player, Transformation position) {
+        Location location = MathUtils.convert(position.getTranslation()).toLocation(player.getWorld());
         ParticleBuilder particle = this.particle.source(player).location(location);
         if (radius.isZero()) {
             if (!self) return;

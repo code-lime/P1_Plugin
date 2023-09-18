@@ -2,6 +2,7 @@ package org.lime.gp.item.elemental.step;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.math.Transformation;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.lime.display.transform.LocalLocation;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public interface IStep {
-    void execute(Player player, LocalLocation location);
+    void execute(Player player, Transformation location);
 
     static IStep parse(JsonElement raw) {
         if (raw.isJsonNull()) return NoneStep.Instance;
@@ -45,7 +46,7 @@ public interface IStep {
                 );
                 case "offset" -> new OffsetStep(
                         parse(json.get("step")),
-                        MathUtils.getVector(json.get("offset").getAsString())
+                        MathUtils.transformation(json.get("offset"))
                 );
                 case "palette" -> new PaletteStep(
                         json.getAsJsonObject("palette")
@@ -88,6 +89,11 @@ public interface IStep {
                 case "other" -> new OtherStep(json.get("other").getAsString());
                 case "potion" -> new PotionStep(
                         Items.parseEffect(json.getAsJsonObject("potion")),
+                        MathUtils.getVector(json.get("radius").getAsString()),
+                        json.get("self").getAsBoolean()
+                );
+                case "particle" -> new ParticleStep(
+                        ParticleStep.parseParticle(json.get("particle").getAsJsonObject()),
                         MathUtils.getVector(json.get("radius").getAsString()),
                         json.get("self").getAsBoolean()
                 );
