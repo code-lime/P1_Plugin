@@ -76,7 +76,7 @@ public class BiomeMobs implements Listener {
     private static final HashMap<EntityType, ISpawn> entitySpawns = new HashMap<>();
     public static void configTable(JsonObject json) {
         HashMap<EntityType, ISpawn> entitySpawns = new HashMap<>();
-        lime.combineParent(json, false, false).entrySet().forEach(kv -> entitySpawns.put(EntityType.valueOf(kv.getKey()), ISpawn.parse(kv.getValue())));
+        lime.combineParent(json, true, false).entrySet().forEach(kv -> entitySpawns.put(EntityType.valueOf(kv.getKey()), ISpawn.parse(kv.getValue())));
         BiomeMobs.entitySpawns.clear();
         BiomeMobs.entitySpawns.putAll(entitySpawns);
     }
