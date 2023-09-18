@@ -120,6 +120,7 @@ public class Parameters {
                     v -> json.by(v.getTags()).build().toString(),
                     s -> List.of(s.split(",")),
                     (tags, entity) -> entity.getTags().containsAll(tags)))
+            .add(ThisEntity.createInfoEqualsIgnoreCase("this.uuid", v -> v.getUUID().toString()))
             .build()
             .collect(Collectors.toMap(IFilterParameterInfo::name, v -> v));
 
