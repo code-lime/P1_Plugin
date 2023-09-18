@@ -106,6 +106,14 @@ public class Methods {
         );
     }
 
+    public static Optional<Vector> readPositionOptional(ResultSet set, String prefix) {
+        prefix = prefix != null ? (prefix + "_") : "";
+        String _prefix = prefix;
+        return MySql.readObjectOptional(set, _prefix + "x", Integer.class)
+                .flatMap(x -> MySql.readObjectOptional(set, _prefix + "y", Integer.class)
+                        .flatMap(y -> MySql.readObjectOptional(set, _prefix + "z", Integer.class)
+                                .map(z -> new Vector(x, y, z))));
+    }
     public static Vector readPosition(ResultSet set, String prefix) {
         prefix = prefix != null ? (prefix + "_") : "";
         int x = MySql.readObject(set, prefix + "x", Integer.class);

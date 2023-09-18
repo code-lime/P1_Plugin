@@ -168,4 +168,8 @@ public class Tables {
             .event(KeyedTable.Event.Removed, DeathGame::onUpdate)
             .event(KeyedTable.Event.Updated, DeathGame::onUpdate)
             .build();
+    public static final KeyedTable<CityRow> CITY_TABLE = KeyedTable.of("city", CityRow::new)
+            .optional()
+            .keyed("id", v -> String.valueOf(v.id))
+            .build();
 }
