@@ -78,8 +78,8 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
     }
 
     @Override public void read(JsonObjectOptional json) {
-        super.read(json);
         setItem(json.getAsString("item").map(ItemUtils::loadItem).orElse(null), false);
+        super.read(json);
     }
     @Override public json.builder.object write() {
         var obj = super.write()
