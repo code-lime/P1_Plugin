@@ -40,6 +40,7 @@ public record CustomPacketPlayOutLogin(
         boolean showDeathScreen,
         boolean isDebug,
         boolean isFlat,
+        int portalCooldown,
         Iterable<BiomeModify.IAction> actions
 ) implements Packet<PacketListenerPlayOut> {
     /*public CustomPacketPlayOutLogin(PacketDataSerializer buf) {
@@ -62,6 +63,7 @@ public record CustomPacketPlayOutLogin(
                 other.showDeathScreen(),
                 other.isDebug(),
                 other.isFlat(),
+                other.portalCooldown(),
                 actions);
     }
 
@@ -74,7 +76,6 @@ public record CustomPacketPlayOutLogin(
         buf.writeCollection(this.levels, PacketDataSerializer::writeResourceKey);
 
         NBTTagCompound registry = BiomeModify.nbt(RegistrySynchronization.NETWORK_CODEC, this.registryHolder);
-        lime.writeAllConfig("tmp.codec.in", json.format(JsonNBT.toJson(registry)));
         NBTTagList list = registry.getCompound("minecraft:worldgen/biome").getList("value", NBTBase.TAG_COMPOUND);
         List<NBTTagCompound> globalList = new ArrayList<>();
         Toast1<Integer> maxID = Toast.of(-1);
@@ -115,7 +116,6 @@ public record CustomPacketPlayOutLogin(
             list.add(vannila);
             list.add(lime);
         });
-        lime.writeAllConfig("tmp.codec.out", json.format(JsonNBT.toJson(registry)));
         buf.writeNbt(registry);
 
 
@@ -130,6 +130,7 @@ public record CustomPacketPlayOutLogin(
         buf.writeBoolean(this.isDebug);
         buf.writeBoolean(this.isFlat);
         buf.writeOptional(Optional.empty(), PacketDataSerializer::writeGlobalPos);
+        buf.writeVarInt(this.portalCooldown);
     }
 
     @Override

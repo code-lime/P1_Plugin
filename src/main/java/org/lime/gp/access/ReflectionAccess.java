@@ -1,5 +1,6 @@
 package org.lime.gp.access;
 
+import com.destroystokyo.paper.util.maplist.ReferenceList;
 import com.google.common.collect.ImmutableList;
 import io.papermc.paper.chunk.system.RegionizedPlayerChunkLoader;
 import io.papermc.paper.util.maplist.IteratorSafeOrderedReferenceSet;
@@ -16,10 +17,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutLogin;
 import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.server.level.ChunkProviderServer;
-import net.minecraft.server.level.PlayerChunk;
-import net.minecraft.server.level.PlayerChunkMap;
-import net.minecraft.server.level.WorldServer;
+import net.minecraft.server.level.*;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.util.valueproviders.IntProvider;
@@ -118,6 +116,8 @@ public class ReflectionAccess {
     public static final Class<?> class_CraftMetaItem = Execute.<String, Class<?>>funcEx(Class::forName).throwable().invoke(CraftItemStack.class.getName().replace("CraftItemStack", "CraftMetaItem"));//unhandledTags
     public static final reflection.field<Map<String, NBTBase>> unhandledTags_CraftMetaItem = reflection.field.of(class_CraftMetaItem, "unhandledTags");
     public static final reflection.constructor<NBTTagCompound> initMap_NBTTagCompound = reflection.constructor.of(NBTTagCompound.class, Map.class);
+
+    public static final reflection.field<ReferenceList<EntityPlayer>> playersSentChunkTo_PlayerChunk = reflection.field.ofMojang(PlayerChunk.class, "playersSentChunkTo");
 
     public static final reflection.field<IntProvider> RAIN_DELAY_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DELAY").nonFinal();
     public static final reflection.field<IntProvider> RAIN_DURATION_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DURATION").nonFinal();
