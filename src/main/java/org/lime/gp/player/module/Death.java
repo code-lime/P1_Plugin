@@ -17,6 +17,7 @@ import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.coreprotect.CoreProtectHandle;
+import org.lime.gp.database.rows.CityRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.entity.component.data.BackPackInstance;
@@ -73,12 +74,16 @@ import java.util.*;
 
 public class Death implements Listener {
     private static Location DEFAULT_SPAWN_LOCATION;
-    private static Map<Integer, Location> SPAWN_LOCATIONS = new HashMap<>();
     private static boolean DEATH_VOICE_ENABLE = true;
 
     public static Location getSpawnLocation(UUID uuid) {
         //UserRow.getBy(uuid).flatMap(UserRow::getCityID).ifPresentOrElse(city -> lime.logOP("CITY: " + city), () -> lime.logOP("CITY: EMPTY"));
-        return UserRow.getBy(uuid).flatMap(UserRow::getCityID).map(SPAWN_LOCATIONS::get).orElse(DEFAULT_SPAWN_LOCATION);
+        return UserRow.getBy(uuid)
+                .flatMap(UserRow::getCityID)
+                .flatMap(CityRow::getBy)
+                .flatMap(v -> v.posMain)
+                .map(v -> v.toLocation(lime.MainWorld))
+                .orElse(DEFAULT_SPAWN_LOCATION);
     }
     public static Location getSpawnLocation(Player player) {
         return getSpawnLocation(player.getUniqueId());
@@ -88,26 +93,10 @@ public class Death implements Listener {
         return CoreElement.create(Death.class)
                 .withInit(Death::init)
                 .withUninit(Death::uninit)
-                .addConfig("config", v -> v
+                .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("spawn")
                         .withDefault(new JsonPrimitive(MathUtils.getString(new Vector(0, 70, 0))))
-                        .withInvoke(json -> {
-                            if (json.isJsonPrimitive()) {
-                                DEFAULT_SPAWN_LOCATION = MathUtils.getLocation(lime.MainWorld, json.getAsString());
-                                SPAWN_LOCATIONS.clear();
-                            } else if (json.isJsonObject()) {
-                                JsonObject spawn = json.getAsJsonObject().deepCopy();
-                                Location defaultSpawn = MathUtils.getLocation(lime.MainWorld, spawn.remove("default").getAsString());
-                                HashMap<Integer, Location> spawns = new HashMap<>();
-                                spawn.entrySet().forEach(kv -> spawns.put(
-                                        Integer.parseInt(kv.getKey()),
-                                        MathUtils.getLocation(lime.MainWorld, kv.getValue().getAsString()))
-                                );
-                                DEFAULT_SPAWN_LOCATION = defaultSpawn;
-                                SPAWN_LOCATIONS.clear();
-                                SPAWN_LOCATIONS.putAll(spawns);
-                            }
-                        })
+                        .withInvoke(json -> DEFAULT_SPAWN_LOCATION = MathUtils.getLocation(lime.MainWorld, json.getAsString()))
                 )
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("death_voice")
