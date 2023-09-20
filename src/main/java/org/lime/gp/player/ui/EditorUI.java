@@ -3,7 +3,6 @@ package org.lime.gp.player.ui;
 import io.papermc.paper.adventure.AdventureComponent;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPosition;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
@@ -13,11 +12,9 @@ import net.minecraft.world.EnumHand;
 import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
-import net.minecraft.world.inventory.Container;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.entity.TileEntitySign;
-import net.minecraft.world.level.block.entity.TileEntityTypes;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -26,15 +23,12 @@ import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
-import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.plugin.CoreElement;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Func3;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -103,7 +97,7 @@ public final class EditorUI {
             this.text = text;
 
             Location location = player.getLocation();
-            position = new net.minecraft.core.BlockPosition(location.getBlockX(), location.getWorld().getMinHeight(), location.getBlockZ());
+            position = new net.minecraft.core.BlockPosition(location.getBlockX(), Math.max(location.getBlockY() - 4, location.getWorld().getMinHeight()), location.getBlockZ());
         }
 
         public SignEditor callback(Action1<List<String>> callback) {
@@ -119,27 +113,14 @@ public final class EditorUI {
             SignText text = new SignText();
             for (int line = 0; line < SIGN_LINES; line++)
                 if (this.text.size() > line)
-                    text.setMessage(line, IChatBaseComponent.literal(color(this.text.get(line))));
+                    text = text.setMessage(line, IChatBaseComponent.literal(color(this.text.get(line))));
             sign.setText(text, true);
 
-            /*
-            NBTTagCompound signNBT = new NBTTagCompound();
-
-            for (int line = 0; line < SIGN_LINES; line++)
-                signNBT.putString("Text" + (line + 1), this.text.size() > line ? String.format("{\"text\":\"%s\"}", color(this.text.get(line))) : "");
-
-            signNBT.putInt("x", position.getX());
-            signNBT.putInt("y", position.getY());
-            signNBT.putInt("z", position.getZ());
-            signNBT.putString("id", "minecraft:sign");
-            signNBT.putString("Color", "black");
-            signNBT.putBoolean("GlowingText", false);
-            */
-
-            PacketManager.sendPacket(player, new PacketPlayOutBlockChange(position, Blocks.OAK_SIGN.defaultBlockState()));
-            PacketManager.sendPacket(player, ReflectionAccess.init_PacketPlayOutTileEntityData.newInstance(position, TileEntityTypes.SIGN, sign.saveWithFullMetadata()));
-            PacketManager.sendPacket(player, new PacketPlayOutOpenSignEditor(position, true));
-
+            PacketManager.sendPacket(player, new ClientboundBundlePacket(List.of(
+                    new PacketPlayOutBlockChange(position, Blocks.OAK_SIGN.defaultBlockState()),
+                    sign.getUpdatePacket(),
+                    new PacketPlayOutOpenSignEditor(position, true)
+            )));
             inputs.put(player, this);
         }
         @Override public void use(PacketPlayInUpdateSign packet) {
@@ -214,54 +195,5 @@ public final class EditorUI {
             lime.onceTicks(() -> this.callback.invoke(packet.getPages()), 2);
         }
     }
-    /*
-    private static final class Menu {
-        private final List<String> text;
-        private net.minecraft.core.BlockPosition position;
-        private Action2<Player, String[]> callback;
-
-        Menu(List<String> text) {
-            text = new ArrayList<>(text);
-            for (int i = text.size(); i < 4; i++) text.add("");
-            this.text = text;
-        }
-
-        public Menu callback(Action2<Player, String[]> callback) {
-            this.callback = callback;
-            return this;
-        }
-
-        public void open(Player player) {
-            Objects.requireNonNull(player, "player");
-            if (!player.isOnline()) return;
-            player.closeInventory();
-            Location location = player.getLocation();
-
-            position = new net.minecraft.core.BlockPosition(location.getBlockX(), location.getWorld().getMinHeight(), location.getBlockZ());
-
-            NBTTagCompound signNBT = new NBTTagCompound();
-
-            for (int line = 0; line < SIGN_LINES; line++) {
-                signNBT.putString("Text" + (line + 1), this.text.size() > line ? String.format(NBT_FORMAT, color(this.text.get(line))) : "");
-            }
-            signNBT.putInt("x", position.getX());
-            signNBT.putInt("y", position.getY());
-            signNBT.putInt("z", position.getZ());
-            signNBT.putString("id", "minecraft:sign");
-            signNBT.putString("Color", "black");
-            signNBT.putBoolean("GlowingText", false);
-
-            player.sendBlockChange(new Location(location.getWorld(), position.getX(), position.getY(), position.getZ()), Material.OAK_SIGN.createBlockData());
-            PacketManager.sendPacket(player, ReflectionAccess.init_PacketPlayOutTileEntityData.newInstance(position, TileEntityTypes.SIGN, signNBT));
-            PacketManager.sendPacket(player, new PacketPlayOutOpenSignEditor(position));
-
-            lime.once(() -> inputs.put(player, this), 0.2);
-        }
-
-        public void close(Player player) {
-            if (player.isOnline()) player.closeInventory();
-        }
-    }
-    */
 }
 
