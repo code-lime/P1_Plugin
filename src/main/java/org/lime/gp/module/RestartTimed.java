@@ -114,10 +114,9 @@ public class RestartTimed extends CustomUI.GUI {
                 MinecraftServer minecraftServer = MinecraftServer.getServer();
                 minecraftServer.getPlayerList().saveAll();
                 minecraftServer.saveAllChunks(true, true, true);
-                lime.once(Bukkit::shutdown, 1);
-
                 Component server_shutdown = Component.translatable("multiplayer.disconnect.server_shutdown");
                 Bukkit.getOnlinePlayers().forEach(player -> player.kick(server_shutdown));
+                lime.nextTick(Bukkit::shutdown);
                 return;
             }
 
