@@ -411,6 +411,14 @@ public class Items implements Listener {
                 .map(creatorNamesIDs::get)
                 .or(() -> Optional.of(CraftMagicNumbers.getMaterial(item.getItem())).map(Items::getMaterialKey));
     }
+    public static Optional<String> getKeyBy(Material material, @Nullable Integer customModelData) {
+        return customModelData == null
+                ? Optional.of(getMaterialKey(material))
+                : Optional.ofNullable(creatorNamesIDs.get(customModelData));
+    }
+    public static Optional<String> getKeyByCustomModelData(int id) {
+        return Optional.ofNullable(creatorNamesIDs.get(id));
+    }
     public static Optional<String> getKeyByItem(ItemStack item) {
         return getIDByItem(item).map(creatorNamesIDs::get);
     }
@@ -533,6 +541,11 @@ public class Items implements Listener {
     public static Optional<IItemCreator> getItemCreator(net.minecraft.world.item.ItemStack item) {
         return getIDByItem(item)
                 .map(creators::get);
+    }
+    public static Optional<IItemCreator> getItemCreator(Material material, @Nullable Integer customModelData) {
+        return customModelData == null
+                ? Optional.of(ItemCreator.byMaterial(material))
+                : Optional.ofNullable(creators.get(customModelData));
     }
 
     public static Map<String, JsonElement> getData(ItemStack item) {

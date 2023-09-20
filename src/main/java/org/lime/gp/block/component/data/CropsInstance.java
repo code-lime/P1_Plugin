@@ -17,14 +17,18 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.list.CropsComponent;
+import org.lime.gp.item.ItemStackRaw;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.CropsSetting;
 import org.lime.gp.item.settings.list.TableDisplaySetting;
+import org.lime.gp.lime;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
+import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
 import org.lime.system.toast.*;
@@ -41,7 +45,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
     public CropsInstance(CropsComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
-        setItem(null, false);
+        setItem(ItemStackRaw.EMPTY, false);
     }
 
 
@@ -51,21 +55,21 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
     };
 
     @Override public AgeableData ageableData() {
-        return Items.getOptional(CropsSetting.class, head).<AgeableData>map(v -> v).orElse(EMPTY);
+        return item.creator()
+                .map(v -> v instanceof ItemCreator c ? c : null)
+                .<AgeableData>flatMap(v -> v.getOptional(CropsSetting.class))
+                .orElse(EMPTY);
     }
 
     //private final Builder builder;
 
     public final LockToast1<IBuilder> model = Toast.lock(null);
-    private org.bukkit.inventory.ItemStack head;
+    private ItemStackRaw item;
 
-    public void setItem(org.bukkit.inventory.ItemStack item, boolean save) {
-        ItemStack oldHead = head;
-        if (item == null) head = new org.bukkit.inventory.ItemStack(Material.AIR);
-        else head = item.clone();
-
-        if (head.equals(oldHead)) return;
-        writeDebug("Set item: " + ItemUtils.saveItem(item));
+    public void setItem(ItemStackRaw item, boolean save) {
+        if (item.isEquals(this.item)) return;
+        this.item = item;
+        writeDebug("Set item: " + item.save());
         syncItem();
         if (save) {
             writeDebug("Save data item");
@@ -74,16 +78,17 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
         syncDisplayVariable();
     }
     public void syncItem() {
-        model.set0(TableDisplaySetting.builderItem(head, component().offset, TableDisplaySetting.TableType.crops, String.valueOf(age())));
+        model.set0(this.item.nms()
+                .map(item -> TableDisplaySetting.builderItem(item, component().offset, TableDisplaySetting.TableType.crops, String.valueOf(age())))
+                .orElse(lime.models.builder().none()));
     }
 
     @Override public void read(JsonObjectOptional json) {
-        setItem(json.getAsString("item").map(ItemUtils::loadItem).orElse(null), false);
+        setItem(json.get("item").map(JsonElementOptional::base).map(ItemStackRaw::load).orElse(ItemStackRaw.EMPTY), false);
         super.read(json);
     }
     @Override public json.builder.object write() {
-        var obj = super.write()
-                .add("item", head.getType().isAir() ? null : ItemUtils.saveItem(head));
+        var obj = super.write().add("item", item.save());
         writeDebug("Write: " + obj.build());
         return obj;
     }
@@ -93,13 +98,13 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
     }
     @Override public void onLoot(CustomTileMetadata metadata, PopulateLootEvent event) {
         writeDebug("OL.0");
-        if (!head.getType().isAir()) {
-            writeDebug("OL.1: " + ItemUtils.saveItem(head));
-            event.addItem(head);
-        }
+        this.item.item().ifPresent(item -> {
+            writeDebug("OL.1: " + this.item.save());
+            event.addItem(item);
+        });
     }
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
-        if (head.getType().isAir()) return;
+        if (this.item.isEmpty()) return;
         super.onTick(metadata, event);
     }
 
@@ -112,10 +117,10 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
         net.minecraft.world.item.ItemStack itemStack = player.getItemInHand(hand);
 
-        if (!head.getType().isAir()) {
-            writeDebug("OI.ITEM.1: " + ItemUtils.saveItem(head));
-            net.minecraft.world.item.ItemStack outputItem = CraftItemStack.asNMSCopy(head);
-            setItem(null, true);
+        net.minecraft.world.item.ItemStack outputItem = this.item.nms().orElse(null);
+        if (outputItem != null) {
+            writeDebug("OI.ITEM.1: " + this.item.save());
+            setItem(ItemStackRaw.EMPTY, true);
             Items.getOptional(CropsSetting.class, outputItem).filter(v -> age() == v.limitAge()).ifPresentOrElse(data -> {
                 writeDebug("OI.ITEM.1");
                 net.minecraft.world.item.ItemStack handItem = itemStack;
@@ -161,7 +166,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
             writeDebug("OI.AIR.3");
             if (!component().filter.check(itemStack)) return EnumInteractionResult.PASS;
             writeDebug("OI.AIR.4");
-            setItem(CraftItemStack.asBukkitCopy(itemStack.copyWithCount(1)), true);
+            setItem(new ItemStackRaw(itemStack.copyWithCount(1)), true);
             age(0);
             if (!player.getAbilities().instabuild) {
                 writeDebug("OI.AIR.5");
@@ -179,7 +184,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
 
     @Override
     protected boolean modifyDisplayVariable(Map<String, String> map) {
-        map.put("has", head.getType().isAir() ? "false" : "true");
+        map.put("has", item.isEmpty() ? "false" : "true");
         return super.modifyDisplayVariable(map);
     }
 }

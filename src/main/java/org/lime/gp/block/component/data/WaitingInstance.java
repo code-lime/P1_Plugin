@@ -19,12 +19,9 @@ import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.joml.Vector3f;
-import org.lime.Position;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.IDisplayVariable;
@@ -38,7 +35,10 @@ import org.lime.gp.craft.recipe.WaitingRecipe;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
+import org.lime.gp.item.ItemStackRaw;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.IItemCreator;
+import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
@@ -48,9 +48,10 @@ import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.Time;
+import org.lime.system.execute.Func0;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast2;
 import org.lime.system.utils.ItemUtils;
 
 import java.util.*;
@@ -101,37 +102,39 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         public void clearDirty() { isDirty = false; }
     }
     private static abstract class BaseItemInput extends BaseInput {
-        public ItemStack item;
+        public ItemStackRaw item;
 
-        public BaseItemInput(JsonElement value) { item = CraftItemStack.asNMSCopy(ItemUtils.loadItem(value.getAsString())); }
-        public BaseItemInput(ItemStack item) { this.item = item.copy(); }
+        public BaseItemInput(JsonElement value) { item = ItemStackRaw.load(value); }
+        public BaseItemInput(ItemStack item) { this.item = new ItemStackRaw(item); }
 
-        @Override public Material material() { return CraftMagicNumbers.getMaterial(item.getItem()); }
-        @Override public int cmd() { return Items.getIDByItem(item).orElse(0); }
-        @Override public int count() { return item.getCount(); }
+        @Override public Material material() { return item.type().orElse(Material.AIR); }
+        @Override public int cmd() { return item.customModelData().orElse(0); }
+        @Override public int count() { return item.count().orElse(0); }
         public abstract String type();
         @Override public json.builder.object save() {
             return json.object()
                     .add("type", type())
-                    .add("value", ItemUtils.saveItem(CraftItemStack.asBukkitCopy(item)));
+                    .add("value", item.save());
         }
-        @Override public ItemStack nms() { return item; }
+        @Override public ItemStack nms() { return item.nms().orElse(ItemStack.EMPTY); }
 
-        @Override public String toString() { return type() + ":" + Items.getGlobalKeyByItem(item).orElse("AIR"); }
+        @Override public String toString() { return type() + ":" + item.creator().map(IItemCreator::getKey).orElse("NULL"); }
 
-        public EnumInteractionResult tryAppendItem(World world, BlockPosition blockposition, EntityHuman entityhuman, List<ItemStack> items, ItemStack itemstack) {
-            ItemStack toAppend = null;
-            for (ItemStack item : items) {
-                if (ItemStack.isSameItemSameTags(itemstack, item)) {
-                    toAppend = item;
+        public EnumInteractionResult tryAppendItem(World world, BlockPosition blockposition, EntityHuman entityhuman, List<ItemStackRaw> items, ItemStack itemstack) {
+            Toast2<ItemStackRaw, Integer> toAppend = null;
+            int itemLength = items.size();
+            for (int i = 0; i < itemLength; i++) {
+                ItemStackRaw element = items.get(i);
+                if (element.isSameItemSameTags(itemstack)) {
+                    toAppend = Toast.of(element, i);
                     break;
                 }
             }
             if (toAppend == null && items.size() >= 6) return EnumInteractionResult.PASS;
             ItemStack addItem = itemstack.copyWithCount(1);
             if (!entityhuman.getAbilities().instabuild) itemstack.shrink(1);
-            if (toAppend != null) toAppend.grow(addItem.getCount());
-            else items.add(addItem);
+            if (toAppend != null) items.set(toAppend.val1, toAppend.val0.grow(1));
+            else items.add(new ItemStackRaw(addItem));
             setDirty();
 
             entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
@@ -153,20 +156,20 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             World world = metadata.skull.getLevel();
             ItemStack itemstack = entityhuman.getItemInHand(enumhand);
             if (itemstack.isEmpty()) return Toast.of(this, instance.openWorkbench(entityhuman));
-            if (ItemStack.isSameItemSameTags(itemstack, item)) {
-                if (item.getCount() >= instance.component().max_count) return Toast.of(this, EnumInteractionResult.PASS);
+            if (item.isSameItemSameTags(itemstack)) {
+                if (item.count().orElse(0) >= instance.component().max_count) return Toast.of(this, EnumInteractionResult.PASS);
                 if (!entityhuman.getAbilities().instabuild) itemstack.shrink(1);
-                item.grow(1);
+                item = item.grow(1);
                 setDirty();
                 entityhuman.awardStat(StatisticList.ITEM_USED.get(itemstack.getItem()));
                 world.playSound(null, blockposition, SoundEffects.ITEM_FRAME_ADD_ITEM, SoundCategory.BLOCKS, 1.0f, 0.25f);
-                return Toast.of(item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
+                return Toast.of(this, EnumInteractionResult.sidedSuccess(world.isClientSide));
             }
             if (!instance.isWhitelistItem(itemstack)) return Toast.of(this, EnumInteractionResult.PASS);
             return Toast.of(this, tryAppendItem(world, blockposition, entityhuman, instance.items, itemstack));
         }
         @Override public BaseInput loot(List<org.bukkit.inventory.ItemStack> drop) {
-            drop.add(item.asBukkitCopy());
+            drop.add(item.item().orElseThrow());
             return new EmptyInput();
         }
     }
@@ -175,8 +178,13 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         public WaterInput(ItemStack item) { super(item); }
 
         @Override public String type() { return "water"; }
-        @Override public String color() { return ChatColorHex.toHex(Items.getOptional(ThirstSetting.class, item).map(v -> v.color).orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1); }
-
+        @Override public String color() {
+            return ChatColorHex.toHex(item.creator()
+                    .map(v -> v instanceof ItemCreator c ? c : null)
+                    .flatMap(v -> v.getOptional(ThirstSetting.class))
+                    .map(v -> v.color)
+                    .orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1);
+        }
         @Override public Toast2<BaseInput, EnumInteractionResult> interact(WaitingInstance instance, CustomTileMetadata metadata, BlockSkullInteractInfo event) {
             EntityHuman entityhuman = event.player();
             EnumHand enumhand = event.hand();
@@ -185,7 +193,9 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             ItemStack itemstack = entityhuman.getItemInHand(enumhand);
             if (itemstack.isEmpty()) return Toast.of(this, instance.openWorkbench(entityhuman));
             if (itemstack.getItem() == net.minecraft.world.item.Items.GLASS_BOTTLE) {
-                ItemStack potion = item.split(1);
+                ItemStack nms = this.item.nms().orElseThrow();
+                ItemStack potion = nms.split(1);
+                this.item = new ItemStackRaw(nms);
                 setDirty();
 
                 Item item = itemstack.getItem();
@@ -194,9 +204,9 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 world.playSound(null, blockposition, SoundEffects.BOTTLE_FILL, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.gameEvent(null, GameEvent.FLUID_PICKUP, blockposition);
                 return Toast.of(this.item.isEmpty() ? new EmptyInput() : this, EnumInteractionResult.sidedSuccess(world.isClientSide));
-            } else if (ItemStack.isSameItemSameTags(item, itemstack)) {
-                if (item.getCount() >= instance.component().max_count) return Toast.of(this, EnumInteractionResult.PASS);
-                item.grow(1);
+            } else if (item.isSameItemSameTags(itemstack)) {
+                if (item.count().orElse(0) >= instance.component().max_count) return Toast.of(this, EnumInteractionResult.PASS);
+                item = item.grow(1);
                 setDirty();
 
                 entityhuman.setItemInHand(enumhand, ItemLiquidUtil.createFilledResult(itemstack, entityhuman, new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE)));
@@ -262,7 +272,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
 
     private UUID last_click = null;
     private BaseInput input = new EmptyInput();
-    private final List<ItemStack> items = new ArrayList<>();
+    private final List<ItemStackRaw> items = new ArrayList<>();
 
     private long startTime = 0;
     private long endTime = 0;
@@ -284,33 +294,36 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         endTime = 0;
         items.clear();
         json.getAsJsonArray("items")
-                .ifPresent(arr -> arr.forEach(element -> element.getAsString()
-                        .map(ItemUtils::loadItem)
-                        .map(CraftItemStack::asNMSCopy)
-                        .filter(item -> {
-                            if (item.isEmpty()) {
-                                writeDebug("!!!READ WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
-                                lime.logOP("!!!WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
-                                return false;
-                            }
-                            return true;
-                        })
-                        .ifPresent(items::add)
-                ));
+                .ifPresent(arr -> arr.forEach(element -> {
+                    ItemStackRaw item = ItemStackRaw.load(element.base());
+                    if (item.isEmpty()) {
+                        writeDebug("!!!READ WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
+                        lime.logOP("!!!WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
+                    }
+                    items.add(item);
+                }));
+                            /*element.getAsString()
+                                    .map(ItemUtils::loadItem)
+                                    .map(CraftItemStack::asNMSCopy)
+                                    .filter(item -> {
+                                        if (item.isEmpty()) {
+                                            writeDebug("!!!READ WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
+                                            lime.logOP("!!!WARNING!!! FOUND EMPTY ITEM IN WAITING INSTANCE LOADER: " + element.getAsString().orElse("NULL"));
+                                            return false;
+                                        }
+                                        return true;
+                                    })
+                                    .ifPresent(items::add);*/
         readLoader = 200;
     }
     @Override public json.builder.object write() {
-        if (items.removeIf(Objects::isNull)) {
+        if (items.removeIf(ItemStackRaw::isEmpty)) {
             writeDebug("!!!WRITE WARNING!!! FOUND EMPTY ITEMS IN WAITING INSTANCE");
             lime.logOP("!!!WARNING!!! FOUND EMPTY ITEMS IN WAITING INSTANCE");
         }
         var obj = json.object()
                 .add("input", input.save())
-                .addArray("items", v -> v.add(items.stream()
-                        .map(CraftItemStack::asBukkitCopy)
-                        .map(ItemUtils::saveItem)
-                        .iterator()
-                ))
+                .addArray("items", v -> v.add(items.stream().map(ItemStackRaw::save).iterator()))
                 .add("start_time", startTime)
                 .add("last_click", last_click);
         writeDebug("Write: " + obj.build());
@@ -320,7 +333,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
     private ReadonlyInventory createReadonly() {
         List<ItemStack> items = new ArrayList<>();
         items.add(input.nms());
-        items.addAll(this.items);
+        this.items.forEach(item -> items.add(item.nms().orElseThrow()));
         return ReadonlyInventory.ofNMS(items, metadata().location());
     }
 
@@ -470,8 +483,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             writeDebug("ON DROP:");
             writeDebug(" - Item count: " + this.items.size());
             this.items.removeIf(item -> {
-                writeDebug(() -> " - Drop: " + ItemUtils.saveItem(item.asBukkitCopy()));
-                items.add(item.asBukkitCopy());
+                writeDebug(() -> " - Drop: " + item.save());
+                item.item().ifPresent(items::add);
                 return true;
             });
             writeDebug(" - Drop count: " + items.size());
@@ -611,8 +624,8 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         writeDebug("ON LOOT:");
         writeDebug(" - Item count: " + this.items.size());
         this.items.removeIf(item -> {
-            writeDebug(() -> " - Drop: " + ItemUtils.saveItem(item.asBukkitCopy()));
-            items.add(item.asBukkitCopy());
+            writeDebug(() -> " - Drop: " + item.save());
+            item.item().ifPresent(items::add);
             return true;
         });
         writeDebug(" - Drop count: " + items.size());
@@ -628,10 +641,10 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 map.put("waiting.input.id", String.valueOf(input.cmd()));
                 map.put("waiting.input.count", String.valueOf(input.count()));
                 for (int i = 0; i < size; i++) {
-                    ItemStack item = items.get(i);
-                    map.put("waiting.slot."+i+".type", CraftMagicNumbers.getMaterial(item.getItem()).name());
-                    map.put("waiting.slot."+i+".id", String.valueOf(Items.getIDByItem(item).orElse(0)));
-                    map.put("waiting.slot."+i+".count", String.valueOf(items.get(i).getCount()));
+                    ItemStackRaw item = items.get(i);
+                    map.put("waiting.slot."+i+".type", item.type().orElse(Material.AIR).name());
+                    map.put("waiting.slot."+i+".id", String.valueOf(item.customModelData().orElse(0)));
+                    map.put("waiting.slot."+i+".count", String.valueOf(item.count().orElse(0)));
                 }
                 for (int i = size; i < 6; i++) {
                     map.put("waiting.slot."+i+".type", "AIR");
