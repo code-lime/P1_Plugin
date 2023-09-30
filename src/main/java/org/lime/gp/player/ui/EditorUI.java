@@ -12,6 +12,7 @@ import net.minecraft.world.EnumHand;
 import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.inventory.Container;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.entity.TileEntitySign;
@@ -62,10 +63,10 @@ public final class EditorUI {
 
     public static void update() { inputs.entrySet().removeIf((kv)->!kv.getKey().isOnline()); }
 
-    public static void openInput(Player player, Component title, Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
-        openInput(((CraftPlayer)player).getHandle(), title, init);
+    public static void openRaw(Player player, Component title, Func3<Integer, PlayerInventory, EntityHuman, Container> init) {
+        openRaw(((CraftPlayer)player).getHandle(), title, init);
     }
-    public static void openInput(EntityHuman player, Component title, Func3<Integer, PlayerInventory, EntityHuman, ContainerInput> init) {
+    public static void openRaw(EntityHuman player, Component title, Func3<Integer, PlayerInventory, EntityHuman, Container> init) {
         player.openMenu(new TileInventory(init::invoke, new AdventureComponent(title)));
     }
     public static void openSign(Player player, List<String> lines, Action1<List<String>> callback){
