@@ -21,10 +21,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.effect.MobEffectList;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.player.PlayerArrowCriticalEvent;
-import net.minecraft.world.entity.player.PlayerAttackMultiplyCriticalEvent;
-import net.minecraft.world.entity.player.PlayerAttackStrengthResetEvent;
-import net.minecraft.world.entity.player.PlayerInventory;
+import net.minecraft.world.entity.player.*;
 import net.minecraft.world.entity.projectile.EntityArrow;
 import net.minecraft.world.entity.projectile.EntityProjectile;
 import net.minecraft.world.entity.projectile.EntityThrownTrident;
@@ -648,13 +645,20 @@ public class Items implements Listener {
         if (!e.isBlocking()) return;
         net.minecraft.world.item.ItemStack shield = e.getShield();
         Entity damageEntity = e.getSource().getEntity();
+        if (damageEntity instanceof EntityHuman human && human.getAttackStrengthScale(0.5f) < 1)
+            return;
         net.minecraft.world.item.ItemStack attack;
         if (damageEntity instanceof EntityThrownTrident trident) attack = trident.getPickupItem();
         else if (damageEntity instanceof EntityProjectile projectile) attack = ArrowBow.getBowItem(projectile);
         else if (damageEntity instanceof EntityLiving living) attack = living.getMainHandItem();
         else attack = net.minecraft.world.item.ItemStack.EMPTY;
         if (attack.getUseAnimation() == EnumAnimation.BLOCK) attack = net.minecraft.world.item.ItemStack.EMPTY;
-        double chance = Items.getOptional(ShieldIgnoreSetting.class, shield).map(v -> v.chance).orElse(1.0) * Items.getOptional(ShieldIgnoreSetting.class, attack).map(v -> v.chance).orElse(0.0);
+        double chance = Items.getOptional(ShieldIgnoreSetting.class, shield)
+                .map(v -> v.chance)
+                .orElse(1.0)
+                * Items.getOptional(ShieldIgnoreSetting.class, attack)
+                .map(v -> v.chance)
+                .orElse(0.0);
         if (RandomUtils.rand_is(chance)) e.setBlocking(false);
     }
     @EventHandler private static void on(EntityShootBowEvent e) {
