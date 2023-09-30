@@ -9,7 +9,6 @@ import org.lime.system.execute.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Stream;
 
 public abstract class ComponentStatic<T extends JsonElement> {
     private final EntityInfo _info;
@@ -30,7 +29,11 @@ public abstract class ComponentStatic<T extends JsonElement> {
         try {
             componentKeys = new HashMap<>();
             components = new HashMap<>();
-            Stream.of(Components.class.getDeclaredClasses())
+            String packageFilter = ComponentStatic.class.getPackage().getName() + ".list.";
+            lime._plugin.getJarClassesNames()
+                    .stream()
+                    .filter(v -> v.startsWith(packageFilter))
+                    .map(Execute.<String, Class<?>>funcEx(Class::forName).throwable())
                     .filter(ComponentStatic.class::isAssignableFrom)
                     .flatMap(v -> constructor(v, EntityInfo.class, JsonElement.class)
                             .or(() -> constructor(v, EntityInfo.class, JsonArray.class))

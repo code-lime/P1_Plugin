@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityInstance;
-import org.lime.gp.entity.component.Components;
+import org.lime.gp.entity.component.list.DisplayComponent;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.module.TimeoutData;
@@ -22,9 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class DisplayInstance extends EntityInstance implements CustomEntityMetadata.Tickable, EntityDisplay.Displayable, CustomEntityMetadata.Destroyable {
     private final ConcurrentHashMap<String, String> variables = new ConcurrentHashMap<>();
 
-    @Override public Components.DisplayComponent component() { return (Components.DisplayComponent)super.component(); }
+    @Override public DisplayComponent component() { return (DisplayComponent)super.component(); }
 
-    public DisplayInstance(Components.DisplayComponent component, CustomEntityMetadata metadata) {
+    public DisplayInstance(DisplayComponent component, CustomEntityMetadata metadata) {
         super(component, metadata);
     }
     public DisplayInstance set(String key, String value) {
