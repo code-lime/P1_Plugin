@@ -88,6 +88,7 @@ public class UserRow extends BaseRow {
     public static Optional<UserRow> getBy(UUID uuid) { return Tables.USER_TABLE.getOther("uuid", uuid.toString()); }
     public static Optional<UserRow> getBy(Player player) { return getBy(player.getUniqueId()); }
     public static Optional<UserRow> getBy(int id) { return Tables.USER_TABLE.get(String.valueOf(id)); }
+    public static Optional<UserRow> getByName(String userName) { return Tables.USER_TABLE.getOther("user_name", userName); }
     public static Optional<UserRow> getByTimedID(int timed_id) { return Optional.ofNullable(TabManager.getUUIDorNull(timed_id)).flatMap(UserRow::getBy); }
 
     public Optional<Integer> getCityID() {

@@ -89,6 +89,7 @@ public class Tables {
     public static final KeyedTable<UserRow> USER_TABLE = KeyedTable.of("users", UserRow::new)
             .keyed("id", v -> String.valueOf(v.id))
             .other("uuid", v -> v.uuid.toString())
+            .other("user_name", v -> v.userName)
             .event(KeyedTable.Event.Removed, RecipesBook::editRow)
             .event(KeyedTable.Event.Updated, RecipesBook::editRow)
             .build();
