@@ -13,4 +13,5 @@ public class PreviewOutputSlot implements IOutputSlot {
 
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return this.item.modify(item, copy, variable); }
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return isPreview ? preview.create(true, variable) : item.create(false, variable); }
+    @Override public boolean test(ItemStack item) { return this.item.test(item); }
 }

@@ -52,6 +52,9 @@ public class RangeOutputSlot implements IOutputSlot {
                     return new ItemStack(net.minecraft.world.item.Items.STONE, 0);
                 });
     }
+    @Override public boolean test(ItemStack item) {
+        return Items.getGlobalKeyByItem(item).map(key::equalsIgnoreCase).orElse(false);
+    }
 }
 
 

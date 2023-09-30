@@ -37,7 +37,7 @@ public class ModifyOutputSlot implements IOutputSlot {
             int value = durability.getIntValue(max);
             item.setDamageValue(max - value);
         }
-        if (name != null || lore != null) {
+        if (name != null || lore != null || id != null) {
             org.bukkit.inventory.ItemStack mirror = item.asBukkitMirror();
             ItemMeta meta = mirror.getItemMeta();
             if (lore != null) {
@@ -61,6 +61,7 @@ public class ModifyOutputSlot implements IOutputSlot {
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) {
         return result(this.item.create(isPreview, variable));
     }
+    @Override public boolean test(ItemStack item) { return this.item.test(item); }
 }
 
 

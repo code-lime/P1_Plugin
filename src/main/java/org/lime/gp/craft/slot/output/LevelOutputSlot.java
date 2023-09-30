@@ -23,5 +23,6 @@ public class LevelOutputSlot implements IOutputSlot {
     }
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return result(variable).modify(item, copy, variable); }
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return result(variable).create(isPreview, variable); }
+    @Override public boolean test(ItemStack item) { return other.test(item); }
 }
 

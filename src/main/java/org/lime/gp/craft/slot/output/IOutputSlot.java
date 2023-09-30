@@ -11,6 +11,8 @@ public interface IOutputSlot {
     ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable);
     ItemStack create(boolean isPreview, IOutputVariable variable);
 
+    boolean test(ItemStack item);
+
     static IOutputSlot ofString(String str) {
         String[] args = str.split("\\*");
         return new RangeOutputSlot(args[0], args.length > 1 ? IRange.parse(args[1]) : new OnceRange(1));
