@@ -3,16 +3,14 @@ package org.lime.gp.block.component;
 import com.google.gson.*;
 import org.lime.docs.IGroup;
 import org.lime.docs.IIndexGroup;
-import org.lime.docs.json.IComment;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.block.BlockInfo;
-import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
-import org.lime.system.execute.*;
-import org.lime.system.toast.*;
+import org.lime.system.execute.Execute;
+import org.lime.system.toast.Toast;
 import org.lime.unsafe;
 
 import java.lang.reflect.Constructor;
@@ -65,7 +63,6 @@ public abstract class ComponentStatic<T extends JsonElement> {
                     .stream()
                     .filter(v -> v.startsWith(packageFilter))
                     .map(Execute.<String, Class<?>>funcEx(Class::forName).throwable())
-            //Stream.of(Components.class.getDeclaredClasses())
                     .filter(ComponentStatic.class::isAssignableFrom)
                     .flatMap(v -> constructor(v, BlockInfo.class, JsonElement.class)
                             .or(() -> constructor(v, BlockInfo.class, JsonArray.class))
