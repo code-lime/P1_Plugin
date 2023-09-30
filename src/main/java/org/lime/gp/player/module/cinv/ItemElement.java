@@ -1,12 +1,15 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.entity.player.EntityHuman;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.chat.ChatHelper;
@@ -36,7 +39,20 @@ public class ItemElement {
         this.show = createWithoutThrow(searchList);
     }
 
-    public void execute(Player player, boolean shift) {
+    /*
+            if (click.isShiftClick() && click.isLeftClick()) {
+                element.craftQuery(view.container, human);
+                return;
+            }
+    */
+    public void click(ViewContainer container, EntityPlayer player, ClickType click) {
+        if (click.isShiftClick() && click.isLeftClick()) {
+            craftQuery(container, player);
+            return;
+        }
+        execute(player.getBukkitEntity(), click.isShiftClick());
+    }
+    private void execute(Player player, boolean shift) {
         try {
             ItemStack item = creator.createItem(1);
             if (shift) item.setAmount(item.getMaxStackSize());
@@ -53,6 +69,9 @@ public class ItemElement {
         } catch (Exception e) {
             lime.logStackTrace(e);
         }
+    }
+    private void craftQuery(ViewContainer container, EntityHuman human) {
+        CraftQuery.openQuery(container, human, Checker.createRawCheck(creator));
     }
 
     public boolean isSearch(String search) {

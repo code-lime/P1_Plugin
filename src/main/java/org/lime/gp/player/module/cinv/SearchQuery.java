@@ -1,4 +1,4 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -19,20 +19,18 @@ import org.lime.gp.player.inventory.InterfaceManager;
 import org.lime.gp.player.ui.ContainerInput;
 import org.lime.gp.player.ui.EditorUI;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class Search {
+public class SearchQuery {
     private final ViewContainer viewContainer;
-    private Search(ViewContainer viewContainer) { this.viewContainer = viewContainer; }
+    private SearchQuery(ViewContainer viewContainer) { this.viewContainer = viewContainer; }
 
     public void openSearch(EntityHuman human) {
-        EditorUI.openInput(human, Component.text("Поиск предметов"), this::containerInit);
+        EditorUI.openRaw(human, Component.text("Поиск предметов"), this::containerInit);
     }
-    public static void openSearch(ViewContainer viewContainer, EntityHuman human) { new Search(viewContainer).openSearch(human); }
+    public static void openSearch(ViewContainer viewContainer, EntityHuman human) { new SearchQuery(viewContainer).openSearch(human); }
     private ContainerInput containerInit(int syncId, net.minecraft.world.entity.player.PlayerInventory inventory, EntityHuman player) {
         return new ContainerInput(syncId, inventory) {
             @Override public boolean isValid() { return true; }
@@ -106,7 +104,7 @@ public class Search {
 
                     @Override public void onSlotClick(EntityHuman human, InventoryClickType type, ClickType click) {
                         if (human instanceof EntityPlayer handler)
-                            getElement(deltaIndex).ifPresent(element -> element.execute(handler.getBukkitEntity(), click.isShiftClick()));
+                            getElement(deltaIndex).ifPresent(element -> element.click(viewContainer, handler, click));
                     }
                 };
                 /*

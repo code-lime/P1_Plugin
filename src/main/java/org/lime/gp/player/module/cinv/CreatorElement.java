@@ -1,7 +1,6 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.world.item.ItemStack;
 import org.lime.gp.item.data.IItemCreator;
 
 import javax.annotation.Nullable;

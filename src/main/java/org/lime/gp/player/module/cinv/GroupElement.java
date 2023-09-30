@@ -1,4 +1,4 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import com.google.common.collect.ImmutableList;
 import net.kyori.adventure.text.Component;

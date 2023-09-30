@@ -1,23 +1,16 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
-import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.ITileInventory;
 import net.minecraft.world.TileInventory;
-import net.minecraft.world.entity.player.EntityHuman;
-import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.ITileEntityContainer;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.ServerOperator;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.lime.core;
-import org.lime.gp.extension.JManager;
-import org.lime.json.JsonObjectOptional;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 
@@ -58,7 +51,7 @@ public class CreativeInventory {
         EntityPlayer handler = cplayer.getHandle();
         ViewContainer container = ViewContainer.create(handler.nextContainerCounter(), handler.getInventory(), new CreatorElement(Items.creators.values()), NonNullList.withSize(9*6, new ItemStack(Material.AIR)), ViewData.load(handler));
         container.setTitle(IChatBaseComponent.literal("cinv"));
-        Search.openSearch(container, handler);
+        SearchQuery.openSearch(container, handler);
         return true;
     }
 }

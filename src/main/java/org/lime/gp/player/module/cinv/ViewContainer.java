@@ -1,8 +1,7 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import com.destroystokyo.paper.profile.CraftPlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.google.gson.JsonObject;
 import io.papermc.paper.adventure.AdventureComponent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -22,8 +21,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.player.inventory.InterfaceManager;
-import org.lime.json.JsonObjectOptional;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
 import java.util.List;
@@ -90,6 +87,7 @@ public abstract class ViewContainer extends ContainerChest {
     public static final net.minecraft.world.item.ItemStack LEFT = headOf(Component.text("<"), LEFT_HEAD, LEFT_RIGHT_FULL);
 
     public static final net.minecraft.world.item.ItemStack SEARCH = headOf(Component.text("SEARCH"), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZhYmY1ZDM3MDc1N2FhZjQ2ZmVmOWExOGI1MmVkYzk1OTQ1NzZjMDBhMzUzMWUwNDQ4ZTRkY2ExN2RiZjRlNCJ9fX0=");
+    public static final net.minecraft.world.item.ItemStack CRAFTS = headOf(Component.text("CRAFTS"), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZhYmY1ZDM3MDc1N2FhZjQ2ZmVmOWExOGI1MmVkYzk1OTQ1NzZjMDBhMzUzMWUwNDQ4ZTRkY2ExN2RiZjRlNCJ9fX0=");
     public static final net.minecraft.world.item.ItemStack BACK = headOf(Component.text("BACK"), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTkzMTZhNjljNmRkNjU1ZjViODlmMmE4MzMxNTI1ZmUwZGM5MmZkMTNkNDMyNjIzYThiZjg1MWNlODIwYjAzNCJ9fX0=");
     public static final net.minecraft.world.item.ItemStack NONE = net.minecraft.world.item.ItemStack.EMPTY;
 
@@ -119,7 +117,7 @@ public abstract class ViewContainer extends ContainerChest {
         Group(GroupSlot::new),
         Search((slot, view, slotType, slotTypeIndex) -> new StaticClickSlot(slot, view, slotType, slotTypeIndex, SEARCH) {
             @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
-                org.lime.gp.item.cinv.Search.openSearch(view.container, player);
+                SearchQuery.openSearch(view.container, player);
             }
         }),
         None(NoneSlot::new);

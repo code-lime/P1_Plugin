@@ -1,4 +1,4 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.player.EntityHuman;
@@ -37,7 +37,7 @@ public final class ItemSlot extends BaseActionSlot {
             if (group == null) return;
             ItemElement element = group.get(view.itemsOffset() + slotTypeIndex);
             if (element == null) return;
-            element.execute(player.getBukkitEntity(), click.isShiftClick());
+            element.click(view.container, player, click);
         }
     }
 }

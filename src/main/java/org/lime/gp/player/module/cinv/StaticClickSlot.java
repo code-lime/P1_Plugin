@@ -1,4 +1,4 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import net.minecraft.world.inventory.Slot;
 

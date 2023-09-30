@@ -1,13 +1,11 @@
-package org.lime.gp.item.cinv;
+package org.lime.gp.player.module.cinv;
 
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.InventoryClickType;
 import net.minecraft.world.inventory.Slot;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.event.inventory.ClickType;
-import org.lime.gp.lime;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 import java.util.Objects;
 
