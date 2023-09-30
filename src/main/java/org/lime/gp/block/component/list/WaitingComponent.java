@@ -21,6 +21,7 @@ import org.lime.gp.docs.IDocsLink;
         super(info, json);
         progress = json.get("progress").getAsInt();
         max_count = json.get("max_count").getAsInt();
+        if (max_count > 127) throw new IllegalArgumentException("ITEM COUNT LIMIT IN BLOCK '"+info.getKey()+"': " + max_count + " > 127");
         type = json.get("type").getAsString();
         debug = json.has("debug") && json.get("debug").getAsBoolean();
     }
