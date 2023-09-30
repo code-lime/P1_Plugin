@@ -1,7 +1,9 @@
 package org.lime.gp.extension;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -18,16 +20,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static net.minecraft.world.item.ItemStack.TAG_LORE;
-
 public class ItemNMS {
     public static Optional<NBTTagList> getLore(ItemStack item) {
         NBTTagCompound tag = item.getTag();
         if (tag == null) return Optional.empty();
         if (!tag.contains(ItemStack.TAG_DISPLAY, NBTBase.TAG_COMPOUND)) return Optional.empty();
         NBTTagCompound display = tag.getCompound(ItemStack.TAG_DISPLAY);
-        if (!display.contains(TAG_LORE, NBTBase.TAG_LIST)) return Optional.empty();
-        return Optional.of(display.getList(TAG_LORE, NBTBase.TAG_STRING));
+        if (!display.contains(ItemStack.TAG_LORE, NBTBase.TAG_LIST)) return Optional.empty();
+        return Optional.of(display.getList(ItemStack.TAG_LORE, NBTBase.TAG_STRING));
     }
     public static ItemStack setLore(ItemStack item, NBTTagList list) {
         NBTTagCompound tag = item.getTag();
@@ -37,9 +37,9 @@ public class ItemNMS {
             tag.put(ItemStack.TAG_DISPLAY, new NBTTagCompound());
         }
         NBTTagCompound display = tag.getCompound(ItemStack.TAG_DISPLAY);
-        if (!display.contains(TAG_LORE, NBTBase.TAG_LIST) && list == null) return item;
-        if (list == null) display.remove(TAG_LORE);
-        else display.put(TAG_LORE, list);
+        if (!display.contains(ItemStack.TAG_LORE, NBTBase.TAG_LIST) && list == null) return item;
+        if (list == null) display.remove(ItemStack.TAG_LORE);
+        else display.put(ItemStack.TAG_LORE, list);
         return item;
     }
     public static ItemStack addLore(ItemStack item, Stream<? extends ComponentLike> stream) {
@@ -47,6 +47,30 @@ public class ItemNMS {
         stream.map(ComponentLike::asComponent).map(ChatHelper::toNMS).map(IChatBaseComponent.ChatSerializer::toJson).map(NBTTagString::valueOf).forEach(lore::add);
         return setLore(item, lore);
     }
+
+    /*public static Component getComponentName(ItemStack item) {
+        String descriptionId = item.getDescriptionId();
+        NBTTagCompound tag = item.getTag();
+        if (tag == null) return Component.translatable(descriptionId).decoration(TextDecoration.ITALIC, false);
+        if (!tag.contains(ItemStack.TAG_DISPLAY, NBTBase.TAG_COMPOUND)) return Optional.empty();
+        NBTTagCompound display = tag.getCompound(ItemStack.TAG_DISPLAY);
+        if (!display.contains(ItemStack.TAG_LORE, NBTBase.TAG_LIST)) return Optional.empty();
+        return Optional.of(display.getList(ItemStack.TAG_LORE, NBTBase.TAG_STRING));
+    }
+    public static ItemStack setComponentName(ItemStack item, NBTTagList list) {
+        NBTTagCompound tag = item.getTag();
+        if (tag == null) return item;
+        if (!tag.contains(ItemStack.TAG_DISPLAY, NBTBase.TAG_COMPOUND)) {
+            if (list == null) return item;
+            tag.put(ItemStack.TAG_DISPLAY, new NBTTagCompound());
+        }
+        NBTTagCompound display = tag.getCompound(ItemStack.TAG_DISPLAY);
+        if (!display.contains(ItemStack.TAG_LORE, NBTBase.TAG_LIST) && list == null) return item;
+        if (list == null) display.remove(ItemStack.TAG_LORE);
+        else display.put(ItemStack.TAG_LORE, list);
+        return item;
+    }
+*/
     public static ItemStack addEnchant(ItemStack item, Enchantment enchantment, int level) {
         NBTTagCompound tag = item.getOrCreateTag();
         if (!tag.contains(ItemStack.TAG_ENCH, 9)) tag.put(ItemStack.TAG_ENCH, new NBTTagList());
