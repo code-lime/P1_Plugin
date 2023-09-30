@@ -57,7 +57,6 @@ public class InterfaceManager implements Listener {
                     if (event.isCancelled()) return;
                     if (!(event.getPlayer() instanceof CraftPlayer craftPlayer)) return;
                     EntityPlayer player = craftPlayer.getHandle();
-                    PlayerConnection connection = player.connection;
                     if (player.isImmobile()) return;
                     if (player.containerMenu.containerId == packet.getContainerId()) {
                         int i2 = packet.getSlotNum();

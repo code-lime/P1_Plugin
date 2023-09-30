@@ -1,14 +1,11 @@
 package org.lime.gp.player.inventory;
 
 import com.google.gson.JsonObject;
-import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.GameMode;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.event.inventory.ClickType;
-import org.lime.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,8 +24,8 @@ import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.cinv.CreativeInventory;
-import org.lime.gp.item.cinv.ViewContainer;
+import org.lime.gp.player.module.cinv.CreativeInventory;
+import org.lime.gp.player.module.cinv.ViewContainer;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;

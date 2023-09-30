@@ -1,40 +1,28 @@
 package org.lime.gp.craft.book;
 
-import com.comphenix.protocol.events.PacketContainer;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.core.IRegistry;
-import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.RegistryMaterials;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.protocol.game.PacketPlayOutRecipeUpdate;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.stats.RecipeBookServer;
-import net.minecraft.world.IInventory;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingManager;
 import net.minecraft.world.item.crafting.IRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.level.World;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Recipe;
-import org.jetbrains.annotations.NotNull;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.craft.recipe.*;
-import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
+import org.lime.plugin.CoreElement;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class Recipes<T extends AbstractRecipe> implements net.minecraft.world.item.crafting.Recipes<T> {
