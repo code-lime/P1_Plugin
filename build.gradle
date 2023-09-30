@@ -1,3 +1,4 @@
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
@@ -24,6 +25,8 @@ group = pluginGroup
 version = pluginVersion
 
 String _version = "1.20.1"
+String _build = "194"
+boolean _remote = true
 boolean _mapped = true
 
 sourceCompatibility = '17'
@@ -31,7 +34,7 @@ targetCompatibility = '17'
 
 dependencies {
     compileOnly(
-            files(libPath((_mapped ? "paper-unmapped-" : "spigot-") + _version+".jar")),
+            files(libPath((_mapped ? "paper-unmapped-" : "spigot-") + _version+"-"+_build+".jar")),
             files(libPath("CrazyAdvancementsAPI.jar")),
             files(libPath("Core-1.0.jar")),
             files(libPath("LimeDisplay-1.0.jar")),
@@ -57,10 +60,13 @@ eclipse.classpath.file.whenMerged {
         String entryFile = entry.path;
         if (entryFile.endsWith('.jar')) {
             File folder = new File(entryFile).getParentFile();
-            File srcFile = new File(getFileNameWithoutExt(entryFile) + "-sources.jar");
-            if (srcFile.exists()) {
-                System.out.println("Add sources: " + srcFile);
-                entry.setSourcePath(it.fileReference(srcFile));
+            for (String postfix : new String[]{ "-sources.jar", ".sources.jar" }) {
+                File srcFile = new File(getFileNameWithoutExt(entryFile) + postfix);
+                if (srcFile.exists()) {
+                    System.out.println("Add sources: " + srcFile);
+                    entry.setSourcePath(it.fileReference(srcFile));
+                    break;
+                }
             }
         }
     }
@@ -112,11 +118,13 @@ static List<String> getText(Process process) {
 }
 interface Action1<T> { void invoke(T arg0); }
 static void invokeText(Process process, Action1<String> action) {
-    BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()))
+    Charset inputCharset = Charset.forName("windows-1251");
+    BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream(), inputCharset))
     try {
         String line
-        while ((line = input.readLine()) != null)
+        while ((line = input.readLine()) != null) {
             action.invoke(line)
+        }
     }
     finally {
         input.close()
@@ -295,7 +303,17 @@ task generator() {
             .bytes = zip(entries);
 }
 
-java.nio.file.Path java_mapper() {
+File libDir() {
+    return new File(Paths.get(githubMinecraftDataPath(), ".libs").toAbsolutePath().toString())
+}
+java.nio.file.Path javaRemote() {
+    return Paths.get(githubMinecraftDataPath(), ".libs",
+            System.getProperty("os.name").toLowerCase().concat("win")
+                    ? "Java.Remote.bat"
+                    : "Java.Remote.sh"
+    ).toAbsolutePath()
+}
+java.nio.file.Path javaMapper() {
     return Paths.get(githubMinecraftDataPath(), ".libs", "Java.Mapper.exe").toAbsolutePath()
 }
 task copyToLib() {}
@@ -312,14 +330,25 @@ copyToLib.doLast {
     if (_mapped) {
         try {
             println "Unmapping..."
-            java.nio.file.Path exe_path = java_mapper()
+            String[] arr;
             java.nio.file.Path out_path = Paths.get(originalPath.toAbsolutePath().getParent().toString(), "out.jar")
-            String[] arr = new String[4];
-            arr[0] = exe_path.toString();
-            arr[1] = "mapp="+libPath("paper-unmapped-" + _version + ".mapp");
-            arr[2] = "i=" + originalPath.toAbsolutePath().toString();
-            arr[3] = "o=" + out_path.toString();
-            Process process = new ProcessBuilder(arr).redirectErrorStream(true).start()
+            if (_remote) {
+                java.nio.file.Path bat_path = javaRemote()
+                arr = new String[4];
+                arr[0] = bat_path.toString();
+                arr[1] = _version+"-"+_build;
+                arr[2] = originalPath.toAbsolutePath().toString();
+                arr[3] = out_path.toString();
+            } else {
+                java.nio.file.Path exe_path = javaMapper()
+                arr = new String[4];
+                arr[0] = exe_path.toString();
+                arr[1] = "mapp="+libPath("paper-unmapped-" + _version + ".mapp");
+                arr[2] = "i=" + originalPath.toAbsolutePath().toString();
+                arr[3] = "o=" + out_path.toString();
+            }
+
+            Process process = new ProcessBuilder(arr).redirectErrorStream(true).directory(libDir()).start()
             invokeText(process, new Action1<String>() {
                 @Override public void invoke(String line) {
                     println line;
@@ -347,6 +376,7 @@ copyToLib.doLast {
         Files.copy(Paths.get(projectDir.absolutePath, "build", "src", src_name), copied_src, StandardCopyOption.REPLACE_EXISTING)
     }
     println "End of time: " + java.time.LocalDate.now().toString() + " " + java.time.LocalTime.now().toString()
+    java.awt.Toolkit.getDefaultToolkit().beep();
 }
 
 build {
