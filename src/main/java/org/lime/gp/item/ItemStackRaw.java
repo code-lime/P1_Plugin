@@ -69,7 +69,9 @@ public class ItemStackRaw {
 
     public ItemStackRaw grow(int amount) {
         net.minecraft.world.item.ItemStack raw = nms().orElseThrow();
-        raw.grow(amount);
+        int count = raw.getCount() + amount;
+        if (count > 127) throw new IllegalArgumentException("ITEM COUNT LIMIT: " + count + " > 127");
+        raw.setCount(count);
         return new ItemStackRaw(raw);
     }
     public Optional<IItemCreator> creator() {
