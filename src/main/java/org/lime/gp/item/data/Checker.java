@@ -78,6 +78,15 @@ public interface Checker {
     static Checker createCheck(String regex) {
         return createCheck(value -> Regex.compareRegex(value, regex));
     }
+    static Checker createRawCheck(Collection<net.minecraft.world.item.ItemStack> items) {
+        return createCheck(items.stream().map(Items::getGlobalKeyByItem).flatMap(Optional::stream).collect(Collectors.toSet())::contains);
+    }
+    static Checker createRawCheck(net.minecraft.world.item.ItemStack item) {
+        return Items.getGlobalKeyByItem(item).map(key -> createCheck(key::equalsIgnoreCase)).orElseGet(Checker::empty);
+    }
+    static Checker createRawCheck(IItemCreator creator) {
+        return createCheck(creator.getKey()::equalsIgnoreCase);
+    }
     static Checker empty() {
         return new Checker() {
             @Override public boolean check(String key) { return false; }
