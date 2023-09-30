@@ -80,7 +80,7 @@ public class SnowModify implements Listener {
         int offsetZ = coord.getMinBlockZ();
         for (int i = 0; i < count; ++i) {
             int tickingBlocks = section.tickingList.size();
-            int index = randomTickRandom.a(4096);
+            int index = randomTickRandom.nextInt(4096);
             if (index >= tickingBlocks) continue;
             long raw = section.tickingList.getRaw(index);
             int location = IBlockDataList.getLocationFromRaw(raw);
