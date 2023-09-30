@@ -310,6 +310,7 @@ public class Death implements Listener {
         if (!WalletInventory.extractItems(player, extractAll, item -> {
             log.append(toLog(item)).append(' ');
             CoreProtectHandle.logDrop(location, player, item);
+            dropped.add(item);
         })) log.append("EMPTY ");
         log.append("vest ");
         if (!Vest.extractItems(player, item -> {
