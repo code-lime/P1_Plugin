@@ -3,6 +3,7 @@ package org.lime.gp.block;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.json.JsonObjectOptional;
+import org.lime.system.Time;
 import org.lime.system.json;
 
 import java.util.Optional;
@@ -21,11 +22,25 @@ public abstract class BlockInstance implements CustomTileMetadata.Element {
     public abstract void read(JsonObjectOptional json);
     public abstract json.builder.object write();
 
+    private int changeIndex = 0;
     public void saveData() {
-        metadata.skull.persistentDataContainer.set(Blocks.ofKey(component.name()), LimePersistentDataType.JSON_OBJECT, write().build());
+        metadata.skull
+                .persistentDataContainer
+                .set(Blocks.ofKey(component.name()), LimePersistentDataType.JSON_OBJECT, write()
+                        .add("_debug.change.time", Time.formatCalendar(Time.moscowNow(), true))
+                        .add("_debug.change.index", changeIndex++)
+                        .build());
     }
     public BlockInstance loadData() {
-        Optional.ofNullable(metadata.skull.persistentDataContainer.get(Blocks.ofKey(component.name()), LimePersistentDataType.JSON_OBJECT)).map(JsonObjectOptional::of).ifPresent(this::read);
+        Optional.ofNullable(metadata.skull
+                .persistentDataContainer
+                .get(Blocks.ofKey(component.name()), LimePersistentDataType.JSON_OBJECT)
+        )
+                .map(JsonObjectOptional::of)
+                .ifPresent(v -> {
+                    changeIndex = v.getAsInt("_debug.change.index").orElse(0);
+                    read(v);
+                });
         return this;
     }
 
