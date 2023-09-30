@@ -2,9 +2,6 @@ package org.lime.gp.item;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.world.ITileInventory;
-import net.minecraft.world.TileInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.ContainerChest;
 import net.minecraft.world.item.Items;
@@ -40,7 +37,7 @@ public class NameTag implements Listener {
             PlayerInventory inventory = e.getPlayer().getInventory();
             ItemStack name_tag = inventory.getItemInMainHand();
             if (name_tag.getType() != Material.NAME_TAG) return;
-            EditorUI.openInput(player, RecipesBook.getCustomWorkbenchName("nametag").orElse(Component.empty()), NameTag::containerInit);
+            EditorUI.openRaw(player, RecipesBook.getCustomWorkbenchName("nametag").orElse(Component.empty()), NameTag::containerInit);
             //player.getHandle().openMenu(getInventory());
         }
     }
