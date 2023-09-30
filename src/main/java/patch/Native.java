@@ -81,7 +81,28 @@ public class Native {
         field.invoke(opcode, info.owner(), info.name(), info.descriptor());
     }
 
-    private static Method getMethod(String owner, String name, String descriptor) {
+    public static <T>T getMethod(ICallable callable, Func5<Integer, String, String, String, Boolean, T> method) {
+        SerializedLambda lambda = infoFromLambda(callable);
+        String kind = MethodHandleInfo.referenceKindToString(lambda.getImplMethodKind());
+        int opcode = switch (kind) {
+            case "invokeVirtual" -> Opcodes.INVOKEVIRTUAL;
+            case "invokeStatic" -> Opcodes.INVOKESTATIC;
+            case "invokeSpecial", "newInvokeSpecial" -> Opcodes.INVOKESPECIAL;
+            case "invokeInterface" -> Opcodes.INVOKEINTERFACE;
+            case "getField", "getStatic", "putField", "putStatic" -> throw new IllegalArgumentException("Kind method type '"+kind+"' can be only invokable!");
+            default -> throw new IllegalArgumentException("Kind method type '"+kind+"' not supported!");
+        };
+        boolean isInterface = opcode == Opcodes.INVOKEINTERFACE
+                || Execute.funcEx(() -> Class.forName(lambda.getImplClass().replace('/', '.')).isInterface())
+                .optional().invoke().orElse(false);
+        return method.invoke(opcode, lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature(), isInterface);
+    }
+    public static <T>T getField(int opcode, ICallable callable, Func4<Integer, String, String, String, T> field) {
+        FieldInfo info = infoFromField(callable);
+        return field.invoke(opcode, info.owner(), info.name(), info.descriptor());
+    }
+
+    public static Method getMethod(String owner, String name, String descriptor) {
         try {
             Class<?> _owner = Class.forName(owner.replace('/', '.'));
             for (Method method : _owner.getMethods()) {
@@ -93,7 +114,7 @@ public class Native {
         }
         throw new RuntimeException("Method " + owner + "." + name + descriptor + " not founded");
     }
-    private static Method getMethod(SerializedLambda lambda) {
+    public static Method getMethod(SerializedLambda lambda) {
         return getMethod(lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature());
     }
 
