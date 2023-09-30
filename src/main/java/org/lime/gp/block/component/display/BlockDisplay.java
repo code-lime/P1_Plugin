@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.lime.Position;
-import org.lime.core;
+import org.lime.gp.block.component.display.display.BlockItemFrameManager;
 import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
@@ -39,7 +39,7 @@ public class BlockDisplay implements Listener {
                 .withInstance();
     };
     public static final BlockModelDisplay.EntityModelManager MODEL_MANAGER = BlockModelDisplay.manager();
-    public static final BlockItemFrameDisplay.BlockItemFrameManager ITEM_FRAME_MANAGER = BlockItemFrameDisplay.manager();
+    public static final BlockItemFrameManager ITEM_FRAME_MANAGER = BlockItemFrameDisplay.manager();
     public static final BlockItemDisplay.BlockItemManager ITEM_MANAGER = BlockItemDisplay.manager();
     public static void init() {
         PacketManager.adapter()

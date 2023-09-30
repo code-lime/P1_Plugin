@@ -8,17 +8,11 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
-import org.lime.display.DisplayManager;
 import org.lime.display.EditedDataWatcher;
 import org.lime.display.ObjectDisplay;
-import org.lime.gp.block.component.display.instance.DisplayMap;
 import org.lime.gp.block.component.display.instance.list.ItemFrameDisplayObject;
-import org.lime.gp.module.TimeoutData;
-import org.lime.system.toast.*;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class BlockItemFrameDisplay extends ObjectDisplay<ItemFrameDisplayObject, EntityItemFrame> {
     private static final DataWatcherObject<ItemStack> DATA_ITEM = EditedDataWatcher.getDataObject(EntityItemFrame.class, "DATA_ITEM");
@@ -35,7 +29,7 @@ public class BlockItemFrameDisplay extends ObjectDisplay<ItemFrameDisplayObject,
 
     @Override public boolean isFilter(Player player) { return player_uuid.equals(player.getUniqueId()); }
 
-    private BlockItemFrameDisplay(UUID block_uuid, UUID player_uuid, ItemFrameDisplayObject data) {
+    public BlockItemFrameDisplay(UUID block_uuid, UUID player_uuid, ItemFrameDisplayObject data) {
         super(data.location());
 
         this.block_uuid = block_uuid;
@@ -67,18 +61,6 @@ public class BlockItemFrameDisplay extends ObjectDisplay<ItemFrameDisplayObject,
         itemFrame.setInvisible(true);
         itemFrame.setInvulnerable(true);
         return itemFrame;
-    }
-
-    public static class BlockItemFrameManager extends DisplayManager<Toast2<UUID, UUID>, ItemFrameDisplayObject, BlockItemFrameDisplay> {
-        @Override public boolean isAsync() { return true; }
-        @Override public boolean isFast() { return true; }
-
-        @Override public Map<Toast2<UUID, UUID>, ItemFrameDisplayObject> getData() {
-            return TimeoutData.stream(DisplayMap.class)
-                    .flatMap(kv -> kv.getValue().frameMap.entrySet().stream().map(v -> Toast.of(kv.getKey(), v.getKey(), v.getValue())))
-                    .collect(Collectors.toMap(kv -> Toast.of(kv.val0, kv.val1), kv -> kv.val2));
-        }
-        @Override public BlockItemFrameDisplay create(Toast2<UUID, UUID> uuid, ItemFrameDisplayObject display) { return new BlockItemFrameDisplay(uuid.val0, uuid.val1, display); }
     }
 
     public static BlockItemFrameManager manager() { return new BlockItemFrameManager(); }

@@ -6,7 +6,6 @@ import net.minecraft.network.protocol.game.PacketPlayOutTileEntityData;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 public interface ITileModelBlock extends ITileBlock, IModelBlock {
     @Override default ITileModelBlock withModel(IBuilder model, int distanceChunk, double distanceModel) { return this; }
