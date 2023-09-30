@@ -97,11 +97,16 @@ public class RecipesBook implements Listener {
     public static void editRow(UserRow row) {
         if (row == null) return;
         lime.nextTick(() -> {
-            if (!(row.getOnline() instanceof CraftPlayer player)) return;
             UUID uuid = row.uuid;
+            if (!(row.getOnline() instanceof CraftPlayer player)) {
+                playerCans.remove(uuid);
+                return;
+            }
             Perms.ICanData data = Perms.getCanData(uuid);
             EntityPlayer handle = player.getHandle();
-            if ((data.unique() + generateKey(handle)).equals(playerCans.get(uuid))) return;
+            String dataKey = data.unique() + generateKey(handle);
+            if (dataKey.equals(playerCans.get(uuid))) return;
+            playerCans.put(uuid, dataKey);
             RecipePackets.syncRecipe(handle);
         });
     }

@@ -1,6 +1,7 @@
 package org.lime.gp.craft.recipe;
 
 import net.minecraft.core.IRegistryCustom;
+import net.minecraft.core.NonNullList;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +23,8 @@ public abstract class AbstractRecipe implements IRecipe<IInventory>, IDisplayRec
     private final Recipes<?> type;
     private final String group;
     private final CraftingBookCategory category;
+
+    @Override public MinecraftKey getRecipeKey() { return key; }
 
     public AbstractRecipe(MinecraftKey key, String group, CraftingBookCategory category, Recipes<?> type) {
         this.group = group;

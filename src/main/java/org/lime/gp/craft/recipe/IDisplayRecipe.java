@@ -7,6 +7,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.network.chat.ChatModifier;
 import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeCrafting;
 import net.minecraft.world.item.crafting.RecipeItemStack;
@@ -17,6 +18,7 @@ import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.settings.list.LoreCraftSetting;
 
 import java.util.Collections;
@@ -24,6 +26,7 @@ import java.util.stream.Stream;
 
 public interface IDisplayRecipe {
     Stream<RecipeCrafting> getDisplayRecipe(IRegistryCustom custom);
+    MinecraftKey getRecipeKey();
 
     static ItemStack amountToName(ItemStack item) {
         return nameWithPostfix(item, Component.text(" x"+item.getCount()));
@@ -80,5 +83,21 @@ public interface IDisplayRecipe {
     }
     static ShapelessRecipes removeLore(ShapelessRecipes recipe, IRegistryCustom custom) {
         return new ShapelessRecipes(recipe.getId(), recipe.getGroup(), recipe.category(), recipe.getResultItem(custom), removeLore(recipe.getIngredients()));
+    }
+
+    static boolean hasItem(RecipeCrafting recipe, IRegistryCustom custom, Checker ingredient) {
+        return hasItem(recipe.getIngredients(), ingredient) || ingredient.check(recipe.getResultItem(custom));
+    }
+    static boolean hasItem(RecipeItemStack slot, Checker ingredient) {
+        for (ItemStack item : slot.getItems())
+            if (ingredient.check(item))
+                return true;
+        return false;
+    }
+    static boolean hasItem(NonNullList<RecipeItemStack> items, Checker ingredient) {
+        for (RecipeItemStack item : items)
+            if (hasItem(item, ingredient))
+                return true;
+        return false;
     }
 }

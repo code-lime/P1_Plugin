@@ -29,6 +29,7 @@ import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.ItemNMS;
 import org.lime.gp.item.Items;
+import org.lime.gp.lime;
 import org.lime.system.range.IRange;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
@@ -40,6 +41,8 @@ public class ClickerRecipe extends AbstractRecipe {
     public final ImmutableList<RecipeSlot> input;
 
     private interface Action {
+        void test(ClickerRecipe recipe);
+        boolean checkItem(ItemStack item);
         Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category);
         Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable);
         default boolean matches(ClickerRecipe recipe, IInventory inventory, World world) {
@@ -54,6 +57,14 @@ public class ClickerRecipe extends AbstractRecipe {
 
         static Action ofDefault(List<IOutputSlot> output, boolean replace) {
             return new Action() {
+                @Override public void test(ClickerRecipe recipe) { }
+                @Override public boolean checkItem(ItemStack item) {
+                    for (IOutputSlot slot : output)
+                        if (slot.test(item))
+                            return true;
+                    return false;
+                }
+
                 @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     NonNullList<RecipeItemStack> slots = NonNullList.withSize(3*3, RecipeItemStack.EMPTY);
                     List<RecipeItemStack> items = recipe.input.stream().map(v -> v.getWhitelistIngredientsShow().map(IDisplayRecipe::amountToName)).map(RecipeItemStack::of).toList();
@@ -70,6 +81,14 @@ public class ClickerRecipe extends AbstractRecipe {
         }
         static Action ofRepair(IRange repair) {
             return new Action() {
+                @Override public void test(ClickerRecipe recipe) {
+                    recipe.input.forEach(slot -> {
+                        if (!(slot instanceof RecipeAmountSlot)) {
+                            lime.logOP("WARNING LOAD RECIPE '"+recipe.getId()+"'! Slot not amounted!");
+                        }
+                    });
+                }
+                @Override public boolean checkItem(ItemStack item) { return false; }
                 @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     Toast1<Integer> index = Toast.of(0);
                     return recipe.input.get(0).getWhitelistIngredientsShow().map(firstItem -> {
@@ -118,6 +137,11 @@ public class ClickerRecipe extends AbstractRecipe {
         }
         static Action ofCombine(List<Enchantment> enchantments) {
             return new Action() {
+                @Override public void test(ClickerRecipe recipe) {
+                    if (recipe.input.size() == 2) return;
+                    lime.logOP("WARNING LOAD RECIPE '"+recipe.getId()+"'! Input length only 2! Now: " + recipe.input.size());
+                }
+                @Override public boolean checkItem(ItemStack item) { return false; }
                 @Override public Stream<RecipeCrafting> createDisplayRecipe(ClickerRecipe recipe, MinecraftKey displayKey, String displayGroup, CraftingBookCategory category) {
                     Toast1<Integer> index = Toast.of(0);
                     List<String> whitelistSecond = recipe.input.get(1).getWhitelistKeys().toList();
@@ -182,7 +206,7 @@ public class ClickerRecipe extends AbstractRecipe {
                                                 )
                                         );
                                     })
-                    ) ;
+                    );
                 }
                 @Override public Stream<ItemStack> assembleList(ClickerRecipe recipe, IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
                     if (inventory.getItem(1).isEmpty()) return Stream.of(inventory.getItem(0));
@@ -273,8 +297,9 @@ public class ClickerRecipe extends AbstractRecipe {
         this.action = action;
         this.clicks = clicks;
         this.clicker_type = clicker_type;
-    }
 
+        this.action.test(this);
+    }
     @Override public boolean matches(IInventory inventory, World world) {
         return this.action.matches(this, inventory, world);
     }

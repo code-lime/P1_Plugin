@@ -30,7 +30,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.recipe.*;
@@ -38,7 +37,6 @@ import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.slot.output.IOutputSlot;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputVariable;
-import org.lime.gp.item.data.Checker;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Perms;
 import org.lime.system.Regex;
@@ -214,24 +212,24 @@ public class Crafts {
 
     private enum CookingType {
         Blasting((key, group, category, output, input, exp, time) -> new RecipeBlasting(key, group, category, input.getRecipeSlotNMS(), output.create(true, IOutputVariable.empty()), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
-            @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
-            @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
+            @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
+            @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
+            @Override public boolean matches(IInventory inventory, World world) { return check(input, inventory); }
         }),
         Furnace((key, group, category, output, input, exp, time) -> new FurnaceRecipe(key, group, category, input.getRecipeSlotNMS(), output.create(true, IOutputVariable.empty()), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
-            @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
-            @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
+            @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
+            @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
+            @Override public boolean matches(IInventory inventory, World world) { return check(input, inventory); }
         }),
         Campfire((key, group, category, output, input, exp, time) -> new RecipeCampfire(key, group, category, input.getRecipeSlotNMS(), output.create(true, IOutputVariable.empty()), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
-            @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
-            @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
+            @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
+            @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
+            @Override public boolean matches(IInventory inventory, World world) { return check(input, inventory); }
         }),
         Smoking((key, group, category, output, input, exp, time) -> new RecipeSmoking(key, group, category, input.getRecipeSlotNMS(), output.create(true, IOutputVariable.empty()), exp, time) {
-            @Override public net.minecraft.world.item.ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
-            @Override public net.minecraft.world.item.ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
-            @Override public boolean matches(IInventory inventory, net.minecraft.world.level.World world) { return check(input, inventory); }
+            @Override public ItemStack getResultItem(IRegistryCustom custom) { return output.create(false, IOutputVariable.empty()); }
+            @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom) { return getResultItem(custom); }
+            @Override public boolean matches(IInventory inventory, World world) { return check(input, inventory); }
         });
 
         private static boolean check(RecipeSlot input, IInventory inventory) {
@@ -253,7 +251,7 @@ public class Crafts {
         }
     }
 
-    private static abstract class ShapelessRecipes extends net.minecraft.world.item.crafting.ShapelessRecipes implements VanillaType, IDisplayRecipe {
+    private static abstract class ShapelessRecipes extends net.minecraft.world.item.crafting.ShapelessRecipes implements IVanillaType, IDisplayRecipe {
         public final List<RecipeSlot> recipes;
         public ShapelessRecipes(MinecraftKey id, String group, CraftingBookCategory category, List<RecipeSlot> recipes, net.minecraft.world.item.ItemStack output, NonNullList<RecipeItemStack> input) {
             super(id, group, category, output, input);
@@ -319,7 +317,7 @@ public class Crafts {
         }
         protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
     }
-    private static abstract class ModifyRecipes extends net.minecraft.world.item.crafting.ShapelessRecipes implements VanillaType, IDisplayRecipe {
+    private static abstract class ModifyRecipes extends net.minecraft.world.item.crafting.ShapelessRecipes implements IVanillaType, IDisplayRecipe {
         public final RecipeSlot modifySlot;
         public final List<RecipeSlot> otherSlots;
         public ModifyRecipes(MinecraftKey id, String group, CraftingBookCategory category, RecipeSlot modifySlot, List<RecipeSlot> otherSlots, net.minecraft.world.item.ItemStack output, NonNullList<RecipeItemStack> input) {
@@ -401,7 +399,7 @@ public class Crafts {
         }
         protected abstract Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup);
     }
-    private static abstract class ShapedRecipes extends net.minecraft.world.item.crafting.ShapedRecipes implements VanillaType, IDisplayRecipe {
+    private static abstract class ShapedRecipes extends net.minecraft.world.item.crafting.ShapedRecipes implements IVanillaType, IDisplayRecipe {
         public final List<RecipeSlot> recipes;
         public ShapedRecipes(MinecraftKey id, String group, CraftingBookCategory category, int width, int height, List<RecipeSlot> recipes, ItemStack output) {
             super(id, group, category, width, height, NonNullList.of(RecipeItemStack.of(), recipes.stream().map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new)), output);
@@ -476,10 +474,10 @@ public class Crafts {
         return slot;
     }
 
-    public interface VanillaType {
+    public interface IVanillaType {
         Optional<String> vanillaType();
-        static Optional<String> ofInventory(InventoryCrafting inv) { return inv instanceof VanillaType vt ? vt.vanillaType() : Optional.empty(); }
-        static Optional<String> ofRecipe(IRecipe<?> recipe) { return recipe instanceof VanillaType vt ? vt.vanillaType() : Optional.empty(); }
+        static Optional<String> ofInventory(InventoryCrafting inv) { return inv instanceof IVanillaType vt ? vt.vanillaType() : Optional.empty(); }
+        static Optional<String> ofRecipe(IRecipe<?> recipe) { return recipe instanceof IVanillaType vt ? vt.vanillaType() : Optional.empty(); }
     }
 
     public static <T extends IInventory>NonNullList<net.minecraft.world.item.ItemStack> getRemainingItems(Map<Integer, RecipeSlot> craft, T inventory) {
@@ -519,10 +517,11 @@ public class Crafts {
                 List<RecipeSlot> recipes = create(key.toString(), json.get("input").getAsJsonArray());
                 Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
                 return new ShapelessRecipes(key, group, category, recipes, output.create(true, IOutputVariable.empty()), NonNullList.of(RecipeItemStack.of(), recipes.stream().map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new))) {
+                    @Override public MinecraftKey getRecipeKey() { return key; }
                     @Override public net.minecraft.world.item.ItemStack result(IOutputVariable variable) { return output.create(false, variable); }
                     @Override public Optional<String> vanillaType() { return vanilla_type; }
                     @Override public boolean matches(InventoryCrafting inventory, World world) {
-                        return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
+                        return IVanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
                     }
                     @Override protected Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
                         return Optional.of(this);
@@ -541,12 +540,13 @@ public class Crafts {
                 List<RecipeSlot> otherSlot = create(key.toString(), input.get("other").getAsJsonArray());
                 Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
                 return new ModifyRecipes(key, group, category, modifySlot, otherSlot, output.create(true, IOutputVariable.empty()), NonNullList.of(RecipeItemStack.of(), Stream.concat(Stream.of(modifySlot), otherSlot.stream()).map(RecipeSlot::getRecipeSlotNMS).toArray(RecipeItemStack[]::new))) {
+                    @Override public MinecraftKey getRecipeKey() { return key; }
                     @Override public net.minecraft.world.item.ItemStack result(ItemStack modify, IOutputVariable variable) {
                         return modify.isEmpty() ? output.create(false, variable) : output.modify(modify, false, variable);
                     }
                     @Override public Optional<String> vanillaType() { return vanilla_type; }
                     @Override public boolean matches(InventoryCrafting inventory, World world) {
-                        return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
+                        return IVanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
                     }
                     @Override protected Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
                         return Optional.of(this);
@@ -566,10 +566,11 @@ public class Crafts {
                 Optional<String> vanilla_type = json.has("vanilla_type") ? Optional.of(json.get("vanilla_type").getAsString()) : Optional.empty();
                 if (recipes.size() != width * height) throw new IllegalArgumentException("In craft '"+key.getPath()+"' input.length != width*height");
                 return new ShapedRecipes(key, group, category, width, height, recipes, output.create(true, IOutputVariable.empty())) {
+                    @Override public MinecraftKey getRecipeKey() { return key; }
                     @Override public net.minecraft.world.item.ItemStack result(IOutputVariable variable) { return output.create(false, variable); }
                     @Override public Optional<String> vanillaType() { return vanilla_type; }
                     @Override public boolean matches(InventoryCrafting inventory, net.minecraft.world.level.World world) {
-                        return VanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
+                        return IVanillaType.ofInventory(inventory).equals(vanilla_type) && super.matches(inventory, world);
                     }
                     @Override protected Optional<net.minecraft.world.item.crafting.RecipeCrafting> createDisplayRecipe(MinecraftKey displayKey, String displayGroup) {
                         return Optional.of(this);
