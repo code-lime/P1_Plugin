@@ -13,33 +13,38 @@ import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
 import org.lime.gp.player.inventory.InterfaceManager;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class ContainerWorkbenchBook extends ContainerWorkbench implements IRecipesBookContainer {
-    private final UUID block_uuid;
+    private final @Nullable UUID block_uuid;
     private final Collection<? extends IDisplayRecipe> recipes;
 
-    public ContainerWorkbenchBook(int syncId, PlayerInventory playerInventory, Collection<? extends IDisplayRecipe> recipes, UUID block_uuid, ContainerAccess context) {
+    public ContainerWorkbenchBook(int syncId, PlayerInventory playerInventory, Collection<? extends IDisplayRecipe> recipes, @Nullable UUID block_uuid, ContainerAccess context) {
         super(syncId, playerInventory, context);
         this.block_uuid = block_uuid;
         this.recipes = recipes;
     }
-    @Override public Collection<? extends IDisplayRecipe> getRecipesCustom() { return recipes; }
-    @Override protected Slot addSlot(Slot slot) { return super.addSlot(InterfaceManager.AbstractSlot.noneInteractSlot(slot)); }
+    @Override public Stream<? extends IDisplayRecipe> getRecipesCustom() { return recipes.stream(); }
+    public Slot changeSlot(Slot slot) { return InterfaceManager.AbstractSlot.noneInteractSlot(slot); }
+    @Override protected final Slot addSlot(Slot slot) {
+        slot.index = this.slots.size();
+        return super.addSlot(changeSlot(slot));
+    }
     @Override public boolean stillValid(EntityHuman player) {
         if (!this.checkReachable) return true;
         return stillValid(this.access, player, block_uuid);
     }
     protected static boolean stillValid(ContainerAccess context, EntityHuman player, UUID block_uuid) {
         return context.evaluate((world, blockposition) -> world.getBlockEntity(blockposition) instanceof TileEntityLimeSkull skull
-                && skull.customUUID().filter(block_uuid::equals).isPresent()
+                && skull.customUUID().filter(v -> v.equals(block_uuid)).isPresent()
                 && player.distanceToSqr(blockposition.getX() + 0.5, blockposition.getY() + 0.5, blockposition.getZ() + 0.5) <= 64.0, true);
     }
 
-
-    public static <T extends AbstractRecipe> EnumInteractionResult open(EntityHuman player, CustomTileMetadata metadata, Recipes<T> recipes, Collection<T> recipeList) {
+    public static <T extends AbstractRecipe>EnumInteractionResult open(EntityHuman player, CustomTileMetadata metadata, Recipes<T> recipes, Collection<T> recipeList) {
         return Optional.ofNullable(RecipesBook.recipesBooks.get(recipes.id()))
                 .map(book -> {
                     TileEntityLimeSkull skull = metadata.skull;
