@@ -3,6 +3,7 @@ package org.lime.gp.player.module;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.bukkit.craftbukkit.v1_20_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
@@ -20,14 +21,15 @@ import org.lime.gp.database.tables.KeyedTable;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
 import org.lime.gp.lime;
+import org.lime.gp.module.ConfirmCommand;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.module.npc.eplayer.Pose;
 import org.lime.gp.module.npc.eplayer.RawEPlayer;
 import org.lime.gp.player.module.needs.INeedEffect;
-import org.lime.gp.player.module.needs.food.FoodType;
 import org.lime.plugin.CoreElement;
+import org.lime.system.execute.Action1;
 import org.lime.system.json;
 import org.lime.system.toast.Toast;
 import org.lime.system.toast.Toast2;
@@ -39,7 +41,8 @@ import java.util.stream.Stream;
 public class DeathGame {
     public static CoreElement create() {
         return CoreElement.create(DeathGame.class)
-                .withInit(DeathGame::init);
+                .withInit(DeathGame::init)
+                .addCommand("death.user", v -> ConfirmCommand.setup(v, "смерть", DeathGame::deathUser));
     }
     private static void init() {
         lime.repeat(DeathGame::update, 10);
@@ -59,7 +62,7 @@ public class DeathGame {
         })));
     }
     private static void executeDeath(Player player, UserRow user, DateTime dieDate) {
-        Administrator.aban(player.getUniqueId(), "Вы мертвы! Дата сметри: " + dieDate.toFormat("dd.yyyy"), null);
+        Administrator.aban(player.getUniqueId(), "Вы мертвы! Дата смерти: " + dieDate.toFormat("dd.yyyy"), null);
         Skins.Property property = Skins.getProperty(player);
 
         PlayerInventory inventory = player.getInventory();
@@ -147,6 +150,23 @@ public class DeathGame {
                     return Stream.<INeedEffect<?>>of(INeedEffect.Mutate.of(INeedEffect.Type.SLEEP, value));
                 })
                 .orElseGet(Stream::empty);
+    }
+
+    private static void deathUser(UUID uuid, Action1<Component> callback) {
+        UserRow.getBy(uuid).ifPresentOrElse(row -> Methods.forceDeath(row.id, DayManager.now(), () -> {
+                    callback.invoke(Component.empty()
+                            .color(NamedTextColor.GREEN)
+                            .append(Component.text("Дата смерти игрока ")
+                                    .append(Component.text(uuid.toString()).color(NamedTextColor.GOLD))
+                                    .append(Component.text(" была успешно изменена!"))
+                            ));
+        }), () -> callback.invoke(Component.empty()
+                .color(NamedTextColor.RED)
+                .append(Component.text("Игрок ")
+                        .append(Component.text(uuid.toString()).color(NamedTextColor.GOLD))
+                        .append(Component.text(" не найден!"))
+                ))
+        );
     }
 }
 

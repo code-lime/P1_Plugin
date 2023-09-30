@@ -601,6 +601,9 @@ public class Methods {
                         .build(),
                 callback);
     }
+    public static void forceDeath(int userID, DateTime dieDate, Action0 callback) {
+        SQL.Async.rawSql("UPDATE users SET users.die_date = '"+dieDate.toString()+"' WHERE users.id = " + userID, callback);
+    }
     public static void lootDeath(int deathId, Action1<String> callbackEquipment) {
         SQL.Async.rawSqlOnce("SELECT LootDeath("+deathId+")", String.class,
                 str -> callbackEquipment.invoke(str.isBlank() ? null : str));
