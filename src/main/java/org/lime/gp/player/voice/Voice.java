@@ -41,7 +41,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import org.lime.core;
 import org.lime.gp.player.module.Death;
 import org.lime.plugin.CoreElement;

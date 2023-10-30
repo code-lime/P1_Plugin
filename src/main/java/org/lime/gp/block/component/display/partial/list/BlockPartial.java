@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;

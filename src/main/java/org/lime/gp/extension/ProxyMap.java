@@ -1,7 +1,7 @@
 package org.lime.gp.extension;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
