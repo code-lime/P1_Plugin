@@ -24,10 +24,10 @@ public record VelocityStep(Transformation point, float power, Vector radius, boo
         Vector to = MathUtils.convert(MathUtils.transform(point, location).getTranslation());
         if (radius.isZero()) {
             if (!self) return;
-            sendForce(Collections.singleton(player), from.toVector(), power);
+            sendForce(Collections.singleton(player), to, power);
             return;
         }
-        sendForce(from.getNearbyPlayers(radius.getX(), radius.getY(), radius.getZ()), from.toVector(), power);
+        sendForce(from.getNearbyPlayers(radius.getX(), radius.getY(), radius.getZ()), to, power);
     }
     private static void sendForce(Collection<Player> players, Vector point, float power) {
         Vec3D toPoint = new Vec3D(point.getX(), point.getY(), point.getZ());
