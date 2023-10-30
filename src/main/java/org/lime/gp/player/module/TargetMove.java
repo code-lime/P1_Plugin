@@ -21,6 +21,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.display.Passenger;
 import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
@@ -80,7 +81,7 @@ public class TargetMove implements Listener {
     }
     public static boolean updateSingle(UUID playerUUID, UUID targetUUID, boolean init) {
         Player player = Bukkit.getPlayer(playerUUID);
-        if (player == null || player.isInsideVehicle() || Displays.hasVehicle(player.getEntityId())) {
+        if (player == null || player.isInsideVehicle() || Passenger.hasVehicle(player.getEntityId())) {
             Optional.ofNullable(Bukkit.getPlayer(targetUUID))
                     .map(GSitAPI::getSeat)
                     .ifPresent(v -> GSitAPI.removeSeat(v.getEntity(), GetUpReason.PLUGIN));

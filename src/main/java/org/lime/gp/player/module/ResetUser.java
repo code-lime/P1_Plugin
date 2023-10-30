@@ -53,6 +53,7 @@ public class ResetUser {
                         } catch (Exception ignored) {}
 
                         PlayerData.clearPlayerData(uuid);
+                        Advancements.clearPlayerData(uuid);
 
                         callback.invoke(Component.empty()
                                 .color(NamedTextColor.GREEN)

@@ -11,6 +11,7 @@ import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.LevelRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.item.loot.ILoot;
+import org.lime.gp.module.loot.ModifyLootTable;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.perm.Perms.CanData;
 import org.lime.gp.player.perm.Perms.ICanData;
@@ -60,8 +61,8 @@ public class LevelStep {
         Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
             if (!Regex.compareRegex(key, kv.getKey())) continue;
+            if (ModifyLootTable.DEBUG) lime.logOP("[LEVEL] Modify '"+key+"' by '"+kv.getKey()+"'");
             loot = kv.getValue();
-            break;
         }
         if (loot == null) return false;
         loot.val1.modifyLoot(e, loot.val0);
@@ -71,8 +72,8 @@ public class LevelStep {
         Toast2<ILoot, LootModifyAction> loot = null;
         for (var kv : modifyLootTable.entrySet()) {
             if (!Regex.compareRegex(key, kv.getKey())) continue;
+            if (ModifyLootTable.DEBUG) lime.logOP("[LEVEL CHANGE] Modify '"+key+"' by '"+kv.getKey()+"'");
             loot = kv.getValue();
-            break;
         }
         return loot == null ? Optional.empty() : Optional.of(loot.val1.changeLoot(base, loot.val0));
     }

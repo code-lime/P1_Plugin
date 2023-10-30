@@ -37,7 +37,7 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.module.TimeoutData;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
@@ -46,7 +46,6 @@ import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
 import org.lime.system.map;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.ItemUtils;
 import org.lime.system.utils.RandomUtils;
 

@@ -25,7 +25,7 @@ public class Elemental {
 
     private static void init() {
         AnyEvent.addEvent("elemental.execute", AnyEvent.type.owner, v -> v.createParam(_v -> _v, steps::keySet), (player, elemental) -> {
-            execute(player, elemental);
+            execute(player, new DataContext(), elemental);
         });
     }
     private static void config(JsonObject json) {
@@ -35,16 +35,16 @@ public class Elemental {
         Elemental.steps.clear();
         Elemental.steps.putAll(steps);
     }
-    public static void execute(Player player, String elemental) {
-        execute(player, elemental, MathUtils.transformation(player.getLocation()));
+    public static void execute(Player player, DataContext context, String elemental) {
+        execute(player, context, elemental, MathUtils.transformation(player.getLocation()));
     }
-    public static void execute(Player player, String elemental, Transformation location) {
+    public static void execute(Player player, DataContext context, String elemental, Transformation location) {
         IStep step = steps.get(elemental);
         if (step == null) {
             lime.logOP("Elemental '"+elemental+"' not funded!");
             return;
         }
-        step.execute(player, location);
+        step.execute(player, context, location);
     }
 }
 

@@ -1,6 +1,6 @@
 package org.lime.gp.item.settings.list;
 
-import net.minecraft.world.item.Items;
+import com.google.gson.JsonElement;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -16,6 +16,7 @@ import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Death;
 
 import com.google.gson.JsonObject;
+import org.lime.gp.player.module.needs.thirst.Thirst;
 import org.lime.system.range.IRange;
 
 @Setting(name = "heal") public class HealSetting extends ItemSetting<JsonObject> implements UseSetting.ITimeUse {
@@ -25,6 +26,9 @@ import org.lime.system.range.IRange;
     public final boolean up;
     public final boolean fixLegs;
 
+    public final String prefixSelf;
+    public final String prefixTarget;
+
     public HealSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         this.heal = IRange.parse(json.get("heal").getAsString());
@@ -32,13 +36,28 @@ import org.lime.system.range.IRange;
         this.time = json.has("time") ? json.get("time").getAsInt() : 0;
         this.up = json.has("up") && json.get("up").getAsBoolean();
         this.fixLegs = json.has("fixLegs") && json.get("fixLegs").getAsBoolean();
+        if (json.has("prefix")) {
+            JsonElement prefix = json.get("prefix");
+            if (prefix.isJsonObject()) {
+                JsonObject _prefix = prefix.getAsJsonObject();
+                prefixSelf = _prefix.get("self").getAsString();
+                prefixTarget = _prefix.get("target").getAsString();
+            } else {
+                prefixSelf = prefixTarget = prefix.getAsString();
+            }
+        } else {
+            prefixSelf = prefixTarget = "";
+        }
     }
 
     @Override public EquipmentSlot arm() { return EquipmentSlot.HAND; }
     @Override public int getTime() { return time; }
+    @Override public String prefix(boolean self) { return self ? prefixSelf : prefixTarget; }
+
     @Override public void timeUse(Player player, Player target, ItemStack item) {
         if (up) {
             Death.up(target);
+            Thirst.thirstValueCheck(target, 3, true);
             MenuCreator.show(player, "phone.user.die.medic_up", Apply.of().add("other_uuid", target.getUniqueId().toString()));
         }
         if (fixLegs) target.removeScoreboardTag("leg.broken");
@@ -61,7 +80,12 @@ import org.lime.system.range.IRange;
                 JProperty.optional(IName.raw("total"), IJElement.raw(10), IComment.text("Максимальное значение здоровья до которого возможно восстановить")),
                 JProperty.optional(IName.raw("time"), IJElement.raw(10), IComment.text("Время использования предмета в тиках")),
                 JProperty.optional(IName.raw("up"), IJElement.bool(), IComment.text("Требуется ли поднимать игрока")),
-                JProperty.optional(IName.raw("fixLegs"), IJElement.bool(), IComment.text("Требуется ли восстанавливать перелом ноги"))
+                JProperty.optional(IName.raw("fixLegs"), IJElement.bool(), IComment.text("Требуется ли восстанавливать перелом ноги")),
+                JProperty.optional(IName.raw("prefix"), IJElement.raw("PREFIX TEXT")
+                        .or(JObject.of(
+                                JProperty.require(IName.raw("self"), IJElement.raw("PREFIX TEXT")),
+                                JProperty.require(IName.raw("target"), IJElement.raw("PREFIX TEXT"))
+                        )), IComment.text("Отображаемый префикс перетаймеров использования"))
         ), "Предмет востанавливающий здоровье. После использования возможен вызов " + docs.settingsLink(NextSetting.class).link());
     }
 }

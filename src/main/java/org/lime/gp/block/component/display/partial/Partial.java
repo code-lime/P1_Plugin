@@ -22,6 +22,7 @@ public abstract class Partial {
     private final List<Variable> variables = new LinkedList<>();
 
     public UUID uuid() { return uuid; }
+    public UUID unique() { return uuid; }
     public int distanceChunk() { return distanceChunk; }
     public List<Variable> variables() { return variables; }
 
@@ -35,8 +36,6 @@ public abstract class Partial {
             variables.add(new Variable(distanceChunk, owner, variable.getAsJsonObject()));
         });
     }
-
-    public UUID unique() { return uuid; }
 
     public abstract PartialEnum type();
     public List<Partial> partials() {

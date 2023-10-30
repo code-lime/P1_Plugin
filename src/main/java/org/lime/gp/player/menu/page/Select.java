@@ -48,11 +48,10 @@ public class Select extends Base {
 
         public SelectObject.InvokeAction Apply(Apply apply, SelectObject object) {
             return object.new InvokeAction(
-                    player -> owner.invoke(player, apply, true),
-                    player -> other.invoke(player, apply, true),
-                    player -> call.invoke(player, apply, true));
+                    (data, player) -> owner.invoke(player, apply.join(data), true),
+                    (data, player) -> other.invoke(player, apply.join(data), true),
+                    (data, player) -> call.invoke(player, apply.join(data), true));
         }
-
     }
 
     public Select(JsonObject json) {
@@ -132,7 +131,7 @@ public class Select extends Base {
 
         Cooldown.setCooldown(new UUID[]{select_uuid, other_uuid}, dynamicKey, timeoutTime);
         Cooldown.setCooldown(select_uuid, dynamicKey, cooldownTime);
-        selectObject.invoke.InvokeAll();
+        selectObject.invoke.invokeAll(Apply.of());
     }
 }
 

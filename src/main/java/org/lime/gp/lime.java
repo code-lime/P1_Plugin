@@ -43,7 +43,7 @@ import org.lime.gp.module.*;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
 import org.lime.gp.module.biome.time.DayManager;
 import org.lime.gp.module.loot.PopulateLootEvent;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.TownInventory;
 import org.lime.gp.player.inventory.WalletInventory;
@@ -68,14 +68,11 @@ import org.lime.invokable.IInvokable;
 import org.lime.plugin.IConfig;
 import org.lime.plugin.TimerBuilder;
 import org.lime.plugin.Timers;
-import org.lime.web;
 import patch.Patcher;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class lime extends core {
     public static lime _plugin;

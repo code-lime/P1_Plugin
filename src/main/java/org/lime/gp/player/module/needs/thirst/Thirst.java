@@ -3,13 +3,11 @@ package org.lime.gp.player.module.needs.thirst;
 import com.google.gson.JsonObject;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.needs.INeedEffect;
-import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.gp.player.ui.CustomUI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -70,6 +68,14 @@ public class Thirst implements Listener {
     }
     public static void thirstValue(Player player, double value) {
         ThirstData data = getThirst(player);
+        data.value = value;
+        if (data.value < 0) data.value = 0;
+        else if (data.value > 20) data.value = 20;
+        setThirst(player, data);
+    }
+    public static void thirstValueCheck(Player player, double value, boolean forward) {
+        ThirstData data = getThirst(player);
+        if (forward == data.value > value) return;
         data.value = value;
         if (data.value < 0) data.value = 0;
         else if (data.value > 20) data.value = 20;

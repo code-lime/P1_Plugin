@@ -1,33 +1,34 @@
 package org.lime.gp.database.readonly;
 
-import com.google.gson.JsonArray;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftMarker;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Tameable;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.entity.Entities;
+import org.lime.gp.entity.component.data.OwnerInstance;
+import org.lime.gp.entity.component.list.OwnerComponent;
+import org.lime.gp.item.settings.list.HideNickSetting;
 import org.lime.gp.lime;
+import org.lime.gp.module.EntityOwner;
 import org.lime.gp.module.EntityPosition;
+import org.lime.gp.player.module.Death;
+import org.lime.gp.player.module.Ghost;
 import org.lime.gp.player.module.Skins;
+import org.lime.gp.player.module.TabManager;
 import org.lime.gp.player.perm.Works;
 import org.lime.gp.player.selector.ISelector;
 import org.lime.gp.player.selector.SelectorType;
-import org.lime.gp.player.voice.Radio;
-import org.lime.gp.extension.JManager;
-import org.lime.gp.item.settings.list.*;
 import org.lime.gp.player.selector.UserSelector;
-import org.lime.gp.player.module.TabManager;
-import org.lime.gp.player.module.Death;
-import org.lime.gp.player.module.Ghost;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.gp.player.voice.Radio;
+import org.lime.plugin.CoreElement;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast3;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class ReadonlySync {
@@ -137,25 +138,47 @@ public class ReadonlySync {
     @SuppressWarnings("deprecation")
     private static final ReadonlyTable<String> ENTITY_READONLY = ReadonlyTable.Builder.<String>of("entity", "uuid")
             .withKey(String.class)
-            .withKeys("uuid","x","y","z","name","owner_uuid","type")
-            .withData(() -> EntityPosition.getEntitiyRows().entrySet().stream().collect(Collectors.toMap(kv -> kv.getKey().toString(), kv -> {
-                Tameable tameable = kv.getValue();
-                Location location = tameable.getLocation();
-                return Arrays.asList(
-                        kv.getKey(),
-                        (int)location.getBlockX(),//system.round(location.getX(), 3),
-                        (int)location.getBlockY(),//system.round(location.getY(), 3),
-                        (int)location.getBlockZ(),//system.round(location.getZ(), 3),
-                        tameable.getCustomName(),
-                        tameable.getOwnerUniqueId(),
-                        tameable.getType().name()
-                );
-            })))
+            .withKeys("uuid","x","y","z","name","owner_uuid","owner_death","type")
+            .withData(() -> EntityOwner.getAllEntities()
+                    .flatMap(entityOwner -> entityOwner.getOwner()
+                            .flatMap(EntityOwner.UserInfo::row)
+                            .map(owner -> {
+                                Entity entity = entityOwner.entity();
+                                UUID entityUniqueId = entity.getUniqueId();
+                                Location location = entity.getLocation();
+
+                                return Toast.of(entityUniqueId.toString(), Arrays.<Object>asList(
+                                        entityUniqueId,
+                                        (int)location.getBlockX(),//system.round(location.getX(), 3),
+                                        (int)location.getBlockY(),//system.round(location.getY(), 3),
+                                        (int)location.getBlockZ(),//system.round(location.getZ(), 3),
+                                        entity.getCustomName(),
+                                        owner.uuid,
+                                        owner.userName.startsWith("RES:") ? 1 : 0,
+                                        Optional.of(entity)
+                                                .map(v -> v instanceof CraftMarker m ? m.getHandle() : null)
+                                                .flatMap(Entities::customOf)
+                                                .flatMap(v -> v.list(OwnerComponent.class).findAny())
+                                                .map(v -> v.entityType)
+                                                .orElseGet(() -> entity.getType().name())
+                                ));
+                            })
+                            .stream())
+                    .collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1)))
             .build();
 
     private static final ReadonlyTable<String> ENTITY_SUBS_READONLY = ReadonlyTable.Builder.<String>of("entity_subs", "CONCAT(uuid,'^',sub_uuid)")
             .withKey(String.class)
             .withKeys("uuid","sub_uuid")
+            .withData(() -> EntityOwner.getAllEntities()
+                    .flatMap(entityOwner -> {
+                        UUID uuid = entityOwner.entity().getUniqueId();
+                        return entityOwner.getSubs()
+                                .flatMap(v -> v.row().stream())
+                                .map(sub -> Toast.of(uuid + "^" + sub.uuid, Arrays.<Object>asList(uuid, sub.uuid)));
+                    })
+                    .collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1)))
+            /*
             .withData(() -> EntityPosition.getEntitiyRows().values().stream().flatMap(j -> {
                 JsonArray data = JManager.get(JsonArray.class, j.getPersistentDataContainer(), "sub_owners", null);
                 if (data == null) return Stream.empty();
@@ -167,6 +190,7 @@ public class ReadonlySync {
                 });
                 return list.stream();
             }).collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1)))
+            */
             .build();
 
     private static final ReadonlyTable<String> RADIO_READONLY = ReadonlyTable.Builder.<String>of("radio_readonly", "CONCAT(uuid,'^',level)")

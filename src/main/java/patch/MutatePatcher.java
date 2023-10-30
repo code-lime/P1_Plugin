@@ -2,6 +2,7 @@ package patch;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandListenerWrapper;
+import net.minecraft.core.BlockPosition;
 import net.minecraft.data.worldgen.BiomeSettings;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.commands.CommandHelp;
@@ -36,15 +37,17 @@ import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import net.minecraft.world.level.block.entity.TileEntitySkull;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.LootTableEvent;
+import net.minecraft.world.level.storage.loot.LootTableInfo;
 import net.minecraft.world.phys.MovingObjectPositionEntity;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 class MutatePatcher {
     private static final String STATIC_CONSTRUCTOR = "<clinit>";
@@ -56,7 +59,11 @@ class MutatePatcher {
         Native.log("Modify "+bukkit_archive.name+" jar...");
         bukkit_archive
                 .patchMethod(IMethodFilter.of(Execute.func(org.bukkit.inventory.ItemStack::getMaxStackSize)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.ItemStackSizeEvent");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
@@ -70,15 +77,44 @@ class MutatePatcher {
                                 visitor.visitInsn(Opcodes.IRETURN);
                                 visitor.visitMaxs(0, 0);
                                 visitor.visitEnd();
+
+                                setProgress("Event.ItemStackSizeEvent");
                             }
                         }));
 
         Native.log("Modify "+version_archive.name+" jar...");
         version_archive
-                .patchMethod(IMethodFilter.of(LootTable.class, OBJECT_CONSTRUCTOR, false),
-                        MethodPatcher.none().access(v -> v | Opcodes.ACC_PUBLIC))
+                //.patchMethod(IMethodFilter.of(LootTable.class, OBJECT_CONSTRUCTOR, false),
+                //        MethodPatcher.none().access(v -> v | Opcodes.ACC_PUBLIC))
+                .patchMethod(IMethodFilter.of(Execute.<LootTable, LootTableInfo, Consumer<ItemStack>>action(LootTable::getRandomItemsRaw)),
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.LootTableEvent");
+                            }
+                            private int event = 0;
+
+                            @Override public void visitVarInsn(int opcode, int varIndex) {
+                                if (event == 0 && opcode == Opcodes.ALOAD && varIndex == 0) {
+                                    event = 1;
+                                    super.visitVarInsn(Opcodes.ALOAD, 0);
+                                    super.visitVarInsn(Opcodes.ALOAD, 1);
+                                    super.visitVarInsn(Opcodes.ALOAD, 2);
+                                    Native.writeMethod(Execute.func(LootTableEvent::execute), super::visitMethodInsn);
+                                    Label label = new Label();
+                                    super.visitJumpInsn(Opcodes.IFNE, label);
+                                    super.visitInsn(Opcodes.RETURN);
+                                    super.visitLabel(label);
+                                    setProgress("Event.LootTableEvent");
+                                }
+                                super.visitVarInsn(opcode, varIndex);
+                            }
+                        }))
                 .patchMethod(IMethodFilter.of(Blocks.class, STATIC_CONSTRUCTOR, false),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Replace.Type", "Replace.Method");
+                            }
+
                             private final String from = BlockSkull.class.getName().replace('.', '/');
                             private final String to = from.replace("BlockSkull", "BlockLimeSkull");
 
@@ -86,6 +122,7 @@ class MutatePatcher {
                                 if (type.equals(from)) {
                                     Native.log("Replace '" + from + "' to '" + to + "'");
                                     type = to;
+                                    setProgressDuplicate("Replace.Type");
                                 }
                                 super.visitTypeInsn(opcode, type);
                             }
@@ -93,22 +130,29 @@ class MutatePatcher {
                                 if (owner.equals(from)) {
                                     Native.log("Replace '" + from + "' to '" + to + "' in method " + owner + "." + name + descriptor);
                                     owner = to;
+                                    setProgressDuplicate("Replace.Method");
                                 }
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(TileEntityTypes.class, STATIC_CONSTRUCTOR, false),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Replace.Method");
+                            }
+
                             @Override public void visitInvokeDynamicInsn(String name, String descriptor, Handle handle, Object... args) {
                                 super.visitInvokeDynamicInsn(name, descriptor, handle, Arrays.stream(args).map(v -> {
                                     if (v instanceof Handle _handle && _handle.getOwner().equals(Type.getInternalName(TileEntitySkull.class))) {
                                         Native.log("Replace 'TileEntitySkull' to 'TileEntityLimeSkull' in " + v);
+                                        setProgressDuplicate("Replace.Method");
                                         return new Handle(_handle.getTag(), Type.getInternalName(TileEntityLimeSkull.class), _handle.getName(), _handle.getDesc(), _handle.isInterface());
                                     }
                                     else if (v instanceof Type _type) {
                                         Method method = new Method("tmp", _type.getDescriptor());
                                         if (method.getReturnType().equals(Type.getType(TileEntitySkull.class))) {
                                             Native.log("Replace 'TileEntitySkull' to 'TileEntityLimeSkull' in " + v);
+                                            setProgressDuplicate("Replace.Method");
                                             return Type.getMethodType(Type.getType(TileEntityLimeSkull.class), method.getArgumentTypes());
                                         }
                                     }
@@ -117,18 +161,23 @@ class MutatePatcher {
                             }
                         }))
                 .patchMethod(IMethodFilter.of(EntityTypes.class, STATIC_CONSTRUCTOR, false),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Replace.Method");
+                            }
 
                             @Override public void visitInvokeDynamicInsn(String name, String descriptor, Handle handle, Object... args) {
                                 super.visitInvokeDynamicInsn(name, descriptor, handle, Arrays.stream(args).map(v -> {
                                     if (v instanceof Handle _handle && _handle.getOwner().equals(Type.getInternalName(Marker.class))) {
                                         Native.log("Replace 'Marker' to 'EntityLimeMarker' in " + v);
+                                        setProgressDuplicate("Replace.Method");
                                         return new Handle(_handle.getTag(), Type.getInternalName(EntityLimeMarker.class), _handle.getName(), _handle.getDesc(), _handle.isInterface());
                                     }
                                     else if (v instanceof Type _type) {
                                         Method method = new Method("tmp", _type.getDescriptor());
                                         if (method.getReturnType().equals(Type.getType(Marker.class))) {
                                             Native.log("Replace 'Marker' to 'EntityLimeMarker' in " + v);
+                                            setProgressDuplicate("Replace.Method");
                                             return Type.getMethodType(Type.getType(EntityLimeMarker.class), method.getArgumentTypes());
                                         }
                                     }
@@ -137,7 +186,11 @@ class MutatePatcher {
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(CraftItemStack::getMaxStackSize)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.ItemStackSizeEvent.Bukkit");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
@@ -154,13 +207,19 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+
+                                setProgress("Event.ItemStackSizeEvent.Bukkit");
                             }
                         }));
 
         version_archive
                 .of(net.minecraft.world.item.ItemStack.class)
                 .patchMethod(IMethodFilter.of(Execute.func(net.minecraft.world.item.ItemStack::getMaxStackSize)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.ItemStackSizeEvent.NMS");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
@@ -177,10 +236,15 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Event.ItemStackSizeEvent.NMS");
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(net.minecraft.world.item.ItemStack::getMaxDamage)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.ItemMaxDamageEvent");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
@@ -197,6 +261,7 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Event.ItemMaxDamageEvent");
                             }
                         }))
                 .patch();
@@ -204,25 +269,27 @@ class MutatePatcher {
         version_archive
                 .of(EntityLiving.class)
                 .patchMethod(IMethodFilter.of(Execute.func(EntityLiving::getEquipmentSlotForItem)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.EntityEquipmentSlotEvent");
+                            }
+
                             @Override public void visitInsn(int opcode) {
                                 if (opcode == Opcodes.ARETURN) {
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
                                     Native.writeMethod(Execute.func(EntityEquipmentSlotEvent::execute), super::visitMethodInsn);
-                                    /*super.visitMethodInsn(
-                                            Opcodes.INVOKESTATIC,
-                                            "net/minecraft/world/entity/EntityEquipmentSlotEvent",
-                                            "execute",
-                                            Type.getMethodDescriptor(Type.getType(EnumItemSlot.class), Type.getType(EnumItemSlot.class), Type.getType(net.minecraft.world.item.ItemStack.class)),
-                                            false
-                                    );*/
                                     Native.log("Event added");
+                                    setProgress("Event.EntityEquipmentSlotEvent");
                                 }
                                 super.visitInsn(opcode);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(EntityLiving::isDamageSourceBlocked)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.DamageSourceBlockEvent");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
 
@@ -242,10 +309,15 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Event.DamageSourceBlockEvent");
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(EntityLiving::canDisableShield)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Static.DisableShield");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitInsn(Opcodes.ICONST_0);
@@ -254,6 +326,7 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Static.DisableShield");
                             }
                         }))
                 .patch();
@@ -261,7 +334,15 @@ class MutatePatcher {
         version_archive
                 .of(EntityHuman.class)
                 .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::attack)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of(
+                                        "Event.EntityAttackSweepEvent",
+                                        "Event.PlayerAttackMultiplyCriticalEvent",
+                                        "Static.Strength"
+                                );
+                            }
+
                             private int index = 0;
                             private int var_flag = 0;
                             @Override public void visitLineNumber(int line, Label start) {
@@ -273,10 +354,11 @@ class MutatePatcher {
                                     Native.writeMethod(Execute.func(EntityAttackSweepEvent::execute), super::visitMethodInsn);
                                     super.visitVarInsn(Opcodes.ISTORE, var_flag);
                                     Native.log("Event added `EntityAttackSweepEvent`");
+                                    setProgress("Event.EntityAttackSweepEvent");
                                 }
                             }
                             @Override public void visitVarInsn(int opcode, int var) {
-                                if (opcode == Opcodes.ISTORE && index == 1)  {
+                                if (opcode == Opcodes.ISTORE && index == 1) {
                                     index++;
                                     var_flag = var;
                                 }
@@ -295,19 +377,34 @@ class MutatePatcher {
                                 }
                             }
 
+                            private int strength = 0;
                             @Override public void visitLdcInsn(Object value) {
+                                if (strength == 0 && value instanceof Float raw && raw == 0.2f) {
+                                    strength = 1;
+                                    Native.log("Strength change 0.2+0.8x to 0.0+0.8x");
+                                    super.visitLdcInsn(0f);
+                                    return;
+                                }
+                                if (strength == 1 && value instanceof Float raw && raw == 0.8f) {
+                                    strength = 2;
+                                    Native.log("Strength change 0.2+0.8x to 0.0+1.0x");
+                                    super.visitLdcInsn(1f);
+                                    setProgress("Static.Strength");
+                                    return;
+                                }
                                 super.visitLdcInsn(value);
-                                if (critical == 1 && value instanceof Float raw && raw == 1.5) {
+                                if (critical == 1 && value instanceof Float raw && raw == 1.5f) {
                                     critical = 2;
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
                                     super.visitVarInsn(Opcodes.ALOAD, 1);
                                     Native.writeMethod(Execute.func(PlayerAttackMultiplyCriticalEvent::execute), super::visitMethodInsn);
                                     Native.log("Event added `PlayerAttackMultiplyCriticalEvent`");
+                                    setProgress("Event.PlayerAttackMultiplyCriticalEvent");
                                 }
                             }
                         }))
                 /*.patchMethod(IMethodFilter.of(Execute.action(EntityHuman::tick)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(Opcodes.ASM9, v) {
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                                 if (Native.isMethod(Execute.func(net.minecraft.world.item.ItemStack::isSameItem), owner, name, descriptor)) {
                                     super.visitInsn(Opcodes.POP2);
@@ -319,7 +416,11 @@ class MutatePatcher {
                             }
                         }))*/
                 .patchMethod(IMethodFilter.of(Execute.action(EntityHuman::resetAttackStrengthTicker)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.PlayerAttackStrengthResetEvent");
+                            }
+
                             @Override public void visitInsn(int opcode) {
                                 if (opcode == Opcodes.RETURN) {
                                     super.visitVarInsn(Opcodes.ALOAD, 0);
@@ -332,17 +433,22 @@ class MutatePatcher {
                                             false
                                     );*/
                                     Native.log("Event added");
+                                    setProgress("Event.PlayerAttackStrengthResetEvent");
                                 }
                                 super.visitInsn(opcode);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(EntityHuman.class, "hurtCurrentlyUsedShield", Type.getMethodType(Type.VOID_TYPE, Type.FLOAT_TYPE), true),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Static.MinDamageItem");
+                            }
                             private boolean changed = false;
                             @Override public void visitLdcInsn(Object value) {
                                 if (!changed && value instanceof Float raw && raw == 3.0f) {
                                     changed = true;
                                     value = 0.001f;
+                                    setProgress("Static.MinDamageItem");
                                 }
                                 super.visitLdcInsn(value);
                             }
@@ -351,17 +457,26 @@ class MutatePatcher {
 
         version_archive
                 .patchMethod(IMethodFilter.of(Execute.func(EntityCaveSpider::doHurtTarget)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Static.DisableSpiderDamageEffect");
+                            }
+
                             @Override public void visitIntInsn(int opcode, int operand) {
                                 if (opcode == Opcodes.BIPUSH) {
                                     Native.log("Replace value from '"+operand+"' to '0'");
                                     operand = 0;
+                                    setProgressDuplicate("Static.DisableSpiderDamageEffect");
                                 }
                                 super.visitIntInsn(opcode, operand);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(RecipeRepair::assemble)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.ItemMaxDamageEvent");
+                            }
+
                             private int index = 0;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                                 if (opcode == Opcodes.INVOKEVIRTUAL && Native.isMethod(Execute.func(Item::canBeDepleted), owner, name, descriptor)) {
@@ -377,13 +492,18 @@ class MutatePatcher {
                                             false
                                     );*/
                                     Native.log("Event added");
+                                    setProgress("Event.ItemMaxDamageEvent");
                                     return;
                                 }
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(ContainerGrindstone.class, "createResult", Type.getMethodType(Type.VOID_TYPE), true),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.ItemMaxDamageEvent");
+                            }
+
                             private int index = 0;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                                 if (opcode == Opcodes.INVOKEVIRTUAL && Native.isMethod(Execute.action(ContainerGrindstone::broadcastChanges), owner, name, descriptor)) {
@@ -399,13 +519,18 @@ class MutatePatcher {
                                             false
                                     );*/
                                     Native.log("Event added");
+                                    setProgress("Event.ItemMaxDamageEvent");
                                     return;
                                 }
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.action(BiomeSettings::addDefaultMonsterRoom)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Disable.SpawnerRoom");
+                            }
+                            
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitInsn(Opcodes.RETURN);
@@ -413,6 +538,7 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Disable.SpawnerRoom");
                             }
                         }));
 
@@ -420,7 +546,11 @@ class MutatePatcher {
                 .of(FoodMetaData.class)
                 .addInterface("net/minecraft/world/food/IFoodNative")
                 .addField(Opcodes.ACC_PRIVATE, "nativeData", Type.getDescriptor(NBTTagCompound.class), "", null)
-                .addMethod(MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                .addMethod(MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                    @Override protected List<String> createProgressList() {
+                        return List.of("Method.Append");
+                    }
+
                     @Override public void visitCode() {
                         super.visitCode();
                         super.visitIntInsn(Opcodes.ALOAD, 0);
@@ -428,9 +558,15 @@ class MutatePatcher {
                         super.visitInsn(Opcodes.ARETURN);
                         super.visitMaxs(0, 0);
                         super.visitEnd();
+
+                        setProgress("Method.Append");
                     }
                 }), Opcodes.ACC_PUBLIC, "nativeData", Type.getMethodDescriptor(Type.getType(NBTTagCompound.class)), "", new String[0])
-                .addMethod(MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                .addMethod(MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                    @Override protected List<String> createProgressList() {
+                        return List.of("Method.Append");
+                    }
+
                     @Override public void visitCode() {
                         super.visitCode();
                         super.visitIntInsn(Opcodes.ALOAD, 0);
@@ -439,10 +575,16 @@ class MutatePatcher {
                         super.visitInsn(Opcodes.RETURN);
                         super.visitMaxs(0, 0);
                         super.visitEnd();
+
+                        setProgress("Method.Append");
                     }
                 }), Opcodes.ACC_PUBLIC, "nativeData", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(NBTTagCompound.class)), "", new String[0])
                 .patchMethod(IMethodFilter.of(Execute.action(FoodMetaData::readAdditionalSaveData)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Method.readNativeSaveData");
+                            }
+
                             private int index = 0;
                             @Override public void visitLineNumber(int line, Label start) {
                                 super.visitLineNumber(line, start);
@@ -459,10 +601,15 @@ class MutatePatcher {
                                         true
                                 );*/
                                 Native.log("Native added");
+                                setProgress("Method.readNativeSaveData");
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.action(FoodMetaData::addAdditionalSaveData)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Method.addNativeSaveData");
+                            }
+
                             private int index = 0;
                             @Override public void visitLineNumber(int line, Label start) {
                                 super.visitLineNumber(line, start);
@@ -479,13 +626,18 @@ class MutatePatcher {
                                         true
                                 );*/
                                 Native.log("Native added");
+                                setProgress("Method.addNativeSaveData");
                             }
                         }))
                 .patch();
 
         version_archive
                 .patchMethod(IMethodFilter.of(Execute.action(BlockSnow::randomTick)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.BlockSnowTickEvent");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitIntInsn(Opcodes.ALOAD, 0);
@@ -512,10 +664,18 @@ class MutatePatcher {
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Event.BlockSnowTickEvent");
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.action(WorldServer::tickChunk)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of(
+                                        "Replace.ICE",
+                                        "Event.SnowAccumulationHeightEvent"
+                                );
+                            }
+
                             private int snowAccumulation = 0;
                             @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
                                 if (opcode == Opcodes.GETSTATIC) {
@@ -523,6 +683,7 @@ class MutatePatcher {
                                         Native.FieldInfo FROSTED_ICE = Native.infoFromField(Execute.func(() -> Blocks.FROSTED_ICE));
                                         super.visitFieldInsn(opcode, FROSTED_ICE.owner(), FROSTED_ICE.name(), FROSTED_ICE.descriptor());
                                         Native.log("Replace ice");
+                                        setProgress("Replace.ICE");
                                         return;
                                     } else if (snowAccumulation == 0 && Native.isField(Execute.func(() -> GameRules.RULE_SNOW_ACCUMULATION_HEIGHT), owner, name, descriptor)) {
                                         snowAccumulation = 1;
@@ -551,13 +712,18 @@ class MutatePatcher {
                                     snowAccumulation = 3;
                                     Native.log("SnowAccumulation: 2 -> 3");
                                     Native.log("Event SnowAccumulationHeightEvent added");
+                                    setProgress("Event.SnowAccumulationHeightEvent");
                                     return;
                                 }
                                 super.visitInsn(opcode);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(BiomeBase::getTemperature)),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.BiomeTemperatureEvent");
+                            }
+
                             @Override public void visitInsn(int opcode) {
                                 if (opcode == Opcodes.FRETURN) {
                                     super.visitIntInsn(Opcodes.ALOAD, 0);
@@ -575,12 +741,22 @@ class MutatePatcher {
                                             false
                                     );*/
                                     Native.log("Event added");
+                                    setProgressDuplicate("Event.BiomeTemperatureEvent");
                                 }
                                 super.visitInsn(opcode);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(Items.class, STATIC_CONSTRUCTOR, false),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of(
+                                        "Swap.NEW.InstrumentItem -> InstrumentSoundItem",
+                                        "Swap.NEW.ItemCarrotStick -> ItemCustomTool",
+                                        "Swap.CTOR.InstrumentItem -> InstrumentSoundItem",
+                                        "Swap.CTOR.ItemCarrotStick -> ItemCustomTool"
+                                );
+                            }
+
                             private boolean isWarped = false;
 
                             @Override public void visitLdcInsn(Object value) {
@@ -592,9 +768,11 @@ class MutatePatcher {
                                 if (opcode == Opcodes.NEW && type.equals(Type.getInternalName(InstrumentItem.class))) {
                                     type = Type.getInternalName(InstrumentSoundItem.class);
                                     Native.log("Replace `NEW` instrument instance");
+                                    setProgress("Swap.NEW.InstrumentItem -> InstrumentSoundItem");
                                 } else if (isWarped && opcode == Opcodes.NEW && type.equals(Type.getInternalName(ItemCarrotStick.class))) {
                                     type = Type.getInternalName(ItemCustomTool.class);
                                     Native.log("Replace `NEW` carrot stick instance");
+                                    setProgress("Swap.NEW.ItemCarrotStick -> ItemCustomTool");
                                 }
                                 super.visitTypeInsn(opcode, type);
                             }
@@ -606,41 +784,107 @@ class MutatePatcher {
                                 if (opcode == Opcodes.INVOKESPECIAL && Native.isMethod(Execute.func(InstrumentItem::new), owner, name, descriptor)) {
                                     Native.writeMethod(Execute.func(InstrumentSoundItem::new), super::visitMethodInsn);
                                     Native.log("Replace 'InstrumentItem::new' to 'InstrumentSoundItem::new'");
+                                    setProgress("Swap.CTOR.InstrumentItem -> InstrumentSoundItem");
                                     return;
                                 } else if (isWarped && opcode == Opcodes.INVOKESPECIAL && Native.isMethod((CarrotAction<?>)ItemCarrotStick::new, owner, name, descriptor)) {
                                     Native.writeMethod(Execute.func(ItemCustomTool::new), super::visitMethodInsn);
                                     Native.log("Replace 'ItemCarrotStick::new' to 'ItemCustomTool::new'");
+                                    setProgress("Swap.CTOR.ItemCarrotStick -> ItemCustomTool");
                                     isWarped = false;
                                     return;
                                 }
                                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                             }
                         }))
+                .patchMethod(IMethodFilter.of(Execute.func(ItemTool::hurtEnemy)),
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Fix.ToolDamageX2");
+                            }
+
+                            @Override public void visitInsn(int opcode) {
+                                if (opcode == Opcodes.ICONST_2) {
+                                    opcode = Opcodes.ICONST_1;
+                                    setProgress("Fix.ToolDamageX2");
+                                }
+                                super.visitInsn(opcode);
+                            }
+                        }))
+
+                .patchMethod(IMethodFilter.of(Execute.func(ItemMonsterEgg::useOn)),
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.EggSpawnEvent");
+                            }
+
+                            private <T extends Entity>ICallable getEntityCreateMethod() {
+                                return Execute.<EntityTypes<T>, WorldServer, ItemStack, EntityHuman, BlockPosition, EnumMobSpawn, Boolean, Boolean, T>func(EntityTypes::spawn);
+                            }
+                            private <T extends Entity>ICallable getEventSpawnMethod() {
+                                return Execute.<EntityTypes<T>, WorldServer, ItemStack, EntityHuman, BlockPosition, EnumMobSpawn, Boolean, Boolean, T>func(EggSpawnEvent::execute);
+                            }
+
+                            @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                if (Native.isMethod(getEntityCreateMethod(), owner, name, descriptor)) {
+                                    Native.writeMethod(getEventSpawnMethod(), super::visitMethodInsn);
+                                    setProgress("Event.EggSpawnEvent");
+                                    return;
+                                }
+                                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                            }
+                        }))
+                .patchMethod(IMethodFilter.of(Execute.func(ItemMonsterEgg::use)),
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.EggSpawnEvent");
+                            }
+
+                            private <T extends Entity>ICallable getEntityCreateMethod() {
+                                return Execute.<EntityTypes<T>, WorldServer, ItemStack, EntityHuman, BlockPosition, EnumMobSpawn, Boolean, Boolean, T>func(EntityTypes::spawn);
+                            }
+                            private <T extends Entity>ICallable getEventSpawnMethod() {
+                                return Execute.<EntityTypes<T>, WorldServer, ItemStack, EntityHuman, BlockPosition, EnumMobSpawn, Boolean, Boolean, T>func(EggSpawnEvent::execute);
+                            }
+
+                            @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                                if (Native.isMethod(getEntityCreateMethod(), owner, name, descriptor)) {
+                                    Native.writeMethod(getEventSpawnMethod(), super::visitMethodInsn);
+                                    setProgress("Event.EggSpawnEvent");
+                                    return;
+                                }
+                                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                            }
+                        }))
+
                 .patchMethod(IMethodFilter.of(EntityThrownTrident.class, "onHitEntity", Type.getMethodType(Type.VOID_TYPE, Type.getType(MovingObjectPositionEntity.class)), true),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
-                            @Override public void visitLdcInsn(Object value) {
-                                if (value instanceof Float raw && raw == 8.0) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.EntityTridentBaseDamageEvent");
+                            }
+                            @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+                                super.visitFieldInsn(opcode, owner, name, descriptor);
+
+                                Native.log(owner +"."+ Native.getSpigotName(EntityArrow.class, name, descriptor, false) + descriptor);
+
+                                if (owner.equals(Type.getInternalName(EntityArrow.class))
+                                    && Native.getSpigotName(EntityArrow.class, name, descriptor, false).equals("baseDamage")
+                                    && descriptor.equals(Type.getDescriptor(double.class)))
+                                {
+                                    super.visitInsn(Opcodes.D2F);
                                     super.visitIntInsn(Opcodes.ALOAD, 0);
                                     super.visitIntInsn(Opcodes.ALOAD, 1);
                                     Native.writeMethod(Execute.func(EntityTridentBaseDamageEvent::execute), super::visitMethodInsn);
-                                    /*super.visitMethodInsn(
-                                            Opcodes.INVOKESTATIC,
-                                            "net/minecraft/world/entity/projectile/EntityTridentBaseDamageEvent",
-                                            "execute",
-                                            Type.getMethodDescriptor(Type.FLOAT_TYPE,
-                                                    Type.getType(EntityThrownTrident.class),
-                                                    Type.getType(MovingObjectPositionEntity.class)
-                                            ),
-                                            false
-                                    );*/
                                     Native.log("Event added");
-                                    return;
+                                    setProgress("Event.EntityTridentBaseDamageEvent");
                                 }
-                                super.visitLdcInsn(value);
                             }
                         }))
                 .patchMethod(IMethodFilter.of(EntityArrow.class, "onHitEntity", Type.getMethodType(Type.VOID_TYPE, Type.getType(MovingObjectPositionEntity.class)), true),
-                        MethodPatcher.mutate(v -> new MethodVisitor(Opcodes.ASM9, v) {
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.PlayerArrowCriticalEvent", "THROW");
+                            }
+
                             int critical = 0;
                             int var_damage = -1;
                             @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
@@ -674,42 +918,16 @@ class MutatePatcher {
                                     Native.writeMethod(Execute.func(PlayerArrowCriticalEvent::execute), super::visitMethodInsn);
                                     Native.log("Event added `PlayerArrowCriticalEvent`");
                                     super.visitVarInsn(Opcodes.ISTORE, var_damage);
+                                    setProgress("Event.PlayerArrowCriticalEvent");
                                 }
                             }
-                            /*
-FRAME SAME
-    ALOAD 0
-    INVOKEVIRTUAL net/minecraft/world/entity/projectile/EntityArrow.isCritArrow ()Z
-    IFEQ L14
-L15
-    LINENUMBER 371 L15
-    ALOAD 0
-    GETFIELD net/minecraft/world/entity/Entity.random : Lnet/minecraft/util/RandomSource;
-    ILOAD 4
-    ICONST_2
-    IDIV
-    ICONST_2
-    IADD
-    INVOKEINTERFACE net/minecraft/util/RandomSource.nextInt (I)I (itf)
-    I2L
-    LSTORE 5
-L16
-    LINENUMBER 373 L16
-    LLOAD 5
-    ILOAD 4
-    I2L
-    LADD
-    LDC 2147483647
-    INVOKESTATIC java/lang/Math.min (JJ)J
-    L2I
-    ISTORE 4
-L14
-    LINENUMBER 376 L14
-FRAME SAME
-                            */
                         }))
                 .patchMethod(IMethodFilter.of(Execute.func(EntityStrider::getControllingPassenger)),
-                        MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                        MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Replace.StriderPassenger");
+                            }
+
                             @Override public void visitCode() {
                                 visitor.visitCode();
                                 visitor.visitInsn(Opcodes.ACONST_NULL);
@@ -718,6 +936,7 @@ FRAME SAME
                                 visitor.visitEnd();
 
                                 Native.log("Replace full method");
+                                setProgress("Replace.StriderPassenger");
                             }
                         }));
 
@@ -727,13 +946,17 @@ FRAME SAME
                 CommandTeamMsg::register,
                 CommandHelp::register
         )) version_archive
-                .patchMethod(IMethodFilter.of(method), MethodPatcher.mutate(visitor -> new MethodVisitor(Opcodes.ASM9, null) {
+                .patchMethod(IMethodFilter.of(method), MethodPatcher.mutate(visitor -> new ProgressMethodVisitor(visitor, null) {
+                    @Override protected List<String> createProgressList() {
+                        return List.of("Clear.Command");
+                    }
                     @Override public void visitCode() {
                         visitor.visitCode();
                         visitor.visitInsn(Opcodes.RETURN);
                         visitor.visitMaxs(0, 0);
                         visitor.visitEnd();
                         Native.log("Clear command method");
+                        setProgress("Clear.Command");
                     }
                 }));
     }

@@ -1,5 +1,6 @@
 package org.lime.gp.module;
 
+import com.google.gson.JsonElement;
 import com.mojang.math.Transformation;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -142,7 +143,7 @@ public class JavaScript {
 
         public Transformation createTransformation(Object dat) { return MathUtils.transformation(json.by(dat).build()); }
         public Map<String, Object> objectTransformation(Transformation transformation) { return JsonObjectOptional.of(MathUtils.transformation(transformation)).createObject(); }
-        public Transformation composeTransformation(Transformation a, Transformation b) { return a.compose(b); }
+        public Transformation composeTransformation(Transformation a, Transformation b) { return MathUtils.transform(a, b); }
 
         public void execute(String command) {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
@@ -157,12 +158,14 @@ public class JavaScript {
     public static Optional<Integer> getJsInt(String js) { return JavaScript.js.getJsInt(js); }
     public static Optional<Double> getJsDouble(String js) { return JavaScript.js.getJsDouble(js); }
     public static Optional<String> getJsString(String js) { return JavaScript.js.getJsString(js); }
+    public static Optional<JsonElement> getJsJson(String js) { return JavaScript.js.getJsJson(js); }
 
     public static Optional<Boolean> isJsTrue(String js, Map<String, Object> values) { return JavaScript.js.isJsTrue(js, values); }
     public static Optional<Number> getJsNumber(String js, Map<String, Object> values) { return JavaScript.js.getJsNumber(js, values); }
     public static Optional<Integer> getJsInt(String js, Map<String, Object> values) { return JavaScript.js.getJsInt(js, values); }
     public static Optional<Double> getJsDouble(String js, Map<String, Object> values) { return JavaScript.js.getJsDouble(js, values); }
     public static Optional<String> getJsString(String js, Map<String, Object> values) { return JavaScript.js.getJsString(js, values); }
+    public static Optional<JsonElement> getJsJson(String js, Map<String, Object> values) { return JavaScript.js.getJsJson(js, values); }
 
     public static void getJsStringNext(String js, Action1<String> callback) { JavaScript.js.getJsStringNext(js, callback); }
 

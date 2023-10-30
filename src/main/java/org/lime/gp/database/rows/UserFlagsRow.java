@@ -1,7 +1,7 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,7 +24,7 @@ public class UserFlagsRow extends BaseRow {
         return Tables.USERFLAGS_TABLE.getOther("uuid", uuid.toString()).map(v -> v.backPackID);
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("uuid", uuid.toString());

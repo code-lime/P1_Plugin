@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.lime.gp.database.mysql.MySql;
 
@@ -26,7 +27,7 @@ public class AnyRow extends BaseRow {
         super(null);
         this.columns.putAll(columns);
     }
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         columns.forEach(map::put);
         return map;

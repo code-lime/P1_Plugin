@@ -50,9 +50,9 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
                 .add(metadata.list(DisplayInstance.class).findAny().map(DisplayInstance::getAll).orElseGet(Collections::emptyMap))
                 .add("block_uuid", metadata.key.uuid().toString())
                 .add("block_pos", position.toSave())
-                .add("block_pos_x", position.x + "")
-                .add("block_pos_y", position.y + "")
-                .add("block_pos_z", position.z + "");
+                .add("block_pos_x", String.valueOf(position.x))
+                .add("block_pos_y", String.valueOf(position.y))
+                .add("block_pos_z", String.valueOf(position.z));
     }
 
     public static class MenuData {

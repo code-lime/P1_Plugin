@@ -13,12 +13,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
+import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.utils.MathUtils;
 
 public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self) implements IStep {
-    @Override public void execute(Player player, Transformation position) {
+    @Override public void execute(Player player, DataContext context, Transformation position) {
         Location location = MathUtils.convert(position.getTranslation()).toLocation(player.getWorld());
         ParticleBuilder particle = this.particle.source(player).location(location);
         if (radius.isZero()) {

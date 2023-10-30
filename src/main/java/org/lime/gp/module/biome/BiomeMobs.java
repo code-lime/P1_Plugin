@@ -98,18 +98,22 @@ public class BiomeMobs implements Listener {
                             .ifPresent(wolf::setTarget);
                 }
             }
-            if (entity instanceof Damageable damageable && (!(entity instanceof Mob mob) || mob.getTarget() == null)) {
+            if ((!(entity instanceof Mob mob) || mob.getTarget() == null)) {
                 PersistentDataContainer container = entity.getPersistentDataContainer();
                 DespawnData.tickSecond(container)
                         .filter(v -> v <= 0)
                         .ifPresent(sec -> {
                             if (DespawnData.isOnlyLight(container) && entity.getLocation().getBlock().getLightFromSky() <= 2) return;
-                            DespawnData.getDeltaHealth(container)
-                                    .ifPresentOrElse(delta -> {
-                                        double maxHealth = damageable.getMaxHealth() - delta;
-                                        if (maxHealth <= 0) entity.remove();
-                                        else damageable.setMaxHealth(maxHealth);
-                                    }, entity::remove);
+                            if (entity instanceof Damageable damageable) {
+                                DespawnData.getDeltaHealth(container)
+                                        .ifPresentOrElse(delta -> {
+                                            double maxHealth = damageable.getMaxHealth() - delta;
+                                            if (maxHealth <= 0) entity.remove();
+                                            else damageable.setMaxHealth(maxHealth);
+                                        }, entity::remove);
+                            } else {
+                                entity.remove();
+                            }
                         });
             }
         });

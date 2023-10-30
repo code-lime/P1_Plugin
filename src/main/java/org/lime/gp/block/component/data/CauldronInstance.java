@@ -320,7 +320,7 @@ public class CauldronInstance extends BlockInstance implements CustomTileMetadat
         }
         private boolean checkResource(Location center) {
             boolean step = false;
-            for (Item drop : center.getNearbyEntitiesByType(Item.class, 0.5)) {
+            for (Item drop : center.getNearbyEntitiesByType(Item.class, 0.75)) {
                 if (!isAdded(drop)) continue;
                 step = true;
                 PacketManager.getEntityHandle(drop).kill();

@@ -11,14 +11,12 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.lime;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.menu.Logged;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Slot extends ItemCreator implements ISlot {
@@ -86,7 +84,7 @@ public class Slot extends ItemCreator implements ISlot {
     public boolean tryIsShow(Apply apply) {
         return isShow == null || ISlot.isTrue(isShow, ISlot.createArgs(args(apply), apply));
     }
-    public Toast3<List<Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
+    public Toast3<List<Toast2<String, String>>, Map<ClickType, List<ActionSlot>>, ItemStack> create(Apply apply) {
         return Toast.of(this.args(apply), actions, createItem(Integer.parseInt(ChatHelper.formatText(count, apply)), apply));
     }
 }

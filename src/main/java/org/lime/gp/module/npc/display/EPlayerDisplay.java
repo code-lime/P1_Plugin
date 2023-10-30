@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.lime.display.Displays;
 import org.lime.display.EditedDataWatcher;
 import org.lime.display.ObjectDisplay;
+import org.lime.display.Passenger;
 import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.display.models.display.ChildEntityDisplay;
 import org.lime.gp.extension.ExtMethods;
@@ -71,7 +72,7 @@ public class EPlayerDisplay extends ObjectDisplay<IEPlayer, EntityPlayer> {
         if (npc.pose() == Pose.SIT) sitParent = preInitDisplay(lime.models.builder().block().display(this));
         else sitParent = null;
         postInit();
-        if (sitParent != null) Displays.addPassengerID(sitParent.entityID, this.entityID);
+        if (sitParent != null) Passenger.addPassengerID(sitParent.entityID, this.entityID);
     }
 
     @Override protected void sendData(Player player, boolean child) {

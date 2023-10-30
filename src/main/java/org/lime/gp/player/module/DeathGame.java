@@ -14,8 +14,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.joml.Math;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.chat.Apply;
+import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.DeathRow;
+import org.lime.gp.database.rows.QuentaRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.KeyedTable;
 import org.lime.gp.database.tables.Tables;
@@ -79,6 +81,10 @@ public class DeathGame {
     private static HashMap<Integer, RawEPlayer> deathEPlayers = new HashMap<>();
     private static void onClick(DeathRow row, Player player, boolean isShift) {
         if (!isShift) return;
+        if (!QuentaRow.hasQuenta(player.getUniqueId())) {
+            LangMessages.Message.Action_Error.sendMessage(player);
+            return;
+        }
         UserRow.getBy(row.userID).ifPresent(userRow -> Methods.lootDeath(row.id, equip -> {
             if (Objects.equals(equip, "ERROR")) return;
             Items.getItemCreator("Tool.Custom.DeathLog")
@@ -150,6 +156,22 @@ public class DeathGame {
                     return Stream.<INeedEffect<?>>of(INeedEffect.Mutate.of(INeedEffect.Type.SLEEP, value));
                 })
                 .orElseGet(Stream::empty);
+    }
+    public static float getDelta(Player player) {
+        return UserRow.getBy(player)
+                .flatMap(v -> v.dieDate)
+                .map(DateTime::getTotalSeconds)
+                .map(totalSeconds -> {
+                    DateTime now = DayManager.now();
+                    DateTime deathEffect = now.addYears(1);
+                    double deathTotalSeconds = deathEffect.getTotalSeconds();
+                    if (totalSeconds > deathTotalSeconds) return 0f;
+                    double nowTotalSeconds = now.getTotalSeconds();
+                    double totalPercent = deathTotalSeconds - nowTotalSeconds;
+                    float diePercent = (float)Math.clamp(0, 1, (deathTotalSeconds - totalSeconds) / totalPercent);
+                    return diePercent * diePercent;
+                })
+                .orElse(0f);
     }
 
     private static void deathUser(UUID uuid, Action1<Component> callback) {

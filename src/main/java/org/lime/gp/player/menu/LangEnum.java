@@ -14,6 +14,7 @@ public enum LangEnum {
     ME("lang.me"),
     TRY("lang.try"),
     TRYDO("lang.trydo"),
+    DICE("lang.dice"),
 
     TIME("lang.time"),
     STATS("lang.stats"),
@@ -23,6 +24,8 @@ public enum LangEnum {
 
     SEARCH("lang.search"),
     SEARCH_ITEM("lang.search.item"),
+
+    ACTION_DELETE("lang.action.delete"),
 
     NEWS("lang.news"),
     NEWS_TEST("lang.news.test");

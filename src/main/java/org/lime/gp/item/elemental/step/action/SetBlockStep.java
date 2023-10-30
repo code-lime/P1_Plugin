@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.lime.gp.item.elemental.DataContext;
 import org.lime.system.utils.MathUtils;
 
 import java.util.Map;
@@ -25,7 +26,7 @@ public class SetBlockStep extends IBlockStep {
         this.force = force;
     }
 
-    @Override public void execute(Player player, Transformation location) {
+    @Override public void execute(Player player, DataContext context, Transformation location) {
         if (!(player instanceof CraftPlayer cplayer)) return;
         Vector point = MathUtils.convert(location.getTranslation());
         BlockPosition pos = new BlockPosition(point.getBlockX(), point.getBlockY(), point.getBlockZ());

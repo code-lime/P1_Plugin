@@ -15,6 +15,7 @@ import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.display.Displays;
+import org.lime.display.Passenger;
 import org.lime.gp.lime;
 
 import net.minecraft.world.entity.projectile.IProjectile;
@@ -38,7 +39,7 @@ public class ArrowBow implements Listener {
 
     private static final NamespacedKey BOW_KEY = new NamespacedKey(lime._plugin, "arrow_bow");
     private static boolean isCanShoot(Entity entity) {
-        return !entity.isInsideVehicle() && !Displays.hasVehicle(entity.getEntityId());
+        return !entity.isInsideVehicle() && !Passenger.hasVehicle(entity.getEntityId());
     }
     private static void init() {
         lime.repeatTicks(ArrowBow::updateLock, 1);

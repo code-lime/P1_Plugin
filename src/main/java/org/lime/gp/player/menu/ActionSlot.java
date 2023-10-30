@@ -2,6 +2,8 @@ package org.lime.gp.player.menu;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.monster.EntityZombie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -122,7 +124,6 @@ public class ActionSlot implements Logged.ILoggedDelete {
                     localArgs.put(arg.val0, ChatHelper.formatText(arg.val1, apply));
                 }
             }
-
             if (_args.length == 1) MenuCreator.showOwner(player, _args[0], this, Apply.of().add(localArgs));
             else MenuCreator.showOwner(player, _args[0], _args[1], this, Apply.of().add(localArgs));
         }

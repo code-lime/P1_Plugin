@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,9 +19,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.permissions.ServerOperator;
 import org.lime.core;
+import org.lime.gp.database.rows.QuentaRow;
+import org.lime.gp.entity.component.data.ActionInstance;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.player.menu.LangEnum;
+import org.lime.system.Time;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.gp.lime;
@@ -46,9 +50,10 @@ public class ChatMessages implements Listener {
                 .withInit(ChatMessages::init)
                 .addCommand("sms", v -> v
                         .withExecutor(ChatMessages::sms)
-                        .withCheck(_v -> _v instanceof Player player && !Ghost.isGhost(player))
+                        .withCheckCast(Player.class)
+                        .addCheck(_v -> !Ghost.isGhost(_v))
                         .withTab((sender, args) -> {
-                            Player player = (Player) sender;
+                            Player player = sender;
                             if (args.length > 1) return getSmsPresets(args[0]);
                             List<String> list = FriendRow.getFriendsByUUID(player.getUniqueId()).stream().map(f -> f.friendName).filter(Objects::nonNull).collect(Collectors.toList());
                             list.add("101");
@@ -57,42 +62,63 @@ public class ChatMessages implements Listener {
                         })
                 )
                 .addCommand("do", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.DO, Apply.of().add("text", String.join(" ", args))))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.DO, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("me", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.ME, Apply.of().add("text", String.join(" ", args))))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.ME, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("news", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.NEWS, Apply.of().add("text", String.join(" ", args))))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.NEWS, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[сообщение]")
                 )
                 .addCommand("news.test", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.NEWS_TEST, Apply.of().add("text", String.join(" ", args))))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.NEWS_TEST, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[сообщение]")
                 )
                 .addCommand("now", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.TIME))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.TIME))
                 )
                 .addCommand("try", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.TRY, Apply.of().add("text", String.join(" ", args))))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.TRY, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
                 .addCommand("trydo", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor((sender, args) -> MenuCreator.showLang((Player) sender, LangEnum.TRYDO, Apply.of().add("text", String.join(" ", args))))
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> MenuCreator.showLang(sender, LangEnum.TRYDO, Apply.of().add("text", String.join(" ", args))))
                         .withTab("[действие]")
                 )
+                .addCommand("dice", v -> v
+                        .withCheckCast(Player.class)
+                        .withExecutor((sender, args) -> args.length >= 2 && MenuCreator.showLang(sender, LangEnum.DICE, Apply.of().add("scale", args[0]).add("text", Stream.of(args).skip(1).collect(Collectors.joining(" ")))))
+                        .withTab((sender, args) -> args.length == 1 ? List.of("6", "20", "100") : Collections.singletonList("[действие]"))
+                )
                 .addCommand("stats", v -> v
-                        .withCheck(_v -> _v instanceof Player)
-                        .withExecutor(sender -> MenuCreator.showLang((Player) sender, LangEnum.STATS))
+                        .withCheckCast(Player.class)
+                        .withExecutor(sender -> MenuCreator.showLang(sender, LangEnum.STATS))
+                )
+                .addCommand("action", v -> v
+                        .withCheckCast(Player.class)
+                        .withTab((sender, args) -> Collections.singletonList(args.length == 1 ? "[время]" : "[действие]"))
+                        .withExecutor((sender, args) -> {
+                            if (!QuentaRow.hasQuenta(sender.getUniqueId())) {
+                                LangMessages.Message.Action_Error.sendMessage(sender);
+                                return false;
+                            }
+                            if (args.length < 2) return false;
+                            int sec = Time.formattedTime(args[0]);
+                            String action = Stream.of(args).skip(1).collect(Collectors.joining(" "));
+                            showAction(sender, split(action, 50, -1), sec);
+                            LangMessages.Message.Action_Done.sendMessage(sender);
+                            return true;
+                        })
                 )
                 .addCommand("chat.test", v -> v
                         .withCheck(ServerOperator::isOp)
@@ -104,7 +130,7 @@ public class ChatMessages implements Listener {
                 .addCommand("js.test", v -> v
                         .withCheck(ServerOperator::isOp)
                         .withExecutor((sender, args) -> {
-                            sender.sendMessage(JavaScript.invoke(String.join(" ", args), Collections.emptyMap()).orElse(null) + "");
+                            sender.sendMessage(String.valueOf(JavaScript.invoke(String.join(" ", args), Collections.emptyMap()).orElse(null)));
                             return true;
                         })
                 );
@@ -124,6 +150,46 @@ public class ChatMessages implements Listener {
         lime.repeat(() -> sendList.entrySet().removeIf(kv -> kv.getValue().tryRemove()), 1);
     }
 
+    private static List<String> split(String text, int totalLength, int totalLines) {
+        List<String> lines = new ArrayList<>();
+
+        String line = "";
+
+        for (String word : text.split(" ")) {
+            String _line = (line.equals("") ? "" : (line + " ")) + word;
+
+            if (_line.length() > totalLength) {
+                lines.add(line);
+                if (word.length() > totalLength) {
+                    String s = word;
+                    while (true) {
+                        int count = Math.min(s.length(), totalLength);
+                        if (totalLength > s.length()) break;
+                        lines.add(s.substring(0, count));
+                        s = new String(s.toCharArray(), count, s.length() - count);
+                    }
+                    line = s;
+                } else {
+                    line = word;
+                }
+            } else {
+                line = _line;
+            }
+        }
+        if (!line.equals("")) lines.add(line);
+
+        int length = lines.size();
+        if (totalLines > 0 && length > totalLines) {
+            length = totalLength;
+            lines.set(totalLines - 1, lines.get(totalLines - 1) + "...");
+        }
+
+        List<String> ret = new ArrayList<>();
+        length = Math.min(length, lines.size());
+        for (int i = 0; i < length; i++) ret.add(lines.get(i));
+
+        return ret;
+    }
     private static class SendData {
         public final long time;
         public final long showTime;
@@ -138,46 +204,6 @@ public class ChatMessages implements Listener {
             this.showTime = showTime;
         }
 
-        private static List<String> split(String text, int totalLength, int totalLines) {
-            List<String> lines = new ArrayList<>();
-
-            String line = "";
-
-            for (String word : text.split(" ")) {
-                String _line = (line.equals("") ? "" : (line + " ")) + word;
-
-                if (_line.length() > totalLength) {
-                    lines.add(line);
-                    if (word.length() > totalLength) {
-                        String s = word;
-                        while (true) {
-                            int count = Math.min(s.length(), totalLength);
-                            if (totalLength > s.length()) break;
-                            lines.add(s.substring(0, count));
-                            s = new String(s.toCharArray(), count, s.length() - count);
-                        }
-                        line = s;
-                    } else {
-                        line = word;
-                    }
-                } else {
-                    line = _line;
-                }
-            }
-            if (!line.equals("")) lines.add(line);
-
-            int length = lines.size();
-            if (length > totalLines) {
-                length = totalLength;
-                lines.set(totalLines - 1, lines.get(totalLines - 1) + "...");
-            }
-
-            List<String> ret = new ArrayList<>();
-            length = Math.min(length, lines.size());
-            for (int i = 0; i < length; i++) ret.add(lines.get(i));
-
-            return ret;
-        }
         public boolean tryRemove() {
             return time + showTime <= System.currentTimeMillis();
         }
@@ -291,6 +317,10 @@ public class ChatMessages implements Listener {
                     .ifPresentOrElse(sms, () -> ExtMethods.parseUnsignedInt(args[0]).ifPresentOrElse(sms, () -> LangMessages.Message.Sms_Error_PhoneNotFounded.sendMessage(player)));
         }, () -> LangMessages.Message.Sms_Error_NotHavePhone.sendMessage(player));
         return true;
+    }
+
+    public static void showAction(Player player, List<String> messages, int time) {
+        ActionInstance.createAction(player, player.getLocation(), messages, time);
     }
 }
 

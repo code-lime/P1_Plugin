@@ -9,6 +9,8 @@ import org.bukkit.craftbukkit.v1_20_R1.entity.CraftHumanEntity;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.InventoryHolder;
+import org.lime.system.execute.Action0;
+import org.lime.system.execute.Action1;
 
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +55,7 @@ public class ReadonlyInventory implements IInventory {
 
     private final ItemList items;
     private final Location location;
+    private final ImmutableList<Action1<EntityHuman>> closeActions;
 
     public static ReadonlyInventory ofNMS(List<ItemStack> items) { return ofNMS(items, null); }
     public static ReadonlyInventory ofNMS(List<ItemStack> items, Location location) { return new ReadonlyInventory(ItemList.ofNMS(items), location); }
@@ -63,9 +66,19 @@ public class ReadonlyInventory implements IInventory {
     public static <T>ReadonlyInventory of(List<T> items, ItemList.ItemBoxed<T> boxed, Location location) { return new ReadonlyInventory(ItemList.of(items, boxed), location); }
 
     private ReadonlyInventory(ItemList items, Location location) {
+        this(items, location, ImmutableList.of());
+    }
+    private ReadonlyInventory(ItemList items, Location location, ImmutableList<Action1<EntityHuman>> closeActions) {
         this.items = items;
         this.location = location;
+        this.closeActions = closeActions;
     }
+
+    public ReadonlyInventory withCloseAction(Action1<EntityHuman> action) {
+        return new ReadonlyInventory(items, location, ImmutableList.<Action1<EntityHuman>>builder().addAll(closeActions).add(action).build());
+    }
+
+    @Override public void stopOpen(EntityHuman player) { closeActions.forEach(action -> action.invoke(player)); }
 
     @Override public int getContainerSize() { return items.size(); }
     @Override public boolean isEmpty() { return items.isEmpty(); }

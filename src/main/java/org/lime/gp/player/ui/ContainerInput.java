@@ -7,7 +7,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.event.inventory.ClickType;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 
 import java.util.Objects;
 

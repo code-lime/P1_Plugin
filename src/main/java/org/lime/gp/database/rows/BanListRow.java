@@ -3,10 +3,7 @@ package org.lime.gp.database.rows;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.entity.Player;
 import org.lime.gp.database.mysql.MySql;
@@ -60,7 +57,7 @@ public class BanListRow extends BaseRow {
                 : user;
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("user", user);

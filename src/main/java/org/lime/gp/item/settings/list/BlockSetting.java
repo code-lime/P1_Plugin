@@ -28,7 +28,7 @@ import org.lime.system.json;
 @Setting(name = "block") public class BlockSetting extends ItemSetting<JsonObject> {
     public static final NamespacedKey BLOCK_DATA_KEY = new NamespacedKey(lime._plugin, "block_data");
     public final Map<InfoComponent.Rotation.Value, String> rotation = new LinkedHashMap<>();
-    public final Map<String, JsonObject> block_args = new HashMap<>();
+    public final Map<String, JsonObject> blockArgs = new HashMap<>();
 
     public BlockSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
@@ -40,7 +40,7 @@ import org.lime.system.json;
         if (json.has("block_args"))
             json.getAsJsonObject("block_args")
                     .entrySet()
-                    .forEach(kv -> block_args.put(kv.getKey(), kv.getValue().getAsJsonObject()));
+                    .forEach(kv -> blockArgs.put(kv.getKey(), kv.getValue().getAsJsonObject()));
     }
 
     @Override public void apply(ItemMeta meta, Apply apply) {
@@ -59,7 +59,7 @@ import org.lime.system.json;
                 .map(PersistentDataHolder::getPersistentDataContainer)
                 .map(v -> v.get(BLOCK_DATA_KEY, LimePersistentDataType.JSON_OBJECT))
                 .ifPresent(v -> v.entrySet().forEach(kv -> apply.add(kv.getKey(), kv.getValue().getAsString())));
-        return block_args.entrySet()
+        return blockArgs.entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, kv -> json.editStringToObject(kv.getValue().deepCopy(), text -> new JsonPrimitive(ChatHelper.formatText(text, apply)))));
     }

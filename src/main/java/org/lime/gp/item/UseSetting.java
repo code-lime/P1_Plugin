@@ -50,9 +50,10 @@ public class UseSetting implements Listener {
     }
     public interface ITimeUse extends IUse {
         int getTime();
+        String prefix(boolean self);
         void timeUse(Player player, Player target, ItemStack item);
 
-        private boolean useTick(Player player, Player target, Location playerLocation, Location targetLocation, EquipmentSlot arm, Integer ticks) {
+        private boolean useTick(CraftPlayer player, CraftPlayer target, Location playerLocation, Location targetLocation, EquipmentSlot arm, Integer ticks) {
             return !Death.isDamageLay(player.getUniqueId())
                     && !HandCuffs.isMove(player.getUniqueId())
                     && Optional.of(player.getInventory().getItem(arm))
@@ -67,7 +68,7 @@ public class UseSetting implements Listener {
                                             CustomUI.TextUI.hide(player);
                                             return true;
                                         }
-                                        CustomUI.TextUI.show(player, timerMs(_ticks));
+                                        CustomUI.TextUI.show(player, prefix(player == target) + timerMs(_ticks));
                                         Cooldown.setCooldown(player.getUniqueId(), "use_item", 1);
                                         lime.onceTicks(() -> {
                                             if (!item.isSimilar(player.getInventory().getItemInMainHand())) return;
@@ -81,8 +82,9 @@ public class UseSetting implements Listener {
         }
         @Override default boolean use(Player player, Player target, EquipmentSlot arm, boolean shift) {
             //if (!shift) return false;
+            if (!(player instanceof CraftPlayer cplayer) || !(target instanceof CraftPlayer ctarget)) return false;
             if (Cooldown.hasCooldown(player.getUniqueId(), "use_item")) return false;
-            return useTick(player, target, player.getLocation(), target.getLocation(), arm, null);
+            return useTick(cplayer, ctarget, player.getLocation(), target.getLocation(), arm, null);
         }
     }
 
@@ -145,9 +147,9 @@ public class UseSetting implements Listener {
         }, 1);
     }
 
-    public static void modifyUseItem(Player player, CraftItemStack item) {
-        if (item.handle == null || !(player instanceof CraftPlayer cplayer)) return;
-        modifyUseItem(cplayer.getHandle(), item.handle);
+    public static void modifyUseItem(CraftPlayer player, CraftItemStack item) {
+        if (item.handle == null) return;
+        modifyUseItem(player.getHandle(), item.handle);
     }
     public static void modifyUseItem(EntityPlayer player, net.minecraft.world.item.ItemStack item) {
         if (player.level().isClientSide || player.getAbilities().instabuild) return;

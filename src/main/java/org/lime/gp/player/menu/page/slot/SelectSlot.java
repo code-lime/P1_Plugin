@@ -5,14 +5,12 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.lime.gp.chat.Apply;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.menu.Logged;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class SelectSlot implements ISlot {
     public List<Toast2<String, ISlot>> slots = new ArrayList<>();
@@ -52,7 +50,7 @@ public class SelectSlot implements ISlot {
                 .isPresent();
     }
 
-    public Toast3<List<Toast2<String, String>>, HashMap<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, ItemStack> create(Apply apply) {
+    public Toast3<List<Toast2<String, String>>, Map<ClickType, List<ActionSlot>>, ItemStack> create(Apply apply) {
         return getSelected(apply)
                 .map(v -> v.create(apply))
                 .orElseGet(() -> Toast.of(new ArrayList<>(), new HashMap<>(), new ItemStack(Material.AIR)));

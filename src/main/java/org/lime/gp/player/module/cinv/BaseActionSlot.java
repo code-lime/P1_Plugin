@@ -2,7 +2,7 @@ package org.lime.gp.player.module.cinv;
 
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.Slot;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 
 public abstract class BaseActionSlot extends InterfaceManager.AbstractSlot {
     protected final ViewData view;

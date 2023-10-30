@@ -51,7 +51,13 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public final class DisplayInstance extends BlockInstance implements CustomTileMetadata.Shapeable, CustomTileMetadata.Tickable, CustomTileMetadata.AsyncTickable, CustomTileMetadata.FirstTickable, CustomTileMetadata.Removeable {
+public final class DisplayInstance extends BlockInstance implements
+        CustomTileMetadata.Shapeable,
+        CustomTileMetadata.Tickable,
+        CustomTileMetadata.AsyncTickable,
+        CustomTileMetadata.FirstTickable,
+        CustomTileMetadata.Removeable
+{
     static int TIMEOUT_TICKS = 20;
     public static CoreElement create() {
         return CoreElement.create(DisplayInstance.class)
@@ -231,7 +237,7 @@ public final class DisplayInstance extends BlockInstance implements CustomTileMe
         Location block_location = metadata.location(0.5,0.5,0.5);
         BlockPosition block_position = skull.getBlockPos();
         Vector pos = block_location.toVector();
-        ChunkCoordCache.Cache blockCoord = ChunkCoordCache.Cache.of(block_position, world);
+        ChunkCoordCache.Cache blockCoord = ChunkCoordCache.Cache.of(block_position, world, 0);
 
         tickTimeInfo.variables2_ns += tickTimeInfo.nextTime();
 

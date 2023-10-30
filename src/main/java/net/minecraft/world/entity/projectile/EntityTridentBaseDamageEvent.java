@@ -9,15 +9,16 @@ public class EntityTridentBaseDamageEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
     private final EntityThrownTrident trident;
     private final MovingObjectPositionEntity hit;
-    private float damage = 8.0f;
+    private float damage;
 
-    protected EntityTridentBaseDamageEvent(EntityThrownTrident trident, MovingObjectPositionEntity hit) {
+    protected EntityTridentBaseDamageEvent(float damage, EntityThrownTrident trident, MovingObjectPositionEntity hit) {
+        this.damage = damage;
         this.trident = trident;
         this.hit = hit;
     }
 
-    public static float execute(EntityThrownTrident trident, MovingObjectPositionEntity hit) {
-        EntityTridentBaseDamageEvent event = new EntityTridentBaseDamageEvent(trident, hit);
+    public static float execute(float damage, EntityThrownTrident trident, MovingObjectPositionEntity hit) {
+        EntityTridentBaseDamageEvent event = new EntityTridentBaseDamageEvent(damage, trident, hit);
         Bukkit.getPluginManager().callEvent(event);
         return event.damage;
     }

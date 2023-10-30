@@ -1,13 +1,12 @@
 package org.lime.gp.block.component.display.partial;
 
 import com.google.gson.JsonObject;
-
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.partial.list.NonePartial;
 import org.lime.gp.lime;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast2;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,7 +56,7 @@ public class PartialLoader {
         distanceBuilder.values()
                 .stream()
                 .map(Builder::build)
-                .sorted(Comparator.<Partial>comparingInt(Partial::distanceChunk).reversed())
+                .sorted(Comparator.comparingInt(Partial::distanceChunk).reversed())
                 .forEach(partials::add);
         partials.stream()
                 .map(Partial::partials)

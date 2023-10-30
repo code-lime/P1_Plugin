@@ -3,6 +3,7 @@ package org.lime.gp.player.module;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -40,6 +41,11 @@ public class SleepSaturation implements IUI {
                                 .add("total_sec", 10 * 60)
                                 .add("reset_sec", 2 * 60)
                                 .add("color", "#FFFFFF")
+                                .addObject("death", _v -> _v
+                                        .add("color", "#0000FF")
+                                        .add("ticks_begin", 0)
+                                        .add("ticks_end", 100)
+                                )
                                 .build())
                         .withInvoke(SleepSaturation::config)
                 );
@@ -53,9 +59,12 @@ public class SleepSaturation implements IUI {
         CustomUI.addListener(instance);
     }
     private static boolean enable = false;
-    private static double delta_total_sec = 0;
-    private static double delta_reset_sec = 0;
+    private static double deltaTotalSec = 0;
+    private static double deltaResetSec = 0;
+    private static int ticksBegin = 0;
+    private static int ticksEnd = 0;
     private static TextColor color = NamedTextColor.WHITE;
+    private static TextColor deathColor = NamedTextColor.WHITE;
     private static void config(JsonObject json) {
         boolean enable = json.get("enable").getAsBoolean();
         double delta_total_sec = json.get("total_sec").getAsDouble();
@@ -63,11 +72,16 @@ public class SleepSaturation implements IUI {
         TextColor color = TextColor.fromHexString(json.get("color").getAsString());
         if (delta_total_sec != 0) delta_total_sec = 1 / delta_total_sec;
         if (delta_reset_sec != 0) delta_reset_sec = 1 / delta_reset_sec;
+        JsonObject death = json.getAsJsonObject("death");
+        TextColor deathColor = TextColor.fromHexString(death.get("color").getAsString());
+        ticksBegin = death.get("ticks_begin").getAsInt();
+        ticksEnd = death.get("ticks_end").getAsInt();
 
         SleepSaturation.enable = enable;
-        SleepSaturation.delta_total_sec = delta_total_sec;
-        SleepSaturation.delta_reset_sec = delta_reset_sec;
+        SleepSaturation.deltaTotalSec = delta_total_sec;
+        SleepSaturation.deltaResetSec = delta_reset_sec;
         SleepSaturation.color = color;
+        SleepSaturation.deathColor = deathColor;
     }
     private static final PotionEffect DARKNESS_EFFECT = PotionEffectType.DARKNESS.createEffect(40, 1)
         .withIcon(false)
@@ -90,7 +104,7 @@ public class SleepSaturation implements IUI {
             if (Administrator.inABan(uuid)) return;
             PersistentDataContainer data = player.getPersistentDataContainer();
             boolean isSleep = lime.isLay(player) && SingleModules.isInBed(uuid);
-            if (modifyValue(data, isSleep ? delta_reset_sec : -(delta_total_sec * NeedSystem.getSleepMutate(player))) == 0) {
+            if (modifyValue(data, isSleep ? deltaResetSec : -(deltaTotalSec * NeedSystem.getSleepMutate(player))) == 0) {
                 player.addPotionEffect(DARKNESS_EFFECT);
                 player.addPotionEffect(SLOW_EFFECT);
                 player.addPotionEffect(SLOW_DIGGING);
@@ -128,7 +142,18 @@ public class SleepSaturation implements IUI {
             default: return Collections.emptyList();
         }
         double value = getValue(player.getPersistentDataContainer());
-        return Collections.singletonList(ImageBuilder.of(0xE630 + (int)Math.round(value * 182), 182).withColor(color));
+        ImageBuilder img = ImageBuilder.of(0xE630 + (int)Math.round(value * 182), 182);
+        float deathDelta;
+        if (ticksEnd == 0 || (deathDelta = DeathGame.getDelta(player)) <= 0) {
+            img = img.withColor(color);
+        } else {
+            int ticks = Math.round((ticksEnd - ticksBegin) * deathDelta + ticksBegin);
+            float halfTicks = ticks / 2f;
+
+            float deltaTick = Math.abs((MinecraftServer.currentTick % ticks - halfTicks) / halfTicks);
+            img = img.withColor(TextColor.lerp(deltaTick, color, deathColor));
+        }
+        return Collections.singletonList(img);
     }
 
     @Override public IType getType() { return IType.ACTIONBAR; }

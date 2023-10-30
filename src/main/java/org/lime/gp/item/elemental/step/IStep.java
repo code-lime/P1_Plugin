@@ -5,15 +5,14 @@ import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.lime.display.transform.LocalLocation;
 import org.lime.gp.item.Items;
+import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.step.action.*;
 import org.lime.gp.item.elemental.step.group.*;
 import org.lime.gp.item.elemental.step.wait.QueueStep;
 import org.lime.gp.item.elemental.step.wait.WaitStep;
+import org.lime.gp.module.mobs.spawn.ISpawn;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 
 import java.util.Collections;
@@ -21,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public interface IStep {
-    void execute(Player player, Transformation location);
+    void execute(Player player, DataContext context, Transformation location);
 
     static IStep parse(JsonElement raw) {
         if (raw.isJsonNull()) return NoneStep.Instance;
@@ -33,6 +32,12 @@ public interface IStep {
                         parse(json.get("step")),
                         MathUtils.getVector(json.get("delta").getAsString()),
                         json.get("count").getAsInt()
+                );
+                case "dynamic" -> new DynamicStep(
+                        json.get("js").getAsString(),
+                        json.has("args")
+                                ? JsonObjectOptional.of(json.getAsJsonObject("args"))
+                                : new JsonObjectOptional()
                 );
                 case "function" -> new FunctionStep(
                         parse(json.get("step")),
@@ -46,7 +51,8 @@ public interface IStep {
                 );
                 case "offset" -> new OffsetStep(
                         parse(json.get("step")),
-                        MathUtils.transformation(json.get("offset"))
+                        MathUtils.transformation(json.get("offset")),
+                        json.has("only_yaw") && json.get("only_yaw").getAsBoolean()
                 );
                 case "palette" -> new PaletteStep(
                         json.getAsJsonObject("palette")
@@ -74,16 +80,19 @@ public interface IStep {
                         json.get("sec").getAsDouble()
                 );
 
+                case "entity" -> new EntityStep(ISpawn.parse(json.get("entity")));
                 case "block.fake" -> new FakeBlockStep(
                         Material.valueOf(json.get("material").getAsString()),
                         json.has("states")
-                                ? Collections.emptyMap()
-                                : json.getAsJsonObject("states")
+                                ? json.getAsJsonObject("states")
                                 .entrySet()
                                 .stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString())),
+                                .collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString()))
+                                : Collections.emptyMap(),
                         MathUtils.getVector(json.get("radius").getAsString()),
-                        json.get("self").getAsBoolean()
+                        json.get("self").getAsBoolean(),
+                        json.get("undo_sec").getAsFloat(),
+                        json.get("force").getAsBoolean()
                 );
                 case "none" -> NoneStep.Instance;
                 case "other" -> new OtherStep(json.get("other").getAsString());
@@ -109,6 +118,12 @@ public interface IStep {
                 );
                 case "sound" -> new SoundStep(
                         json.get("sound").getAsString(),
+                        json.get("self").getAsBoolean()
+                );
+                case "velocity" -> new VelocityStep(
+                        MathUtils.transformation(json.get("point")),
+                        json.get("power").getAsFloat(),
+                        MathUtils.getVector(json.get("radius").getAsString()),
                         json.get("self").getAsBoolean()
                 );
                 default -> throw new IllegalArgumentException("Not supported type of step: " + type);

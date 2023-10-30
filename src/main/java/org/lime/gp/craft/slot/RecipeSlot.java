@@ -12,10 +12,13 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.lime;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.execute.Execute;
+import org.lime.system.execute.Func0;
+import org.lime.system.execute.Func1;
+import org.lime.system.range.IRange;
 import org.lime.system.utils.IterableUtils;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -24,18 +27,18 @@ import java.util.stream.Stream;
 
 public abstract class RecipeSlot {
     public static final RecipeSlot none = new RecipeSlot() {
-        @Override public boolean test(net.minecraft.world.item.ItemStack item) { return item != null && item.isEmpty(); }
+        @Override public boolean test(ItemStack item) { return item != null && item.isEmpty(); }
         @Override public Optional<Integer> split(ItemStack item) { return Optional.empty(); }
-        @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
+        @Override public @Nullable ItemStack result(ItemStack slot) { return null; }
         @Override public Stream<String> getWhitelistKeys() { return Stream.empty(); }
         @Override public boolean checkCrafting() { return true; }
     };
 
     protected RecipeSlot() { }
 
-    public abstract boolean test(net.minecraft.world.item.ItemStack item);
-    public abstract Optional<Integer> split(net.minecraft.world.item.ItemStack item);
-    public abstract net.minecraft.world.item.ItemStack result(int count);
+    public abstract boolean test(ItemStack item);
+    public abstract Optional<Integer> split(ItemStack item);
+    public abstract @Nullable ItemStack result(ItemStack slot);
     public abstract Stream<String> getWhitelistKeys();
     public abstract boolean checkCrafting();
 
@@ -59,7 +62,15 @@ public abstract class RecipeSlot {
                 JsonObject slot = json.getAsJsonObject();
                 String in = slot.get("input").getAsString();
                 String out = !slot.has("output") || slot.get("output").isJsonNull() ? null : slot.get("output").getAsString();
-                RecipeSlot recipeSlot = out == null ? of(Checker.createCheck(in)) : of(Checker.createCheck(in), () -> CraftItemStack.asNMSCopy(Items.getItemCreator(out).map(IItemCreator::createItem).orElseGet(Items::empty)));
+                IRange durability = !slot.has("durability") || slot.get("durability").isJsonNull() ? null : IRange.parse(slot.get("durability").getAsString());
+                if (out != null && durability != null)
+                    lime.logOP("RecipeSlot in '"+log_key+"' '" + json + "' is DUPLICATE VARIABLE ('output' and 'durability')! Maybe error...");
+
+                RecipeSlot recipeSlot;
+                if (out != null) recipeSlot = of(Checker.createCheck(in), () -> CraftItemStack.asNMSCopy(Items.getItemCreator(out).map(IItemCreator::createItem).orElseGet(Items::empty)));
+                else if (durability != null) recipeSlot = of(Checker.createCheck(in), durability);
+                else recipeSlot = of(Checker.createCheck(in));
+
                 return slot.has("count") ? recipeSlot.withAmount(slot.get("count").getAsInt()) : recipeSlot;
             }
             String key = json.getAsString();
@@ -79,30 +90,52 @@ public abstract class RecipeSlot {
     }
     public static RecipeSlot of(Checker checker) {
         return new RecipeSlot() {
-            @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
+            @Override public boolean test(ItemStack item) { return checker.check(item); }
             @Override public Optional<Integer> split(ItemStack item) {
                 if (!test(item)) return Optional.empty();
                 int count = item.getCount();
                 return count > 0 ? Optional.of(count) : Optional.empty();
             }
-            @Override public net.minecraft.world.item.ItemStack result(int count) { return null; }
+            @Override public @Nullable ItemStack result(ItemStack slot) { return null; }
             @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
             @Override public boolean checkCrafting() { return true; }
         };
     }
-    public static RecipeSlot of(Checker checker, Func0<net.minecraft.world.item.ItemStack> result) {
+    public static RecipeSlot of(Checker checker, Func0<ItemStack> result) {
         return new RecipeSlot() {
-            @Override public boolean test(net.minecraft.world.item.ItemStack item) { return checker.check(item); }
+            @Override public boolean test(ItemStack item) { return checker.check(item); }
             @Override public Optional<Integer> split(ItemStack item) {
                 if (!test(item)) return Optional.empty();
                 int count = item.getCount();
                 return count > 0 ? Optional.of(count) : Optional.empty();
             }
-            @Override public net.minecraft.world.item.ItemStack result(int count) {
-                net.minecraft.world.item.ItemStack item = result.invoke();
+            @Override public ItemStack result(ItemStack slot) {
+                ItemStack item = result.invoke();
                 if (item.isEmpty()) return item;
-                item.setCount(count);
+                item.setCount(slot.getCount());
                 return item;
+            }
+            @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
+            @Override public boolean checkCrafting() {
+                return checker.getWhitelistCreators()
+                        .allMatch(v -> v.tryGetMaxStackSize()
+                                .map(_v -> _v == 1)
+                                .orElse(false)
+                        );
+            }
+        };
+    }
+    public static RecipeSlot of(Checker checker, IRange result) {
+        return new RecipeSlot() {
+            @Override public boolean test(ItemStack item) { return checker.check(item); }
+            @Override public Optional<Integer> split(ItemStack item) {
+                if (!test(item)) return Optional.empty();
+                int count = item.getCount();
+                return count > 0 ? Optional.of(count) : Optional.empty();
+            }
+            @Override public ItemStack result(ItemStack slot) {
+                ItemStack item = slot.copy();
+                return Items.hurtRemove(item, result.getIntValue(item.getMaxDamage())) ? ItemStack.EMPTY : item;
             }
             @Override public Stream<String> getWhitelistKeys() { return checker.getWhitelistKeys(); }
             @Override public boolean checkCrafting() {

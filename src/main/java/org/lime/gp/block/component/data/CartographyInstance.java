@@ -154,7 +154,7 @@ public class CartographyInstance extends MonitorInstance implements CustomTileMe
     @Override public void onPostTick(Collection<Player> tickable, Collection<Player> viewers) {
         if (this.map == null) {
             Location location = metadata().location(0.5, 1, 0.5);
-            for (Item drop : location.getNearbyEntitiesByType(Item.class, 0.5)) {
+            for (Item drop : location.getNearbyEntitiesByType(Item.class, 0.75)) {
                 if (drop == null) continue;
                 ItemStack item = drop.getItemStack();
                 byte[] map;

@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.lime.gp.database.mysql.MySql;
 
 import java.sql.ResultSet;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,7 +34,7 @@ public class ReJoinRow extends BaseRow {
         identifier = name + ":" + index;
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("index", String.valueOf(index));
         map.put("name", name);

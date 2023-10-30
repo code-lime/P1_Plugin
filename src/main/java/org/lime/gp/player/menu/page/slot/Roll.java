@@ -2,6 +2,8 @@ package org.lime.gp.player.menu.page.slot;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
@@ -9,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.BaseRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.menu.Logged;
@@ -18,10 +21,7 @@ import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.system.utils.RandomUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class Roll implements Logged.ILoggedDelete {
@@ -76,11 +76,11 @@ public class Roll implements Logged.ILoggedDelete {
         if (json.has("generate")) roll.generate = ActionSlot.parse(roll, json.get("generate").getAsJsonObject());
         if (json.has("end")) roll.end = ActionSlot.parse(roll, json.get("end").getAsJsonObject());
         if (json.has("tick")) roll.tick = ActionSlot.parse(roll, json.get("tick").getAsJsonObject());
-        if (roll.slots.size() <= 0) throw new IllegalArgumentException("ROLL.SLOTS SIZE ZERO");
+        if (roll.slots.isEmpty()) throw new IllegalArgumentException("ROLL.SLOTS SIZE ZERO");
         return roll;
     }
 
-    public Action0 apply(Player player, Inventory inventory, Apply apply, HashMap<Integer, Toast3<List<Toast2<String, String>>, HashMap<ClickType, List<ActionSlot>>, BaseRow>> onClickEvents) {
+    public Action0 apply(Player player, Apply apply, BaseRow row, Map<Integer, Toast4<List<Toast2<String, String>>, Map<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, net.minecraft.world.item.ItemStack, BaseRow>> slotsData) {
         List<Toast2<HashMap<String, String>, Integer>> array = new ArrayList<>();
         Toast1<Integer> scale = Toast.of(0);
         json.parse(JavaScript.getJsString(apply.apply(data)).orElseThrow()).getAsJsonArray().forEach(item -> {
@@ -100,9 +100,9 @@ public class Roll implements Logged.ILoggedDelete {
         if (size == 0) throw new IllegalArgumentException("ROLL.SIZE_ZERO");
         int slots = this.slots.size();
         if (slots == 0) throw new IllegalArgumentException("ROLL.SLOTS_ZERO");
-        return roll(player, inventory, scale.val0, values);
+        return roll(player, scale.val0, values, row, slotsData);
     }
-    private Action0 roll(Player player, Inventory inventory, int total, Map<ItemStack, Toast2<Integer, Apply>> values) {
+    private Action0 roll(Player player, int total, Map<ItemStack, Toast2<Integer, Apply>> values, BaseRow row, Map<Integer, Toast4<List<Toast2<String, String>>, Map<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, net.minecraft.world.item.ItemStack, BaseRow>> slotsData) {
         Toast1<Integer> result_index = Toast.of(RandomUtils.rand(0, total));
         return values.entrySet()
                 .stream()
@@ -134,7 +134,7 @@ public class Roll implements Logged.ILoggedDelete {
 
                         tasks.add(lime.once(() -> {
                             if (closed.val0) return;
-                            frame(player, inventory, _i, size, see);
+                            frame(player, row, slotsData, _i, size, see);
                             //lime.logOP("J: " + j + " | " + k + " | " + _i + " / " + roll_size);
                         }, wait));
 
@@ -164,8 +164,13 @@ public class Roll implements Logged.ILoggedDelete {
         RandomUtils.randomize(list);
         return list;
     }
-    private void frame(Player player, Inventory inventory, int index, int size, List<ItemStack> see) {
-        for (int i = size - 1; i >= 0; i--) inventory.setItem(slots.get(size - 1 - i), see.get(index + i));
+    private void frame(Player player, BaseRow row, Map<Integer, Toast4<List<Toast2<String, String>>, Map<ClickType, List<org.lime.gp.player.menu.ActionSlot>>, net.minecraft.world.item.ItemStack, BaseRow>> slotsData, int index, int size, List<ItemStack> see) {
+        for (int i = size - 1; i >= 0; i--) {
+            slotsData.computeIfAbsent(slots.get(size - 1 - i), v -> Toast.of(Collections.emptyList(), Collections.emptyMap(), net.minecraft.world.item.ItemStack.EMPTY, row))
+                    .val2 = CraftItemStack.asNMSCopy(see.get(index + i));
+            //slotsData.setItem(slots.get(size - 1 - i), see.get(index + i));
+        }
+        ((CraftPlayer)player).getHandle().containerMenu.broadcastFullState();
         tick.invoke(player, Apply.of(), true);
     }
 }

@@ -3,6 +3,7 @@ package org.lime.gp.player.perm;
 import com.google.common.collect.Streams;
 import com.google.gson.JsonObject;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.entity.EntityLimeMarker;
 import net.minecraft.world.entity.projectile.EntityFishingHook;
 import net.minecraft.world.item.crafting.IRecipe;
 import org.bukkit.Bukkit;
@@ -345,7 +346,7 @@ public class Perms implements Listener {
     }
     @EventHandler public static void on(PopulateLootEvent e) {
         net.minecraft.world.entity.Entity entity = e.getOrDefault(Parameters.ThisEntity, null);
-        if (entity == null || entity instanceof EntityPlayer || entity instanceof EntityFishingHook) return;
+        if (entity == null || entity instanceof EntityLimeMarker || entity instanceof EntityPlayer || entity instanceof EntityFishingHook) return;
         if (!(e.getOrDefault(Parameters.KillerEntity, null) instanceof EntityPlayer killer)) {
             e.setCancelled(true);
             return;

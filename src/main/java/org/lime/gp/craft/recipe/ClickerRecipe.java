@@ -32,7 +32,6 @@ import org.lime.gp.item.Items;
 import org.lime.gp.lime;
 import org.lime.system.range.IRange;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -279,24 +278,24 @@ public class ClickerRecipe extends AbstractRecipe {
     private final Action action;
 
     public final int clicks;
-    public final String clicker_type;
+    public final String clickerType;
 
-    public static ClickerRecipe ofDefault(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<IOutputSlot> output, boolean replace, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, category, input, Action.ofDefault(output, replace), clicks, clicker_type);
+    public static ClickerRecipe ofDefault(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<IOutputSlot> output, boolean replace, int clicks, String clickerType) {
+        return new ClickerRecipe(key, group, category, input, Action.ofDefault(output, replace), clicks, clickerType);
     }
-    public static ClickerRecipe ofRepair(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, IRange repair, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, category, input, Action.ofRepair(repair), clicks, clicker_type);
+    public static ClickerRecipe ofRepair(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, IRange repair, int clicks, String clickerType) {
+        return new ClickerRecipe(key, group, category, input, Action.ofRepair(repair), clicks, clickerType);
     }
-    public static ClickerRecipe ofCombine(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<Enchantment> enchantments, int clicks, String clicker_type) {
-        return new ClickerRecipe(key, group, category, input, Action.ofCombine(enchantments), clicks, clicker_type);
+    public static ClickerRecipe ofCombine(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, List<Enchantment> enchantments, int clicks, String clickerType) {
+        return new ClickerRecipe(key, group, category, input, Action.ofCombine(enchantments), clicks, clickerType);
     }
 
-    private ClickerRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, Action action, int clicks, String clicker_type) {
+    private ClickerRecipe(MinecraftKey key, String group, CraftingBookCategory category, List<RecipeSlot> input, Action action, int clicks, String clickerType) {
         super(key, group, category, Recipes.CLICKER);
         this.input = ImmutableList.copyOf(input);
         this.action = action;
         this.clicks = clicks;
-        this.clicker_type = clicker_type;
+        this.clickerType = clickerType;
 
         this.action.test(this);
     }

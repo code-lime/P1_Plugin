@@ -53,11 +53,11 @@ public class FoodMutate {
 
     public void eat(FoodType type, float food, float saturationModifier) {
         if (!this.food.addLevel(type, food)) return;
-        this.saturationLevel = Math.min(this.saturationLevel + food * saturationModifier * 2.0f, this.food.totalLevel());
+        this.saturationLevel = Math.max(0, Math.min(this.saturationLevel + food * saturationModifier * 2.0f, this.food.totalLevel()));
     }
     public void eatDelta(float food, float saturationModifier) {
         this.food.moveDelta(food);
-        this.saturationLevel = Math.min(this.saturationLevel + food * saturationModifier * 2.0f, this.food.totalLevel());
+        this.saturationLevel = Math.max(0, Math.min(this.saturationLevel + food * saturationModifier * 2.0f, this.food.totalLevel()));
     }
     public void eat(Item item, ItemStack stack) {
         if (!item.isEdible()) return;
@@ -104,7 +104,7 @@ public class FoodMutate {
 
         float totalFoodLevel = this.food.totalLevel();
 
-        this.saturationLevel = Math.min(this.saturationLevel, totalFoodLevel);
+        this.saturationLevel = Math.max(0, Math.min(this.saturationLevel, totalFoodLevel));
         boolean naturalRegeneration = player.level().getGameRules().getBoolean(GameRules.RULE_NATURAL_REGENERATION);
         if (naturalRegeneration && this.saturationLevel > 0.0f && player.isHurt() && totalFoodLevel >= 20) {
             ++this.tickTimer;
@@ -137,7 +137,7 @@ public class FoodMutate {
         boolean isModify = food != 0 && this.food.moveDelta(food);
         if (saturation == 0) return isModify;
         float oldSaturation = this.saturationLevel;
-        this.saturationLevel = Math.min(this.saturationLevel + saturation, this.food.totalLevel());
+        this.saturationLevel = Math.max(0, Math.min(this.saturationLevel + saturation, this.food.totalLevel()));
         return isModify || oldSaturation != this.saturationLevel;
     }
     public void readAdditionalSaveData(NBTTagCompound nbt) {

@@ -16,6 +16,8 @@ import org.lime.gp.block.component.display.BlockDisplay;
 
 import net.minecraft.core.BlockPosition;
 import org.lime.plugin.CoreElement;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
 
 public class ChunkCoordCache implements Listener {
     public static CoreElement create() {
@@ -24,22 +26,22 @@ public class ChunkCoordCache implements Listener {
                 .withInit(ChunkCoordCache::init);
     }
 
-    public record Cache(int x, int z, World world) {
+    public record Cache(int x, int z, World world, int counter) {
         public static int distance(Cache coord1, Cache coord2) {
             return Math.max(Math.abs(coord1.x - coord2.x), Math.abs(coord1.z - coord2.z));
         }
         public int distance(Cache coord) {
             return distance(this, coord);
         }
-        public static Cache of(Location location) {
+        public static Cache of(Location location, int counter) {
             int x = location.getBlockX();
             int z = location.getBlockZ();
-            return new Cache(x / BlockDisplay.CHUNK_SIZE, z / BlockDisplay.CHUNK_SIZE, location.getWorld());
+            return new Cache(x / BlockDisplay.CHUNK_SIZE, z / BlockDisplay.CHUNK_SIZE, location.getWorld(), counter);
         }
-        public static Cache of(BlockPosition pos, World world) {
+        public static Cache of(BlockPosition pos, World world, int counter) {
             int x = pos.getX();
             int z = pos.getZ();
-            return new Cache(x / BlockDisplay.CHUNK_SIZE, z / BlockDisplay.CHUNK_SIZE, world);
+            return new Cache(x / BlockDisplay.CHUNK_SIZE, z / BlockDisplay.CHUNK_SIZE, world, counter);
         }
     }
 
@@ -51,10 +53,16 @@ public class ChunkCoordCache implements Listener {
     private static void update() {
         Bukkit.getOnlinePlayers().forEach(player -> {
             Location location = player.getLocation();
-            Cache coord = Cache.of(location);
-            Cache old = playerChunks.put(player.getUniqueId(), coord);
-            if (coord.equals(old)) return;
-            PlayerChunkMoveEvent.execute(player, coord);
+            Toast1<Boolean> changed = Toast.of(false);
+            Cache cache = playerChunks.compute(player.getUniqueId(), (k,v) -> {
+                int counter = v == null ? 0 : Math.min(30, v.counter());
+                Cache coord = Cache.of(location, counter);
+                if (coord.equals(v)) return coord;
+                changed.val0 = true;
+                return coord;
+            });
+            if (changed.val0)
+                PlayerChunkMoveEvent.execute(player, cache);
         });
     }
 

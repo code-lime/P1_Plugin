@@ -310,7 +310,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
         BlockPosition position = event.getPos();
         Location location = new Location(event.getWorld().getWorld(), position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5);
-        for (org.bukkit.entity.Item item : location.clone().add(0, 0.5, 0).getNearbyEntitiesByType(org.bukkit.entity.Item.class, 0.5)) {
+        for (org.bukkit.entity.Item item : location.clone().add(0, 0.5, 0).getNearbyEntitiesByType(org.bukkit.entity.Item.class, 0.75)) {
             ItemStack itemStack = item.getItemStack();
             UUID owner = item.getThrower();
             if (owner == null || itemStack.getAmount() == 0) continue;

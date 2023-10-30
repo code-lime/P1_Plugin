@@ -58,7 +58,7 @@ public class Ghost implements Listener {
             if (targetUUID == null) {
                 if (player.getGameMode() == GameMode.SPECTATOR) {
                     player.setGameMode(GameMode.SURVIVAL);
-                    player.teleport(Login.getMainLocation());
+                    player.teleport(Login.getMainLocation(player));
                 }
                 tags.remove("ghost");
                 return;

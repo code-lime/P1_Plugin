@@ -3,10 +3,14 @@ package org.lime.gp.module.mobs.spawn;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.commands.CommandTeam;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3D;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.ScoreboardTeam;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
@@ -31,16 +35,17 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 public class EntitySpawn implements ISpawn {
-    public final @Nullable EntityTypes<?> type;
-    public final @Nullable String name;
-    public final List<String> tags = new ArrayList<>();
-    public final boolean slotsEmpty;
-    public final @Nullable ILoot slots;
-    public final boolean effectsEmpty;
-    public final List<PotionEffect> effects = new ArrayList<>();
-    public final @Nullable DespawnData despawn;
-    public final Map<Attribute, Double> attributes = new HashMap<>();
-    public final NBTTagCompound nbt;
+    private final @Nullable EntityTypes<?> type;
+    private final @Nullable String name;
+    private final List<String> tags = new ArrayList<>();
+    private final boolean slotsEmpty;
+    private final @Nullable ILoot slots;
+    private final boolean effectsEmpty;
+    private final List<PotionEffect> effects = new ArrayList<>();
+    private final @Nullable DespawnData despawn;
+    private final Map<Attribute, Double> attributes = new HashMap<>();
+    private final NBTTagCompound nbt;
+    private final @Nullable String team;
 
     public static boolean isEntityType(String type) {
         try {
@@ -51,45 +56,11 @@ public class EntitySpawn implements ISpawn {
         }
     }
 
-    /*
-{ //Spawn entity with data
-	"type": ENTITY_TYPE,
-	"?name": FORMATTED_CHAT,
-	"?tags": [
-		STRING,
-		STRING,
-		...
-	],
-	"?slots": LOOT,
-	"?effects": [
-		POTION_EFFECT,
-		POTION_EFFECT,
-		...
-	],
-	"?despawn": RANGE, //In seconds
-	"?attributes": {
-		ATTRIBUTE_NAME: BASE_VALUE,
-		ATTRIBUTE_NAME: BASE_VALUE,
-		...
-	},
-	"?nbt": {
-
-	},
-	"?menu": {
-		"id": "100",
-		"menu": MENU_KEY,
-		"?args": {
-			"KEY": "VALUE",
-			"KEY": ...,
-			...
-		}
-	}
-}
-    */
     public EntitySpawn(JsonObject json) {
         String type = json.get("type").getAsString();
         this.type = type.equals("EMPTY") ? null : EntityTypes.byString(EntityType.valueOf(type).key().asString()).orElseThrow();
         this.name = json.has("name") ? json.get("name").getAsString() : null;
+        this.team = json.has("team") ? json.get("team").getAsString() : null;
         if (json.has("tags")) json.getAsJsonArray("tags")
                 .forEach(item -> tags.add(item.getAsString()));
         this.slotsEmpty = json.has("slots_empty") && json.get("slots_empty").getAsBoolean();
@@ -103,22 +74,6 @@ public class EntitySpawn implements ISpawn {
                 .forEach(kv -> attributes.put(Attribute.valueOf(kv.getKey()), kv.getValue().getAsDouble()));
         this.nbt = json.has("nbt") ? JsonNBT.toNBT(json.getAsJsonObject("nbt")) : new NBTTagCompound();
     }
-    /*
-{
-	"?nbt": {
-
-	},
-	"?menu": {
-		"id": "100",
-		"menu": MENU_KEY,
-		"?args": {
-			"KEY": "VALUE",
-			"KEY": ...,
-			...
-		}
-	}
-}
-    */
     @Override public Optional<IMobCreator> generateMob(IPopulateSpawn populate) {
         return Optional.of((world, pos) -> {
             if (type == null) return null;
@@ -131,6 +86,12 @@ public class EntitySpawn implements ISpawn {
             if (slotsEmpty && entity instanceof EntityLiving living) {
                 for (EnumItemSlot slot : EnumItemSlot.values())
                     living.setItemSlot(slot, ItemStack.EMPTY);
+            }
+            if (team != null) {
+                Scoreboard scoreboard = MinecraftServer.getServer().getScoreboard();
+                ScoreboardTeam scoreboardTeam = scoreboard.getPlayerTeam(team);
+                if (scoreboardTeam != null)
+                    scoreboard.addPlayerToTeam(entity.getScoreboardName(), scoreboardTeam);
             }
             if (slots != null && entity instanceof EntityLiving living) {
                 IPopulateLoot loot = IPopulateLoot.of(world, List.of(
@@ -172,7 +133,7 @@ public class EntitySpawn implements ISpawn {
             return entity;
         });
     }
-    public static Entity createEntity(WorldServer worldserver, EntityTypes<?> entityType, Vec3D pos, NBTTagCompound nbt, boolean initialize) {
+    private static Entity createEntity(WorldServer worldserver, EntityTypes<?> entityType, Vec3D pos, NBTTagCompound nbt, boolean initialize) {
         NBTTagCompound tagCompound = nbt.copy();
         tagCompound.putString("id", EntityTypes.getKey(entityType).toString());
         Entity entity = EntityTypes.loadEntityRecursive(tagCompound, worldserver, v -> {

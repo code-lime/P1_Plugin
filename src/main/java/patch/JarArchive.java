@@ -1,6 +1,5 @@
 package patch;
 
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.objectweb.asm.*;
 
@@ -9,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.jar.JarEntry;
@@ -16,7 +16,6 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-//public float getTemperature(BlockPosition blockPos) {
 public class JarArchive {
     public final String name;
     public final Manifest manifest;
@@ -59,19 +58,17 @@ public class JarArchive {
             return array.toByteArray();
         }
     }
-    public void toFile(Path path) throws Throwable {
-        Files.write(path, toByteArray());
-    }
-
-    public <T>ClassPatcher<T> of(Class<T> tClass) {
-        return new ClassPatcher<T>(this, tClass);
-    }
-
+    public void toFile(Path path) throws Throwable { Files.write(path, toByteArray()); }
+    public <T>ClassPatcher<T> of(Class<T> tClass) { return new ClassPatcher<T>(this, tClass); }
     public <T>JarArchive patchMethod(IMethodFilter<T> filter, MethodPatcher patcher) {
         return of(filter.tClass()).patchMethod(filter, patcher).patch();
     }
-
-    public <T>JarArchive patch(Class<T> tClass, Func1<ClassWriter, ClassVisitor> visitor) {
+    public <T>JarArchive patchMethod(List<IMethodFilter<T>> filters, MethodPatcher patcher) {
+        JarArchive archive = this;
+        for (IMethodFilter<T> filter : filters) archive = archive.of(filter.tClass()).patchMethod(filter, patcher).patch();
+        return archive;
+    }
+    public <T>JarArchive patch(Class<T> tClass, Func2<JarArchive, ClassWriter, ClassVisitor> visitor) {
         String className = Native.classFile(tClass);
         Optional.ofNullable(this.entries.get(className))
                 .ifPresentOrElse(bytes -> {
@@ -79,11 +76,13 @@ public class JarArchive {
                     Native.subLog(() -> {
                         ClassReader reader = new ClassReader(bytes);
                         ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                        reader.accept(visitor.invoke(writer), 0);
+                        reader.accept(visitor.invoke(this, writer), 0);
                         this.entries.put(className, writer.toByteArray());
                     });
                     Native.log("Patch " + className + " saved!");
-                }, () -> Native.log("File '" + className + "' not founded in '"+this.name+"'"));
+                }, () -> {
+                    throw new PatchException("Class file not founded!", this, className);
+                });
         return this;
     }
 }

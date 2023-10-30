@@ -3,7 +3,6 @@ package org.lime.gp.block.component.data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.minecraft.core.BlockPosition;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.TileInventory;
@@ -13,7 +12,6 @@ import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
-import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
@@ -23,16 +21,12 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
-import org.lime.gp.block.component.display.BlockDisplay;
 import org.lime.gp.block.component.display.IDisplayVariable;
-import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.ConverterComponent;
 import org.lime.gp.block.component.list.DisplayComponent;
-import org.lime.gp.chat.ChatColorHex;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.craft.book.ContainerWorkbenchBook;
 import org.lime.gp.craft.book.Recipes;
@@ -44,14 +38,12 @@ import org.lime.gp.extension.PacketManager;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.TableDisplaySetting;
-import org.lime.gp.item.settings.list.ThirstSetting;
 import org.lime.gp.module.loot.PopulateLootEvent;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.ItemUtils;
 
 import java.util.List;
@@ -105,7 +97,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
             Location location = metadata().location(0.5, 1, 0.5);
             ConverterComponent component = component();
             String converter_type = component.converter_type;
-            for (Item drop : location.getNearbyEntitiesByType(Item.class, 0.5)) {
+            for (Item drop : location.getNearbyEntitiesByType(Item.class, 0.75)) {
                 if (drop == null) continue;
                 ItemStack item = drop.getItemStack();
                 if (Items.getGlobalKeyByItem(item)

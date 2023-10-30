@@ -32,7 +32,7 @@ public class ConfirmCommand {
         return value;
     }
 
-    public static CoreCommand setup(CoreCommand command, String actionName, Action2<UUID, Action1<Component>> action) {
+    public static CoreCommand<?> setup(CoreCommand<?> command, String actionName, Action2<UUID, Action1<Component>> action) {
         String commandName = command.cmd;
         return command
                 .withUsage("/"+commandName+" [uuid or user_name or dsid]")

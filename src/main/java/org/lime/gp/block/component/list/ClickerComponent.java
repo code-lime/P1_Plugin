@@ -18,13 +18,15 @@ import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.list.ClickerSetting;
 import org.lime.gp.player.menu.MenuCreator;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @InfoComponent.Component(name = "clicker")
 public final class ClickerComponent extends ComponentDynamic<JsonObject, ClickerInstance> {
-    public final String type;
+    public final List<String> types = new ArrayList<>();
     public final String sound_click;
     public final String sound_result;
     public final Replace replace;
@@ -110,7 +112,9 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
 
     public ClickerComponent(BlockInfo info, JsonObject json) {
         super(info, json);
-        type = json.get("type").getAsString();
+        if (json.get("type").isJsonArray()) json.getAsJsonArray("type").forEach(type -> this.types.add(type.getAsString()));
+        else types.add(json.get("type").getAsString());
+
         this.sound_click = json.has("sound_click") ? json.get("sound_click").getAsString() : null;
         this.sound_result = json.has("sound_result") ? json.get("sound_result").getAsString() : null;
         this.replace = json.has("replace") ? Replace.of(json.getAsJsonObject("replace")) : Replace.none;
@@ -161,7 +165,7 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
                 )
         ), "Вызывает действие");
         return JsonGroup.of(index, index, JObject.of(
-                JProperty.require(IName.raw("type"), IJElement.raw("CLICKER_TYPE"), IComment.empty()
+                JProperty.require(IName.raw("type"), IJElement.raw("CLICKER_TYPE").or(IJElement.anyList(IJElement.raw("CLICKER_TYPE"))), IComment.empty()
                         .append(IComment.text("Пользовательский тип кликера. Требует ударять предметом с "))
                         .append(IComment.link(docs.settingsLink(ClickerSetting.class)))
                         .append(IComment.text(" у которого "))

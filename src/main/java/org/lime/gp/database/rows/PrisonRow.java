@@ -2,7 +2,7 @@ package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.lime.Position;
 import org.lime.gp.lime;
@@ -32,7 +32,7 @@ public class PrisonRow extends BaseRow {
         endTime = MySql.readObject(set, "end_time", Calendar.class);
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("house_id", String.valueOf(houseID));

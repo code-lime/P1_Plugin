@@ -1,16 +1,14 @@
 package patch;
 
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.execute.Func1;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
 public class MethodPatcher {
-    private final Func1<MethodVisitor, MethodVisitor> mutate;
+    private final Func1<PatchMethodVisitor, ProgressMethodVisitor> mutate;
 
-    private MethodPatcher(Func1<MethodVisitor, MethodVisitor> mutate) { this.mutate = mutate; }
+    private MethodPatcher(Func1<PatchMethodVisitor, ProgressMethodVisitor> mutate) { this.mutate = mutate; }
 
     private @Nullable Func1<Integer, Integer> access = null;
     private @Nullable Func1<String, String> name = null;
@@ -30,16 +28,16 @@ public class MethodPatcher {
     public MethodPatcher signature(Func1<String, String> signature) { this.signature = signature; return this; }
     public MethodPatcher exceptions(Func1<String[], String[]> exceptions) { this.exceptions = exceptions; return this; }
 
-    public MethodVisitor patch(ClassVisitor visitor, int access, String name, String descriptor, String signature, String[] exceptions) {
-        return mutate.invoke(visitor.visitMethod(
+    public ProgressMethodVisitor patch(JarArchive jar, IMethodInfo method, ClassVisitor visitor, int access, String name, String descriptor, String signature, String[] exceptions) {
+        return mutate.invoke(new PatchMethodVisitor(jar, method, visitor.visitMethod(
                 this.access == null ? access : this.access.invoke(access),
                 this.name == null ? name : this.name.invoke(name),
                 this.descriptor == null ? descriptor : this.descriptor.invoke(descriptor),
                 this.signature == null ? signature : this.signature.invoke(signature),
                 this.exceptions == null ? exceptions : this.exceptions.invoke(exceptions)
-        ));
+        )));
     }
 
-    public static MethodPatcher mutate(Func1<MethodVisitor, MethodVisitor> mutate) { return new MethodPatcher(mutate); }
-    public static MethodPatcher none() { return mutate(v -> v); }
+    public static MethodPatcher mutate(Func1<PatchMethodVisitor, ProgressMethodVisitor> mutate) { return new MethodPatcher(mutate); }
+    public static MethodPatcher none() { return mutate(ProgressMethodVisitor::none); }
 }

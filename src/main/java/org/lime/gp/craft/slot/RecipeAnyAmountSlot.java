@@ -5,6 +5,7 @@ import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.lime.gp.item.Items;
 import org.lime.system.execute.Execute;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -27,7 +28,7 @@ public class RecipeAnyAmountSlot extends RecipeSlot {
 
     @Override public boolean test(net.minecraft.world.item.ItemStack item) { return base.test(item) && item.getCount() >= amount; }
     @Override public Optional<Integer> split(ItemStack item) { return base.split(item).map(count -> count / amount); }
-    @Override public net.minecraft.world.item.ItemStack result(int count) { return base.result(count); }
+    @Override public @Nullable ItemStack result(ItemStack slot) { return base.result(slot); }
     @Override public Stream<String> getWhitelistKeys() { return base.getWhitelistKeys(); }
     @Override public boolean checkCrafting() { return base.checkCrafting(); }
 }

@@ -165,6 +165,9 @@ public class CoreProtectHandle implements Listener {
         private static void onBlockInteract(Block block, Player player) {
             net.coreprotect.consumer.Queue.queuePlayerInteraction(player.getName(), block.getState(), block.getType());
         }
+        private static void onPlayerCommand(Player player, String command) {
+            queuePlayerCommand(player, command, getTime(false));
+        }
     }
     public static void logDrop(Location location, Player player, ItemStack item) {
         _0.onPlayerDropItem(location, player, item);
@@ -177,6 +180,9 @@ public class CoreProtectHandle implements Listener {
     }
     public static void logSetBlock(TileEntityLimeSkull skull, Player player) {
         _0.onBlockPlace(skull, player);
+    }
+    public static void logCommand(Player player, String command) {
+        _0.onPlayerCommand(player, command);
     }
     public static void syncTransaction(Player player, Position position) {
         CoreProtect.getInstance().getAPI().logContainerTransaction(player.getName(), position.getLocation());

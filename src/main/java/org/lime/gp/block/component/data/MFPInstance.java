@@ -101,7 +101,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
         if (head.getType().isAir()) {
             Location location = metadata().location(0.5, 1, 0.5);
-            for (Item drop : location.getNearbyEntitiesByType(Item.class, 0.5)) {
+            for (Item drop : location.getNearbyEntitiesByType(Item.class, 0.75)) {
                 if (drop == null) continue;
                 ItemStack item = drop.getItemStack();
                 if (!item.hasItemMeta() || !(item.getItemMeta() instanceof BookMeta meta)) continue;

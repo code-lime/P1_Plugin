@@ -485,7 +485,7 @@ public class Crafts {
         for (int i2 = 0; i2 < nonnulllist.size(); ++i2) {
             RecipeSlot recipeSlot = craft == null ? null : craft.get(i2);
             net.minecraft.world.item.ItemStack slot = inventory.getItem(i2);
-            net.minecraft.world.item.ItemStack slotItem = recipeSlot == null ? null : recipeSlot.result(slot.getCount());
+            net.minecraft.world.item.ItemStack slotItem = recipeSlot == null ? null : recipeSlot.result(slot);
             if (slotItem == null) {
                 Item item = slot.getItem();
                 if (!item.hasCraftingRemainingItem()) continue;

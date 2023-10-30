@@ -1,4 +1,4 @@
-package org.lime.gp.player.inventory;
+package org.lime.gp.player.inventory.gui;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.NonNullList;
@@ -6,14 +6,12 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayInWindowClick;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow;
 import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.player.PlayerInventory;
 import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.InventoryClickType;
 import net.minecraft.world.inventory.Slot;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
@@ -33,6 +31,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.display.PacketManager;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.lime;
+import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.plugin.CoreElement;
 import org.lime.reflection;
 import org.lime.system.execute.*;
@@ -109,121 +108,11 @@ public class InterfaceManager implements Listener {
                                 lime.invokeSync(() -> player.containerMenu.sendAllDataToRemote());
                             }
                         }
-                        /*
-                        switch (packet.getClickType()) {
-                            case PICKUP -> {
-                                if (packet.getButtonNum() != 0 && packet.getButtonNum() != 1) break;
-                                if (packet.getSlotNum() == -999) break;
-                                if (packet.getSlotNum() < 0) break;
-                                Slot slot = connection.player.containerMenu.getSlot(packet.getSlotNum());
-                                if (slot instanceof AbstractSlot aslot)
-                                    aslot.onSlotClickAsync(connection.player, click);
-                            }
-                            case QUICK_MOVE -> {
-                                if (packet.getButtonNum() != 0 && packet.getButtonNum() != 1) break;
-                                if (packet.getSlotNum() < 0) break;
-                                Slot slot = connection.player.containerMenu.getSlot(packet.getSlotNum());
-                                if (slot instanceof AbstractSlot aslot)
-                                    aslot.onSlotClickAsync(connection.player, click);
-                            }
-                            case SWAP -> {
-                                if ((packet.getButtonNum() < 0 || packet.getButtonNum() >= 9) && packet.getButtonNum() != 40) break;
-                                Slot slot = connection.player.containerMenu.getSlot(packet.getSlotNum());
-                                if (slot instanceof AbstractSlot aslot)
-                                    aslot.onSlotClickAsync(connection.player, click);
-                            }
-                            case THROW -> {
-                                if (packet.getSlotNum() >= 0) {
-                                    if (packet.getButtonNum() == 0) {
-                                        if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot)
-                                            aslot.onSlotClickAsync(connection.player, click);
-                                        break;
-                                    }
-                                    if (packet.getButtonNum() != 1) break;
-                                    if (connection.player.containerMenu.getSlot(packet.getSlotNum()) instanceof AbstractSlot aslot)
-                                        aslot.onSlotClickAsync(connection.player, click);
-                                }
-                            }
-                            default -> {}
-                        }
-                         */
                     }
                 })
                 .listen();
     }
-    public static class GUI {
-        public final Inventory inventory;
-        Action3<GUI, Player, Action1<ItemStack>> onOpen;
-        Action7<GUI, Player, Integer, Inventory, ItemStack, ClickType, Action1<ItemStack>> onClick;
-        Action2<GUI, Player> onClose;
 
-        public GUI(Component title, int size, Action3<GUI, Player, Action1<ItemStack>> onOpen, Action7<GUI, Player, Integer, Inventory, ItemStack, ClickType, Action1<ItemStack>> onClick, Action2<GUI, Player> onClose) {
-            inventory = Bukkit.createInventory(null, size, title);
-            guis.put(inventory, this);
-            this.onOpen = onOpen;
-            this.onClick = onClick;
-            this.onClose = onClose;
-        }
-        public void show(Player player) {
-            player.openInventory(inventory);
-        }
-        public void onOpen(Player player, Action1<ItemStack> setCursor) {
-            onOpen.invoke(this, player, setCursor);
-        }
-        public void onClose(Player player) {
-            onClose.invoke(this, player);
-            dispose();
-        }
-        public void dispose() {
-            guis.remove(inventory);
-        }
-    }
-    public static abstract class IGUI {
-        public void init(GUI gui) {}
-        public void onOpen(GUI gui, Player player, Action1<ItemStack> setCursor) {}
-        public void onClick(GUI gui, Player player, Integer slot, Inventory inventory, ItemStack item, ClickType click, Action1<ItemStack> setCursor) {}
-        public void onClose(GUI gui, Player player) {}
-    }
-
-    static HashMap<Inventory, GUI> guis = new HashMap<>();
-
-    @EventHandler public static void on(final InventoryClickEvent e) {
-        GUI gui = guis.getOrDefault(e.getInventory(), null);
-        if (gui == null) return;
-        e.setCancelled(true);
-        final ItemStack clickedItem = e.getCurrentItem();
-        if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
-        final Player p = (Player) e.getWhoClicked();
-        gui.onClick.invoke(gui, p, e.getSlot(), e.getClickedInventory(), clickedItem, e.getClick(), e.getView()::setCursor);
-    }
-    @EventHandler public static void on(final InventoryDragEvent e) {
-        if (!guis.containsKey(e.getInventory())) return;
-        e.setCancelled(true);
-    }
-    @EventHandler public static void on(PlayerDropItemEvent e) {
-        GUI gui = guis.getOrDefault(e.getPlayer().getOpenInventory().getTopInventory(), null);
-        if (gui == null) return;
-        e.getItemDrop().getItemStack().setAmount(0);
-    }
-    @EventHandler public static void on(final InventoryCloseEvent e) {
-        GUI gui = guis.getOrDefault(e.getInventory(), null);
-        if (gui == null) return;
-        gui.onClose((Player) e.getPlayer());
-    }
-    @EventHandler public static void on(final InventoryOpenEvent e) {
-        GUI gui = guis.getOrDefault(e.getInventory(), null);
-        if (gui == null) return;
-        gui.onOpen((Player) e.getPlayer(), e.getView()::setCursor);
-    }
-
-    public static GUI create(Component title, int size, IGUI igui) {
-        return create(title, size, igui::init, igui::onOpen, igui::onClick, igui::onClose);
-    }
-    public static GUI create(Component title, int size, Action1<GUI> init, Action3<GUI, Player, Action1<ItemStack>> onOpen, Action7<GUI, Player, Integer, Inventory, ItemStack, ClickType, Action1<ItemStack>> onClick, Action2<GUI, Player> onClose) {
-        GUI gui = new GUI(title, size, onOpen, onClick, onClose);
-        init.invoke(gui);
-        return gui;
-    }
     public static ItemStack createItem(final Material material, final String name, final String... lore) {
         return createItem(material, name, null, lore);
     }
@@ -313,6 +202,13 @@ public class InterfaceManager implements Listener {
             super(slot);
         }
     }
+    public static abstract class BasePacketSlot extends AbstractBaseSlot {
+        public BasePacketSlot(Slot slot) { super(slot); }
+
+        @Override public boolean isPacketOnly() { return true; }
+        @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
+        @Override public boolean mayPickup(EntityHuman human) { return false; }
+    }
 
     public static final class Builder {
         private final EntityPlayer player;
@@ -381,10 +277,16 @@ public class InterfaceManager implements Listener {
     }
 
     public static boolean openInventory(Player player, CraftInventory inventory, Func3<Integer, PlayerInventory, IInventory, Container> creator) {
+        return openInventory(player, inventory.getInventory(), creator);
+    }
+    public static boolean openInventory(Player player, IInventory inventory, Func3<Integer, PlayerInventory, IInventory, Container> creator) {
         if (player == null) return false;
         return openInventory(((CraftPlayer)player).getHandle(), inventory, creator);
     }
     public static boolean openInventory(EntityHuman human, CraftInventory inventory, Func3<Integer, PlayerInventory, IInventory, Container> creator) {
+        return openInventory(human, inventory.getInventory(), creator);
+    }
+    public static boolean openInventory(EntityHuman human, IInventory inventory, Func3<Integer, PlayerInventory, IInventory, Container> creator) {
         return human instanceof EntityPlayer player && openInventory(player, inventory, creator);
     }
 
@@ -400,12 +302,14 @@ public class InterfaceManager implements Listener {
     }
 
     public static boolean openInventory(EntityPlayer player, CraftInventory inventory, Func3<Integer, PlayerInventory, IInventory, Container> creator) {
+        return openInventory(player, inventory.getInventory(), creator);
+    }
+    public static boolean openInventory(EntityPlayer player, IInventory inventory, Func3<Integer, PlayerInventory, IInventory, Container> creator) {
         if (player == null) return false;
         int containerCounter = player.nextContainerCounter();
-        IInventory iinventory = inventory.getInventory();
-        Container container = creator.invoke(containerCounter, player.getInventory(), iinventory);
-        if (MinecraftInventory_class.isInstance(iinventory))
-            container.setTitle(ChatHelper.toNMS(title_MinecraftInventory.invoke(iinventory)));
+        Container container = creator.invoke(containerCounter, player.getInventory(), inventory);
+        if (MinecraftInventory_class.isInstance(inventory))
+            container.setTitle(ChatHelper.toNMS(title_MinecraftInventory.invoke(inventory)));
         boolean cancelled = false;
         container = CraftEventFactory.callInventoryOpenEvent(player, container, cancelled);
         if (container == null && !cancelled) return false;

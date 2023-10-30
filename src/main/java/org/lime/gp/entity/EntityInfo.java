@@ -6,13 +6,10 @@ import org.bukkit.Location;
 import org.lime.gp.entity.component.ComponentStatic;
 import org.lime.system.execute.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public final class EntityInfo {
-    public final HashMap<String, ComponentStatic<?>> components = new HashMap<>();
+    public final LinkedHashMap<String, ComponentStatic<?>> components = new LinkedHashMap<>();
     public final double distance;
 
     private final String _key;

@@ -173,4 +173,9 @@ public class Tables {
             .optional()
             .keyed("id", v -> String.valueOf(v.id))
             .build();
+    public static final KeyedTable<QuentaRow> QUENTA_TABLE = KeyedTable.of("quenta", QuentaRow::new)
+            .optional()
+            .keyed("id", v -> String.valueOf(v.id))
+            .other("user_id", v -> String.valueOf(v.userID))
+            .build();
 }

@@ -60,11 +60,11 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
     }
 
     private static Map<Integer, Partial> createPartials(BlockInfo info, LinkedList<Partial> partials) {
-        int lenght = partials.size();
-        if (lenght == 0) return Collections.emptyMap();
+        int length = partials.size();
+        if (length == 0) return Collections.emptyMap();
         HashMapWithDefault<Integer, Partial> outPartials = new HashMapWithDefault<>(partials.get(0));
         Partial last = null;
-        for (int i = lenght - 1; i >= 0; i--) {
+        for (int i = length - 1; i >= 0; i--) {
             Partial partial = partials.get(i);
             if (last != null) {
                 int lastDistanceChunk = last.distanceChunk();

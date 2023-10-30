@@ -1,16 +1,11 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.entity.Player;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.system.Time;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.module.EntityPosition;
@@ -95,7 +90,7 @@ public class UserRow extends BaseRow {
         return RolesRow.getBy(role).flatMap(v -> GroupRow.getBy(v.groupID)).flatMap(v -> v.city);
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", Tables.valueOfInt(id));
         map.put("uuid", uuid.toString());

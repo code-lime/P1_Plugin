@@ -11,8 +11,10 @@ import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.display.models.shadow.IBuilder;
+import org.lime.display.transform.LocalLocation;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.ItemNMS;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
@@ -22,6 +24,7 @@ import org.lime.gp.item.settings.Setting;
 import org.lime.gp.lime;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
+import org.lime.system.utils.IterableUtils;
 import org.lime.system.utils.MathUtils;
 
 import javax.annotation.Nullable;
@@ -163,7 +166,7 @@ import java.util.stream.Stream;
                 .invokeGet((model, context) -> lime.models.builder().item()
                         .item(model)
                         .context(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE))
-                        .transform(base.compose(context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)))
+                        .transform(MathUtils.transform(base, context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)))
                 );
     }
     public static IBuilder builderItem(net.minecraft.world.item.ItemStack item, Transformation base, TableDisplaySetting.TableType table, @Nullable String type) {
@@ -173,8 +176,8 @@ import java.util.stream.Stream;
                 .orElseGet(() -> Toast.of(item.copy(), Optional.empty()))
                 .invokeGet((model, context) -> lime.models.builder().item()
                         .item(model)
-                        .context(context.map(TableDisplaySetting.Context::display).orElse(ItemDisplayContext.NONE))
-                        .transform(base.compose(context.map(TableDisplaySetting.Context::transformation).orElseGet(Transformation::identity)))
+                        .context(context.map(Context::display).orElse(ItemDisplayContext.NONE))
+                        .transform(MathUtils.transform(base, context.map(Context::transformation).orElseGet(Transformation::identity)))
                 );
     }
 

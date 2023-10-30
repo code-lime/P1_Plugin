@@ -2,6 +2,7 @@ package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.lime.gp.chat.ChatHelper;
@@ -9,7 +10,7 @@ import org.lime.system.toast.*;
 
 public abstract class BaseRow {
     protected BaseRow(ResultSet set) { }
-    public HashMap<String, String> appendToReplace(HashMap<String, String> map) { return map; }
+    public Map<String, String> appendToReplace(Map<String, String> map) { return map; }
     public String applyToString(String line) { return applyToString(line, '{', '}'); }
     public String applyToString(String line, char start, char end) { return applyToString(line, start, end, new HashMap<>()); }
     @SuppressWarnings("unchecked")
@@ -23,15 +24,15 @@ public abstract class BaseRow {
     public String applyToString(String line, HashMap<String, String> map) { return applyToString(line, '{', '}', map); }
     public String applyToString(String line, String prefix, HashMap<String, String> map) { return applyToString(line, '{', '}', prefix, map); }
     public String applyToString(String line, char start, char end, HashMap<String, String> map) {
-        HashMap<String, String> _map = appendToReplace(new HashMap<>());
-        map.forEach(_map::put);
+        Map<String, String> _map = appendToReplace(new HashMap<>());
+        _map.putAll(map);
         _map.replaceAll((k,v) -> v == null ? "" : v);
         return ChatHelper.replaceBy(line, start, end, ChatHelper.jsFix(_map));
     }
     public String applyToString(String line, char start, char end, String prefix, HashMap<String, String> map) {
-        HashMap<String, String> _map = new HashMap<>();
+        Map<String, String> _map = new HashMap<>();
         appendToReplace(new HashMap<>()).forEach((k,v) -> _map.put(prefix + k, v));
-        map.forEach(_map::put);
+        _map.putAll(map);
         _map.replaceAll((k,v) -> v == null ? "" : v);
         return ChatHelper.replaceBy(line, start, end, ChatHelper.jsFix(_map));
     }

@@ -2,36 +2,27 @@ package org.lime.gp.module;
 
 import com.google.common.collect.Streams;
 import com.mojang.math.Transformation;
-
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityTypes;
-
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.joml.Vector3f;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
-import org.lime.display.DisplayManager;
-import org.lime.display.Displays;
-import org.lime.display.EditedDataWatcher;
-import org.lime.display.MoveObjectDisplay;
-import org.lime.gp.lime;
+import org.lime.display.*;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
+import org.lime.system.execute.Func1;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 public class DrawText {
     public static CoreElement create() {
@@ -39,64 +30,9 @@ public class DrawText {
                 .withInit(DrawText::init);
     }
     private static final TextManager TEXT_MANAGER = new TextManager();
-    //private static final Models.Model TEXT_MODEL = lime.models.builder(EntityTypes.TEXT_DISPLAY).build();
     public static void init() {
         Displays.initDisplay(TEXT_MANAGER);
         lime.repeatTicks(() -> shows.values().removeIf(IShow::tryRemove), 1);
-        /*Toast1<Double> a = Toast.of(0.0);
-
-        load(() -> Stream.of(new IShowID("tmp.gen") {
-
-            @Override public boolean filter(Player player) {
-                return true;
-            }
-
-            @Override public Component text(Player player) {
-                if (a.val0 > 5) a.val0 = 0.0;
-                a.val0 += 0.01;
-                return Component.text(player.getUniqueId() + " : " + player.getLocation().getYaw() + " " + player.getLocation().getPitch())
-                    .append(Component.text(" [A: " + a.val0 + "]").color(NamedTextColor.YELLOW));
-            }
-
-            @Override public Location location() {
-                return new Location(lime.MainWorld, -472, 79 + a.val0, -188);
-            }
-
-            @Override public double distance() {
-                return 15;
-            }
-
-            @Override public boolean tryRemove() {
-                return false;
-            }
-            
-        }, new IShowID("tmp.gen2") {
-
-            @Override public boolean filter(Player player) {
-                return true;
-            }
-
-            @Override public Optional<Integer> parent() {
-                return DrawText.getEntityID("tmp.gen");
-            }
-
-            @Override public Component text(Player player) {
-                return Component.text(player.getName() + " : " + player.getLocation().toVector());
-            }
-
-            @Override public Location location() {
-                return new Location(lime.MainWorld, -472, 79, -188);
-            }
-
-            @Override public double distance() {
-                return 15;
-            }
-
-            @Override public boolean tryRemove() {
-                return false;
-            }
-            
-        }));*/
     }
 
     private static long next = 0;
@@ -127,9 +63,8 @@ public class DrawText {
         double distance();
         boolean tryRemove();
 
-        default Vector3f scale() {
-            return new Vector3f(1,1,1);
-        }
+        default Vector3f scale() { return new Vector3f(1,1,1); }
+        default Vector3f offset() { return new Vector3f(0,0.6f,0); }
 
         static IShow create(Player player, Location location, Component text, double sec) {
             UUID uuid = player.getUniqueId();
@@ -210,7 +145,7 @@ public class DrawText {
         @Override public void update(IShow iShow, double delta) {
             show.parent().filter(parent -> !Objects.equals(parent, last_parent)).ifPresent(parent -> {
                 last_parent = parent;
-                Displays.addPassengerID(parent, entityID);
+                Passenger.addPassengerID(parent, entityID);
                 hideAll();
             });
 
@@ -251,7 +186,7 @@ public class DrawText {
             Display.TextDisplay text = new Display.TextDisplay(EntityTypes.TEXT_DISPLAY, ((CraftWorld)location.getWorld()).getHandle());
             text.moveTo(location.getX(), location.getY(), location.getZ());
             text.setText(BASE_TEXT);
-            text.setTransformation(new Transformation(new Vector3f(0, 0.6f, 0), null, show.scale(), null));
+            text.setTransformation(new Transformation(show.offset(), null, show.scale(), null));
 
             DataWatcher entityData = text.getEntityData();
             entityData.set(Display.TextDisplay.DATA_LINE_WIDTH_ID, 100000);

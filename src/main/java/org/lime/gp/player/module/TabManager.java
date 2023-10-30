@@ -110,10 +110,16 @@ public class TabManager implements Listener {
         return null;
     }
     public static Map<Integer, String> getPlayers() {
-        return PlayerData.displayIndexing.entrySet().stream().collect(Collectors.toMap(kv -> kv.getValue().index, kv -> Bukkit.getOfflinePlayer(kv.getKey()).getName()));
+        return PlayerData.displayIndexing.entrySet()
+                .stream()
+                .map(kv -> Toast.of(kv.getValue().index, Bukkit.getOfflinePlayer(kv.getKey())))
+                .filter(kv -> kv.val1 != null && kv.val1.getName() != null)
+                .collect(Collectors.toMap(kv -> kv.val0, kv -> kv.val1.getName()));
     }
     public static Map<String, UUID> getUUIDs() {
-        return PlayerData.displayIndexing.entrySet().stream().collect(Collectors.toMap(kv -> String.valueOf(kv.getValue().index), Map.Entry::getKey));
+        return PlayerData.displayIndexing.entrySet()
+                .stream()
+                .collect(Collectors.toMap(kv -> String.valueOf(kv.getValue().index), Map.Entry::getKey));
     }
 
     private static final ConcurrentHashMap<Integer, Team> sortTeams = new ConcurrentHashMap<>();

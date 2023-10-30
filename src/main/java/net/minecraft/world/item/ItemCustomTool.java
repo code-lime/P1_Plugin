@@ -26,7 +26,7 @@ public class ItemCustomTool extends ItemToolMaterial {
     }
 
     @Override public boolean hurtEnemy(ItemStack stack, EntityLiving target, EntityLiving attacker) {
-        stack.hurtAndBreak(2, attacker, e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
+        stack.hurtAndBreak(1, attacker, e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
         return true;
     }
     @Override public boolean mineBlock(ItemStack stack, World world, IBlockData state, BlockPosition pos, EntityLiving miner) {

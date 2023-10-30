@@ -11,9 +11,9 @@ function createEvent(index) {
 
     var tt = "T0";
     for (var i = 1; i < index; i++) tt = "Toast2<"+tt+","+"T"+i+">";
-    var line = "    public static <"+type+">void addEvent(String event, type other, Func1<Builder<Player>, Builder<";
+    var line = "    public static <"+type+">void addEvent(String event, type type, Func1<Builder<Player>, Builder<";
     line += tt + ">> build, Action"+index+"<"+type+"> execute) {\n";
-    line += "        addEvent(event, other, build, (Action1<"+tt+">)execute);\n"
+    line += "        addEvent(event, type, build, (Action1<"+tt+">)execute);\n"
     line += "    }";
     return line;
 }

@@ -1,11 +1,13 @@
 package org.lime.gp.player.menu;
 
+import com.mojang.datafixers.kinds.App;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.lime.gp.chat.Apply;
 import org.lime.gp.lime;
 import org.lime.gp.extension.Cooldown;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
+import org.lime.system.toast.Toast2;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -35,36 +37,36 @@ public class SelectObject {
     }
 
     public class InvokeAction {
-        public Action1<Player> owner;
-        public Action1<Player> other;
-        public Action1<Player> call;
+        public Action2<Apply, Player> owner;
+        public Action2<Apply, Player> other;
+        public Action2<Apply, Player> call;
 
-        public InvokeAction(Action1<Player> owner, Action1<Player> other, Action1<Player> call) {
+        public InvokeAction(Action2<Apply, Player> owner, Action2<Apply, Player> other, Action2<Apply, Player> call) {
             this.other = other;
             this.owner = owner;
             this.call = call;
         }
 
-        private void TryInvoke(UUID uuid, Action1<Player> callback) {
+        private void tryInvoke(UUID uuid, Apply apply, Action2<Apply, Player> callback) {
             Player player = uuid == null ? null : Bukkit.getPlayer(uuid);
             if (player == null) return;
-            callback.invoke(player);
+            callback.invoke(apply, player);
         }
 
-        public void InvokeOwner() {
-            this.call.invoke(SelectObject.this.owner_player);
-            TryInvoke(SelectObject.this.owner, this.owner);
+        public void invokeOwner(Apply apply) {
+            this.call.invoke(apply, SelectObject.this.owner_player);
+            tryInvoke(SelectObject.this.owner, apply, this.owner);
         }
 
-        public void InvokeOther() {
-            this.call.invoke(SelectObject.this.owner_player);
-            TryInvoke(SelectObject.this.other, this.other);
+        public void invokeOther(Apply apply) {
+            this.call.invoke(apply,SelectObject.this.owner_player);
+            tryInvoke(SelectObject.this.other, apply, this.other);
         }
 
-        public void InvokeAll() {
-            this.call.invoke(SelectObject.this.owner_player);
-            TryInvoke(SelectObject.this.owner, this.owner);
-            TryInvoke(SelectObject.this.other, this.other);
+        public void invokeAll(Apply apply) {
+            this.call.invoke(apply,SelectObject.this.owner_player);
+            tryInvoke(SelectObject.this.owner, apply, this.owner);
+            tryInvoke(SelectObject.this.other, apply, this.other);
         }
     }
 
@@ -74,14 +76,14 @@ public class SelectObject {
     public InvokeAction timeout;
     public InvokeAction leave;
 
-    public String state = null;
+    public Toast2<String, Apply> state = null;
 
     public boolean isRemove() {
         if (owner == null || Bukkit.getPlayer(owner) == null) {
             Cooldown.resetCooldown(new UUID[]{owner, other}, key);
             if (MenuCreator.DEBUG)
                 lime.logOP("SELECT: OTHER." + index + " " + key + " - " + (state == null ? "NULL" : state));
-            lime.nextTick(leave::InvokeOther);
+            lime.nextTick(() -> leave.invokeOther(state == null ? Apply.of() : state.val1));
             //leave.InvokeOther();
             return true;
         }
@@ -89,22 +91,22 @@ public class SelectObject {
             Cooldown.resetCooldown(new UUID[]{owner, other}, key);
             if (MenuCreator.DEBUG)
                 lime.logOP("SELECT: OWNER." + index + " " + key + " - " + (state == null ? "NULL" : state));
-            lime.nextTick(leave::InvokeOwner);
+            lime.nextTick(() -> leave.invokeOwner(state == null ? Apply.of() : state.val1));
             return true;
         }
         if (System.currentTimeMillis() > endTime) {
             Cooldown.resetCooldown(new UUID[]{owner, other}, key);
             if (MenuCreator.DEBUG)
                 lime.logOP("SELECT: TIMEOUT." + index + " " + key + " - " + (state == null ? "NULL" : state));
-            lime.nextTick(timeout::InvokeAll);
+            lime.nextTick(() -> timeout.invokeAll(state == null ? Apply.of() : state.val1));
             return true;
         }
         if (state == null) return false;
         Cooldown.resetCooldown(new UUID[]{owner, other}, key);
-        InvokeAction action = result.getOrDefault(state, null);
+        InvokeAction action = result.getOrDefault(state.val0, null);
         if (MenuCreator.DEBUG)
             lime.logOP("SELECT: ALL." + index + " " + key + " - " + (state == null ? "NULL" : state));
-        if (action != null) lime.nextTick(action::InvokeAll);
+        if (action != null) lime.nextTick(() -> action.invokeAll(state == null ? Apply.of() : state.val1));
         return true;
     }
 }

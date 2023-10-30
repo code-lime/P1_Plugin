@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.craft.recipe.AbstractRecipe;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

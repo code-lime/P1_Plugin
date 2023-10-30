@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lime.core;
+import org.lime.gp.database.rows.QuentaRow;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
@@ -176,6 +177,7 @@ public class Discord implements Listener {
     private static long confirmed_role;
     private static long online_role;
     private static long gift_role;
+    private static long quenta_role;
     private static final ConcurrentHashMap<Long, Object> role_list = new ConcurrentHashMap<>();
 
     public static CoreElement create() {
@@ -194,6 +196,7 @@ public class Discord implements Listener {
                             confirmed_role = json.get("confirmed_role").getAsLong();
                             online_role = json.get("online_role").getAsLong();
                             gift_role = json.get("gift_role").getAsLong();
+                            quenta_role = json.get("quenta_role").getAsLong();
                             if (jda != null) jda.shutdown();
                             if (token.isEmpty()) return;
                             jda = JDABuilder.createDefault(token)
@@ -244,6 +247,7 @@ public class Discord implements Listener {
                                 .add("confirmed_role", 870190631824289866L)
                                 .add("online_role", 870190632101093384L)
                                 .add("gift_role", 968684859222544408L)
+                                .add("quenta_role", 968684859222544409L)
                                 .build()
                         ));
     }
@@ -347,15 +351,18 @@ public class Discord implements Listener {
 
         List<Role> roles = member.getRoles();
         List<Long> rolesIds = roles.stream().map(ISnowflake::getIdLong).toList();
+        boolean hasQuenta = rolesIds.contains(quenta_role);
         boolean hasOnline = rolesIds.contains(online_role);
         boolean hasGift = rolesIds.contains(gift_role);
         boolean hasConfirm = rolesIds.contains(confirmed_role);
 
+        boolean isQuenta = QuentaRow.hasQuenta(uuid);
         boolean isOnline = Bukkit.getPlayer(uuid) != null;
         boolean isGift = TabManager.hasDonate(uuid);
 
         HashMap<Long, Boolean> user_roles = new HashMap<>();
 
+        if (QuentaRow.isQuentaEnable() && hasQuenta != isQuenta) user_roles.put(quenta_role, isQuenta);
         if (hasOnline != isOnline) user_roles.put(online_role, isOnline);
         if (hasGift != isGift) user_roles.put(gift_role, isGift);
         if (!hasConfirm) user_roles.put(confirmed_role, true);
@@ -407,6 +414,7 @@ public class Discord implements Listener {
             delRoles.add(guild.getRoleById(online_role));
             delRoles.add(guild.getRoleById(gift_role));
             delRoles.add(guild.getRoleById(confirmed_role));
+            delRoles.add(guild.getRoleById(quenta_role));
 
             role_list.keySet().forEach(_roleId -> delRoles.add(guild.getRoleById(_roleId)));
             guild.modifyMemberRoles(member, new ArrayList<>(), delRoles).queue();

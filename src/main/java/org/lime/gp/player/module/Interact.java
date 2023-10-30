@@ -10,6 +10,7 @@ import org.lime.plugin.CoreElement;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.system.execute.Action0;
 
 import java.util.UUID;
 
@@ -24,13 +25,14 @@ public class Interact implements Listener {
         Player player = event.getPlayer();
         if (!player.isSneaking()) return;
         UUID other_uuid = clicked.getUniqueId();
-        UserRow.getBy(other_uuid).ifPresent(other_row -> {
-            event.setCancelled(true);
-            MenuCreator.show(
-                    event.getPlayer(),
-                    Death.isDamageLay(clicked.getUniqueId()) ? "phone.user.die" : "phone.user",
-                    Apply.of().add("other_id", String.valueOf(other_row.id)).add("other_uuid", other_uuid.toString())
-            );
-        });
+        UserRow.getBy(other_uuid)
+                .ifPresent(other_row -> {
+                    event.setCancelled(true);
+                    MenuCreator.show(
+                            player,
+                            Death.isDamageLay(clicked.getUniqueId()) ? "phone.user.die" : "phone.user",
+                            Apply.of().add("other_id", String.valueOf(other_row.id)).add("other_uuid", other_uuid.toString())
+                    );
+                });
     }
 }

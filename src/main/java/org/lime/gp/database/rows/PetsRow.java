@@ -1,12 +1,14 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
+import org.lime.display.models.display.IAnimationData;
 import org.lime.gp.database.mysql.MySql;
 
-public class PetsRow extends BaseRow {
+public class PetsRow extends BaseRow implements IAnimationData {
     public int id;
     public UUID uuid;
     public String pet;
@@ -23,7 +25,7 @@ public class PetsRow extends BaseRow {
         name = MySql.readObject(set, "name", String.class);
         color = MySql.readObject(set, "color", String.class);
     }
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("uuid", uuid.toString());
@@ -33,4 +35,6 @@ public class PetsRow extends BaseRow {
         map.put("color", color);
         return map;
     }
+
+    @Override public Map<String, Object> data() { return Collections.emptyMap(); }
 }

@@ -1,25 +1,29 @@
 package org.lime.gp.player.module;
 
-import com.google.gson.JsonObject;
+import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PreEntityGetUpSitEvent;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
+import dev.geco.gsit.mcv.v1_20_R1.objects.GPoseSeat;
 import dev.geco.gsit.objects.GetUpReason;
+import dev.geco.gsit.objects.IGPoseSeat;
+import net.minecraft.core.EnumDirection;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.potion.PotionEffect;
 import org.lime.display.Displays;
-import org.lime.gp.admin.Administrator;
+import org.lime.display.Passenger;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.rows.CityRow;
 import org.lime.gp.database.rows.UserRow;
-import org.lime.gp.database.tables.Tables;
 import org.lime.gp.entity.component.data.BackPackInstance;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
@@ -27,7 +31,7 @@ import org.lime.gp.item.UseSetting;
 import org.lime.gp.item.Vest;
 import org.lime.gp.item.settings.list.*;
 import org.lime.gp.lime;
-import org.lime.gp.module.EntityPosition;
+import org.lime.gp.module.DrawInteraction;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.inventory.WalletInventory;
@@ -64,8 +68,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffectType;
+import org.lime.reflection;
 import org.lime.system.json;
-import org.lime.system.toast.*;
 import org.lime.system.utils.MathUtils;
 import org.lime.system.utils.RandomUtils;
 
@@ -77,11 +81,10 @@ public class Death implements Listener {
     private static boolean DEATH_VOICE_ENABLE = true;
 
     public static Location getSpawnLocation(UUID uuid) {
-        //UserRow.getBy(uuid).flatMap(UserRow::getCityID).ifPresentOrElse(city -> lime.logOP("CITY: " + city), () -> lime.logOP("CITY: EMPTY"));
         return UserRow.getBy(uuid)
                 .flatMap(UserRow::getCityID)
                 .flatMap(CityRow::getBy)
-                .flatMap(v -> v.posMain)
+                .flatMap(v -> v.posSpawn)
                 .map(v -> v.toLocation(lime.MainWorld))
                 .orElse(DEFAULT_SPAWN_LOCATION);
     }
@@ -191,8 +194,10 @@ public class Death implements Listener {
             Player other = Bukkit.getPlayer(other_uuid);
             if (other == null) return;
             UseSetting.timeUse(player, other, 10 * 20, (_player, _other) -> dieCooldown.containsKey(other_uuid), (_player, _other) -> {
-                if (up(other) != null)
-                    _other.setHealth(4);
+                if (up(_other) == null) return;
+                _other.setHealth(4);
+                Thirst.thirstValueCheck(_other, 3, true);
+                Thirst.thirstStateReset(_other);
             }, (_player, _other) -> {});
         });
         AnyEvent.addEvent("opg.kill", AnyEvent.type.other, builder -> builder.createParam(UUID::fromString, "[uuid]"), (player, other) -> {
@@ -392,9 +397,14 @@ public class Death implements Listener {
     //private static final PotionEffect INVISIBILITY = PotionEffectType.INVISIBILITY.createEffect(20, 1).withParticles(false).withAmbient(false).withIcon(false);
 
     public static void updateLock() {
-        dieCooldown.keySet().forEach(uuid -> Drugs.lockArmsTick(Bukkit.getPlayer(uuid)));
+        dieCooldown.keySet().forEach(uuid -> {
+            Drugs.lockArmsTick(Bukkit.getPlayer(uuid));
+        });
     }
     private static final HashMap<UUID, Integer> blindnessCache = new HashMap<>();
+
+    private static final reflection.field<EnumDirection> directionSeat = reflection.field.of(GPoseSeat.class, "direction");
+
     public static void update() {
         dieCooldown.entrySet().removeIf(kv -> {
             if (!(Bukkit.getPlayer(kv.getKey()) instanceof CraftPlayer player)) {
@@ -406,9 +416,7 @@ public class Death implements Listener {
             player.getHandle().connection.send(new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(MobEffects.BLINDNESS, 40, 1, false, false, false)));
             DieInfo info = kv.getValue();
             info.tryShow(player);
-            if (lime.isLay(player)) {
-                return false;
-            }
+            if (updateLay(player)) return false;
             if (lime.isSit(player) && TargetMove.isTarget(player.getUniqueId())) return false;
             Location location = info.location.clone();
             location.add(0, 1, 0);
@@ -441,6 +449,34 @@ public class Death implements Listener {
             if (RandomUtils.rand() || RandomUtils.rand()) return;
             BLOOD.location(player.getLocation().clone().add(0, 0.5, 0)).spawn();
         });
+    }
+    private static boolean updateLay(Player player) {
+        IGPoseSeat poseSeat = GSitAPI.getPose(player);
+        if (poseSeat == null || poseSeat.getPose() != Pose.SLEEPING) return false;
+        EnumDirection direction = directionSeat.get(poseSeat);
+        float xOffset = direction.getStepX() * 0.5f;
+        float zOffset = direction.getStepZ() * 0.5f;
+        Location location = poseSeat.getSeat().getLocation().clone().add(xOffset, 0.25, zOffset);
+
+        String id = "DEATH:INTERACT:" + player.getUniqueId() + ":" + direction.getName();
+
+        DrawInteraction.show(new DrawInteraction.IShowTimed(1) {
+            @Override public String getID() { return id; }
+            @Override public boolean filter(Player player) { return true; }
+            @Override public Location location() { return location; }
+            @Override public double width() { return 1.5; }
+            @Override public double height() { return 0.5; }
+            @Override public double distance() { return 8; }
+            @Override public void click(PlayerUseUnknownEntityEvent event) {
+                if (event.isAttack()) return;
+                Vector position = event.getClickedRelativePosition();
+                Bukkit.getPluginManager().callEvent(
+                        position == null
+                                ? new PlayerInteractEntityEvent(event.getPlayer(), player, event.getHand())
+                                : new PlayerInteractAtEntityEvent(event.getPlayer(), player, position, event.getHand()));
+            }
+        });
+        return true;
     }
     public static void uninit() {
         dieCooldown.forEach((k,v) -> {
@@ -503,7 +539,7 @@ public class Death implements Listener {
         UUID uuid = player.getUniqueId();
         switch (e.getCause()) {
             case FALL:
-                if (player.isInsideVehicle() || Displays.hasVehicle(player.getEntityId())) break;
+                if (player.isInsideVehicle() || Passenger.hasVehicle(player.getEntityId())) break;
                 final int min = 4;
                 final int max = 14;
                 double damage = (e.getDamage() - min) / (max - min);

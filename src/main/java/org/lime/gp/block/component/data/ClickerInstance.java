@@ -1,20 +1,14 @@
 package org.lime.gp.block.component.data;
 
-import com.mojang.math.Transformation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.core.BlockPosition;
-import net.minecraft.core.Vector3f;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
-import net.minecraft.world.level.block.state.IBlockData;
+import org.apache.commons.collections4.CollectionUtils;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Item;
@@ -23,22 +17,14 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.display.models.shadow.Builder;
-import org.lime.display.models.shadow.IBuilder;
-import org.lime.display.models.shadow.NoneBuilder;
-import org.lime.display.transform.LocalLocation;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.ClickerComponent;
 import org.lime.gp.block.component.InfoComponent;
-import org.lime.gp.block.component.display.BlockDisplay;
-import org.lime.gp.block.component.display.block.IModelBlock;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
-import org.lime.gp.block.component.list.ConverterComponent;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.craft.book.ContainerWorkbenchBook;
-import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.slot.output.IOutputVariable;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
@@ -46,7 +32,6 @@ import org.lime.gp.craft.recipe.ClickerRecipe;
 import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.*;
-import org.lime.gp.lime;
 import org.lime.gp.module.DrawText;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.gp.player.level.LevelModule;
@@ -55,12 +40,11 @@ import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.ItemUtils;
 import org.lime.system.utils.RandomUtils;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ClickerInstance extends BlockInstance implements CustomTileMetadata.Lootable, CustomTileMetadata.Tickable, /*BlockDisplay.Displayable, */CustomTileMetadata.Damageable, CustomTileMetadata.Interactable, IDisplayVariable {
@@ -113,12 +97,12 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             }
         }
 
-        String clicker_type = component().type;
+        List<String> clickerTypes = component().types;
 
         if (items.size() >= MAX_STACK) return false;
         if (Items.getGlobalKeyByItem(item)
                 .filter(item_key -> Recipes.CLICKER.getCacheWhitelistKeys().contains(item_key))
-                .filter(item_key -> Recipes.CLICKER.getAllRecipes().stream().filter(v -> clicker_type.equals(v.clicker_type)).flatMap(ClickerRecipe::getWhitelistKeys).anyMatch(v -> v.equals(item_key)))
+                .filter(item_key -> Recipes.CLICKER.getAllRecipes().stream().filter(v -> clickerTypes.contains(v.clickerType)).flatMap(ClickerRecipe::getWhitelistKeys).anyMatch(v -> v.equals(item_key)))
                 .isEmpty()) return false;
         items.add(item.clone());
         item.setAmount(0);
@@ -189,7 +173,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         BlockPosition position = event.getPos();
         Location location = new Location(event.getWorld().getWorld(), position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5);
         boolean edited = false;
-        for (Item item : location.clone().add(0, 0.5, 0).getNearbyEntitiesByType(Item.class, 0.5)) {
+        for (Item item : location.clone().add(0, 0.5, 0).getNearbyEntitiesByType(Item.class, 0.75)) {
             ItemStack itemStack = item.getItemStack();
             if (itemStack.getAmount() == 0) continue;
             edited = tryAddItem(itemStack) || edited;
@@ -218,19 +202,24 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         }
         ItemStack clicker = event.getItemInHand();
         ClickerComponent component = component();
-        String clicker_type = component.type;
+        List<String> clickerTypes = component.types;
         if (player.getAttackCooldown() <= 0.9) return;
+
+        List<String> filterClickerTypes = new ArrayList<>(clickerTypes);
         boolean isHand = clicker.getType().isAir();
         boolean isCanHand = component.hand_click;
         int clickCount = 1;
         if (isHand) {
             if (!isCanHand) return;
         } else {
-            ClickerSetting clickerSetting = Items.getOptional(ClickerSetting.class, clicker).filter(v -> v.types.contains(clicker_type)).orElse(null);
+            ClickerSetting clickerSetting = Items.getOptional(ClickerSetting.class, clicker)
+                    .filter(v -> CollectionUtils.containsAny(v.types, clickerTypes))
+                    .orElse(null);
             if (clickerSetting == null) {
                 DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
                 return;
             }
+            filterClickerTypes.removeIf(Predicate.not(clickerSetting.types::contains));
             clickCount = clickerSetting.clicks;
             ItemMeta meta = clicker.getItemMeta();
             if (meta instanceof Damageable damageable) {
@@ -244,7 +233,9 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             }
         }
         Perms.ICanData canData = Perms.getCanData(player);
-        List<ClickerRecipe> recipes = Recipes.CLICKER.getAllRecipes(canData).filter(v -> v.clicker_type.equals(clicker_type)).toList();
+        List<ClickerRecipe> recipes = Recipes.CLICKER.getAllRecipes(canData)
+                .filter(v -> filterClickerTypes.contains(v.clickerType))
+                .toList();
         if (recipes.size() == 0) {
             DrawText.show(DrawText.IShow.create(player, metadata().location(0.5, 0.4, 0.5), Component.text("✖").color(TextColor.color(0xFFFF00)), 0.5));
             return;
@@ -300,8 +291,13 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         saveData();
     }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
-        String clicker_type = component().type;
-        return ContainerWorkbenchBook.open(event.player(), metadata, Recipes.CLICKER, clicker_type, Recipes.CLICKER.getAllRecipes().stream().filter(v -> v.clicker_type.equals(clicker_type)).toList());
+        List<String> types = component().types;
+        return ContainerWorkbenchBook.open(event.player(), metadata, Recipes.CLICKER, types.get(0), Recipes.CLICKER
+                .getAllRecipes()
+                .stream()
+                .filter(v -> types.contains(v.clickerType))
+                .toList()
+        );
     }
 
     @Override public final void syncDisplayVariable() {
@@ -312,7 +308,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             int length = items.size();
             display.set("clicker.items.count", String.valueOf(length));
             for (int i = 0; i < length; i++)
-                DisplayComponent.putItem(map, "clicker.items["+i+"]", TableDisplaySetting.builderItem(items.get(i), TableDisplaySetting.TableType.clicker, component.type));
+                DisplayComponent.putItem(map, "clicker.items["+i+"]", TableDisplaySetting.builderItem(items.get(i), TableDisplaySetting.TableType.clicker, component.types.get(0)));
 
             return true;
         }));

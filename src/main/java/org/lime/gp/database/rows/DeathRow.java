@@ -8,7 +8,7 @@ import org.lime.system.utils.MathUtils;
 
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
-import java.util.HashMap;
+import java.util.Map;
 
 public class DeathRow extends BaseRow {
     public final String uniqueRowKey;
@@ -38,7 +38,7 @@ public class DeathRow extends BaseRow {
         uniqueRowKey = id + ", " + MySql.readObject(set, "last_update", String.class);
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("user_id", String.valueOf(userID));

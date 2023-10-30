@@ -45,6 +45,7 @@ import net.minecraft.world.level.block.state.BlockBase;
 import net.minecraft.world.level.chunk.Chunk;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.LootTableInfo;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParameter;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftInventoryView;
@@ -123,6 +124,7 @@ public class ReflectionAccess {
     public static final reflection.field<IntProvider> RAIN_DURATION_WorldServer = reflection.field.<IntProvider>ofMojang(WorldServer.class, "RAIN_DURATION").nonFinal();
     public static final reflection.field<Float> MAX_MOVEMENT_SPEED_EntityHorseAbstract = reflection.field.<Float>ofMojang(EntityHorseAbstract.class, "MAX_MOVEMENT_SPEED").nonFinal();
     public static final reflection.field<RecipeItemStack> TEMPT_ITEMS_EntityStrider = reflection.field.<RecipeItemStack>ofMojang(EntityStrider.class, "TEMPT_ITEMS").nonFinal();
+    public static final reflection.field<MinecraftKey> randomSequence_LootTable = reflection.field.ofMojang(LootTable.class, "randomSequence");
 }
 
 

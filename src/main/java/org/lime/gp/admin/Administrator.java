@@ -442,7 +442,7 @@ public class Administrator implements Listener {
             if (row.timeToEnd != null && row.timeToEnd < 0) {
                 Methods.aBanDel(row.uuid, () -> {
                     for (int i = 0; i < 3; i++)
-                        lime.once(() -> player.teleport(Login.getMainLocation()), i);
+                        lime.once(() -> player.teleport(Login.getMainLocation(player)), i);
                 });
             }
         });
@@ -474,7 +474,7 @@ public class Administrator implements Listener {
             if (room == null) {
                 if (rooms.size() > 0) {
                     Location back = back_locations.remove(uuid);
-                    if (back == null) back = Login.getMainLocation();
+                    if (back == null) back = Login.getMainLocation(player);
                     player.teleport(back);
                 }
                 return;

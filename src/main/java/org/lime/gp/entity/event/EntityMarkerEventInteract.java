@@ -13,7 +13,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.lime.display.Displays;
 import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.gp.entity.Entities;
-import org.lime.gp.entity.component.display.EntityModelDisplay;
+import org.lime.gp.entity.component.display.display.EntityModelDisplay;
 
 import java.util.Optional;
 
@@ -45,7 +45,7 @@ public class EntityMarkerEventInteract extends PlayerEvent {
                 Displays.byID(BaseChildDisplay.class, packet.getEntityId())
                         .flatMap(clickDisplay -> Optional.of(clickDisplay.objectParent())
                                 .map(v -> v instanceof EntityModelDisplay emd ? emd : null)
-                                .flatMap(parentDisplay -> Optional.ofNullable(Bukkit.getEntity(parentDisplay.key.entity_uuid()))
+                                .flatMap(parentDisplay -> Optional.ofNullable(Bukkit.getEntity(parentDisplay.key.entity()))
                                         .map(v -> v instanceof Marker marker ? marker : null)
                                         .flatMap(Entities::of)
                                         .flatMap(Entities::of)

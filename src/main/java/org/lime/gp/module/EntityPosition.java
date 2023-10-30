@@ -112,6 +112,7 @@ public class EntityPosition {
     public static final ConcurrentHashMap<UUID, Location> entityLocations = new ConcurrentHashMap<>();
     //public static final ConcurrentHashMap<UUID, LivingEntity> entityList = new ConcurrentHashMap<>();
 
+    /*
     private static List<Tameable> getEntities() {
         List<Tameable> list = new ArrayList<>();
         Bukkit.getWorlds().forEach(world -> list.addAll(world.getEntitiesByClass(Tameable.class)));
@@ -123,12 +124,12 @@ public class EntityPosition {
         list.removeIf(removeIf::invoke);
         return list;
     }
-    public static Map<UUID, Tameable> getEntitiyRows() {
+    public static Map<UUID, Entity> getEntitiyRows() {
         return getEntities()
                 .stream()
                 .filter(v -> v.getOwnerUniqueId() != null)
                 .collect(Collectors.toMap(Entity::getUniqueId, v -> v));
-    }
+    }*/
 }
 
 

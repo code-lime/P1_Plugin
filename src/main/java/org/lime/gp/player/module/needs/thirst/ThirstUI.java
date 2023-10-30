@@ -5,6 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.lime.display.Displays;
+import org.lime.display.Passenger;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
 
@@ -19,7 +20,7 @@ public class ThirstUI implements CustomUI.IUI {
             case CREATIVE, SPECTATOR -> { return Collections.emptyList(); }
         }
         Entity entity = player.getVehicle();
-        if (!(entity == null || entity instanceof Boat || entity instanceof Minecart) || Displays.hasVehicle(player.getEntityId())) return Collections.emptyList();
+        if (!(entity == null || entity instanceof Boat || entity instanceof Minecart) || Passenger.hasVehicle(player.getEntityId())) return Collections.emptyList();
         ThirstData data = Thirst.getThirst(player);
         List<ImageBuilder> images = new ArrayList<>();
         int level = 0;

@@ -1,5 +1,7 @@
 package patch;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import io.papermc.paper.util.ObfHelper;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
@@ -11,10 +13,7 @@ import org.lime.system.execute.*;
 import org.objectweb.asm.*;
 
 import javax.annotation.Nullable;
-import java.io.Closeable;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
@@ -172,6 +171,7 @@ public class Native {
                         return super.visitMethod(access, name, descriptor, signature, exceptions);
                     }
                 }, 0);
+                //Native.log(" - Field: " + fieldInfo.val0);
                 return Objects.requireNonNull(fieldInfo.val0);
             }
         } catch (Exception ex) {
@@ -180,41 +180,56 @@ public class Native {
     }
 
     private static MemoryMappingTree tree;
+    private record MappingInfo(String name, String description, boolean isMethod) { }
     public static Closeable loadDeobf() throws Throwable {
         InputStream mappingsInputStream = ObfHelper.class.getClassLoader().getResourceAsStream("META-INF/mappings/reobf.tiny");
         tree = new MemoryMappingTree();
         if (mappingsInputStream == null) return () -> {};
         MappingReader.read(new InputStreamReader(mappingsInputStream, StandardCharsets.UTF_8), MappingFormat.TINY_2, tree);
         for (MappingTree.ClassMapping classMapping : tree.getClasses()) {
-            Map<Toast3<String, String, Boolean>, String> members = new HashMap<>();
+            BiMap<MappingInfo, MappingInfo> members = HashBiMap.create();
             for (MappingTree.MemberMapping member : classMapping.getMethods()) {
-                members.put(Toast.of(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), true), member.getName(ObfHelper.SPIGOT_NAMESPACE));
+                members.put(
+                        new MappingInfo(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), true),
+                        new MappingInfo(member.getName(ObfHelper.SPIGOT_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), true)
+                );
             }
             for (MappingTree.MemberMapping member : classMapping.getFields()) {
-                members.put(Toast.of(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), false), member.getName(ObfHelper.SPIGOT_NAMESPACE));
+                members.put(
+                        new MappingInfo(member.getName(ObfHelper.MOJANG_PLUS_YARN_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), false),
+                        new MappingInfo(member.getName(ObfHelper.SPIGOT_NAMESPACE), member.getDesc(ObfHelper.SPIGOT_NAMESPACE), false)
+                );
             }
-            classes.put(classMapping.getName(ObfHelper.SPIGOT_NAMESPACE).replace('/', '.'), members);
+            classesSpigotToMojang.put(classMapping.getName(ObfHelper.SPIGOT_NAMESPACE).replace('/', '.'), members);
         }
         return mappingsInputStream;
     }
-    private static final Map<String, Map<Toast3<String, String, Boolean>, String>> classes = new HashMap<>();
+    private static final Map<String, BiMap<MappingInfo, MappingInfo>> classesSpigotToMojang = new HashMap<>();
     private static final List<Class<?>> dat = new ArrayList<>();
-    public static String ofMojang(Class<?> tClass, String name, String desc, boolean isMethod) {
-        Map<Toast3<String, String, Boolean>, String> mapping = classes.get(tClass.getName());
+    private static String getRawName(Class<?> tClass, String name, String desc, boolean isMethod, boolean getSpigotName) {
+        BiMap<MappingInfo, MappingInfo> mapping = classesSpigotToMojang.get(tClass.getName());
+        if (!getSpigotName) mapping = mapping.inverse();
         if (mapping == null) return name;
         if (dat.contains(tClass)) {
-            log("Class " + tClass.getName() + " with found " + (isMethod ? "method" : "field") + " " + name + desc + "\n" + json.object().add(mapping, IToast::toString, v -> v).build().toString());
+            log("Class " + tClass.getName() + " with found " + (isMethod ? "method" : "field") + " " + name + desc + "\n" + json.object().add(mapping, Record::toString, v -> v).build().toString());
             dat.add(tClass);
         }
-        //
-        String src_name = mapping.get(Toast.of(name, desc, isMethod));
-        boolean isFound = src_name != null;
-        if (src_name == null) {
-            src_name = name;
-        }
-        return src_name;
+        MappingInfo src_info = mapping.get(new MappingInfo(name, desc, isMethod));
+        return src_info == null ? name : src_info.name();
     }
-    public static String ofMojang(Class<?> tClass, String name, Type desc, boolean isMethod) {
-        return ofMojang(tClass, name, desc.getDescriptor(), isMethod);
+    private static String getRawName(Class<?> tClass, String name, Type desc, boolean isMethod, boolean getSpigotName) {
+        return getRawName(tClass, name, desc.getDescriptor(), isMethod, getSpigotName);
+    }
+    public static String getMojangName(Class<?> tClass, String name, String desc, boolean isMethod) {
+        return getRawName(tClass, name, desc, isMethod, false);
+    }
+    public static String getMojangName(Class<?> tClass, String name, Type desc, boolean isMethod) {
+        return getRawName(tClass, name, desc, isMethod, false);
+    }
+    public static String getSpigotName(Class<?> tClass, String name, String desc, boolean isMethod) {
+        return getRawName(tClass, name, desc, isMethod, true);
+    }
+    public static String getSpigotName(Class<?> tClass, String name, Type desc, boolean isMethod) {
+        return getRawName(tClass, name, desc, isMethod, true);
     }
 }

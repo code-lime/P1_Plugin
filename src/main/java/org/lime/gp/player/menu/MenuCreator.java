@@ -18,6 +18,7 @@ import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -43,7 +44,7 @@ public class MenuCreator {
             if (object.state != null) return;
             if (DEBUG) lime.logOP("CLICKER: " + player.getUniqueId() + "\nCAN CLICK: " + object.other);
             if (!player.getUniqueId().equals(object.other)) return;
-            object.state = state;
+            object.state = Toast.of(state, Apply.of());
         });
         AnyEvent.addEvent("select.state.key", AnyEvent.type.none, builder -> builder.createParam("[select_key]").createParam("[state]"), (player, select_key, state) -> {
             UUID uuid = player.getUniqueId();
@@ -51,7 +52,23 @@ public class MenuCreator {
             if (object == null) return;
             if (object.state != null) return;
             if (!uuid.equals(object.other)) return;
-            object.state = state;
+            object.state = Toast.of(state, Apply.of());
+        });
+        AnyEvent.addEvent("select.state", AnyEvent.type.none, builder -> builder.createParam(Integer::parseUnsignedInt, "[select_id]").createParam("[state]").createParam(v -> json.parse(v).getAsJsonObject(), "[args]"), (player, select_id, state, args) -> {
+            SelectObject object = selects.getOrDefault(select_id, null);
+            if (object == null) return;
+            if (object.state != null) return;
+            if (DEBUG) lime.logOP("CLICKER: " + player.getUniqueId() + "\nCAN CLICK: " + object.other);
+            if (!player.getUniqueId().equals(object.other)) return;
+            object.state = Toast.of(state, Apply.of().add(args.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString()))));
+        });
+        AnyEvent.addEvent("select.state.key", AnyEvent.type.none, builder -> builder.createParam("[select_key]").createParam("[state]").createParam(v -> json.parse(v).getAsJsonObject(), "[args]"), (player, select_key, state, args) -> {
+            UUID uuid = player.getUniqueId();
+            SelectObject object = selects.values().stream().filter(v -> v.key.equals(select_key) && uuid.equals(v.other)).findFirst().orElse(null);
+            if (object == null) return;
+            if (object.state != null) return;
+            if (!uuid.equals(object.other)) return;
+            object.state = Toast.of(state, Apply.of().add(args.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString()))));
         });
     }
     public static void config(JsonObject json) {

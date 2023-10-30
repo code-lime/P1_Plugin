@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.display.Passenger;
 import org.lime.plugin.CoreElement;
 import org.lime.display.Displays;
 import org.lime.display.transform.LocalLocation;
@@ -163,7 +164,7 @@ public class WeaponData {
                 .map(v -> v.of(ammo, Cooldown.getCooldown(player.getUniqueId(), cooldownKey)))
                 .ifPresent(images::add);
 
-        if (WEAPON_SIT_LOCK && (player.isInsideVehicle() || Displays.hasVehicle(player.getEntityId()))) {
+        if (WEAPON_SIT_LOCK && (player.isInsideVehicle() || Passenger.hasVehicle(player.getEntityId()))) {
             waitInitTime = System.currentTimeMillis() + (int)(weapon.init_sec * 1000);
             images.add(ImageBuilder.of(player, "Невозможно стрелять сидя"));
         } else {

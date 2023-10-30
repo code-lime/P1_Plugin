@@ -5,6 +5,7 @@ import org.lime.docs.IGroup;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.block.BlockInfo;
+import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.docs.IDocsLink;
@@ -18,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Stream;
 
-public abstract class ComponentStatic<T extends JsonElement> {
+public abstract class ComponentStatic<T extends JsonElement> implements CustomTileMetadata.Element {
     private final BlockInfo _info;
     private final String _name;
 

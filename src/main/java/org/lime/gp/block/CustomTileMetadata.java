@@ -183,14 +183,14 @@ public class CustomTileMetadata extends TileMetadata {
     public static class ChunkBlockTimeout extends TimeoutData.IGroupTimeout {
         public final UUID worldUUID;
         public final BlockPosition pos;
-        public final CustomTileMetadata last_metadata;
+        public final CustomTileMetadata lastMetadata;
         private final Position position;
 
-        public ChunkBlockTimeout(CustomTileMetadata last_metadata, Position position) {
+        public ChunkBlockTimeout(CustomTileMetadata lastMetadata, Position position) {
             this.worldUUID = position.world.getUID();
             this.pos = new BlockPosition(position.x, position.y, position.z);
             this.position = position;
-            this.last_metadata = last_metadata;
+            this.lastMetadata = lastMetadata;
         }
 
         public boolean sync(Player player) { return DisplayInstance.sendBlock(player, position); }

@@ -10,6 +10,7 @@ import java.util.*;
 public final class ClassPatcher<T> {
     private final JarArchive archive;
     private final Class<T> tClass;
+    private final List<ProgressMethodVisitor> progressVisitors = new ArrayList<>();
 
     private final List<String> appendInterfaces = new ArrayList<>();
     private final List<Toast5<Integer, String, String, String, Object>> appendFields = new ArrayList<>();
@@ -40,7 +41,7 @@ public final class ClassPatcher<T> {
     }
 
     public JarArchive patch() {
-        return archive.patch(tClass, writer -> new ClassVisitor(Opcodes.ASM9, writer) {
+        JarArchive result = archive.patch(tClass, (jar, writer) -> new ClassVisitor(Opcodes.ASM9, writer) {
             private final Map<IMethodFilter<T>, MethodPatcher> filters = new HashMap<>(patchMethods);
             @Override public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 if (!appendInterfaces.isEmpty()) {
@@ -58,7 +59,9 @@ public final class ClassPatcher<T> {
                 });
                 appendMethods.forEach(method -> {
                     Native.log("Append method: " + method.val2 + method.val3 + "...");
-                    method.val0.patch(this, method.val1, method.val2, method.val3, method.val4, method.val5).visitCode();
+                    ProgressMethodVisitor progressVisitor = method.val0.patch(jar, IMethodInfo.raw(tClass, method.val2, method.val3), this, method.val1, method.val2, method.val3, method.val4, method.val5);
+                    progressVisitors.add(progressVisitor);
+                    progressVisitor.visitCode();
                 });
                 super.visitEnd();
                 filters.forEach((filter, patcher) -> Native.log("!!!WARNING!!! METHOD '"+filter.toInfo()+"' NOT FOUNDED FOR PATCH!"));
@@ -72,15 +75,18 @@ public final class ClassPatcher<T> {
                         if (filter.test(access, name, descriptor, signature, exceptions)) {
                             Native.log("Patch method " + filter.toInfo() + "...");
                             isSuper = true;
-                            MethodVisitor visitor = kv.getValue().patch(this, access, name, descriptor, signature, exceptions);
+                            ProgressMethodVisitor progressVisitor = kv.getValue().patch(jar, filter, this, access, name, descriptor, signature, exceptions);
+                            progressVisitors.add(progressVisitor);
                             isSuper = false;
-                            return visitor;
+                            return progressVisitor;
                         }
                     }
                 }
                 return super.visitMethod(access, name, descriptor, signature, exceptions);
             }
         });
+        throwProgressCheck();
+        return result;
         /*new ClassVisitor(Opcodes.ASM9, writer) {
             @Override public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 List<String> _interfaces = Lists.newArrayList(interfaces);
@@ -167,6 +173,10 @@ public final class ClassPatcher<T> {
                 else return super.visitMethod(access, name, descriptor, signature, exceptions);
             }
         }*/
+    }
+
+    public void throwProgressCheck() {
+        progressVisitors.forEach(ProgressMethodVisitor::throwProgressCheck);
     }
 }
 

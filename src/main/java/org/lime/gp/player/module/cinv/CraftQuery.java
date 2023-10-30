@@ -19,15 +19,13 @@ import org.lime.gp.craft.book.RecipePackets;
 import org.lime.gp.craft.book.Recipes;
 import org.lime.gp.craft.recipe.IDisplayRecipe;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.lime;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.ui.EditorUI;
 import org.lime.system.toast.Toast;
 import org.lime.system.toast.Toast2;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CraftQuery {

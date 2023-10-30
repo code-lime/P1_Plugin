@@ -28,6 +28,7 @@ import org.bukkit.permissions.ServerOperator;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.lime.core;
+import org.lime.gp.database.rows.CityRow;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.Methods;
@@ -171,8 +172,16 @@ public class Login implements Listener {
     public static Location getLoginLocation() {
         return login;
     }
-    public static Location getMainLocation() {
-        return main;
+    public static Location getMainLocation(UUID uuid) {
+        return UserRow.getBy(uuid)
+                .flatMap(UserRow::getCityID)
+                .flatMap(CityRow::getBy)
+                .flatMap(v -> v.posMain)
+                .map(v -> v.toLocation(lime.MainWorld))
+                .orElse(main);
+    }
+    public static Location getMainLocation(Player player) {
+        return getMainLocation(player.getUniqueId());
     }
 
     public static void init() {
@@ -195,7 +204,7 @@ public class Login implements Listener {
                 if (isInit) {
                     if (!teleportToMain.containsKey(player)) {
                         player.showTitle(Title.title(single, Component.empty(), Title.Times.times(Duration.ofSeconds(5), Duration.ofSeconds(2), Duration.ofSeconds(5))));
-                        teleportToMain.put(player, lime.once(() -> player.teleport(getMainLocation()), 5));
+                        teleportToMain.put(player, lime.once(() -> player.teleport(getMainLocation(player)), 5));
                     }
                 }
             } else {
@@ -228,7 +237,13 @@ public class Login implements Listener {
                     map.<UUID, String>of(true)
                             .add(UUID.fromString("00000000-0000-1000-0000-000000000001"), "Aleks_Bur#2")
                             .build()
-            ).build();
+            )
+            .add(UUID.fromString("fb87fd2f-620d-464e-a7dd-6e2ee1b38e33"),
+                    map.<UUID, String>of(true)
+                            .add(UUID.fromString("00000000-0000-1000-0000-000000000002"), "mihannik#2")
+                            .build()
+            )
+            .build();
 
     @EventHandler public static void on(AsyncPlayerPreLoginEvent e) {
         PlayerProfile profile = e.getPlayerProfile();

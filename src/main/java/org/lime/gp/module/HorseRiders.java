@@ -1,34 +1,27 @@
 package org.lime.gp.module;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.bukkit.*;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.lime.gp.admin.AnyEvent;
-import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.JManager;
-import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.HorseArmorSetting;
 import org.lime.gp.lime;
-import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.plugin.CoreElement;
 import org.spigotmc.event.entity.EntityDismountEvent;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 public class HorseRiders implements Listener {
     public static CoreElement create() {
@@ -38,7 +31,7 @@ public class HorseRiders implements Listener {
 
     }
 
-    public enum HorseState {
+    public enum VehicleState {
         Driver,
         Passenger
     }
@@ -64,51 +57,19 @@ public class HorseRiders implements Listener {
     public static void removeEntityTargetData(Entity entity, TargetType type) {
         JManager.del(entity.getPersistentDataContainer(), type.key);
     }
-    public static boolean checkCanUse(Player player, Entity vehicle, HorseState state) {
-        switch (state) {
-            case Driver:
-                return isCanInteractEntity(player.getUniqueId(), vehicle);
-            case Passenger:
+    public static boolean checkCanUse(Player player, Entity vehicle, VehicleState state) {
+        return switch (state) {
+            case Driver -> EntityOwner.canInteract(vehicle, player.getUniqueId());
+            case Passenger -> {
                 if (vehicle instanceof Horse horse) {
                     ItemStack armor = horse.getInventory().getArmor();
-                    if (armor == null || armor.getType().isAir()) return false;
+                    if (armor == null || armor.getType().isAir()) yield false;
                 }
-                return true;
-        }
-        return false;
+                yield true;
+            }
+        };
     }
     public static void init() {
-        AnyEvent.addEvent("animal.owner.set", AnyEvent.type.other, builder -> builder.createParam(UUID::fromString, "[animal_uuid]").createParam(Integer::parseInt, "[owner_id]"), (player, animal_uuid, owner_id) -> {
-            Entity entity = Bukkit.getEntity(animal_uuid);
-            if (!(entity instanceof Tameable tameable)) return;
-            if (!player.getUniqueId().equals(tameable.getOwnerUniqueId())) return;
-            UserRow.getBy(owner_id)
-                    .ifPresent(user -> {
-                        UUID uuid = user.uuid;
-                        tameable.setOwner(new AnimalTamer() {
-                            @Override public String getName() { return null; }
-                            @Override public UUID getUniqueId() { return uuid; }
-                        });
-                        JManager.del(tameable.getPersistentDataContainer(), "sub_owners");
-                    });
-        });
-        AnyEvent.addEvent("animal.sub", AnyEvent.type.other, builder -> builder.createParam("add","del").createParam(UUID::fromString, "[animal_uuid]").createParam(Integer::parseInt, "[sub_id]"), (player, state, animal_uuid, sub_id) -> {
-            Entity entity = Bukkit.getEntity(animal_uuid);
-            if (!(entity instanceof Tameable tameable)) return;
-            if (!player.getUniqueId().equals(tameable.getOwnerUniqueId())) return;
-            UserRow.getBy(sub_id).ifPresent(sub -> {
-                UUID sub_uuid = sub.uuid;
-                Set<UUID> subs = new HashSet<>();
-                JManager.get(JsonArray.class, tameable.getPersistentDataContainer(), "sub_owners", new JsonArray())
-                        .forEach(v -> subs.add(UUID.fromString(v.getAsString())));
-                switch (state) {
-                    case "add": subs.add(sub_uuid); break;
-                    case "del": subs.remove(sub_uuid); break;
-                    default: return;
-                }
-                JManager.set(tameable.getPersistentDataContainer(), "sub_owners", json.array().add(subs, UUID::toString).build());
-            });
-        });
         lime.repeat(() -> Bukkit.getWorlds().forEach(world -> world.getEntitiesByClass(Horse.class).forEach(horse -> {
             ItemStack armor = horse.getInventory().getArmor();
             if (armor == null) return;
@@ -124,7 +85,7 @@ public class HorseRiders implements Listener {
                 if (vehicle.getType() != EntityType.ARMOR_STAND) continue;
                 Entity horse = getHorseByStand(vehicle);
                 if (horse == null) continue;
-                if (!checkCanUse(player, horse, HorseState.Passenger)) {
+                if (!checkCanUse(player, horse, VehicleState.Passenger)) {
                     removeEntityTargetData(vehicle, TargetType.Stand);
                     vehicle.remove();
                 }
@@ -145,21 +106,10 @@ public class HorseRiders implements Listener {
         }, 0L, 1L);
     }
 
-    public static boolean isCanInteractEntity(UUID uuid, Entity entity) {
-        return UserRow.getBy(uuid)
-                .map(row -> {
-                    if (row.role == 9) return true;
-                    if (!(entity instanceof Tameable tameable) || !tameable.isTamed()) return true;
-                    if (uuid.equals(tameable.getOwnerUniqueId())) return true;
-                    JsonArray sub_owners = JManager.get(JsonArray.class, tameable.getPersistentDataContainer(), "sub_owners", new JsonArray());
-                    return sub_owners.contains(new JsonPrimitive(uuid.toString()));
-                })
-                .orElse(false);
-    }
     private static boolean tryPassanger(PlayerInteractEntityEvent event, Player player, Entity target) {
         if (!isRidable(target.getType())) return false;
         if (target.getPassengers().isEmpty()) {
-            if (!checkCanUse(player, target, HorseState.Driver)) event.setCancelled(true);
+            if (!checkCanUse(player, target, VehicleState.Driver)) event.setCancelled(true);
             return false;
         }
         if (hasEntityTargetData(target, TargetType.Stand)) return false;
@@ -168,7 +118,7 @@ public class HorseRiders implements Listener {
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         if (player.isSneaking()) return false;
         if (player.getVehicle() != null) return false;
-        if (!checkCanUse(player, target, HorseState.Passenger)) return false;
+        if (!checkCanUse(player, target, VehicleState.Passenger)) return false;
         ArmorStand armorStand = createArmorStand(getStandLocation(target));
         Location targetLocation = target.getLocation();
         armorStand.setRotation(targetLocation.getYaw(), targetLocation.getPitch());
@@ -183,7 +133,7 @@ public class HorseRiders implements Listener {
         Player player = event.getPlayer();
         if (tryPassanger(event, player, target)) return;
         if (!(target instanceof Tameable tameable)) return;
-        if (checkCanUse(player, tameable, HorseState.Driver)) return;
+        if (checkCanUse(player, tameable, VehicleState.Driver)) return;
         event.setCancelled(true);
     }
     private static void setPosition(Entity entity, Location location) {
@@ -231,7 +181,7 @@ public class HorseRiders implements Listener {
             Entity standPassenger = getStandPassenger(vehicle);
             if (standPassenger == null) return;
             if (standPassenger instanceof Player player) {
-                if (checkCanUse(player, vehicle, HorseState.Driver)) vehicle.addPassenger(player);
+                if (checkCanUse(player, vehicle, VehicleState.Driver)) vehicle.addPassenger(player);
             } else vehicle.addPassenger(standPassenger);
             removeEntityTargetData(vehicle, TargetType.Stand);
             armorStand.remove();
@@ -252,7 +202,7 @@ public class HorseRiders implements Listener {
             if (standPassenger == null) return;
 
             if (standPassenger instanceof Player) {
-                if (checkCanUse((Player)standPassenger, from, HorseState.Driver))
+                if (checkCanUse((Player)standPassenger, from, VehicleState.Driver))
                     from.addPassenger(standPassenger);
             } else {
                 from.addPassenger(standPassenger);

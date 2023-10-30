@@ -1,12 +1,12 @@
 package patch;
 
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.execute.Execute;
+import org.lime.system.execute.ICallable;
 import org.objectweb.asm.Type;
 
 import java.lang.invoke.SerializedLambda;
 
-public interface IMethodFilter<T> {
+public interface IMethodFilter<T> extends IMethodInfo {
     Class<T> tClass();
     boolean test(int access, String name, String descriptor, String signature, String[] exceptions);
     String toInfo();
@@ -29,7 +29,7 @@ public interface IMethodFilter<T> {
             @Override public Class<T> tClass() { return tClass; }
             @Override public boolean test(int access, String name, String descriptor, String signature, String[] exceptions) {
                 return (isMojang
-                        ? Native.ofMojang(tClass, methodName, descriptor, true)
+                        ? Native.getMojangName(tClass, methodName, descriptor, true)
                         : methodName
                 ).equals(name) && Type.getType(descriptor).equals(methodDescriptor);
             }
@@ -41,7 +41,7 @@ public interface IMethodFilter<T> {
             @Override public Class<T> tClass() { return tClass; }
             @Override public boolean test(int access, String name, String descriptor, String signature, String[] exceptions) {
                 return (isMojang
-                        ? Native.ofMojang(tClass, methodName, descriptor, true)
+                        ? Native.getMojangName(tClass, methodName, descriptor, true)
                         : methodName
                 ).equals(name);
             }

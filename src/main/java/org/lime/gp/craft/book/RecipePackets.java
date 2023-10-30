@@ -140,6 +140,7 @@ public class RecipePackets {
             .map(Recipes.PLAYER_LIST::getPlayer)
             .ifPresentOrElse(player -> {
                 Collection<IRecipe<?>> recipes = getActiveDisplayRecipes(player)
+                        .filter(v -> !v.getId().getPath().endsWith("/invisible"))
                         .sorted(Comparator.comparing(v -> v.getId().toString()))
                         .toList();
                 event.setPacket(new PacketContainer(event.getPacketType(), new PacketPlayOutRecipeUpdate(recipes)));

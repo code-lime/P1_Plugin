@@ -63,11 +63,11 @@ public final class EditorUI {
 
     public static void update() { inputs.entrySet().removeIf((kv)->!kv.getKey().isOnline()); }
 
-    public static void openRaw(Player player, Component title, Func3<Integer, PlayerInventory, EntityHuman, Container> init) {
-        openRaw(((CraftPlayer)player).getHandle(), title, init);
+    public static boolean openRaw(Player player, Component title, Func3<Integer, PlayerInventory, EntityHuman, Container> init) {
+        return openRaw(((CraftPlayer)player).getHandle(), title, init);
     }
-    public static void openRaw(EntityHuman player, Component title, Func3<Integer, PlayerInventory, EntityHuman, Container> init) {
-        player.openMenu(new TileInventory(init::invoke, new AdventureComponent(title)));
+    public static boolean openRaw(EntityHuman player, Component title, Func3<Integer, PlayerInventory, EntityHuman, Container> init) {
+        return player.openMenu(new TileInventory(init::invoke, new AdventureComponent(title))).isPresent();
     }
     public static void openSign(Player player, List<String> lines, Action1<List<String>> callback){
         new SignEditor(player, lines).callback(callback).open();

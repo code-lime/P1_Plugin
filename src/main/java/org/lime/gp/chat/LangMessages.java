@@ -83,7 +83,12 @@ public class LangMessages {
 
         Work_Error_Use("work", "error", "use"),
 
-        Block_Error_Limit("block", "error", "limit");
+        Block_Error_Limit("block", "error", "limit"),
+
+        Boat_Status("boat", "status"),
+
+        Action_Done("action", "done"),
+        Action_Error("action", "error");
 
         public final List<String> args;
         private final Component def;

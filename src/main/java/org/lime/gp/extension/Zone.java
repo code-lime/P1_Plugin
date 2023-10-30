@@ -6,10 +6,15 @@ import org.bukkit.util.Vector;
 
 public final class Zone {
     public static void showBox(Player player, Vector pos1, Vector pos2, Particle particle) {
-        show(player, pos1, pos2, particle, false);
+        show(player, pos1, pos2, true, particle, false);
     }
-    private static void show(Player player, Vector pos1, Vector pos2, Particle particle, boolean onlyDown) {
-        Vector max = new Vector(Math.max(pos1.getX(), pos2.getX()) + 1, Math.max(pos1.getY(), pos2.getY()) + 1, Math.max(pos1.getZ(), pos2.getZ()) + 1);
+    public static void showBox(Player player, Vector pos1, Vector pos2, boolean full, Particle particle) {
+        show(player, pos1, pos2, full, particle, false);
+    }
+
+    private static void show(Player player, Vector pos1, Vector pos2, boolean full, Particle particle, boolean onlyDown) {
+        int append = full ? 1 : 0;
+        Vector max = new Vector(Math.max(pos1.getX(), pos2.getX()) + append, Math.max(pos1.getY(), pos2.getY()) + append, Math.max(pos1.getZ(), pos2.getZ()) + append);
         Vector min = new Vector(Math.min(pos1.getX(), pos2.getX()), Math.min(pos1.getY(), pos2.getY()), Math.min(pos1.getZ(), pos2.getZ()));
 
         if (!onlyDown) {

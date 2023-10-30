@@ -3,8 +3,13 @@ package net.minecraft.world.entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.world.LimeKey;
+import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.entity.EntityInLevelCallback;
+import net.minecraft.world.phys.AxisAlignedBB;
+import net.minecraft.world.phys.Vec3D;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.VoxelShapes;
 import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer;
 
 import javax.annotation.Nullable;
@@ -26,8 +31,11 @@ public class EntityLimeMarker extends Marker {
         };
     }
 
+    private EntitySize dimensions;
+
     public EntityLimeMarker(EntityTypes<?> type, World world) {
         super(type, world);
+        dimensions = type.getDimensions();
         persistentDataContainer = this.getBukkitEntity().getPersistentDataContainer();
         setLevelCallback(EntityInLevelCallback.NULL);
     }
@@ -52,6 +60,25 @@ public class EntityLimeMarker extends Marker {
         persistentDataContainer = this.getBukkitEntity().getPersistentDataContainer();
     }
 
+    public void setDimensions(EntitySize dimensions) {
+        this.dimensions = dimensions;
+        refreshDimensions();
+    }
+    @Override public EntitySize getDimensions(EntityPose pose) { return dimensions; }
+    @Override protected AxisAlignedBB makeBoundingBox() {
+        return this.dimensions instanceof ITargetBoundingBox targetBoundingBox
+                ? targetBoundingBox.makeBoundingBox(this)
+                : super.makeBoundingBox();
+    }
+
+    private boolean tickable = false;
+    public void setTickable(boolean tickable) { this.tickable = tickable; }
+    public boolean getTickable() { return tickable; }
+
+    @Override public void tick() {
+        if (tickable)
+            baseTick();
+    }
 
     private final Map<MinecraftKey, Object> metadata = new ConcurrentHashMap<>();
     public Optional<Object> getMetadata(MinecraftKey key) {

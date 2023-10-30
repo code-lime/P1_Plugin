@@ -32,7 +32,7 @@ import org.lime.gp.block.component.list.Craft4x4Component;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.craft.Crafts;
 import org.lime.gp.extension.inventory.EmptyInventory;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 
 import java.util.List;

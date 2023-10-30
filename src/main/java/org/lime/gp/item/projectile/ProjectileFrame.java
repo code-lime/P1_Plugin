@@ -16,7 +16,7 @@ public record ProjectileFrame(Location location, Transformation transformation, 
     public static ProjectileFrame of(Trident trident) {
         Location location = trident.getLocation();
         Vector3f translation = new Vector3f((float) location.x(), (float) location.y(), (float) location.z());
-        Vector rotate = new Vector(0, location.getYaw() + 90, -location.getPitch());
+        Vector rotate = new Vector(0, location.getYaw() + 90, 180 - location.getPitch());
         Quaternionf rotation = new Quaternionf().rotationXYZ((float) Math.toRadians(rotate.getX()), (float) Math.toRadians(rotate.getY()), (float) Math.toRadians(rotate.getZ()));
 
         Transformation transformation = new Transformation(translation, rotation, new Vector3f(1,1,1), new Quaternionf());

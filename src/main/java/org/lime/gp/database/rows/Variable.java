@@ -1,7 +1,7 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
@@ -13,7 +13,7 @@ public class Variable extends BaseRow {
         super(set);
         church = MySql.readObject(set, "church", Double.class);
     }
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("church", String.valueOf(church));
         return map;

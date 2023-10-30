@@ -308,7 +308,7 @@ public class Blocks implements Listener {
                 });
                 return new TickTimeInfo();
             });
-            TimeoutData.allValues(CustomTileMetadata.ChunkBlockTimeout.class).forEach(info -> info.last_metadata.onTickAsync(_tick));
+            TimeoutData.allValues(CustomTileMetadata.ChunkBlockTimeout.class).forEach(info -> info.lastMetadata.onTickAsync(_tick));
         }, nextAsyncTimes);
     }
     private static void setBlockData(float speed) {

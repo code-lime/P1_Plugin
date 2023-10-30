@@ -1,11 +1,7 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
@@ -43,7 +39,7 @@ public class FriendRow extends BaseRow {
         return Tables.FRIEND_TABLE.getBy(row -> row.userID == id && name.equals(row.friendName));
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", Tables.valueOfInt(userID));
         map.put("user_id", Tables.valueOfInt(userID));

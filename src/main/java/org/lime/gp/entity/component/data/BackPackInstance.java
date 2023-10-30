@@ -2,6 +2,7 @@ package org.lime.gp.entity.component.data;
 
 import com.google.gson.JsonPrimitive;
 import net.kyori.adventure.text.Component;
+import net.minecraft.world.EnumInteractionResult;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -15,7 +16,7 @@ import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.Entities;
 import org.lime.gp.entity.EntityInstance;
 import org.lime.gp.entity.component.ComponentDynamic;
-import org.lime.gp.entity.component.display.DisplayInstance;
+import org.lime.gp.entity.component.display.instance.DisplayInstance;
 import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.item.Items;
@@ -114,13 +115,17 @@ public class BackPackInstance extends EntityInstance implements CustomEntityMeta
             });
         }
     }
-    @Override public void onInteract(CustomEntityMetadata metadata, EntityMarkerEventInteract event) {
-        if (!event.isPlayerSneaking()) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (!event.getPlayer().getUniqueId().equals(owner_uuid) && create_time + (LOCK_TIME * 1000) > System.currentTimeMillis()) return;
+    @Override public EnumInteractionResult onInteract(CustomEntityMetadata metadata, EntityMarkerEventInteract event) {
+        if (!event.isPlayerSneaking())
+            return EnumInteractionResult.PASS;
+        if (event.getHand() != EquipmentSlot.HAND)
+            return EnumInteractionResult.PASS;
+        if (!event.getPlayer().getUniqueId().equals(owner_uuid) && create_time + (LOCK_TIME * 1000) > System.currentTimeMillis())
+            return EnumInteractionResult.PASS;
         Items.dropItem(metadata.location(), items);
         items.clear();
         metadata.destroy();
+        return EnumInteractionResult.CONSUME;
     }
 
     public static void dropItems(Player player, Location location, List<ItemStack> items) {

@@ -4,8 +4,10 @@ import com.mojang.math.Transformation;
 import org.bukkit.entity.Player;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.item.elemental.step.action.NoneStep;
+import org.lime.system.utils.MathUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +41,7 @@ public record PaletteStep(IStep[] matrix, int sizeX, int sizeY, int sizeZ) imple
         this(palette, map, map.size());
     }
 
-    @Override public void execute(Player player, Transformation location) {
+    @Override public void execute(Player player, DataContext context, Transformation location) {
         float offsetX = -sizeX / 2.0f + 0.5f;
         float offsetY = -sizeY / 2.0f + 0.5f;
         float offsetZ = -sizeZ / 2.0f + 0.5f;
@@ -49,8 +51,8 @@ public record PaletteStep(IStep[] matrix, int sizeX, int sizeY, int sizeZ) imple
         for (int y = 0; y < sizeY; y++) {
             for (int z = 0; z < sizeZ; z++) {
                 for (int x = 0; x < sizeX; x++) {
-                    Transformation transformation = nonRotation.compose(new Transformation(new Vector3f(x + offsetX, y + offsetY, z + offsetZ), null, null, null));
-                    matrix[(z + x * sizeZ) * sizeY + y].execute(player, new Transformation(transformation.getTranslation(), leftRotation, transformation.getScale(), rightRotation));
+                    Transformation transformation = MathUtils.transform(nonRotation, new Transformation(new Vector3f(x + offsetX, y + offsetY, z + offsetZ), null, null, null));
+                    matrix[(z + x * sizeZ) * sizeY + y].execute(player, context, new Transformation(transformation.getTranslation(), leftRotation, transformation.getScale(), rightRotation));
                 }
             }
         }

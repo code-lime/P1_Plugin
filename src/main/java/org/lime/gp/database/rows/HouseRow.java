@@ -1,12 +1,7 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -16,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.Position;
 import org.lime.system.json;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
@@ -109,7 +103,7 @@ public class HouseRow extends BaseRow {
                 .orElse(UseType.Deny);
     }
 
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("id", String.valueOf(id));
         map.put("is_room", String.valueOf(isRoom ? 1 : 0));

@@ -63,6 +63,9 @@ public class Advancements implements Listener {
         if (manager != null) manager.updateProgress(player, manager.getAdvancements().toArray(eu.endercentral.crazy_advancements.advancement.Advancement[]::new));
     }
 
+    private static void savePlayer(UUID uuid) {
+        if (manager != null) manager.saveProgress(uuid);
+    }
     private static void savePlayer(Player player) {
         if (manager != null) manager.saveProgress(player);
     }
@@ -94,6 +97,14 @@ public class Advancements implements Listener {
                 : doneParent
                     ? AdvancementState.Parent
                     : AdvancementState.None;
+    }
+    public static void clearPlayerData(UUID uuid) {
+        if (manager == null) return;
+        manager.getAdvancements().forEach(item -> manager.revokeAdvancement(uuid, item));
+        savePlayer(uuid);
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) return;
+        syncAdvancements(player);
     }
 
     @EventHandler private static void on(PlayerJoinEvent e) {

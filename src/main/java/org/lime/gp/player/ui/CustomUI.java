@@ -303,13 +303,20 @@ public class CustomUI implements Listener {
     }
     public static class TextUI extends GUI {
         private TextUI() { super(IType.ACTIONBAR); }
-        private static final HashMap<UUID, Toast2<String, Integer>> showTexts = new HashMap<>();
+        private static final HashMap<UUID, Toast3<String, Integer, Component>> showTexts = new HashMap<>();
 
         public static void show(Player player, String text) {
             show(player, text, 3);
         }
         public static void show(Player player, String text, int ticks) {
-            showTexts.put(player.getUniqueId(), Toast.of(text, ticks));
+            showTexts.put(player.getUniqueId(), Toast.of(text, ticks, Component.text(text)));
+            CustomUI.updatePlayer(player);
+        }
+        public static void show(Player player, Component text) {
+            show(player, text, 3);
+        }
+        public static void show(Player player, Component text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ChatHelper.getText(text), ticks, text));
             CustomUI.updatePlayer(player);
         }
         public static void hide(Player player) {
@@ -318,11 +325,11 @@ public class CustomUI implements Listener {
         }
         @Override public Collection<ImageBuilder> getUI(Player player) {
             UUID uuid = player.getUniqueId();
-            Toast2<String, Integer> uses = showTexts.getOrDefault(uuid, null);
+            Toast3<String, Integer, Component> uses = showTexts.getOrDefault(uuid, null);
             if (uses == null) return Collections.emptyList();
             uses.val1--;
             if (uses.val1 <= 0) showTexts.remove(uuid);
-            return Collections.singleton(ImageBuilder.of(player, uses.val0));
+            return Collections.singleton(ImageBuilder.of(uses.val2, ChatHelper.getTextSize(player, uses.val0), true));
         }
     }
     public static class TitleUI extends GUI {

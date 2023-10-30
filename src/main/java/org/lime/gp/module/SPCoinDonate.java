@@ -47,7 +47,7 @@ public class SPCoinDonate {
                             "/spcoin convert [count] - Конвертировать SPCoin в донатную валюту ГП (Трефы)",
                             "/spcoin balance - Узнать текущий баланс SPCoin"
                         ))
-                        .withCheck(_v -> _v instanceof Player)
+                        .withCheckCast(Player.class)
                         .withTab((sender, args) -> switch (args.length) {
                             case 1 -> List.of("convert", "balance");
                             case 2 -> args[0].equals("convert")

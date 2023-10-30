@@ -15,7 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.display.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.data.MaterialCreator;
-import org.lime.gp.player.inventory.InterfaceManager;
+import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.ui.ContainerInput;
 import org.lime.gp.player.ui.EditorUI;
 import org.lime.system.toast.*;

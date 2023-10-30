@@ -1,8 +1,8 @@
 package org.lime.gp.database.rows;
 
 import java.sql.ResultSet;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -36,7 +36,7 @@ public class PermissionRow extends BaseRow {
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));
         permissions = Streams.stream(json.parse(MySql.readObject(set, "permissions", String.class)).getAsJsonArray().iterator()).map(JsonElement::getAsString).toList();
     }
-    @Override public HashMap<String, String> appendToReplace(HashMap<String, String> map) {
+    @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
         map.put("uuid", uuid.toString());
         map.put("permissions", String.join(", ", permissions));

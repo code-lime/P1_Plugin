@@ -1,6 +1,7 @@
 package org.lime.gp.entity.component;
 
 import com.google.gson.*;
+import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityInfo;
 import org.lime.gp.lime;
 import org.lime.system.toast.*;
@@ -10,7 +11,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public abstract class ComponentStatic<T extends JsonElement> {
+public abstract class ComponentStatic<T extends JsonElement> implements CustomEntityMetadata.Element {
     private final EntityInfo _info;
     private final String _name;
 

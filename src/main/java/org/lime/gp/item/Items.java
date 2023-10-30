@@ -16,6 +16,7 @@ import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.sounds.SoundCategory;
 import net.minecraft.sounds.SoundEffects;
+import net.minecraft.stats.StatisticList;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.EnumHand;
@@ -26,6 +27,8 @@ import net.minecraft.world.entity.projectile.EntityArrow;
 import net.minecraft.world.entity.projectile.EntityProjectile;
 import net.minecraft.world.entity.projectile.EntityThrownTrident;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -35,6 +38,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.event.CraftEventFactory;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Arrow;
@@ -77,6 +81,7 @@ import org.lime.system.utils.RandomUtils;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -137,8 +142,28 @@ public class Items implements Listener {
 
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()), (player, _creators) -> {
             _creators.getWhitelistKeys()
-                .map(Items.creatorIDs::get)
-                .forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
+                    .map(Items.creatorIDs::get)
+                    .forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of))), false));
+        });
+        AnyEvent.addEvent("item.ids.all", AnyEvent.type.owner_console, (player) -> {
+            List<Toast2<Integer, Integer>> idGoups = new ArrayList<>();
+            Toast2<Integer, Integer> last = Toast.of(null, null);
+            creatorNamesIDs.keySet().stream().sorted().forEach(id -> {
+                if (last.val0 == null || last.val1 == null) {
+                    last.val0 = id;
+                } else if (last.val1 + 1 != id) {
+                    idGoups.add(Toast.of(last.val0, last.val1));
+                    last.val0 = id;
+                }
+                last.val1 = id;
+            });
+            if (last.val0 != null && last.val1 != null)
+                idGoups.add(last);
+            lime.logOP("List of IDs: [" + idGoups.stream()
+                    .map(v -> Objects.equals(v.val0, v.val1) ? String.valueOf(v.val0) : (v.val0 + ".." + v.val1))
+                    .map(v -> "\"" + v + "\"")
+                    .collect(Collectors.joining(","))
+                    +"]");
         });
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
             _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));
@@ -570,6 +595,9 @@ public class Items implements Listener {
                 .orElseGet(material::getMaxDurability);
     }
 
+    public static boolean hurtRemove(net.minecraft.world.item.ItemStack item, int amount) {
+        return item.isDamageableItem() && item.hurt(amount, lime.MainWorld.getHandle().getRandom(), null);
+    }
     public static void hurt(net.minecraft.world.item.ItemStack item, EntityPlayer player, int amount, EnumItemSlot slot) {
         item.hurtAndBreak(amount, player, e2 -> e2.broadcastBreakEvent(slot));
     }
