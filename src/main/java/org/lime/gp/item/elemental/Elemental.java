@@ -27,6 +27,9 @@ public class Elemental {
         AnyEvent.addEvent("elemental.execute", AnyEvent.type.owner, v -> v.createParam(_v -> _v, steps::keySet), (player, elemental) -> {
             execute(player, new DataContext(), elemental);
         });
+        AnyEvent.addEvent("elemental.execute", AnyEvent.type.other, v -> v.createParam(_v -> _v, steps::keySet), (player, elemental) -> {
+            execute(player, new DataContext(), elemental);
+        });
     }
     private static void config(JsonObject json) {
         json = lime.combineParent(json, true, false);
