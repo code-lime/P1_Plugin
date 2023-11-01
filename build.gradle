@@ -283,8 +283,12 @@ task generator() {
             } else {
                 String _file = generateFile(file.parentFile, text);
                 if (_file != null) {
-                    System.out.println("EDITED: " + filePath);
-                    file.text = text = _file;
+                    if (_file.equals(text)) {
+                        System.out.println("EQUALS EDITED: " + filePath);
+                    } else {
+                        System.out.println("EDITED: " + filePath);
+                        file.text = text = _file;
+                    }
                 }
                 entries.put(filePath.replace(prefix + "\\", ""), text.getBytes());
             }
