@@ -87,16 +87,17 @@ public class BiomeMobs implements Listener {
     public static void updateWorld(World world) {
         world.getEntitiesByClass(CraftEntity.class).forEach(entity -> {
             if (entity instanceof Wolf wolf) {
-                if (!wolf.getScoreboardTags().contains("angry")) return;
-                wolf.setAngry(true);
-                if (wolf.getTarget() == null) {
-                    wolf.getLocation()
-                            .getNearbyPlayers(4)
-                            .stream()
-                            .filter(v -> switch (v.getGameMode()) { case SURVIVAL, ADVENTURE -> true; default -> false; })
-                            .findFirst()
-                            .ifPresent(wolf::setTarget);
-                }
+                if (wolf.getScoreboardTags().contains("angry")) {
+                    wolf.setAngry(true);
+                    if (wolf.getTarget() == null) {
+                        wolf.getLocation()
+                                .getNearbyPlayers(4)
+                                .stream()
+                                .filter(v -> switch (v.getGameMode()) { case SURVIVAL, ADVENTURE -> true; default -> false; })
+                                .findFirst()
+                                .ifPresent(wolf::setTarget);
+                    }
+                } else if (wolf.isTamed()) return;
             }
             if ((!(entity instanceof Mob mob) || mob.getTarget() == null)) {
                 PersistentDataContainer container = entity.getPersistentDataContainer();
@@ -108,7 +109,7 @@ public class BiomeMobs implements Listener {
                                 DespawnData.getDeltaHealth(container)
                                         .ifPresentOrElse(delta -> {
                                             double maxHealth = damageable.getMaxHealth() - delta;
-                                            if (maxHealth <= 0) entity.remove();
+                                            if (maxHealth <= 1) entity.remove();
                                             else damageable.setMaxHealth(maxHealth);
                                         }, entity::remove);
                             } else {
