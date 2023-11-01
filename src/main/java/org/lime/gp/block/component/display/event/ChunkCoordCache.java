@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.block.component.display.BlockDisplay;
 
@@ -52,10 +53,14 @@ public class ChunkCoordCache implements Listener {
     }
     private static void update() {
         Bukkit.getOnlinePlayers().forEach(player -> {
+            if (!ExtMethods.isPlayerLoaded(player)) {
+                playerChunks.remove(player.getUniqueId());
+                return;
+            }
             Location location = player.getLocation();
             Toast1<Boolean> changed = Toast.of(false);
             Cache cache = playerChunks.compute(player.getUniqueId(), (k,v) -> {
-                int counter = v == null ? 0 : Math.min(30, v.counter());
+                int counter = v == null ? 0 : Math.min(5, v.counter() + 1);
                 Cache coord = Cache.of(location, counter);
                 if (coord.equals(v)) return coord;
                 changed.val0 = true;
