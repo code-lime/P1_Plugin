@@ -14,12 +14,12 @@ import org.lime.system.execute.*;
 public final class AsyncConnection<T> {
     public final int index;
     public final SelectSQL sql;
-    public final debug debug;
+    public final ExecuteData debug;
     public final ConnectionInvokeData<T> onData;
     public final Action1<Throwable> onError;
     public final Action0 onFinally;
 
-    public AsyncConnection(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Throwable> onError, Action0 onFinally) {
+    public AsyncConnection(int index, ExecuteData debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Throwable> onError, Action0 onFinally) {
         this.index = index;
         this.debug = debug;
         this.sql = sql;
@@ -28,15 +28,15 @@ public final class AsyncConnection<T> {
         this.onFinally = onFinally;
     }
 
-    public static <T>AsyncConnection<T> of(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Throwable> onError, Action0 onFinally) {
+    public static <T>AsyncConnection<T> of(int index, ExecuteData debug, SelectSQL sql, ConnectionInvokeData<T> onData, Action1<Throwable> onError, Action0 onFinally) {
         return new AsyncConnection<>(index, debug, sql, onData, onError, onFinally);
     }
-    public static AsyncConnection<Object> of(int index, debug debug, SelectSQL sql, ConnectionInvoke onData, Action1<Throwable> onError, Action0 onFinally) {
+    public static AsyncConnection<Object> of(int index, ExecuteData debug, SelectSQL sql, ConnectionInvoke onData, Action1<Throwable> onError, Action0 onFinally) {
         return of(index, debug, sql, onData.toData(), onError, onFinally);
     }
 
     private void log(String dat) {
-        debug.log(dat);
+        debug.onLog(dat);
         Toast2<String, String> call = MySql.calls.getOrDefault(index, null);
         if (call == null) return;
         call.val1 += " & " + dat;

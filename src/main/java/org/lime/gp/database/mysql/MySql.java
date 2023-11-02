@@ -84,11 +84,11 @@ public final class MySql implements Closeable {
         try (Connection connection = connection_func.invoke()) { return connection.isValid(100); }
         catch (Exception e) { return false; }
     }
-    public <T>void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvokeData<T> func, Action1<Throwable> error, Action0 _finally) {
+    public <T>void callMySQL(int index, ExecuteData debug, SelectSQL sql, ConnectionInvokeData<T> func, Action1<Throwable> error, Action0 _finally) {
         AsyncConnection<T> connection = AsyncConnection.of(index, debug, sql, func, error, _finally);
         invokeQueue.add(() -> connection.invoke(this));
     }
-    public void callMySQL(int index, debug debug, SelectSQL sql, ConnectionInvoke func, Action1<Throwable> error, Action0 _finally) {
+    public void callMySQL(int index, ExecuteData debug, SelectSQL sql, ConnectionInvoke func, Action1<Throwable> error, Action0 _finally) {
         callMySQL(index, debug, sql, func.toData(), error, _finally);
     }
 
@@ -161,11 +161,11 @@ public final class MySql implements Closeable {
                 return value.toString();
         }
     }
-    static PreparedStatement prepareStatement(int state, debug debug, Connection connection, Toast1<String> sql, Map<String, Object> args) throws SQLException {
+    static PreparedStatement prepareStatement(int state, ExecuteData debug, Connection connection, Toast1<String> sql, Map<String, Object> args) throws SQLException {
         if (args != null) {
             for (Map.Entry<String, Object> arg : args.entrySet()) sql.val0 = sql.val0.replace("@" + arg.getKey(), toSqlObject(arg.getValue()));
         }
-        if (debug != null) debug.callSQL(sql.val0);
+        if (debug != null) debug.onSQL(sql.val0);
         if (state == 1) {
             Component component = Component
                     .text("[" + Time.formatCalendar(Time.moscowNow(), true) + "] SQL QUERY")
