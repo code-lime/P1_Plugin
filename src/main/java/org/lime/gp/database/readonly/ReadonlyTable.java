@@ -1,15 +1,11 @@
 package org.lime.gp.database.readonly;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
+import org.lime.gp.lime;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.gp.database.Methods;
@@ -53,7 +49,12 @@ public class ReadonlyTable<T> {
         return true;
     }
 
+    private static final long RETRY_UPDATE_MS = 30 * 1000;
+    private final LockToast1<Long> lastUpdateMs = Toast.lock(0L);
     private void updateReadonly() {
+        long nowMs = System.currentTimeMillis();
+        if (lastUpdateMs.get0() + RETRY_UPDATE_MS > nowMs) return;
+        lastUpdateMs.set0(nowMs);
         Methods.SQL.Async.rawSqlQuery("SELECT "+key+(keys.size() == 0 ? "" : (", " + String.join(", ", keys))) + " FROM "+table, reader -> {
             int size = MySql.columnsCount(reader);
             List<String> args = new ArrayList<>();
@@ -91,19 +92,27 @@ public class ReadonlyTable<T> {
             });
             if (debug != null)
                 debug.invoke("Update count: " + update.size());
-            if (update.size() != 0)
-                Methods.SQL.Async.rawSql(
-                        "INSERT INTO "+table+" ("+ String.join(",", keys) +") VALUES ("
-                                + String.join("),(", update) +
-                                ") ON DUPLICATE KEY UPDATE " +
-                                keys.stream().map(v -> v + "=VALUES(" + v + ")").collect(Collectors.joining(",")),
-                        () -> cooldowns.entrySet().removeIf(kv -> updateKeys.contains(kv.getKey())));
-            if (remove.size() != 0)
-                Methods.SQL.Async.rawSql(
-                        "DELETE FROM "+table+" WHERE "+key+" IN ("+String.join(",", remove)+")",
-                        () -> { });
+
+            ConcurrentLinkedQueue<Toast2<String, Action0>> queue = new ConcurrentLinkedQueue<>();
+            if (!update.isEmpty()) queue.add(Toast.of("INSERT INTO "+table+" ("+ String.join(",", keys) +") VALUES ("
+                    + String.join("),(", update) +
+                    ") ON DUPLICATE KEY UPDATE " +
+                    keys.stream().map(v -> v + "=VALUES(" + v + ")").collect(Collectors.joining(",")),
+                    () -> cooldowns.entrySet().removeIf(kv -> updateKeys.contains(kv.getKey()))));
+            if (!remove.isEmpty()) queue.add(Toast.of("DELETE FROM "+table+" WHERE "+key+" IN ("+String.join(",", remove)+")", Execute.actionEmpty()));
+            executeSqlQueue(queue, () -> lastUpdateMs.set0(0L));
         });
     }
+
+    private static void executeSqlQueue(ConcurrentLinkedQueue<Toast2<String, Action0>> queue, Action0 onFinally) {
+        Toast2<String, Action0> item = queue.poll();
+        if (item == null) {
+            onFinally.invoke();
+            return;
+        }
+        Methods.SQL.Async.rawSql(item.val0, item.val1).withFinally(() -> executeSqlQueue(queue, onFinally));
+    }
+
     public static class Builder<T> {
         private final String table;
         private final String key;
