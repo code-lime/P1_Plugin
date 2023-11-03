@@ -1,6 +1,7 @@
 package org.lime.gp.module;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.EntityLimeMarker;
 import net.minecraft.world.entity.EntityLiving;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -79,8 +80,8 @@ public class EntityPosition {
         SERVER.getAllLevels().forEach(world -> {
             CraftWorld bukkitWorld = world.getWorld();
             world.getEntities().getAll().forEach(nms -> {
-                if (nms instanceof EntityLiving living) {
-                    UUID uuid = living.getUUID();
+                if (nms instanceof EntityLiving || nms instanceof EntityLimeMarker) {
+                    UUID uuid = nms.getUUID();
                     locations.put(uuid, new Location(bukkitWorld, nms.getX(), nms.getY(), nms.getZ()));
                     locationsRemove.remove(uuid);
                 }
