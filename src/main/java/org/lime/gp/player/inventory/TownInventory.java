@@ -12,6 +12,7 @@ import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Lectern;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
@@ -29,10 +30,13 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
+import org.bukkit.Material;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.ObjectDisplay;
@@ -49,6 +53,7 @@ import org.lime.gp.lime;
 import org.lime.gp.module.DrawMap;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.selector.ZoneSelector;
+import org.lime.gp.player.ui.EditorUI;
 import org.lime.plugin.CoreElement;
 import org.lime.system.EnumFlag;
 import org.lime.system.map;
@@ -561,6 +566,18 @@ public class TownInventory implements Listener {
         Player player = e.getPlayer();
         if (player.getWorld() != lime.MainWorld) return;
         if (isCantBlock(block, player)) {
+            if (block.getType() == Material.LECTERN) {
+                Lectern lectern = (Lectern) block.getState();
+                Inventory inventory = lectern.getSnapshotInventory();
+                if (!inventory.isEmpty()) {
+                    ItemStack book = inventory.getItem(0);
+                    if (book != null && book.getItemMeta() instanceof BookMeta bookMeta) {
+                        EditorUI.openBook(player, bookMeta.pages());
+                        e.setCancelled(true);
+                        return;
+                    }
+                }
+            }
             MenuCreator.show(player, "interact.lock", Apply.of()
                     .add("block_x", String.valueOf(block.getX()))
                     .add("block_y", String.valueOf(block.getY()))
