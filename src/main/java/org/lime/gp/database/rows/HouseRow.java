@@ -132,6 +132,9 @@ public class HouseRow extends BaseRow {
 
     public static List<HouseRow> getInHouse(Player player) { return getInHouse(player, null); }
     public static List<HouseRow> getInHouse(Location pos) { return getInHouse(pos, null); }
+    public static boolean hasHouse(Location pos) {
+        return Tables.HOUSE_TABLE.hasBy(v -> v.inZone(pos));
+    }
     public static List<HouseRow> getInHouse(Player player, Func1<HouseRow, Boolean> filter) {
         Location location = player.getLocation();
         return location.getWorld() == lime.LoginWorld ? getInHouse(location, filter) : Collections.emptyList();

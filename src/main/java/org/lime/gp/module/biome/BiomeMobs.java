@@ -23,6 +23,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.util.Vector;
+import org.lime.gp.database.rows.CityRow;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.database.rows.HouseRow;
@@ -167,7 +168,9 @@ public class BiomeMobs implements Listener {
 
     @EventHandler public static void on(CreatureSpawnEvent e) {
         CreatureSpawnEvent.SpawnReason reason = e.getSpawnReason();
-        if (reason == CreatureSpawnEvent.SpawnReason.NATURAL && !HouseRow.getInHouse(e.getLocation()).isEmpty()) {
+        if (reason == CreatureSpawnEvent.SpawnReason.NATURAL
+            && (HouseRow.hasHouse(e.getLocation()) || CityRow.hasCity(e.getLocation())))
+        {
             e.setCancelled(true);
             return;
         }
