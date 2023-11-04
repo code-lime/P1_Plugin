@@ -51,21 +51,17 @@ public class ImageBuilder {
     public ImageBuilder withOffset(int offset) {
         return new ImageBuilder(image, size, offset, color, absolute, shadow);
     }
-    public ImageBuilder addOffset(int offset) {
-        return withOffset(this.offset + offset);
-    }
-    public ImageBuilder withColor(TextColor color) {
-        return new ImageBuilder(image, size, offset, color, absolute, shadow);
-    }
-    public ImageBuilder withAbsolute() {
-        return withAbsolute(true);
-    }
-    public ImageBuilder withoutAbsolute() {
-        return withAbsolute(false);
-    }
-    public ImageBuilder withAbsolute(boolean absolute) {
-        return new ImageBuilder(image, size, offset, color, absolute, shadow);
-    }
+    public ImageBuilder addOffset(int offset) { return withOffset(this.offset + offset); }
+    public ImageBuilder withColor(TextColor color) { return new ImageBuilder(image, size, offset, color, absolute, shadow); }
+
+    public ImageBuilder withShadow() { return withShadow(true); }
+    public ImageBuilder withoutShadow() { return withShadow(false); }
+    public ImageBuilder withShadow(boolean shadow) { return new ImageBuilder(image, size, offset, color, absolute, shadow); }
+
+    public ImageBuilder withAbsolute() { return withAbsolute(true); }
+    public ImageBuilder withoutAbsolute() { return withAbsolute(false); }
+    public ImageBuilder withAbsolute(boolean absolute) { return new ImageBuilder(image, size, offset, color, absolute, shadow); }
+
 
     public static final ImageBuilder empty = ImageBuilder.of((Component)null, 0, false);
     public static ImageBuilder getEmpty() {
