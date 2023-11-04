@@ -2,6 +2,7 @@ package org.lime.gp.module.npc.display;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
@@ -34,6 +35,7 @@ import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.module.npc.eplayer.IEPlayer;
 import org.lime.gp.module.npc.eplayer.Pose;
 import org.lime.packetwrapper.WrapperPlayServerEntityTeleport;
+import org.lime.system.execute.Action2;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,7 +74,7 @@ public class EPlayerDisplay extends ObjectDisplay<IEPlayer, EntityPlayer> {
         if (npc.pose() == Pose.SIT) sitParent = preInitDisplay(lime.models.builder().block().display(this));
         else sitParent = null;
         postInit();
-        if (sitParent != null) Passenger.addPassengerID(sitParent.entityID, this.entityID);
+        if (sitParent != null) sitParent.addCustomPassengerID(this.entityID);
     }
 
     @Override protected void sendData(Player player, boolean child) {

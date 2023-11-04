@@ -74,7 +74,7 @@ public class BackPack {
             this.model = preInitDisplay(BackPack.model.display(this));
             this.model.setEquipment(EnumItemSlot.HEAD, data.item());
             postInit();
-            Passenger.addPassengerID(player.getEntityId(), this.model.entityID);
+            this.model.addCustomPassengerID(player.getEntityId());
         }
         @Override public void update(ItemInfo data, double delta) {
             if (this.data != data) this.model.setEquipment(EnumItemSlot.HEAD, (this.data = data).item());
