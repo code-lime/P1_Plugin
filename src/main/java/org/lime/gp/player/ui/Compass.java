@@ -130,7 +130,7 @@ public class Compass {
             int size = (length - 1) * 2;
             for (int i = 0; i < length; i++) {
                 char ch = chars[i];
-                components.add(ImageBuilder.of(0xE600 + (ch - '0'), ch == '1' ? 1 : 3).withColor(color).withOffset((offset - size) + i * 4));
+                components.add(ImageBuilder.of(0xE600 + (ch - '0'), ch == '1' ? 1 : 3).withShadow().withColor(color).withOffset((offset - size) + i * 4));
             }
             return components;
         }
