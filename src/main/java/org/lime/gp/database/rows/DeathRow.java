@@ -2,6 +2,7 @@ package org.lime.gp.database.rows;
 
 import org.bukkit.Location;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.system.utils.MathUtils;
@@ -9,6 +10,7 @@ import org.lime.system.utils.MathUtils;
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.util.Map;
+import java.util.UUID;
 
 public class DeathRow extends BaseRow {
     public final String uniqueRowKey;
@@ -48,4 +50,7 @@ public class DeathRow extends BaseRow {
         map.put("status", status.name());
         return map;
     }
+
+    public static boolean hasDeath(UUID uuid) { return UserRow.getBy(uuid).map(v -> Tables.DEATH_TABLE.hasOther("user_id", String.valueOf(v.id))).orElse(false); }
+    public static boolean hasDeath(int userID) { return Tables.DEATH_TABLE.hasOther("user_id", String.valueOf(userID)); }
 }

@@ -166,6 +166,7 @@ public class Tables {
     public static final KeyedTable<DeathRow> DEATH_TABLE = KeyedTable.of("death", DeathRow::new)
             .optional()
             .keyed("id", v -> String.valueOf(v.id))
+            .other("user_id", v -> String.valueOf(v.userID))
             .event(KeyedTable.Event.Removed, DeathGame::onUpdate)
             .event(KeyedTable.Event.Updated, DeathGame::onUpdate)
             .build();
