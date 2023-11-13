@@ -5,6 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.core;
+import org.lime.gp.item.settings.list.ArmorNeedSetting;
 import org.lime.gp.player.module.DeathGame;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
@@ -32,7 +33,12 @@ public class NeedSystem {
     }
     private static final HashMap<Player, List<INeedEffect<?>>> cacheEffects = new HashMap<>();
     private static List<INeedEffect<?>> readPlayerNeeds(Player player) {
-        return Streams.concat(Thirst.getThirstNeeds(player), ProxyFoodMetaData.getFoodNeeds(player), DeathGame.getDeathNeeds(player)).toList();
+        return Streams.concat(
+                Thirst.getThirstNeeds(player),
+                ProxyFoodMetaData.getFoodNeeds(player),
+                DeathGame.getDeathNeeds(player),
+                ArmorNeedSetting.getArmorNeeds(player)
+        ).toList();
     }
     public static Stream<INeedEffect<?>> getPlayerNeeds(Player player) {
         if (MinecraftServer.currentTick % 40 == 0) cacheEffects.clear();
