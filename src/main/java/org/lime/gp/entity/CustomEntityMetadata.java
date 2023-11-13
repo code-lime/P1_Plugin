@@ -197,7 +197,7 @@ public class CustomEntityMetadata extends EntityMetadata {
     @Override public void onTickAsync(long tick) { list(AsyncTickable.class).forEach(v -> v.onAsyncTick(this, tick)); }
 
     public void destroyWithLoot(Func1<LootParams.a, LootParams.a> params) {
-        MinecraftKey minecraftkey = new MinecraftKey("lime", key.type());
+        MinecraftKey minecraftkey = new MinecraftKey("lime", key.type().toLowerCase());
         LootParams.a lootparams = new LootParams.a((WorldServer)marker.level())
                 .withParameter(LootContextParameters.THIS_ENTITY, marker)
                 .withParameter(LootContextParameters.ORIGIN, marker.position())
