@@ -14,12 +14,9 @@ import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.bukkit.event.entity.EntityExhaustionEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.lime.gp.extension.JsonNBT;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.settings.list.FoodSetting;
-import org.lime.gp.lime;
 import org.lime.gp.player.module.needs.NeedSystem;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
 import java.util.Collections;

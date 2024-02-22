@@ -44,7 +44,7 @@ import com.google.gson.JsonObject;
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("type"), IJElement.raw("THIRST_TYPE"), IComment.text("Пользовательский тип жидкости")),
                 JProperty.optional(IName.raw("color"), IJElement.raw("#FFFFFF"), IComment.text("Цвет жидкости"))
-        ), "Устанавливает статус работы урона сплешом у меча", "",
-                "<warning>ВНИМАНИЕ! Обязательное существование предмета `Potion.Clear_Water`</warning>");
+        ), IComment.text("Устанавливает статус работы урона сплешом у меча"), IComment.text(""),
+                IComment.warning("ВНИМАНИЕ! Обязательное существование предмета `Potion.Clear_Water`"));
     }
 }

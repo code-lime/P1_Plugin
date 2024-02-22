@@ -1,5 +1,6 @@
 package org.lime.gp.item.elemental.step.action;
 
+import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.EntityPlayer;
@@ -11,11 +12,15 @@ import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.gp.item.elemental.DataContext;
+import org.lime.gp.item.elemental.Step;
 import org.lime.system.utils.MathUtils;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class SetBlockStep extends IBlockStep {
+@Step(name = "block.set")
+public final class SetBlockStep extends IBlockStep<SetBlockStep> {
     private final boolean force;
     public SetBlockStep(IBlockData block, boolean force) {
         super(block);
@@ -35,5 +40,18 @@ public class SetBlockStep extends IBlockStep {
         IBlockData data = world.getBlockState(pos);
         if (!force && !data.canBeReplaced()) return;
         world.setBlock(pos, block, Block.UPDATE_ALL);
+    }
+
+    public SetBlockStep parse(JsonObject json) {
+        return new SetBlockStep(
+                Material.valueOf(json.get("material").getAsString()),
+                json.has("states")
+                        ? json.getAsJsonObject("states")
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString()))
+                        : Collections.emptyMap(),
+                json.get("force").getAsBoolean()
+        );
     }
 }

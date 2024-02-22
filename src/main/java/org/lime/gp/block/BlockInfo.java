@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.lime.Position;
 import org.lime.docs.IGroup;
+import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.block.component.InfoComponent;
 import org.lime.gp.block.component.ComponentStatic;
@@ -139,10 +140,10 @@ public final class BlockInfo {
 
     @Override public String toString() { return "BlockInfo[" + Optional.ofNullable(getKey()).orElse("NULLABLE") + "]"; }
 
-    public static IGroup docs(String title, IDocsLink docs) {
+    public static IGroup docs(String title, IDocsLink docs, IIndexDocs component) {
         return JsonGroup.of(title, JObject.of(
                 JProperty.optional(IName.raw("components"), IJElement.anyObject(
-                        JProperty.require(IName.raw("COMPONENT_NAME"), IJElement.link(docs.component()))
+                        JProperty.require(IName.raw("COMPONENT_NAME"), IJElement.link(component))
                 ), IComment.text("Указывает список компонентов для конкретного блока"))
         ));
     }

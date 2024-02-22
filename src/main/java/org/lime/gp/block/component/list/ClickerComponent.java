@@ -144,26 +144,25 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         JProperty max_damage_prop = JProperty.require(IName.raw("max_damage"), IJElement.raw(10), IComment.text("Колисечтво ударов, после которого произойдет замена"));
-        IIndexGroup replace = JsonGroup.of("REPLACE", "replace", IJElement.or(
-                JObject.of(
+        IIndexGroup replace = JsonEnumInfo.of("REPLACE", "replace", IComment.text("Вызывает действие"))
+                .add(JObject.of(
                         JProperty.require(IName.raw("block"), IJElement.link(docs.setBlock()), IComment.text("Блок, на который произойдет замена")),
                         max_damage_prop
-                ),
-                JObject.of(
-                        JProperty.require(IName.raw("page"), IJElement.link(docs.menu()), IComment.text("Меню, которое будет открыто")),
-                        JProperty.optional(IName.raw("args"), IJElement.anyList(IJElement.link(docs.formattedText())), IComment
-                                .empty()
-                                .append(IComment.text("Параметры, передаваемые в открываемое меню. Происходит дополнительная передача параметров блока: "))
-                                .append(IComment.link(docs.blockVariables()))),
+                ))
+                .add(JObject.of(
+                        JProperty.require(IName.raw("page"), IJElement.link(docs.menuName()), IComment.text("Меню, которое будет открыто")),
+                        JProperty.optional(IName.raw("args"), IJElement.anyObject(
+                                JProperty.require(IName.raw("ARG_NAME"), IJElement.link(docs.formattedText()))
+                        ), IComment.empty()
+                                .append(IComment.text("Параметры, передаваемые в открываемое меню. Происходит дополнительная передача параметров блока."))),
                         max_damage_prop
-                ),
-                JObject.of(
+                ))
+                .add(JObject.of(
                         JProperty.require(IName.raw("variable"), IJElement.anyObject(
                                 JProperty.require(IName.raw("VARIABLE_NAME"), IJElement.link(docs.formattedText()))
                         ), IComment.text("Изменяет указанные параметры внутри блока")),
                         max_damage_prop
-                )
-        ), "Вызывает действие");
+                ));
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("type"), IJElement.raw("CLICKER_TYPE").or(IJElement.anyList(IJElement.raw("CLICKER_TYPE"))), IComment.empty()
                         .append(IComment.text("Пользовательский тип кликера. Требует ударять предметом с "))
@@ -177,6 +176,6 @@ public final class ClickerComponent extends ComponentDynamic<JsonObject, Clicker
                 JProperty.optional(IName.raw("hand_click"), IJElement.bool(), IComment.text("Позволяет ударять не имея при себе подходящего инструмента")),
                 JProperty.optional(IName.raw("sound_click"), IJElement.link(docs.sound()), IComment.text("Звук удара")),
                 JProperty.optional(IName.raw("sound_result"), IJElement.link(docs.sound()), IComment.text("Звук крафта"))
-        ), "Блок является кликером").withChilds(replace);
+        ), IComment.text("Блок является кликером")).withChilds(replace);
     }
 }

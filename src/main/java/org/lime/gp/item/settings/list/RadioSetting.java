@@ -60,7 +60,7 @@ import com.google.gson.JsonObject;
                 JProperty.optional(IName.raw("state"), IJElement.raw("STATE"), IComment.empty()
                         .append(IComment.text("Возможные состояния: "))
                         .append(IComment.or(Stream.of(RadioData.RadioState.values()).map(IComment::raw).toList())))
-        ), "Проигрывает или записывает звук на выбранной волне", "Читаемые `args` в предмете: `level` и `state`");
+        ), IComment.text("Проигрывает или записывает звук на выбранной волне"), IComment.text("Читаемые `args` в предмете: `level` и `state`"));
     }
 }
 

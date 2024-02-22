@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.inventory.ItemStack;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IJElement;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.gp.item.data.Checker;
 import org.lime.gp.item.data.IItemCreator;
@@ -31,6 +34,15 @@ public class SingleLoot implements ILoot {
         this.amount = amount;
         if (item.getWhitelistCreators().anyMatch(v -> true)) throw new IllegalArgumentException("[LOOT] ITEM '"+item+"' NOT FOUNDED!");
     }
+
+    public static IJElement docs(IDocsLink docs) {
+        return IJElement.join(
+                IJElement.link(docs.regexItem()),
+                IJElement.text("*"),
+                IJElement.link(docs.range())
+        );
+    }
+
 
     @Override public List<ItemStack> generateLoot(IPopulateLoot loot) {
         int amount = this.amount.getIntValue(64);

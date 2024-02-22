@@ -4,6 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.module.loot.IPopulateLoot;
 
 import java.util.ArrayList;
@@ -46,5 +49,18 @@ public class VariableLoot implements ILoot {
         otherVariables.putAll(variables);
         items.add(new VariableItemStack(otherVariables));
         return items;
+    }
+    public static JObject docs(IJElement loot, IDocsLink docs, IIndexDocs jsLoot) {
+        return JObject.of(
+                JProperty.require(IName.raw("variable"), IJElement.anyObject(
+                        JProperty.require(IName.raw("VARIABLE_NAME"), IJElement.link(docs.json()))
+                ), IComment.join(
+                        IComment.text("Параметры, сохраняемые в "),
+                        IComment.field("variable"),
+                        IComment.text(" для "),
+                        IComment.link(jsLoot)
+                )),
+                JProperty.require(IName.raw("next"), loot, IComment.text("Генератор лута, который будет вызван").append(IComment.field("code")))
+        );
     }
 }

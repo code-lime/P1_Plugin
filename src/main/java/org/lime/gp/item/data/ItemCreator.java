@@ -22,6 +22,7 @@ import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
 import org.lime.docs.IGroup;
+import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatColorHex;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ItemCreator extends IItemCreator {
-    static final Map<String, Attribute> ATTRIBUTE_NAMES = map.<String, Attribute>of()
+    public static final Map<String, Attribute> ATTRIBUTE_NAMES = map.<String, Attribute>of()
             .add(Arrays.asList(Attribute.values()), kv -> Arrays.stream(kv.getKey().getKey().split("\\.")).skip(1).collect(Collectors.joining(".")), kv -> kv)
             .build();
 
@@ -76,6 +77,13 @@ public class ItemCreator extends IItemCreator {
     public record Instrument(String sound, float range, int cooldown) {
         public Instrument(JsonObject json) {
             this(json.get("sound").getAsString(), json.get("range").getAsFloat(), json.get("cooldown").getAsInt());
+        }
+        public static IJElement docs(IIndexDocs vanillaSound) {
+            return JObject.of(
+                    JProperty.require(IName.raw("sound"), IJElement.link(vanillaSound), IComment.text("Звук, который будет проигран")),
+                    JProperty.require(IName.raw("range"), IJElement.raw(5.5), IComment.text("Дальность, на которой будет слышен звук")),
+                    JProperty.require(IName.raw("cooldown"), IJElement.raw(10), IComment.text("Время ожидания повторного использования звука в тиках"))
+            );
         }
     }
     public final Instrument instrument;
@@ -163,7 +171,7 @@ public class ItemCreator extends IItemCreator {
                     slots.forEach(slot -> attributes.put(attribute, Items.generate(attribute, amount, operation, slot)));
                 });
     }
-    public static IGroup docs(String title, IDocsLink docs) {
+    public static IGroup docs(String title, IDocsLink docs, IIndexDocs setting) {
         return JsonGroup.of(title, title, JObject.of(
                 JProperty.require(IName.raw("item"), IJElement.link(docs.vanillaMaterial()), IComment.text("Тип основы предмета")),
                 JProperty.optional(IName.raw("name"), IJElement.link(docs.formattedChat()), IComment.text("Отображаемое название предмета")),
@@ -237,7 +245,7 @@ public class ItemCreator extends IItemCreator {
                         IComment.empty()
                                 .append(IComment.text("Устанавливает аттрибуты предмета"))),
                 JProperty.optional(IName.raw("settings"),
-                        IJElement.anyObject(JProperty.require(IName.raw("SETTING_NAME"), IJElement.link(docs.setting()))),
+                        IJElement.anyObject(JProperty.require(IName.raw("SETTING_NAME"), IJElement.link(setting))),
                         IComment.empty()
                                 .append(IComment.text("Указывает список настроек для конкретного предмета"))),
                 JProperty.optional(IName.raw("instrument"),

@@ -459,7 +459,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             if (lastShowProgress != 0) {
                 writeDebug("OT.0: " + lastShowProgress + " -> 0");
                 lastShowProgress = 0;
-                syncDisplayVariable();
+                syncDisplayVariable(metadata);
             }
             return;
         }
@@ -479,7 +479,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         if (showProgress != lastShowProgress) {
             writeDebug("OT.1: " + lastShowProgress + " -> " + showProgress);
             lastShowProgress = showProgress;
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
         }
         if (currentDelta >= totalDelta) {
             writeDebug("DETECT DELTA: " + currentDelta + " >= " + totalDelta);
@@ -521,7 +521,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             syncRecipe("INTERACT", true);
             saveData();
 
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
         }
         writeDebug("OI.5: " + result.val1);
         return result.val1;
@@ -547,7 +547,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             syncRecipe("DAMAGE", true);
             saveData();
 
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
 
             if (items.isEmpty()) return;
             writeDebug("OD.3");
@@ -635,7 +635,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
                 lastShowProgress = showProgress;
                 logs.add("SR.4.2: " + lastShowProgress);
                 CHANGED = true;
-                syncDisplayVariable();
+                syncDisplayVariable(metadata());
             }
             logs.add("SR.4.3");
             if (change) {
@@ -660,7 +660,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
             if (showProgress != lastShowProgress) {
                 logs.add("SR.4.9");
                 lastShowProgress = showProgress;
-                syncDisplayVariable();
+                syncDisplayVariable(metadata());
             }
             logs.add("SR.4.10");
             saveData();
@@ -685,7 +685,7 @@ public class WaitingInstance extends BlockComponentInstance<WaitingComponent> im
         event.addItems(items);
     }
 
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         writeDebug("syncDisplayVariable");
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(map -> {

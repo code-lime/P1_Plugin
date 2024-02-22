@@ -26,6 +26,6 @@ public final class ConverterComponent extends ComponentDynamic<JsonObject, Conve
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("converter_type"), IJElement.raw("CONVERTER_TYPE"), IComment.text("Пользовательский тип конвертера"))
-        ), "Блок является конвертером");
+        ), IComment.text("Блок является конвертером"));
     }
 }

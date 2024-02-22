@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
 import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.Items;
@@ -32,6 +33,6 @@ import com.google.gson.JsonPrimitive;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.bool(), "Указывает, скрывать ли ник игрока при надевании");
+        return JsonGroup.of(index, index, IJElement.bool(), IComment.text("Указывает, скрывать ли ник игрока при надевании"));
     }
 }

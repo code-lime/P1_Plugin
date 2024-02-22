@@ -46,6 +46,6 @@ import java.util.Optional;
                 JProperty.require(IName.raw("limit"), IJElement.raw(10), IComment.empty()
                         .append(IComment.text("Максимальное количество блоков с типом "))
                         .append(IComment.raw("LIMIT_TYPE")))
-        ), "Блокирует возможность ставить блок если количество блоков данного типа больше лимита");
+        ), IComment.text("Блокирует возможность ставить блок если количество блоков данного типа больше лимита"));
     }
 }

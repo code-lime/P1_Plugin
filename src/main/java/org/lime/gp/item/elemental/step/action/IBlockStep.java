@@ -7,13 +7,11 @@ import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.system.map;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class IBlockStep implements IStep {
+public abstract class IBlockStep<T extends IBlockStep<T>> implements IStep<T> {
     protected final IBlockData block;
 
     public IBlockStep(IBlockData block) { this.block = block; }

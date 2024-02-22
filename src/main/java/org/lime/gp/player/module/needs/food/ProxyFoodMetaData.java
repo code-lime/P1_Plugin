@@ -9,14 +9,12 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.lime.core;
+import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
-import org.lime.gp.extension.JsonNBT;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.needs.INeedEffect;
 import org.lime.gp.town.ChurchManager;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
 import java.util.Optional;
@@ -98,6 +96,7 @@ public class ProxyFoodMetaData extends FoodMetaData {
                 .withInit(ProxyFoodMetaData::init);
     }
     private static void init() {
+        NeedSystem.register(ProxyFoodMetaData::getFoodNeeds);
         lime.repeat(ProxyFoodMetaData::update, 0.2);
     }
     private static void update() {
@@ -118,7 +117,7 @@ public class ProxyFoodMetaData extends FoodMetaData {
                 .map(v -> v instanceof CraftPlayer c ? c.getHandle() : null)
                 .map(ProxyFoodMetaData::getProxyFood);
     }
-    public static Stream<INeedEffect<?>> getFoodNeeds(Player player) {
+    private static Stream<INeedEffect<?>> getFoodNeeds(Player player) {
         return ofPlayer(player)
                 .map(v -> v.mutate.food.totalLevel())
                 .stream()

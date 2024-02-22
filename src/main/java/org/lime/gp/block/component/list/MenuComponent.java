@@ -1,43 +1,31 @@
 package org.lime.gp.block.component.list;
 
+import com.badlogic.gdx.utils.Json;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.core.EnumDirection;
-import net.minecraft.world.EnumInteractionResult;
-import net.minecraft.world.level.block.BlockSkullInteractInfo;
-import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.PlayerInventory;
 import org.lime.Position;
 import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
-import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.block.component.data.MenuInstance;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.gp.item.Items;
-import org.lime.gp.player.menu.MenuCreator;
-import org.lime.gp.sound.Sounds;
-import org.lime.json.JsonObjectOptional;
-import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @InfoComponent.Component(name = "menu")
-public final class MenuComponent extends ComponentDynamic<JsonElement, MenuComponent.OpenInstance> {
+public final class MenuComponent extends ComponentDynamic<JsonElement, MenuInstance> {
     public static Optional<Apply> argsOf(Position position) {
         return Blocks.of(position.getBlock())
                 .flatMap(Blocks::customOf)
@@ -80,6 +68,22 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
             if (json.has("args"))
                 json.get("args").getAsJsonObject().entrySet().forEach(kv -> args.put(kv.getKey(), kv.getValue().getAsString()));
         }
+
+        public static IIndexGroup docs(IDocsLink docs) {
+            return JsonGroup.of("MenuData", JObject.of(
+                    JProperty.require(IName.raw("menu"), IJElement.link(docs.menuName()), IComment.text("Меню, которое будет открыто")),
+                    JProperty.optional(IName.raw("menu"), IJElement.link(docs.menuName()), IComment.text("Меню, которое будет открыто при нажатии с шифтом. Если не указано то срабатывает вызов ").append(IComment.field("menu"))),
+                    JProperty.optional(IName.raw("args"), IJElement.anyObject(
+                            JProperty.require(IName.raw("ARG_NAME"), IJElement.link(docs.formattedText()))
+                    ), IComment.empty()
+                            .append(IComment.text("Параметры, передаваемые в открываемое меню. Происходит дополнительная передача параметров блока."))),
+                    JProperty.optional(IName.raw("open_timeout"), IJElement.raw(10), IComment.text("Время в тиках через которое произойдет срабатвания закрытия")),
+                    JProperty.optional(IName.raw("sound_open_any"), IJElement.link(docs.sound()), IComment.text("Звук открытия (даже если уже открыто)")),
+                    JProperty.optional(IName.raw("sound_close_any"), IJElement.link(docs.sound()), IComment.text("Звук закрытия (даже если еще открыто)")),
+                    JProperty.optional(IName.raw("sound_open_once"), IJElement.link(docs.sound()), IComment.text("Звук открытия (если не было открыто)")),
+                    JProperty.optional(IName.raw("sound_close_once"), IJElement.link(docs.sound()), IComment.text("Звук закрытия (если все закрыли)"))
+            ));
+        }
     }
 
     public final HashMap<EnumDirection, MenuData> data = new HashMap<>();
@@ -100,74 +104,23 @@ public final class MenuComponent extends ComponentDynamic<JsonElement, MenuCompo
         }
     }
 
-    public final class OpenInstance extends BlockInstance implements CustomTileMetadata.Tickable, CustomTileMetadata.Interactable {
-        public final HashMap<UUID, Toast2<Integer, MenuData>> open_list = new HashMap<>();
-        private boolean init = true;
+    @Override public MenuInstance createInstance(CustomTileMetadata metadata) { return new MenuInstance(this, metadata); }
+    @Override public Class<MenuInstance> classInstance() { return MenuInstance.class; }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup direction = JsonEnumInfo.of("DIRECTION",
+                EnumDirection.stream().map(v -> IJElement.raw(v.getSerializedName())).collect(ImmutableList.toImmutableList()),
+                IComment.text("Сторона блока"));
 
-        public OpenInstance(ComponentDynamic<?, ?> component, CustomTileMetadata metadata) {
-            super(component, metadata);
-        }
+        IIndexGroup directionList = JsonGroup.of("DIRECTION_LIST", IJElement.concat(",",
+                IJElement.link(direction),
+                IJElement.link(direction),
+                IJElement.any(),
+                IJElement.link(direction)));
 
-        @Override
-        public void read(JsonObjectOptional json) {
-        }
-
-        @Override
-        public json.builder.object write() {
-            return json.object();
-        }
-
-        @Override
-        public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
-            if (init) {
-                metadata.list(DisplayInstance.class).forEach(variable -> variable.set("open", "false"));
-                init = false;
-            }
-            Location location = metadata.location(0.5, 0.5, 0.5);
-            open_list.forEach((key, value) -> Optional.ofNullable(Bukkit.getPlayer(key))
-                    .filter(v -> v.getOpenInventory().getTopInventory().getType() == InventoryType.CHEST)
-                    .ifPresentOrElse(player -> value.val0 = value.val1.open_timeout, () -> value.val0--));
-            Toast1<String> sco = Toast.of(null);
-            if (open_list.values().removeIf(v -> {
-                boolean remove = v.val0 <= 0;
-                if (remove) {
-                    Sounds.playSound(v.val1.sound_close_any, location);
-                    sco.val0 = v.val1.sound_close_once;
-                }
-                return remove;
-            }) && open_list.size() == 0) {
-                Sounds.playSound(sco.val0, location);
-                metadata.list(DisplayInstance.class).forEach(variable -> variable.set("open", "false"));
-            }
-        }
-
-        @Override
-        public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
-            if (!(event.player().getBukkitEntity() instanceof Player player)) return EnumInteractionResult.PASS;
-            MenuData menuData = MenuComponent.this.data.get(event.hit().getDirection());
-            if (menuData == null) return EnumInteractionResult.PASS;
-            PlayerInventory playerInventory = player.getInventory();
-            Apply data = argsOf(metadata)
-                    .add("mainhand_", Items.getStringData(playerInventory.getItemInMainHand()))
-                    .add("offhand_", Items.getStringData(playerInventory.getItemInOffHand()))
-                    .add("viewers", String.valueOf(open_list.size()))
-                    .add(menuData.args);
-            //lime.logOP(system.toFormat(json.object().add(data.list()).build()));
-
-            Location location = metadata.location(0.5, 0.5, 0.5);
-            if (!MenuCreator.show(player, player.isSneaking() ? menuData.shift_menu : menuData.menu, data))
-                return EnumInteractionResult.PASS;
-            if (open_list.size() == 0) {
-                Sounds.playSound(menuData.sound_open_once, location);
-                metadata.list(DisplayInstance.class).forEach(variable -> variable.set("open", "true"));
-            }
-            Sounds.playSound(menuData.sound_open_any, location);
-            open_list.put(player.getUniqueId(), Toast.of(menuData.open_timeout, menuData));
-            return EnumInteractionResult.CONSUME;
-        }
+        IIndexGroup data = MenuData.docs(docs);
+        return JsonGroup.of(index, IJElement.or(
+                IJElement.anyObject(JProperty.require(IName.link(direction), IJElement.link(data))),
+                IJElement.anyList(JObject.of(IJProperty.base(data), JProperty.require(IName.raw("direction"), IJElement.link(directionList))))
+        )).withChilds(direction, data);
     }
-
-    @Override public OpenInstance createInstance(CustomTileMetadata metadata) { return new OpenInstance(this, metadata); }
-    @Override public Class<OpenInstance> classInstance() { return OpenInstance.class; }
-    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
 }

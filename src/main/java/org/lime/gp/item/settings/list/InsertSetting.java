@@ -47,6 +47,6 @@ import com.google.gson.JsonObject;
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("type"), IJElement.raw("INSERT_TYPE"), IComment.text("Пользвательский тип предмета для расчетов в меню")),
                 JProperty.require(IName.raw("weight"), IJElement.raw(10), IComment.text("Значение веса однго предмета для расчетов в меню"))
-        ), "Используется в меню " + docs.menuInsert().link());
+        ), IComment.text("Используется в меню"));
     }
 }

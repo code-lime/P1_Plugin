@@ -39,6 +39,6 @@ import com.google.gson.JsonObject;
                 JProperty.require(IName.raw("def_distance"), IJElement.raw(10), IComment.text("Начальная дальность слышимости")),
                 JProperty.require(IName.raw("min_distance"), IJElement.raw(10), IComment.text("Минимальная дальность слышимости")),
                 JProperty.require(IName.raw("max_distance"), IJElement.raw(10), IComment.text("Максимальная дальность слышимости"))
-        ), "Усиливает дальность звука", "Читаемые `args` в предмете: `distance` и `volume`");
+        ), IComment.text("Усиливает дальность звука"), IComment.text("Читаемые `args` в предмете: `distance` и `volume`"));
     }
 }

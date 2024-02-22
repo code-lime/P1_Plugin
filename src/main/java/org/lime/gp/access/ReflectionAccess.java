@@ -43,6 +43,8 @@ import net.minecraft.world.level.block.entity.TickingBlockEntity;
 import net.minecraft.world.level.block.entity.TileEntityTypes;
 import net.minecraft.world.level.block.state.BlockBase;
 import net.minecraft.world.level.chunk.Chunk;
+import net.minecraft.world.level.chunk.storage.RegionFile;
+import net.minecraft.world.level.chunk.storage.RegionFileCache;
 import net.minecraft.world.level.saveddata.maps.WorldMap;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -58,6 +60,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ReflectionAccess {
     public static final reflection.constructor<PacketPlayOutTileEntityData> init_PacketPlayOutTileEntityData = reflection.constructor.of(PacketPlayOutTileEntityData.class, BlockPosition.class, TileEntityTypes.class, NBTTagCompound.class);
@@ -125,6 +128,9 @@ public class ReflectionAccess {
     public static final reflection.field<Float> MAX_MOVEMENT_SPEED_EntityHorseAbstract = reflection.field.<Float>ofMojang(EntityHorseAbstract.class, "MAX_MOVEMENT_SPEED").nonFinal();
     public static final reflection.field<RecipeItemStack> TEMPT_ITEMS_EntityStrider = reflection.field.<RecipeItemStack>ofMojang(EntityStrider.class, "TEMPT_ITEMS").nonFinal();
     public static final reflection.field<MinecraftKey> randomSequence_LootTable = reflection.field.ofMojang(LootTable.class, "randomSequence");
+
+    public static final reflection.field<Boolean> isChunkData_RegionFileCache = reflection.field.<Boolean>of(RegionFileCache.class, "isChunkData").nonFinal();
+    public static final reflection.field<ReentrantLock> fileLock_RegionFile = reflection.field.<ReentrantLock>of(RegionFile.class, "fileLock").nonFinal();
 }
 
 

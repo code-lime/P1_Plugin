@@ -2,6 +2,7 @@ package org.lime.gp.item.settings.list;
 
 import org.bukkit.Material;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
 import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.Items;
@@ -23,6 +24,6 @@ import com.google.gson.JsonArray;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw(10)), "Связывает текущий предмет с указанными ID-шниками отображения");
+        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw(10)), IComment.text("Связывает текущий предмет с указанными ID-шниками отображения"));
     }
 }

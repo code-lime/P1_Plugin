@@ -66,7 +66,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
     public void setItem(ItemStack item, boolean save) {
         if (item == null) head = new ItemStack(Material.AIR);
         else head = item.clone();
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
         //ConverterComponent component = component();
         //model.set0(TableDisplaySetting.builderItem(head, component.offset, TableDisplaySetting.TableType.converter, component.converter_type));
         if (save) saveData();
@@ -241,7 +241,7 @@ public class ConverterInstance extends BlockInstance implements CustomTileMetada
         }, ChatHelper.toNMS(title))));
         return EnumInteractionResult.CONSUME;
     }
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
             ConverterComponent component = component();
             DisplayComponent.putItem(map, "converter.input", TableDisplaySetting.builderItem(head, TableDisplaySetting.TableType.converter, component.converter_type));

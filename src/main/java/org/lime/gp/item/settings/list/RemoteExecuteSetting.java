@@ -20,6 +20,6 @@ import com.google.gson.JsonArray;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw("C# CODE LINE")), "Вызывает C# код во время генерации ресурспака");
+        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw("C# CODE LINE")), IComment.text("Вызывает C# код во время генерации ресурспака"));
     }
 }

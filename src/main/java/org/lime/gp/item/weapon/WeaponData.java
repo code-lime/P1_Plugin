@@ -136,15 +136,18 @@ public class WeaponData {
         long sec = totalMs / 1000;
         return StringUtils.leftPad(String.valueOf(sec), 2, '0') + "." + StringUtils.leftPad(String.valueOf(ms), 1, '0');
     }
-    public void update(WeaponSetting weapon, CraftItemStack item) {
+    public void update(Player player, WeaponSetting weapon, CraftItemStack item) {
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(weapon.weaponDisplay(this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo));
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(STATE_KEY, PersistentDataType.STRING, state.name());
         item.setItemMeta(meta);
         this.item = item;
+
+        if (player instanceof CraftPlayer handle)
+            handle.getHandle().inventoryMenu.broadcastFullState();
     }
-    public void sync(WeaponSetting weapon, CraftItemStack item) {
+    public void sync(Player player, WeaponSetting weapon, CraftItemStack item) {
         WeaponSetting.Pose pose = weapon.poses.getOrDefault(this.pose, null);
         if (pose == null) return;
         ItemMeta meta = item.getItemMeta();
@@ -153,6 +156,9 @@ public class WeaponData {
         meta.setCustomModelData(custom_model_data);
         item.setItemMeta(meta);
         this.item = item;
+
+        if (player instanceof CraftPlayer handle)
+            handle.getHandle().inventoryMenu.broadcastFullState();
     }
     public String toData() {
         return state + " / " + pose;
@@ -237,6 +243,9 @@ public class WeaponData {
         if (meta.hasCustomModelData() && custom_model_data == meta.getCustomModelData()) return;
         meta.setCustomModelData(custom_model_data);
         item.setItemMeta(meta);
+
+        if (player instanceof CraftPlayer handle)
+            handle.getHandle().inventoryMenu.broadcastFullState();
     }
 }
 

@@ -6,17 +6,17 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.lime.docs.json.IComment;
+import org.lime.docs.json.IEnumDocs;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 import org.lime.gp.player.module.needs.thirst.Thirst;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.execute.Action2;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public enum EffectType {
+public enum EffectType implements IEnumDocs {
     NONE((player, tick) -> {}, "Ничего"),
     SATURATION_FULL(ofPotion(PotionEffectType.SATURATION.createEffect(80, 1).withIcon(false), 40), "Полное насыщение голода"),
     SPEED_EFFECT(ofPotion(PotionEffectType.SPEED.createEffect(80, 1), 30), "Увеличение скорости"),
@@ -66,16 +66,17 @@ public enum EffectType {
     }, "Тряска персонажа");
 
     private final Action2<Player, Integer> tick;
-    private final IComment docs;
+    private final IComment comment;
 
-    EffectType(Action2<Player, Integer> tick, IComment docs) {
+    EffectType(Action2<Player, Integer> tick, IComment comment) {
         this.tick = tick;
-        this.docs = docs;
+        this.comment = comment;
     }
-    EffectType(Action2<Player, Integer> tick, String docs) { this(tick, IComment.text(docs)); }
+    EffectType(Action2<Player, Integer> tick, String comment) { this(tick, IComment.text(comment)); }
 
     public void tick(Player player, int time) { tick.invoke(player, time); }
-    public IComment docs() { return this.docs; }
+
+    @Override public IComment docsComment() { return this.comment; }
 
     //private static Action2<Player, Integer> ofPotion(PotionEffect potionEffect) { return ofPotion(potionEffect, 0); }
     private static Action2<Player, Integer> ofPotion(PotionEffect potionEffect, int skip) {

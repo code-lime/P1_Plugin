@@ -1,9 +1,12 @@
 package org.lime.gp.block.component;
 
 import com.google.gson.*;
+import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.util.Vector;
 import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IEnumDocs;
+import org.lime.docs.json.IJElement;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
@@ -28,7 +31,7 @@ public class InfoComponent {
     }
 
     public static class Rotation {
-        public enum Value {
+        public enum Value implements IEnumDocs {
             ANGLE_0,
             ANGLE_45,
             ANGLE_90,
@@ -60,6 +63,10 @@ public class InfoComponent {
                     case ANGLE_180, ANGLE_225 -> Toast.of(-pos.val0, pos.val1, -pos.val2);
                     case ANGLE_270, ANGLE_315 -> Toast.of(pos.val2, pos.val1, -pos.val0);
                 };
+            }
+
+            @Override public IJElement docsElement() {
+                return IJElement.raw(angle);
             }
         }
 
@@ -98,8 +105,8 @@ public class InfoComponent {
         @Override public String name() { return getName(name); }
 
         @Override public T createInstance(CustomTileMetadata metadata) { return createInstance.invoke(this, metadata); }
-        @Override public Class<T> classInstance() { throw new ToDoException("CLASS COMPONENT"); }
-        @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
+        @Override public Class<T> classInstance() { throw new NotImplementedException("CLASS COMPONENT"); }
+        @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new NotImplementedException("BLOCK COMPONENT: " + index); }
 
         public static <T extends BlockInstance>GenericDynamicComponent<T> of(String name, BlockInfo info, Func2<ComponentDynamic<?, ?>, CustomTileMetadata, T> createInstance) { return new GenericDynamicComponent<>(name, info, createInstance); }
         public static String getName(String name) { return name + ".generic"; }

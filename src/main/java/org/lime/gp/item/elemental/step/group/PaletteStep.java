@@ -1,20 +1,25 @@
 package org.lime.gp.item.elemental.step.group;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
 import org.bukkit.entity.Player;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lime.gp.item.elemental.DataContext;
+import org.lime.gp.item.elemental.Step;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.item.elemental.step.action.NoneStep;
 import org.lime.system.utils.MathUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public record PaletteStep(IStep[] matrix, int sizeX, int sizeY, int sizeZ) implements IStep {
-    private static IStep[] createMatrix(Map<String, IStep> palette, List<List<String>> map, int sizeX, int sizeY, int sizeZ) {
-        IStep[] matrix = new IStep[sizeX * sizeY * sizeZ];
+@Step(name = "palette")
+public record PaletteStep(IStep<?>[] matrix, int sizeX, int sizeY, int sizeZ) implements IStep<PaletteStep> {
+    private static IStep<?>[] createMatrix(Map<String, IStep<?>> palette, List<List<String>> map, int sizeX, int sizeY, int sizeZ) {
+        IStep<?>[] matrix = new IStep<?>[sizeX * sizeY * sizeZ];
         for (int y = 0; y < sizeY; y++) {
             List<String> layer = map.get(y);
             for (int z = 0; z < sizeZ; z++) {
@@ -28,16 +33,16 @@ public record PaletteStep(IStep[] matrix, int sizeX, int sizeY, int sizeZ) imple
         return matrix;
     }
 
-    private PaletteStep(Map<String, IStep> palette, List<List<String>> map, int sizeX, int sizeY, int sizeZ) {
+    private PaletteStep(Map<String, IStep<?>> palette, List<List<String>> map, int sizeX, int sizeY, int sizeZ) {
         this(createMatrix(palette, map, sizeX, sizeY, sizeZ), sizeX, sizeY, sizeZ);
     }
-    private PaletteStep(Map<String, IStep> palette, List<List<String>> map, int sizeY, int sizeZ) {
+    private PaletteStep(Map<String, IStep<?>> palette, List<List<String>> map, int sizeY, int sizeZ) {
         this(palette, map, sizeZ > 0 ? map.get(0).get(0).length() : 0, sizeY, sizeZ);
     }
-    private PaletteStep(Map<String, IStep> palette, List<List<String>> map, int sizeY) {
+    private PaletteStep(Map<String, IStep<?>> palette, List<List<String>> map, int sizeY) {
         this(palette, map, sizeY, sizeY > 0 ? map.get(0).size() : 0);
     }
-    public PaletteStep(Map<String, IStep> palette, List<List<String>> map) {
+    public PaletteStep(Map<String, IStep<?>> palette, List<List<String>> map) {
         this(palette, map, map.size());
     }
 
@@ -56,5 +61,23 @@ public record PaletteStep(IStep[] matrix, int sizeX, int sizeY, int sizeZ) imple
                 }
             }
         }
+    }
+    public PaletteStep parse(JsonObject json) {
+        return new PaletteStep(
+                json.getAsJsonObject("palette")
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, kv -> IStep.parse(kv.getValue()))),
+                json.getAsJsonArray("map")
+                        .asList()
+                        .stream()
+                        .map(v -> v.getAsJsonArray()
+                                .asList()
+                                .stream()
+                                .map(JsonElement::getAsString)
+                                .toList()
+                        )
+                        .toList()
+        );
     }
 }

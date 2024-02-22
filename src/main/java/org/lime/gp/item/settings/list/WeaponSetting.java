@@ -186,7 +186,7 @@ import org.lime.system.utils.MathUtils;
                 JProperty.optional(IName.raw("offset"), IJElement.raw(10), IComment.text("Сдвиг изображения в пикселях")),
                 JProperty.optional(IName.raw("color"), IJElement.raw("#FFFFFF"), IComment.text("Цвет изображения"))
         ));
-        IIndexGroup weapon_ui = JsonGroup.of("WEAPON_UI", "weapon_ui", IJElement.anyList(IJElement.link(weapon_ui_frame)), "Набор кадров анимации")
+        IIndexGroup weapon_ui = JsonGroup.of("WEAPON_UI", "weapon_ui", IJElement.anyList(IJElement.link(weapon_ui_frame)),IComment.text( "Набор кадров анимации"))
                 .withChild(weapon_ui_frame);
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("bullet_speed"), IJElement.raw(1.0), IComment.raw("Скорость пули")),
@@ -218,6 +218,6 @@ import org.lime.system.utils.MathUtils;
                         .append(IComment.raw("magazine_id"))
                         .append(IComment.text(", "))
                         .append(IComment.raw("bullet_count")))
-        ));
+        )).withChilds(weapon_state, weapon_pose, weapon_pose_info, weapon_ui);
     }
 }

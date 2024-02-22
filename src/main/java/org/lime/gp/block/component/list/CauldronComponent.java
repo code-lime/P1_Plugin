@@ -19,6 +19,6 @@ public final class CauldronComponent extends ComponentDynamic<JsonNull, Cauldron
     @Override public Class<CauldronInstance> classInstance() { return CauldronInstance.class; }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.nullable(), "Блок является котлом").withChilds();
+        return JsonGroup.of(index, index, IJElement.nullable(), IComment.text("Блок является котлом")).withChilds();
     }
 }

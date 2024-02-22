@@ -2,8 +2,11 @@ package org.lime.gp.item.loot;
 
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.system.utils.RandomUtils;
+import org.openjdk.nashorn.internal.scripts.JO;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,5 +42,23 @@ public class RandomLoot implements ILoot {
 
     @Override public List<ItemStack> generateLoot(IPopulateLoot loot) {
         return random().map(v -> v.generateFilter(loot)).orElseGet(Collections::emptyList);
+    }
+
+    public static JObject docs(IJElement loot) {
+        return JObject.of(
+                JProperty.require(IName.raw("values"), IJElement.anyList(
+                        JObject.of(
+                                JProperty.require(IName.raw("loot"), loot),
+                                JProperty.require(IName.raw("weight"), IJElement.raw(1.5))
+                        )
+                ), IComment.join(
+                        IComment.text("Суммирует "),
+                        IComment.field("weight"),
+                        IComment.text(" у всех элементов из "),
+                        IComment.field("values"),
+                        IComment.text(", выбирает рандомное значение и использует его "),
+                        IComment.field("loot")
+                ))
+        );
     }
 }

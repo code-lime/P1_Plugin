@@ -568,6 +568,12 @@ public class Methods {
                 MySql.args().add("identifier", identifier).add("name", name).build(),
                 callback);
     }
+    public static void rejoinSkin(String identifier, @Nullable String skin, Action0 callback) {
+        SQL.Async.rawSql(
+                "UPDATE rejoin SET rejoin.skin = @skin WHERE CONCAT(rejoin.name,':',rejoin.index) = @identifier",
+                MySql.args().add("identifier", identifier).add("skin", skin).build(),
+                callback);
+    }
     public static void rejoinSelect(UUID owner, @Nullable String identifier, Action0 callback) {
         SQL.Async.rawSql(
                 "UPDATE rejoin SET rejoin.select = IF(CONCAT(rejoin.name,':',rejoin.index) = @identifier,1,0) WHERE rejoin.owner = @owner",

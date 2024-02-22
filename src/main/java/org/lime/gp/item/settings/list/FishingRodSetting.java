@@ -20,7 +20,7 @@ public class FishingRodSetting extends ItemSetting<JsonObject> {
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, JObject.of(
                 JProperty.optional(IName.raw("launch_multiply"), IJElement.raw(1.0), IComment.text("Указывает множитель, на который будет умножена сила броска"))
-        ), "Изменияет характеристики удочки");
+        ), IComment.text("Изменияет характеристики удочки"));
     }
 }
 

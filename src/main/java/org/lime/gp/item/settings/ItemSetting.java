@@ -10,7 +10,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.bukkit.inventory.meta.ItemMeta;
+import org.lime.ToDoException;
 import org.lime.docs.IGroup;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
+import org.lime.docs.json.IJElement;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.reflection;
 import org.lime.gp.lime;
@@ -40,9 +44,13 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
         Class<?> tClass();
 
         String key();
-        default IGroup docs(IDocsLink docs) {
-            ItemSetting<?> setting = (ItemSetting<?>)unsafe.createInstance(tClass());
-            return setting.docs(key(), docs);
+        default IIndexGroup docs(IDocsLink docs) {
+            try {
+                ItemSetting<?> setting = (ItemSetting<?>)unsafe.createInstance(tClass());
+                return setting.docs(key(), docs);
+            } catch (ToDoException todo) {
+                return IIndexGroup.raw(key(), null, v -> Stream.of(IComment.warning("TODO: " + todo.getMessage()).line(v)));
+            }
         }
     }
 
@@ -102,11 +110,14 @@ public abstract class ItemSetting<T extends JsonElement> implements IItemSetting
         return setting;
     }
 
-    public static String getName(Class<? extends ItemSetting<?>> tClass) {
+    /*public static String getName(Class<? extends ItemSetting<?>> tClass) {
         return Arrays.stream(tClass.getAnnotationsByType(Setting.class)).map(Setting::name).findFirst().orElseThrow();
     }
-
-    public static Stream<IGroup> allDocs(IDocsLink docs) {
+*/
+    public static String docsKey(Class<? extends ItemSetting<?>> tClass) {
+        return settings.values().stream().filter(v -> v.tClass() == tClass).findAny().map(SettingLink::key).orElseThrow();
+    }
+    public static Stream<IIndexGroup> allDocs(IDocsLink docs) {
         return settings.values().stream().sorted(Comparator.comparing(SettingLink::key)).map(link -> link.docs(docs));
     }
 }

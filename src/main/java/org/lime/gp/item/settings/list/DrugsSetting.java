@@ -35,10 +35,7 @@ import java.util.Optional;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        IIndexGroup drugs_effect_type = JsonEnumInfo.of("DRUGS_EFFECT_TYPE", "drugs_effect_type",
-                Arrays.stream(EffectType.values())
-                        .collect(ImmutableMap.toImmutableMap(type -> IJElement.raw(type.name()), type -> Optional.of(type.docs())))
-        );
+        IIndexGroup drugs_effect_type = JsonEnumInfo.of("DRUGS_EFFECT_TYPE", EffectType.class);
         return JsonGroup.of(index, index, JObject.of(
                         JProperty.require(IName.raw("first_effects"),
                                 IJElement.anyList(IJElement.link(drugs_effect_type)),
@@ -55,7 +52,7 @@ import java.util.Optional;
                         JProperty.require(IName.raw("last"),
                                 IJElement.raw(1.0),
                                 IComment.text("Время последней стадии в минутах"))),
-                "Предмет при съедении выдает последовательность определенных эффектов"
+                IComment.text("Предмет при съедении выдает последовательность определенных эффектов")
         ).withChilds(drugs_effect_type);
     }
 }

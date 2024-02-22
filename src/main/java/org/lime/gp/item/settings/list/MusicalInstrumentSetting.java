@@ -2,6 +2,7 @@ package org.lime.gp.item.settings.list;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 import org.bukkit.Location;
@@ -10,11 +11,12 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.system.toast.*;
+import org.lime.gp.item.settings.use.IUse;
+import org.lime.gp.item.settings.use.target.ITarget;
+import org.lime.gp.item.settings.use.target.SelfTarget;
 import org.lime.system.execute.*;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.extension.Cooldown;
-import org.lime.gp.item.UseSetting;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
 import org.lime.gp.player.menu.MenuCreator;
@@ -24,7 +26,7 @@ import com.google.gson.JsonObject;
 
 import net.kyori.adventure.sound.Sound;
 
-@Setting(name = "musical_instrument") public class MusicalInstrumentSetting extends ItemSetting<JsonObject> implements UseSetting.IUse {
+@Setting(name = "musical_instrument") public class MusicalInstrumentSetting extends ItemSetting<JsonObject> implements IUse<SelfTarget> {
     public final Action2<Location, Float> pitch;
     public final EquipmentSlot arm;
     public final double cooldown;
@@ -49,8 +51,10 @@ import net.kyori.adventure.sound.Sound;
         if (json.has("args")) json.get("args").getAsJsonObject().entrySet().forEach(kv -> args.put(kv.getKey(), kv.getValue().getAsString()));
     }
 
-    @Override public EquipmentSlot arm() { return arm; }
-    @Override public boolean use(Player player, Player target, EquipmentSlot arm, boolean shift) {
+    @Override public Optional<SelfTarget> tryCast(Player player, ITarget target, EquipmentSlot arm, boolean shift) {
+        return Optional.of(SelfTarget.Instance);
+    }
+    @Override public boolean use(Player player, SelfTarget target, EquipmentSlot arm, boolean shift) {
         Location location = player.getLocation();
         if (cooldown > 0 && Cooldown.hasOrSetCooldown(player.getUniqueId(), creator().getKey(), cooldown)) return false;
         float pitch = (Math.min(30, Math.max(-20, player.getEyeLocation().getPitch())) + 20) / 50;
@@ -58,6 +62,9 @@ import net.kyori.adventure.sound.Sound;
         if (this.menu != null) MenuCreator.show(player, this.menu, Apply.of().add(args));
         return false;
     }
+
+    @Override public EquipmentSlot arm() { return arm; }
+
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         JObject base = JObject.of(
@@ -82,6 +89,6 @@ import net.kyori.adventure.sound.Sound;
                 JProperty.require(IName.raw("note"), IJElement.link(note_type), IComment.text("Звук нотного блока"))
         ).or(base.add(
                 JProperty.require(IName.raw("sound"), IJElement.link(docs.sound()), IComment.text("Пользовательский звук"))
-        )), "Предмет при использовании воспроизводит звук").withChild(note_type);
+        )), IComment.text("Предмет при использовании воспроизводит звук")).withChild(note_type);
     }
 }

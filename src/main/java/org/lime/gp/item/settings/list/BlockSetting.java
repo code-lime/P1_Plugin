@@ -65,17 +65,14 @@ import org.lime.system.json;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        IIndexGroup rotation_list = JsonGroup.of("ROTATION_LIST", "rotation_list",
-                IJElement.or(
+        IIndexGroup rotation_list = JsonEnumInfo.of("ROTATION_LIST", "rotation_list")
+                .add(IJElement.link(docs.rotation()))
+                .add(IJElement.concat("|",
                         IJElement.link(docs.rotation()),
-                        IJElement.concat("|",
-                                IJElement.link(docs.rotation()),
-                                IJElement.link(docs.rotation()),
-                                IJElement.any(),
-                                IJElement.link(docs.rotation())
-                        )
-                )
-        );
+                        IJElement.link(docs.rotation()),
+                        IJElement.any(),
+                        IJElement.link(docs.rotation())
+                ));
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("rotation"),
                         IJElement.anyObject(JProperty.require(IName.link(rotation_list), IJElement.raw("BLOCK_ROTATION"))),
@@ -103,6 +100,6 @@ import org.lime.system.json;
                                         .append(IComment.raw("any_color"))
                                         .italic()
                                 ))
-        ), "Заменяет установку обычного блока на блок из `blocks.json`").withChild(rotation_list);
+        ), IComment.text("Заменяет установку обычного блока на блок из `blocks.json`")).withChild(rotation_list);
     }
 }

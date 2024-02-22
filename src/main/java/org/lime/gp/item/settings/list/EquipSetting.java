@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.world.entity.EnumItemSlot;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
 import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonEnumInfo;
 import org.lime.docs.json.JsonGroup;
@@ -27,7 +28,7 @@ import java.util.stream.Stream;
                         .map(v -> IJElement.raw(v.getName()))
                         .collect(ImmutableList.toImmutableList())
         );
-        return JsonGroup.of(index, index, IJElement.link(equip_slot), "Позволяет ложить предмет в определенный слот брони")
+        return JsonGroup.of(index, index, IJElement.link(equip_slot), IComment.text("Позволяет ложить предмет в определенный слот брони"))
                 .withChilds(equip_slot);
     }
 }

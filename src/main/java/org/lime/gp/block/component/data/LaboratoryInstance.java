@@ -188,7 +188,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                         .filter(kv -> kv.val1 != null)
                 )
                 .forEach(kv -> of(kv.val0).set(kv.val1));
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
     @Override public json.builder.object write() {
         return json.object()
@@ -243,7 +243,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                             if (thirstItem == null) return;
                             net.minecraft.world.item.ItemStack potion = CraftItemStack.asNMSCopy(thirstItem);
                             of(slotType).set(null);
-                            syncDisplayVariable();
+                            syncDisplayVariable(metadata);
                             last_click = entityhuman.getUUID();
                             ticks = 0;
                             saveData();
@@ -259,7 +259,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
                             if (!Items.has(ThirstSetting.class, itemstack)) return;
                             if (Items.getGlobalKeyByItem(itemstack).filter(Recipes.LABORATORY.getCacheWhitelistKeys()::contains).isEmpty()) return;
                             of(slotType).set(itemstack.asBukkitCopy());
-                            syncDisplayVariable();
+                            syncDisplayVariable(metadata);
                             last_click = entityhuman.getUUID();
                             ticks = 0;
                             saveData();
@@ -350,7 +350,7 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             if (slot.isPresent()) (slot.type.thirst ? input_thirst : input_dust).add(CraftItemStack.asNMSCopy(slot.get()));
             slot.set(null);
         });
-        syncDisplayVariable();
+        syncDisplayVariable(metadata);
         saveData();
 
         List<net.minecraft.world.item.ItemStack> slots = Stream.concat(
@@ -406,9 +406,9 @@ public class LaboratoryInstance extends BlockInstance implements BlockDisplay.Di
             event.addItem(slot.get());
             slot.set(null);
         });
-        syncDisplayVariable();
+        syncDisplayVariable(metadata);
     }
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
             for (LaboratorySlot slot : items.values())
                 if (slot instanceof WaterLaboratorySlot waterSlot)

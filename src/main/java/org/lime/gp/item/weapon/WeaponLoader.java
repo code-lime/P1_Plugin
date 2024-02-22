@@ -57,7 +57,7 @@ public class WeaponLoader implements Listener {
                 if (player == null) return true;
                 WeaponData data = kv.getValue();
                 if (!player.getInventory().getItemInMainHand().isSimilar(data.item)) return true;
-                data.sync(data.weapon, data.item);
+                data.sync(player, data.weapon, data.item);
                 return false;
             });
             Bukkit.getOnlinePlayers().forEach(player -> {
@@ -139,7 +139,7 @@ public class WeaponLoader implements Listener {
                 WeaponData.State _state = data.state.next(weapon);
                 if (data.state.equals(_state)) return;
                 data.state = _state;
-                data.update(weapon, item);
+                data.update(player, weapon, item);
                 Sounds.playSound(weapon.sound_state, player.getLocation());
             }
             e.setCancelled(true);
@@ -157,7 +157,7 @@ public class WeaponLoader implements Listener {
             e.setMainHandItem(offhand);
             e.setOffHandItem(mainhand);
             data.pose = data.pose.next(weapon);
-            data.update(weapon, offhand);
+            data.update(player, weapon, offhand);
             Sounds.playSound(weapon.sound_pose, player);
         });
     }

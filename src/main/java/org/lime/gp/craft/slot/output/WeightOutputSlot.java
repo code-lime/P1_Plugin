@@ -35,6 +35,7 @@ public class WeightOutputSlot implements IOutputSlot {
 
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return random().modify(item, copy, variable); }
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return random().create(isPreview, variable); }
+    @Override public int maxStackSize() { return weights.stream().mapToInt(v -> v.item.maxStackSize()).max().orElseThrow(); }
     @Override public boolean test(ItemStack item) {
         for (WeightData data : weights)
             if (data.item.test(item))

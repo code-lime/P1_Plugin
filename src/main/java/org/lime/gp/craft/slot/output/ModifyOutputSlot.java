@@ -55,12 +55,9 @@ public class ModifyOutputSlot implements IOutputSlot {
         }
         return item;
     }
-    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) {
-        return result(this.item.modify(item, copy, variable));
-    }
-    @Override public ItemStack create(boolean isPreview, IOutputVariable variable) {
-        return result(this.item.create(isPreview, variable));
-    }
+    @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return result(this.item.modify(item, copy, variable)); }
+    @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return result(this.item.create(isPreview, variable)); }
+    @Override public int maxStackSize() { return item.maxStackSize(); }
     @Override public boolean test(ItemStack item) { return this.item.test(item); }
 }
 

@@ -242,44 +242,6 @@ public class SingleModules implements Listener {
             }
         }
     }
-    @EventHandler public static void on(StructureGrowEvent e) {
-        Location location = e.getLocation();
-        int x = location.getBlockX();
-        int y = location.getBlockY() - 1;
-        int z = location.getBlockZ();
-        World world = location.getWorld();
-        Block block = world.getBlockAt(x, y, z);
-        switch (block.getType()) {
-            case DIRT:
-            case GRASS_BLOCK:
-            case PODZOL: break;
-            default: e.setCancelled(true); return;
-        }
-        List<Block> blocks = new ArrayList<>();
-        for (int _x = -1; _x <= 1; _x++) {
-            for (int _y = -1; _y <= 0; _y++)
-                for (int _z = -1; _z <= 1; _z++)
-                    if (_x != 0 || _y != 0 || _z != 0)
-                        blocks.add(world.getBlockAt(x + _x, y + _y, z + _z));
-        }
-        blocks.removeIf(b -> switch (b.getType()) {
-            case DIRT, GRASS_BLOCK, PODZOL -> false;
-            default -> true;
-        });
-        Collections.shuffle(blocks);
-        int length = blocks.size();
-        length = Math.max(length / 3, length);
-        for (int i = 0; i < length; i++) blocks.get(i).setType(RandomUtils.rand(Material.ROOTED_DIRT, Material.COARSE_DIRT));
-        lime.nextTick(() -> {
-            switch (block.getType()) {
-                case DIRT:
-                case GRASS_BLOCK:
-                case PODZOL: break;
-                default: return;
-            }
-            block.setType(RandomUtils.rand(Material.ROOTED_DIRT, Material.COARSE_DIRT));
-        });
-    }
     @EventHandler public static void on(InventoryOpenEvent e) {
         switch (e.getInventory().getType()) {
             case SHULKER_BOX:

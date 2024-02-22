@@ -25,7 +25,7 @@ import org.lime.system.range.IRange;
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("mutate"), IJElement.link(docs.range()), IComment.text("Количество восстанавливаемых тиков гниения"))
-        ), "Удобрение-модификатор для блока " + docs.componentsLink(DecayComponent.class).link());
+        ), IComment.text("Удобрение-модификатор для блока ").append(IComment.link(docs.componentsLink(DecayComponent.class))));
     }
 }
 

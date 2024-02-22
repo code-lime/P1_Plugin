@@ -83,13 +83,13 @@ public abstract class Partial {
         IIndexGroup blockPartial = JsonGroup.of("BLOCK_PARTIAL", BlockPartial.docs(docs, variable));
         IIndexGroup nonePartial = JsonGroup.of("NONE_PARTIAL", NonePartial.docs(docs, variable));
 
-        return partial.val0 = JsonGroup.of(title, IJElement.or(
-                IJElement.link(viewPartial),
-                IJElement.link(modelPartial),
-                IJElement.link(framePartial),
-                IJElement.link(blockPartial),
-                IJElement.link(nonePartial)
-        )).withChilds(variable, viewPartial, modelPartial, framePartial, blockPartial, nonePartial);
+        return partial.val0 = JsonEnumInfo.of(title)
+                .add(IJElement.link(viewPartial))
+                .add(IJElement.link(modelPartial))
+                .add(IJElement.link(framePartial))
+                .add(IJElement.link(blockPartial))
+                .add(IJElement.link(nonePartial))
+                .withChilds(variable, viewPartial, modelPartial, framePartial, blockPartial, nonePartial);
     }
 }
 

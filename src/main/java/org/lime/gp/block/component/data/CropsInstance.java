@@ -75,7 +75,7 @@ public class CropsInstance extends BaseAgeableInstance<CropsComponent> implement
             writeDebug("Save data item");
             saveData();
         }
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
     public void syncItem() {
         model.set0(this.item.nms()

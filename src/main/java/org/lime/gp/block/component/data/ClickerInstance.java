@@ -110,7 +110,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         return true;
     }
     private void updateModel() {
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
         /*if (items.isEmpty()) {
             model.set0(null);
             metadata()
@@ -158,7 +158,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
                 .toList()
         );
         updateModel();
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
     @Override public json.builder.object write() {
         return json.object()
@@ -273,7 +273,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
             int max_damage = component.replace.max_damage();
             if (max_damage > 0) {
                 damage++;
-                syncDisplayVariable();
+                syncDisplayVariable(metadata);
             }
             saveData();
             updateModel();
@@ -300,7 +300,7 @@ public class ClickerInstance extends BlockInstance implements CustomTileMetadata
         );
     }
 
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
             map.put("clicker_damage", String.valueOf(damage));
 

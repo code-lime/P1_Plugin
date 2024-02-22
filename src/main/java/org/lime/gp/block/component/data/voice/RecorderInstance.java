@@ -87,7 +87,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     }
 
     @Override public void onFirstTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
-        syncDisplayVariable();
+        syncDisplayVariable(metadata);
         saveData();
     }
 
@@ -199,7 +199,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
     @Nullable private MusicPlayer musicPlayer;
 
     @Override public void read(JsonObjectOptional json) {
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
     @Override public json.builder.object write() {
         return json.object();
@@ -215,7 +215,7 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
             else {
                 musicPlayer = null;
                 TimeoutData.remove(unique(), MusicPlayer.class);
-                syncDisplayVariable();
+                syncDisplayVariable(metadata);
             }
         }
     }
@@ -234,13 +234,13 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
                 .throwable()
                 .invoke(lime.getConfigFile("sounds/" + sound + ".bif").toPath())));
         musicPlayer.connection.set0(connectionUUID);
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
     public void stopPlay() {
         if (musicPlayer == null) return;
         musicPlayer = null;
         TimeoutData.remove(unique(), MusicPlayer.class);
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
 
     public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000.0f, 16, 1, 2, 48000.0f, false);
@@ -382,19 +382,19 @@ public class RecorderInstance extends BlockComponentInstance<RecorderComponent> 
                     if (connectionUUID == target) return;
                     connectionUUID = target;
                     if (musicPlayer != null) musicPlayer.connection.set0(connectionUUID);
-                    syncDisplayVariable();
+                    syncDisplayVariable(metadata);
                 }, () -> {
                     if (connectionUUID == null) return;
                     TimeoutData.remove(connectionUUID, Radio.RadioLockTimeout.class);
                     connectionUUID = null;
                     if (musicPlayer != null) musicPlayer.connection.set0(null);
-                    syncDisplayVariable();
+                    syncDisplayVariable(metadata);
                 });
     }
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.set("recorder_connected", connectionUUID == null ? "false" : "true");
-            display.set("recorder_sound", musicPlayer == null ? "null" : musicPlayer.sound + "");
+            display.set("recorder_sound", musicPlayer == null ? "null" : String.valueOf(musicPlayer.sound));
         });
     }
 }

@@ -42,6 +42,6 @@ import org.lime.system.execute.*;
                 JProperty.require(IName.raw("type"), IJElement.raw("LIMIT_TYPE"), IComment.empty()
                         .append(IComment.text("Пользовательский тип. Используется в "))
                         .append(IComment.link(docs.settingsLink(BlockLimitSetting.class))))
-        ), "Записывает информацию об количестве блоков в текущем чанке");
+        ), IComment.text("Записывает информацию об количестве блоков в текущем чанке"));
     }
 }

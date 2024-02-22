@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
 import javax.annotation.Nullable;
+
+import org.lime.display.ext.JsonNBT;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
@@ -20,7 +22,6 @@ import org.lime.gp.block.component.display.block.IBlock;
 import org.lime.gp.block.component.display.block.ITileBlock;
 import org.lime.gp.block.component.display.partial.Partial;
 import org.lime.gp.block.component.display.partial.PartialEnum;
-import org.lime.gp.extension.JsonNBT;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -78,6 +79,7 @@ public class BlockPartial extends Partial implements CustomTileMetadata.Shapeabl
             }
         }
         this.blockData = blockData;
+
         this.nbt = json.has("nbt") ? JsonNBT.toDynamicNBT(json.getAsJsonObject("nbt"), List.of("{color}")) : null;
         this.type = this.nbt == null ? null : BuiltInRegistries.BLOCK_ENTITY_TYPE.stream().filter(v -> v.isValid(this.blockData)).findAny().orElse(null);
         this.hasCollision = !json.has("has_collision") || json.get("has_collision").getAsBoolean();

@@ -1,14 +1,18 @@
 package org.lime.gp.block.component;
 
 import com.google.gson.*;
-import org.lime.docs.IGroup;
+import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.IParent;
+import org.lime.docs.json.IComment;
+import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.docs.IDocsLink;
+import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.lime;
 import org.lime.system.execute.Execute;
 import org.lime.system.toast.Toast;
@@ -32,18 +36,29 @@ public abstract class ComponentStatic<T extends JsonElement> implements CustomTi
 
         String key();
         default IIndexGroup docs(IDocsLink docs) {
-            ComponentStatic<?> component = (ComponentStatic<?>)unsafe.createInstance(tClass());
-            IIndexGroup group = component.docs(key(), docs);
-            if (component instanceof ComponentDynamic<?,?> dynamic
-                    && unsafe.createInstance(dynamic.classInstance()) instanceof IDisplayVariable instance)
-                group = group.withChild(JsonGroup.of(
-                        "Устанавливаемые параметры оторбражения блока",
-                        "display_variable",
-                        instance.docsDisplayVariable(),
-                        "Используется в " + docs.componentsLink(DisplayComponent.class)
-                ));
-            //"Используется вместе с " + docs.componentsLink(DisplayComponent.class) + ". Параметры блока: "
-            return group;
+            try {
+                ComponentStatic<?> component = (ComponentStatic<?>) unsafe.createInstance(tClass());
+                IIndexGroup group = component.docs(key(), docs);
+                List<IJElement> variables = new ArrayList<>();
+                if (component instanceof ComponentDynamic<?, ?> dynamic) {
+                    Class<?> classInstance = dynamic.classInstance();
+                    if (classInstance != null && unsafe.createInstance(dynamic.classInstance()) instanceof IDisplayVariable instance)
+                        variables.add(instance.docsDisplayVariable());
+                }
+                if (component instanceof IDisplayVariable instance)
+                    variables.add(instance.docsDisplayVariable());
+                if (!variables.isEmpty()) {
+                    group = group.withChild(JsonGroup.of(
+                            "Устанавливаемые параметры оторбражения блока",
+                            key() + ".display_variable",
+                            IJElement.concat(" & ", variables.toArray(IJElement[]::new)),
+                            IComment.text("Используется в ").append(IComment.link(docs.componentsLink(DisplayComponent.class)))
+                    ));
+                }
+                return group;
+            } catch (ToDoException todo) {
+                return IIndexGroup.raw(key(), null, v -> Stream.of(IComment.warning("TODO: " + todo.getMessage()).line(v)));
+            }
         }
     }
 
@@ -117,11 +132,15 @@ public abstract class ComponentStatic<T extends JsonElement> implements CustomTi
         if (link == null) throw new IllegalArgumentException("Block component '"+key+"' not founded!");
         return link.create(creator, json);
     }
-
+/*
     public static String getName(Class<? extends ComponentStatic<?>> tClass) {
         return Arrays.stream(tClass.getAnnotationsByType(InfoComponent.Component.class)).map(InfoComponent.Component::name).findFirst().orElseThrow();
     }
-    public static Stream<IGroup> allDocs(IDocsLink docs) {
+*/
+    public static String docsKey(Class<? extends ComponentStatic<?>> tClass) {
+        return components.values().stream().filter(v -> v.tClass() == tClass).findAny().map(ComponentLink::key).orElseThrow();
+    }
+    public static Stream<IIndexGroup> allDocs(IDocsLink docs) {
         return components.values().stream().sorted(Comparator.comparing(ComponentLink::key)).map(link -> link.docs(docs));
     }
 }

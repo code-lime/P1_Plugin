@@ -9,7 +9,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParameters;
 import net.minecraft.world.phys.Vec3D;
 import org.bukkit.craftbukkit.v1_20_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
-import org.bukkit.inventory.EquipmentSlot;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityComponentInstance;
 import org.lime.gp.entity.component.display.instance.DisplayInstance;
@@ -17,16 +16,13 @@ import org.lime.gp.entity.component.list.MoveLimitComponent;
 import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.extension.Cooldown;
-import org.lime.gp.item.Items;
-import org.lime.gp.item.UseSetting;
+import org.lime.gp.item.settings.use.UseSetting;
 import org.lime.gp.item.data.Checker;
-import org.lime.gp.lime;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
 import org.lime.system.range.IRange;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class MoveLimitInstance extends EntityComponentInstance<MoveLimitComponent> implements
         CustomEntityMetadata.Interactable,
@@ -76,7 +72,7 @@ public class MoveLimitInstance extends EntityComponentInstance<MoveLimitComponen
                     ItemStack item = handle.getItemInHand(hand);
                     for (Map.Entry<Checker, IRange> kv : component.repair.entrySet()) {
                         if (kv.getKey().check(item)) {
-                            UseSetting.modifyUseItem(handle, item);
+                            UseSetting.modifyUseItem(handle, item, false);
                             changeValue(kv.getValue().getValue(component.total) / component.total);
                             return EnumInteractionResult.CONSUME;
                         }

@@ -23,6 +23,7 @@ public class LevelOutputSlot implements IOutputSlot {
     }
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return result(variable).modify(item, copy, variable); }
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return result(variable).create(isPreview, variable); }
+    @Override public int maxStackSize() { return level.values().stream().mapToInt(IOutputSlot::maxStackSize).max().orElseThrow(); }
     @Override public boolean test(ItemStack item) { return other.test(item); }
 }
 

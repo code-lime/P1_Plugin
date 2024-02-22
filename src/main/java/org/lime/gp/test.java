@@ -1,19 +1,12 @@
 package org.lime.gp;
 
-import com.google.gson.JsonPrimitive;
-import com.mojang.math.Transformation;
 import net.kyori.adventure.text.Component;
 import net.minecraft.resources.MinecraftKey;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.monster.EntityZombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.block.Blocks;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
-import org.bukkit.util.Vector;
-import org.joml.Vector3f;
-import org.lime.display.transform.LocalLocation;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.component.display.partial.Variable;
@@ -23,17 +16,12 @@ import org.lime.gp.craft.book.RecipesBook;
 import org.lime.gp.craft.recipe.WaitingRecipe;
 import org.lime.gp.craft.slot.RecipeSlot;
 import org.lime.gp.craft.slot.output.IOutputSlot;
-import org.lime.gp.entity.EntityInfo;
-import org.lime.gp.entity.component.list.BoatComponent;
-import org.lime.gp.entity.component.list.MoveLimitComponent;
-import org.lime.gp.entity.component.list.OwnerComponent;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.Checker;
 import org.lime.plugin.CoreElement;
 import org.lime.system.json;
 
 import java.util.List;
-import java.util.Map;
 
 public class test {
     public static CoreElement create() {

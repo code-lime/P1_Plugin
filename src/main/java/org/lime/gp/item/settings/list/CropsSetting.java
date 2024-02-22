@@ -35,6 +35,6 @@ import org.lime.system.range.IRange;
                         JProperty.require(IName.raw("step_ticks"), IJElement.link(docs.range()), IComment.text("Количество тиков каждого этапа роста"))
                 )),
                 JProperty.require(IName.raw("loot"), IJElement.link(docs.loot()), IComment.text("Выходной лут"))
-        ), "Семена для блока с " + docs.componentsLink(CropsComponent.class).link());
+        ), IComment.text("Семена для блока с ").append(IComment.link(docs.componentsLink(CropsComponent.class))));
     }
 }

@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentStatic;
@@ -77,5 +78,12 @@ public final class LootComponent extends ComponentStatic<JsonObject> implements 
                 .flatMap(Optional::stream);
     }
 
-    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, JObject.of(
+                JProperty.require(IName.raw("items"), IJElement.anyObject(
+                        JProperty.require(IName.link(docs.regexItem()), IJElement.raw(10), IComment.text("Предметы, которые будут получены после ломания блока"))
+                )),
+                JProperty.optional(IName.raw("args"), IJElement.anyObject(JProperty.require(IName.raw("ARG"), IJElement.raw("VALUE"))), IComment.text("Аргументы, передаваемые в генератор предметов"))
+        ));
+    }
 }

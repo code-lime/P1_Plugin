@@ -1,12 +1,17 @@
 package org.lime.gp.item.elemental.step.action;
 
+import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.phys.Vec3D;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.lime.ToDoException;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.DataContext;
+import org.lime.gp.item.elemental.Step;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.module.mobs.IPopulateSpawn;
 import org.lime.gp.module.mobs.spawn.ISpawn;
@@ -14,7 +19,8 @@ import org.lime.system.utils.MathUtils;
 
 import java.util.Collections;
 
-public record EntityStep(ISpawn spawn) implements IStep {
+@Step(name = "entity")
+public record EntityStep(ISpawn spawn) implements IStep<EntityStep> {
     @Override public void execute(Player player, DataContext context, Transformation position) {
         if (!(player.getWorld() instanceof CraftWorld craftWorld)) return;
         WorldServer worldServer = craftWorld.getHandle();
@@ -22,4 +28,14 @@ public record EntityStep(ISpawn spawn) implements IStep {
         spawn.generateMob(IPopulateSpawn.of(worldServer, Collections.emptyList()))
                 .ifPresent(creator -> creator.spawn(worldServer, new Vec3D(pos.getX(), pos.getY(), pos.getZ())));
     }
+
+    public EntityStep parse(JsonObject json) {
+        return new EntityStep(ISpawn.parse(json.get("entity")));
+    }
+    /*@Override public JObject docs(IDocsLink docs) {
+        throw new ToDoException("entity");
+        return JObject.of(
+                JProperty.require(IName.raw("entity"), IJElement.link(docs.spawn()), IComment.text("Энтити, которое появится"))
+        );
+    }*/
 }

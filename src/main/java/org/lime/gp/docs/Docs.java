@@ -1,38 +1,85 @@
 package org.lime.gp.docs;
 
-import org.lime.docs.DocsRoot;
-import org.lime.docs.IDocs;
+import org.lime.docs.IIndexDocs;
 import org.lime.docs.IIndexGroup;
-import org.lime.gp.block.BlockInfo;
+import org.lime.docs.path.DocsFolder;
 import org.lime.gp.block.component.ComponentStatic;
-import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.lime;
 import org.lime.plugin.CoreElement;
 
-import java.util.stream.Collectors;
-
 public class Docs {
+    public static final IDocsLink link = IDocsLink.source(true);
+
     public static CoreElement create() {
         return CoreElement.create(Docs.class)
-                .disable()
+                //.disable()
                 .withInit(Docs::init);
     }
 
+    private static IIndexGroup model;
+    private static IIndexGroup loot;
+
+    public static IIndexDocs modelDocs() { return model; }
+    public static IIndexDocs lootDocs() { return loot; }
+
     private static void init() {
-        IDocsLink link = IDocsLink.test();
-        IIndexGroup setting = IIndexGroup.empty("Setting", "setting", null);
+        model = lime.models.builder().docs("MODEL");
+        loot = ILoot.docs("LOOT", link);
+
+        DocsFolder root = DocsFolder.root("docs")
+                .file("base", v -> v
+                        .add(IIndexGroup.empty("Базовые элементы", "base", null)
+                                .withChilds(link.child().toList())))
+                .file("model", _v -> _v
+                        .add(IIndexGroup.empty("Модель", "model", null)
+                                .withChilds(model)))
+                .file("loot", _v -> _v
+                        .add(IIndexGroup.empty("Генератор лута", "loot", null)
+                                .withChilds(loot)))
+                .file("settings", _v -> _v
+                        .add(IIndexGroup.empty("Настройки предметов", "settings", null)
+                                .withChilds(ItemSetting.allDocs(link).toList())))
+                .file("components", _v -> _v
+                        .add(IIndexGroup.empty("Настройки блоков", "components", null)
+                                .withChilds(ComponentStatic.allDocs(link).toList())))
+        ;
+
+        if (root.save(lime.getConfigFile("").toPath())) {
+            lime.logOP("[DOCS] Status: SAVED");
+        } else {
+            lime.logOP("[DOCS] Status: ERROR");
+        }
+/*
+        DocsRoot raw = DocsRoot.style()
+                .add(IIndexGroup.empty("Базовые элементы", "base_types", null)
+                        .withChilds(list));
+
+        lime.writeAllConfig(".docs.raw", ".md", raw.save() + "\n" + String.join("\n", new String[] {
+                "-----",
+                "Создано: " + Time.formatCalendar(Time.moscowNow(), true)
+        }));
+*/
+        /*
+        DocsRoot base = DocsRoot.of(
+                IDocs.style(),
+                IIndexGroup.empty("Base", "base", null)
+                        .withChilds(),
+                IIndexGroup.raw("Base", "base", null, RAW_BASE)
+        );
         DocsRoot items = DocsRoot.of(
                 IDocs.style(),
-                ItemCreator.docs("Базовое представление", link),
-                setting.withChilds(ItemSetting.allDocs(link).toList())
+                IIndexGroup.empty("Setting", "setting", null)
+                        .withChilds(ItemSetting.allDocs(link).toList())
         );
-        IIndexGroup component = IIndexGroup.empty("Component", "component", null);
         DocsRoot blocks = DocsRoot.of(
                 IDocs.style(),
-                BlockInfo.docs("Базовое представление", link),
-                component.withChilds(ComponentStatic.allDocs(link).toList())
+                IIndexGroup.empty("Component", "component", null)
+                        .withChilds(ComponentStatic.allDocs(link).toList())
         );
-        lime.writeAllConfig("items", ".md", items.lines().collect(Collectors.joining("\n")));
+        lime.writeAllConfig("docs/items", ".md", items.lines().collect(Collectors.joining("\n")));
+        lime.writeAllConfig("docs/blocks", ".md", blocks.lines().collect(Collectors.joining("\n")));
+        */
     }
 }

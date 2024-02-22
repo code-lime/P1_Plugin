@@ -1,12 +1,14 @@
 package org.lime.gp.item.loot;
 
-import java.util.List;
-
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.module.loot.IPopulateLoot;
 
-import com.google.gson.JsonElement;
+import java.util.List;
 
 public interface ILoot {
     List<ItemStack> generateLoot(IPopulateLoot loot);
@@ -25,5 +27,24 @@ public interface ILoot {
             } : new FilterLoot(obj);
         }
         throw new IllegalArgumentException("[LOOT] Error parse LootTable");
+    }
+    static IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup randomLoot = JsonGroup.of("RANDOM", RandomLoot.docs(IJElement.linkParent())
+                .addFirst(JProperty.require(IName.raw("type"), IJElement.raw("random"))));
+        IIndexGroup jsLoot = JsonGroup.of("JAVASCRIPT", JavaScriptLoot.docs(IJElement.linkParent(), docs)
+                .addFirst(JProperty.require(IName.raw("type"), IJElement.raw("js"))));
+        IIndexGroup variableLoot = JsonGroup.of("VARIABLE", VariableLoot.docs(IJElement.linkParent(), docs, jsLoot)
+                .addFirst(JProperty.require(IName.raw("type"), IJElement.raw("variable"))));
+        IIndexGroup filterLoot = FilterLoot.docs("FILTER", IJElement.linkParent(), docs);
+        IIndexGroup singleLoot = JsonGroup.of("SINGLE", SingleLoot.docs(docs));
+        return JsonEnumInfo.of(index)
+                .add(IJElement.link(randomLoot))
+                .add(IJElement.link(jsLoot))
+                .add(IJElement.link(variableLoot))
+                .add(IJElement.link(filterLoot))
+                .add(IJElement.link(singleLoot))
+                .add(IJElement.nullable(), IComment.text("Без получаемых предметов"))
+                .add(IJElement.anyList(IJElement.linkCurrent()), IComment.text("Объеденяет все получаемые предметы"))
+                .withChilds(randomLoot, jsLoot, variableLoot, filterLoot, singleLoot);
     }
 }

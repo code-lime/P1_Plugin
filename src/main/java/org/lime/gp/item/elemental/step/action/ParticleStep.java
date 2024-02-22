@@ -13,12 +13,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.DataContext;
+import org.lime.gp.item.elemental.Step;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.utils.MathUtils;
 
-public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self) implements IStep {
+@Step(name = "particle")
+public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self) implements IStep<ParticleStep> {
     @Override public void execute(Player player, DataContext context, Transformation position) {
         Location location = MathUtils.convert(position.getTranslation()).toLocation(player.getWorld());
         ParticleBuilder particle = this.particle.source(player).location(location);
@@ -75,4 +79,27 @@ public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self
 
         return builder;
     }
+    public ParticleStep parse(JsonObject json) {
+        return new ParticleStep(
+                ParticleStep.parseParticle(json.get("particle").getAsJsonObject()),
+                MathUtils.getVector(json.get("radius").getAsString()),
+                json.get("self").getAsBoolean()
+        );
+    }
+    /*@Override public JObject docs(IDocsLink docs) {
+        return JObject.of(
+                JProperty.require(IName.raw("material"), IJElement.link(docs.vanillaMaterial()), IComment.text("Тип блока")),
+                JProperty.optional(IName.raw("states"), IJElement.anyObject(
+                        JProperty.require(IName.raw("KEY"), IJElement.raw("VALUE"))
+                ), IComment.text("Параметры блока")),
+                JProperty.require(IName.raw("radius"), IJElement.link(docs.vector()), IComment.join(
+                        IComment.text("Игроки, находящиеся в данном радиус увидят влияние. Если радиус равен "),
+                        IComment.raw("0 0 0"),
+                        IComment.text(" то влияние увидит только текущий игрок")
+                )),
+                JProperty.require(IName.raw("self"), IJElement.bool(), IComment.text("Видит ли текущий игрок влияние")),
+                JProperty.require(IName.raw("undo_sec"), IJElement.raw(5.5), IComment.text("Время, через которое влияние пропадет")),
+                JProperty.require(IName.raw("force"), IJElement.bool(), IComment.text("Влияет ли влияние на незаменяемые блоки (камень, земля)"))
+        );
+    }*/
 }

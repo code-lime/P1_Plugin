@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 public interface IOutputSlot {
     ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable);
     ItemStack create(boolean isPreview, IOutputVariable variable);
+    int maxStackSize();
 
     boolean test(ItemStack item);
 

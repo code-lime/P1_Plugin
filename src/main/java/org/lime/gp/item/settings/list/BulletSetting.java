@@ -4,30 +4,33 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
+import net.minecraft.world.entity.EntityLiving;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftLivingEntity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
+import org.lime.gp.item.weapon.Bullets;
+import org.lime.gp.player.module.Knock;
 import org.lime.gp.sound.SoundMaterial;
 import org.lime.gp.sound.Sounds;
 
 import com.google.gson.JsonObject;
 
 import net.minecraft.world.level.block.state.IBlockData;
+import org.lime.system.execute.Action1;
 import org.lime.system.utils.EnumUtils;
+import org.lime.system.utils.RandomUtils;
 
 @Setting(name = "bullet") public class BulletSetting extends ItemSetting<JsonObject> {
-    public enum BulletAction {
-        NONE,
-        TASER,
-        TRAUMATIC
-    }
-
     public final String bullet_type;
-    public final BulletSetting.BulletAction bullet_action;
+    public final Bullets.BulletAction bullet_action;
     public final int count;
     public final double damage;
     public final double time_sec;
@@ -50,12 +53,12 @@ import org.lime.system.utils.EnumUtils;
         }
 
         bullet_action = json.has("bullet_action")
-                ? EnumUtils.tryParse(BulletSetting.BulletAction.class, json.get("bullet_action").getAsString())
-                .orElseThrow(() -> new IllegalArgumentException("bullet_action can't be '" + json.get("bullet_action").getAsString() + "'. Only: " + Arrays.stream(BulletAction.values())
+                ? EnumUtils.tryParse(Bullets.BulletAction.class, json.get("bullet_action").getAsString())
+                .orElseThrow(() -> new IllegalArgumentException("bullet_action can't be '" + json.get("bullet_action").getAsString() + "'. Only: " + Arrays.stream(Bullets.BulletAction.values())
                         .map(Enum::name)
                         .collect(Collectors.joining(", ")))
                 )
-                : BulletAction.NONE;
+                : Bullets.BulletAction.NONE;
 
         if (json.has("sound_hit")) json.getAsJsonObject("sound_hit").entrySet().forEach(kv -> sound_hit.put(SoundMaterial.valueOf(kv.getKey()), kv.getValue().getAsString()));
     }
@@ -68,6 +71,7 @@ import org.lime.system.utils.EnumUtils;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup bulletAction = JsonEnumInfo.of("BULLET_ACTION", Bullets.BulletAction.class);
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("bullet_type"), IJElement.raw("BULLET_TYPE"), IComment.text("Пользвательский тип патрона")),
                 JProperty.optional(IName.raw("count"), IJElement.raw(1), IComment.text("Количество вылетающих пуль")),
@@ -87,10 +91,10 @@ import org.lime.system.utils.EnumUtils;
                                 .append(IComment.raw(1))
                                 .append(IComment.text(" до "))
                                 .append(IComment.field("damage_scale"))),
-                JProperty.optional(IName.raw("bullet_action"), IJElement.link(docs.bulletAction()), IComment.text("Тип взаимодействия патрона")),
+                JProperty.optional(IName.raw("bullet_action"), IJElement.link(bulletAction), IComment.text("Тип взаимодействия патрона")),
                 JProperty.optional(IName.raw("sound_hit"),
                         IJElement.anyObject(JProperty.require(IName.link(docs.soundMaterial()), IJElement.link(docs.sound()))),
                         IComment.text("Устанавливает звук попадания патрона"))
-        ), "Предмет является патроном");
+        ), IComment.text("Предмет является патроном")).withChild(bulletAction);
     }
 }

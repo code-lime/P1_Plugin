@@ -79,7 +79,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                                 .map(CraftItemStack::asNMSCopy)
                                 .ifPresent(item -> items_container.setItem(i, item))
                         ));
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
     @Override public json.builder.object write() {
         return json.object()
@@ -92,7 +92,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         long now = System.currentTimeMillis();
         if (now > timeToClose) {
             timeToClose = null;
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
             close();
         }
     }
@@ -222,7 +222,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                     public void open() {
                         Sounds.playSound(component.sound_open, metadata.location(0.5, 0.5, 0.5));
                         timeToClose = System.currentTimeMillis() + 1000L * component.close_time;
-                        syncDisplayVariable();
+                        syncDisplayVariable(metadata);
                         saveData();
                         SafeBoxInstance.this.open();
                         target.closeContainer();
@@ -322,7 +322,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         });
         return EnumInteractionResult.CONSUME;
     }
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         if (!component().small) return;
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.set("open_state", timeToClose == null ? "false" : "true"));
     }

@@ -144,6 +144,6 @@ public final class DisplayComponent extends ComponentDynamic<JsonObject, Display
                 part,
                 part,
                 IJProperty.any()
-        ), "Отображает элемент в зависимости от параметров").withChilds(arg_field, distance_key, animation_tick, partial);
+        ), IComment.text("Отображает элемент в зависимости от параметров")).withChilds(arg_field, distance_key, animation_tick, partial);
     }
 }

@@ -49,32 +49,35 @@ public class WaitingRecipe extends AbstractRecipe {
 
     @Override public boolean matches(IInventory inventory, World world) {
         List<ItemStack> contents = inventory.getContents();
-        return input.split(contents.get(0)).map(count -> {
-            List<ItemStack> items = contents.stream().skip(1).sorted(Comparator.comparingInt(ItemStack::getCount)).collect(Collectors.toList());
-            for (RecipeSlot slot : catalyse) {
-                boolean isFound = false;
-                for (int i = 0; i < items.size(); i++) {
-                    if (splitCatalyse ? slot.split(items.get(i)).map(count::equals).orElse(false) : slot.test(items.get(i))) {
-                        isFound = true;
-                        items.remove(i);
-                        break;
+        return input.split(contents.get(0))
+                .filter(v -> v * output.maxStackSize() < 127)
+                .map(count -> {
+                    List<ItemStack> items = contents.stream().skip(1).sorted(Comparator.comparingInt(ItemStack::getCount)).collect(Collectors.toList());
+                    for (RecipeSlot slot : catalyse) {
+                        boolean isFound = false;
+                        for (int i = 0; i < items.size(); i++) {
+                            if (splitCatalyse ? slot.split(items.get(i)).map(count::equals).orElse(false) : slot.test(items.get(i))) {
+                                isFound = true;
+                                items.remove(i);
+                                break;
+                            }
+                        }
+                        if (!isFound) return false;
                     }
-                }
-                if (!isFound) return false;
-            }
-            for (RecipeSlot slot : fuel) {
-                boolean isFound = false;
-                for (int i = 0; i < items.size(); i++) {
-                    if (slot.split(items.get(i)).map(count::equals).orElse(false)) {
-                        isFound = true;
-                        items.remove(i);
-                        break;
+                    for (RecipeSlot slot : fuel) {
+                        boolean isFound = false;
+                        for (int i = 0; i < items.size(); i++) {
+                            if (slot.split(items.get(i)).map(count::equals).orElse(false)) {
+                                isFound = true;
+                                items.remove(i);
+                                break;
+                            }
+                        }
+                        if (!isFound) return false;
                     }
-                }
-                if (!isFound) return false;
-            }
-            return items.isEmpty();
-        }).orElse(false);
+                    return items.isEmpty();
+                })
+                .orElse(false);
     }
     @Override public ItemStack assemble(IInventory inventory, IRegistryCustom custom, IOutputVariable variable) {
         return assembleWithCount(inventory, custom, variable).val0;

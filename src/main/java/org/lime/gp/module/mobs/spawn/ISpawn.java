@@ -2,7 +2,6 @@ package org.lime.gp.module.mobs.spawn;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.lime.gp.item.loot.*;
 import org.lime.gp.module.mobs.IMobCreator;
 import org.lime.gp.module.mobs.IPopulateSpawn;
 

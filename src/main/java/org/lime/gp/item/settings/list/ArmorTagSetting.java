@@ -21,6 +21,6 @@ import java.util.List;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw("TAG")), "Добавляет указанный список тэгов с префиксом `armor.` игроку при ношении");
+        return JsonGroup.of(index, index, IJElement.anyList(IJElement.raw("TAG")), IComment.text("Добавляет указанный список тэгов с префиксом `armor.` игроку при ношении"));
     }
 }

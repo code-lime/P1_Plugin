@@ -8,6 +8,9 @@ import net.minecraft.world.item.ItemShears;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer;
 import org.bukkit.inventory.ItemStack;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.json.*;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.filter.data.AppendFunction;
 import org.lime.gp.item.Items;
 import org.lime.gp.module.JavaScript;
@@ -30,13 +33,23 @@ public class JavaScriptLoot implements ILoot {
         next = ILoot.parse(json.get("next"));
     }
 
-    @Override public List<ItemStack> generateLoot(IPopulateLoot loot) {
+    @Override
+    public List<ItemStack> generateLoot(IPopulateLoot loot) {
         Map<String, Object> args = this.args.createObject();
         Map<String, Object> data = new HashMap<>();
         AppendFunction function = new AppendFunction() {
-            @Override public void appendNan(String name) {}
-            @Override public void appendWithoutValue(String name) {}
-            @Override public void appendValue(String name, String value) { data.put(name, value); }
+            @Override
+            public void appendNan(String name) {
+            }
+
+            @Override
+            public void appendWithoutValue(String name) {
+            }
+
+            @Override
+            public void appendValue(String name, String value) {
+                data.put(name, value);
+            }
         };
         Parameters.filterInfo().getAllParams().forEach(info -> info.appendTo(loot, function));
         args.put("data", data);
@@ -54,5 +67,25 @@ public class JavaScriptLoot implements ILoot {
         args.put("loot", _loot);
         JavaScript.invoke(code, args);
         return items;
+    }
+
+    public static JObject docs(IJElement loot, IDocsLink docs) {
+        return JObject.of(
+                JProperty.require(IName.raw("code"), IJElement.link(docs.js()), IComment.join(
+                        IComment.text("Вызывает "),
+                        IComment.field("js"),
+                        IComment.text(" с параметрами "),
+                        IComment.field("data"),
+                        IComment.text(", "),
+                        IComment.field("variable"),
+                        IComment.text(" и "),
+                        IComment.field("loot"),
+                        IComment.text(" после генерации лута")
+                )),
+                JProperty.optional(IName.raw("args"), IJElement.anyObject(
+                        JProperty.require(IName.raw("ARG_NAME"), IJElement.link(docs.json()))
+                ), IComment.text("Дополнительные параметры передаваемые в ").append(IComment.field("code"))),
+                JProperty.require(IName.raw("next"), loot, IComment.text("Генератор лута, который будет вызван перед вызовом").append(IComment.field("code")))
+        );
     }
 }

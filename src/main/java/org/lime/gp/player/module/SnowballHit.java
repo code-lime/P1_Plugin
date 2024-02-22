@@ -1,10 +1,12 @@
 package org.lime.gp.player.module;
 
+import net.minecraft.world.item.Items;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_20_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftSnowball;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -21,7 +23,7 @@ public class SnowballHit implements Listener {
                 .withInstance();
     }
     @EventHandler public static void on(ProjectileHitEvent e) {
-        if (e.getEntity().getType() != EntityType.SNOWBALL) return;
+        if (!(e.getEntity() instanceof CraftSnowball snowball) || !snowball.getHandle().getItem().is(Items.SNOWBALL)) return;
         Block hit_block = e.getHitBlock();
         if (e.getHitEntity() instanceof Player hit_player) {
             hit_player.setFreezeTicks(Math.min(hit_player.getMaxFreezeTicks(), hit_player.getFreezeTicks() + RandomUtils.rand(0, 30)));

@@ -42,6 +42,6 @@ import java.util.List;
                                 .or(IJElement.anyList(IJElement.raw("CLICKER_TYPE")))),
                         JProperty.optional(IName.raw("clicks"), IJElement.raw(2), IComment.text("Количество кликов которое будет регистрироваться за 1 удар"))
                 )),
-                "Предмет является инструментом для взаимодействия с блоком " + docs.componentsLink(ClickerComponent.class).link());
+                IComment.text("Предмет является инструментом для взаимодействия с блоком ").append(IComment.link(docs.componentsLink(ClickerComponent.class))));
     }
 }

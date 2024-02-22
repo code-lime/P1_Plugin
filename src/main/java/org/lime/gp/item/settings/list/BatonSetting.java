@@ -1,6 +1,7 @@
 package org.lime.gp.item.settings.list;
 
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
 import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.data.ItemCreator;
@@ -17,6 +18,6 @@ import com.google.gson.JsonPrimitive;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.range(0.0, 1.0), "При ударе игрока предметом, с указанным шансом будет садить игрока");
+        return JsonGroup.of(index, index, IJElement.range(0.0, 1.0), IComment.text("При ударе игрока предметом, с указанным шансом будет садить игрока"));
     }
 }

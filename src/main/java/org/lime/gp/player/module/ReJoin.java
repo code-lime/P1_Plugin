@@ -29,11 +29,9 @@ import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
+import org.lime.system.json;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class ReJoin implements Listener {
@@ -48,14 +46,16 @@ public class ReJoin implements Listener {
                                 "/rejoin info [identifier] - Информациа об аккаунте",
                                 "/rejoin set [identifier] [uuid or user_name] - Установить владельца аккаунта",
                                 "/rejoin rename [identifier] [name] - Переименовать аккаунт",
-                                "/rejoin select [identifier] - Выбрать аккаунт"
+                                "/rejoin select [identifier] - Выбрать аккаунт",
+                                "/rejoin skin set/reset - Сохранить текущий скин / Удалить сохраненный скин (работает только на выбранном аккаунте)"
                         ))
                         .withTab((s,a) -> switch (a.length) {
                             case 1 -> Streams.concat(
-                                    s.isOp() ? Stream.of("create", "delete", "info", "set", "rename") : Stream.empty(),
+                                    s.isOp() ? Stream.of("skin", "create", "delete", "info", "set", "rename") : Stream.empty(),
                                     s instanceof Player ? Stream.of("select") : Stream.empty()
                                     ).toList();
                             case 2 -> switch (a[0]) {
+                                case "skin" -> List.of("set", "reset");
                                 case "create" -> s.isOp() ? Collections.singletonList("[name]") : Collections.emptyList();
                                 case "delete", "info", "set", "rename" -> s.isOp()
                                         ? Tables.REJOIN_TABLE.getRows()
@@ -83,6 +83,24 @@ public class ReJoin implements Listener {
                         })
                         .withExecutor((s, a) -> switch (a.length) {
                             case 2 -> switch (a[0]) {
+                                case "skin" -> {
+                                    if (!(s instanceof Player player)) yield false;
+                                    UUID uuid = player.getUniqueId();
+                                    yield Tables.REJOIN_TABLE
+                                            .getBy(_v -> _v.genUUID().equals(uuid))
+                                            .map(row -> switch (a[1]) {
+                                                case "set" -> {
+                                                    Methods.rejoinSkin(row.identifier(), Skins.getProperty(player).toJson().toString(), () -> s.sendMessage("Skin set!"));
+                                                    yield true;
+                                                }
+                                                case "reset" -> {
+                                                    Methods.rejoinSkin(row.identifier(), null, () -> s.sendMessage("Skin reset!"));
+                                                    yield true;
+                                                }
+                                                default -> false;
+                                            })
+                                            .orElse(false);
+                                }
                                 case "create" -> {
                                     if (!s.isOp()) yield false;
                                     Methods.rejoinCreate(a[1], s instanceof Player p ? p.getUniqueId() : null, () -> s.sendMessage("Created!"));
@@ -142,13 +160,16 @@ public class ReJoin implements Listener {
                                     if (!(s instanceof Player player)) yield false;
                                     UUID uuid = player.getUniqueId();
                                     if (a[1].equals("default")) {
-                                        UUID ownerUUID = uuid;
-                                        for (String tag : player.getScoreboardTags()) {
-                                            if (tag.startsWith("gen_owner:")) {
-                                                ownerUUID = UUID.fromString(tag.substring(10));
-                                                break;
-                                            }
-                                        }
+                                        UUID ownerUUID = Tables.REJOIN_TABLE
+                                                .getBy(_v -> _v.genUUID().equals(uuid))
+                                                .flatMap(_v -> _v.owner)
+                                                .or(() -> {
+                                                    for (String tag : player.getScoreboardTags())
+                                                        if (tag.startsWith("gen_owner:"))
+                                                            return Optional.of(UUID.fromString(tag.substring(10)));
+                                                    return Optional.empty();
+                                                })
+                                                .orElse(uuid);
                                         Methods.rejoinSelect(ownerUUID, null, () -> s.sendMessage("ReJoin selected"));
                                         yield true;
                                     }
@@ -204,10 +225,13 @@ public class ReJoin implements Listener {
         UUID uuid = profile.getId();
         if (uuid == null) return;
         Tables.REJOIN_TABLE.getBy(v -> v.select && uuid.equals(v.owner.orElse(null))).ifPresent(row -> {
-            PlayerProfile new_profile = new CraftPlayerProfile(row.genUUID(), row.genName());
-            new_profile.setProperties(profile.getProperties());
-            new_profile.setProperty(new ProfileProperty("gen_owner", uuid.toString()));
-            e.setPlayerProfile(new_profile);
+            CraftPlayerProfile newProfile = new CraftPlayerProfile(row.genUUID(), row.genName());
+            newProfile.setProperties(profile.getProperties());
+            newProfile.setProperty(new ProfileProperty("gen_owner", uuid.toString()));
+            row.skin
+                    .map(v -> new Skins.Property(json.parse(v).getAsJsonObject()))
+                    .ifPresent(v -> Skins.setProfile(newProfile.getGameProfile(), v, false));
+            e.setPlayerProfile(newProfile);
         });
     }
     @EventHandler public static void on(PlayerJoinEvent e) {

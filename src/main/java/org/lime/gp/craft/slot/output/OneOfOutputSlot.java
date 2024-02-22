@@ -17,6 +17,7 @@ public class OneOfOutputSlot implements IOutputSlot {
     private IOutputSlot oneOf() { return RandomUtils.rand(slots); }
     @Override public ItemStack modify(ItemStack item, boolean copy, IOutputVariable variable) { return oneOf().modify(item, copy, variable); }
     @Override public ItemStack create(boolean isPreview, IOutputVariable variable) { return oneOf().create(isPreview, variable); }
+    @Override public int maxStackSize() { return slots.stream().mapToInt(IOutputSlot::maxStackSize).max().orElseThrow(); }
     @Override public boolean test(ItemStack item) {
         for (IOutputSlot slot : slots)
             if (slot.test(item))

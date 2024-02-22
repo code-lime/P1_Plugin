@@ -19,6 +19,6 @@ import org.lime.gp.item.settings.Setting;
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("sec"), IJElement.raw(1.0), IComment.text("Время действия модификатора"))
-        ), "Увеличивает значения получаемого опыта на 25%");
+        ), IComment.text("Увеличивает значения получаемого опыта на 25%"));
     }
 }

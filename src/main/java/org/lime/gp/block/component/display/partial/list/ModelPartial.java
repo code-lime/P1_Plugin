@@ -1,18 +1,11 @@
 package org.lime.gp.block.component.display.partial.list;
 
-import java.util.Optional;
-
+import com.google.gson.JsonObject;
 import org.lime.display.models.shadow.IBuilder;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
-import org.lime.gp.docs.IDocsLink;
-import org.lime.gp.lime;
 import org.lime.gp.block.component.display.partial.PartialEnum;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.gp.docs.IDocsLink;
 
 public class ModelPartial extends FramePartial implements IModelPartial {
     private final String model;
@@ -25,15 +18,10 @@ public class ModelPartial extends FramePartial implements IModelPartial {
         this.modelDistance = json.has("model_distance") ? json.get("model_distance").getAsDouble() : Double.POSITIVE_INFINITY;
     }
 
-    private String parseModel(JsonElement json) {
-        if (json.isJsonPrimitive()) return json.getAsString();
-        generic = lime.models.builder().parse(json.getAsJsonObject());
-        return "#generic";
-    }
-
-    public Optional<Toast2<IBuilder, Double>> model() {
-        return Optional.ofNullable(generic).or(() -> lime.models.get(model)).map(v -> Toast.of(v, modelDistance));
-    }
+    @Override public void generic(IBuilder generic) { this.generic = generic; }
+    @Override public IBuilder generic() { return this.generic; }
+    @Override public double modelDistance() { return this.modelDistance; }
+    @Override public String modelKey() { return this.model; }
 
     @Override public PartialEnum type() { return PartialEnum.Model; }
     @Override public String toString() { return super.toString()+ "^" + model; }

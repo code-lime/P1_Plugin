@@ -25,7 +25,7 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
         int displayValue = (int)Math.round(decayValue * component().displayCount);
         if (displayValue != lastDisplayValue) {
             lastDisplayValue = displayValue;
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
         }
     }
 
@@ -44,7 +44,7 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
         int displayValue = (int)Math.round(decayValue * component().displayCount);
         if (displayValue != lastDisplayValue) {
             lastDisplayValue = displayValue;
-            syncDisplayVariable();
+            syncDisplayVariable(metadata());
         }
     }
 
@@ -61,7 +61,7 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
         int displayValue = (int)Math.round(decayValue * component.displayCount);
         if (displayValue != lastDisplayValue) {
             lastDisplayValue = displayValue;
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
         }
         if (decayValue < 1) return;
         Blocks.setBlock(metadata.position(), component.replace, InfoComponent.Rotation.Value.ANGLE_0);
@@ -81,14 +81,14 @@ public class DecayInstance extends BlockComponentInstance<DecayComponent> implem
             int displayValue = (int)Math.round(decayValue * component.displayCount);
             if (displayValue != lastDisplayValue) {
                 lastDisplayValue = displayValue;
-                syncDisplayVariable();
+                syncDisplayVariable(metadata);
             }
 
             return EnumInteractionResult.sidedSuccess(world.isClientSide);
         }).orElse(EnumInteractionResult.PASS);
     }
 
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(map -> {
                 map.put("decay", String.valueOf(lastDisplayValue));

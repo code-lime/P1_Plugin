@@ -12,6 +12,7 @@ public class ReJoinRow extends BaseRow {
     public final int index;
     public final Optional<UUID> owner;
     public final String name;
+    public final Optional<String> skin;
     public final boolean select;
 
     private final UUID genUUID;
@@ -21,11 +22,13 @@ public class ReJoinRow extends BaseRow {
     public String genName() { return genName; }
     public String identifier() { return identifier; }
 
+
     public ReJoinRow(ResultSet set) {
         super(set);
         index = MySql.readObject(set, "index", Integer.class);
         select = MySql.readObject(set, "select", Integer.class) == 1;
         name = MySql.readObject(set, "name", String.class);
+        skin = MySql.readObjectOptional(set, "skin", String.class);
         owner = MySql.readObjectOptional(set, "owner", String.class).map(UUID::fromString);
 
         genName = "Gen-" + StringUtils.leftPad(String.valueOf(index), 3, '0');
@@ -38,6 +41,7 @@ public class ReJoinRow extends BaseRow {
         map = super.appendToReplace(map);
         map.put("index", String.valueOf(index));
         map.put("name", name);
+        map.put("skin", skin.orElse("null"));
         map.put("owner", owner.map(UUID::toString).orElse("null"));
         map.put("select", String.valueOf(select));
         return map;

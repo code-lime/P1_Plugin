@@ -76,6 +76,6 @@ public final class InventoryComponent extends ComponentDynamic<JsonObject, Inven
                 JProperty.require(IName.raw("display"), IJElement.anyObject(
                         JProperty.require(IName.link(docs.range()), IJElement.link(docs.transform()))
                 ), IComment.text("Список слотов и трансформация которые будут отображены. Пропущенные слоты не будут отображаться"))
-        ), "Хранит и отображает предметы");
+        ), IComment.text("Хранит и отображает предметы"));
     }
 }

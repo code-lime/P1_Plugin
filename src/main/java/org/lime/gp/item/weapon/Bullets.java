@@ -38,6 +38,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
+import org.lime.docs.json.IComment;
+import org.lime.docs.json.IEnumDocs;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.item.Items;
@@ -46,12 +48,59 @@ import org.lime.gp.item.settings.list.BulletSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.Knock;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.system.execute.Action1;
 import org.lime.system.utils.RandomUtils;
 
 import java.time.Duration;
 import java.util.*;
 
 public class Bullets implements Listener {
+    public enum BulletAction implements IEnumDocs {
+        NONE(IComment.text("Без дополнительного взаимодействия")),
+        TASER(entity -> {
+            entity.getBukkitEntity()
+                    .getPersistentDataContainer()
+                    .set(TASER_TICKS, PersistentDataType.INTEGER, RandomUtils.rand(5 * 20, 10 * 20));
+            if (entity.getBukkitEntity() instanceof Player player && RandomUtils.rand_is(0.4))
+                Knock.knock(player);
+        }, IComment.join(
+                IComment.text("Вызывает эффект мерцания экрана на время в диапазоне "),
+                IComment.field("[5;10]"),
+                IComment.text(" секунд и с шансом в "),
+                IComment.field("40%"),
+                IComment.text(" вызывает посадку игрока")
+        )),
+        TRAUMATIC(entity -> {
+            if (entity.getBukkitEntity() instanceof LivingEntity living)
+                living.addPotionEffect(Bullets.TRAUMATIC_FREEZE);
+            if (entity.getBukkitEntity() instanceof Player player && RandomUtils.rand_is(0.12))
+                Knock.knock(player);
+        }, IComment.join(
+                IComment.text("С шансом в "),
+                IComment.field("12%"),
+                IComment.text(" вызывает посадку игрока")
+        )),
+        FLAME(entity -> entity.setSecondsOnFire(2), IComment.join(
+                IComment.text("На "),
+                IComment.field("2"),
+                IComment.text(" секунды вызывает горение")
+        ));
+
+        private final IComment comment;
+        private final Action1<EntityLiving> action;
+
+        BulletAction(IComment comment) {
+            this(e -> {}, comment);
+        }
+        BulletAction(Action1<EntityLiving> action, IComment comment) {
+            this.comment = comment;
+            this.action = action;
+        }
+
+        public void execute(EntityLiving entity) { action.invoke(entity); }
+        @Override public IComment docsComment() { return comment; }
+    }
+
     public static CoreElement create() {
         return CoreElement.create(Bullets.class)
                 .withInstance()
@@ -100,7 +149,7 @@ public class Bullets implements Listener {
         });
     }
     private static final NamespacedKey TASER_TICKS = new NamespacedKey(lime._plugin, "taser_ticks");
-    private static final ImageBuilder BLUR = ImageBuilder.of(0xEff8, 2000);
+    public static final ImageBuilder BLUR = ImageBuilder.of(0xEff8, 2000);
 
     private static final NamespacedKey TICK_ROTATION_KEY = new NamespacedKey(lime._plugin, "tick_rotation");
     private static final NamespacedKey ARROW_DAMAGE_KEY = new NamespacedKey(lime._plugin, "arrow_damage");
@@ -108,6 +157,7 @@ public class Bullets implements Listener {
 
     private static final PotionEffect TASER_FREEZE = new PotionEffect(PotionEffectType.SLOW, 5, 5, false, false, false);
     private static final PotionEffect TRAUMATIC_FREEZE = new PotionEffect(PotionEffectType.SLOW, 4*20, 5, false, false, false);
+
     public static void update(int deltaTicks, double modify) {
         List<GameMode> gmList = List.of(GameMode.CREATIVE, GameMode.SPECTATOR);
         Bukkit.getWorlds().forEach(world -> {
@@ -199,19 +249,7 @@ public class Bullets implements Listener {
                         if (entity instanceof EntityHuman human && human.getUseItem().is(net.minecraft.world.item.Items.SHIELD))
                             human.disableShield(true);
                         if (entity.hurt(damagesource, hurt_amount)) {
-                            bulletSetting.map(v -> v.bullet_action).ifPresent(action -> {
-                                switch (action) {
-                                    case TASER -> {
-                                        entity.getBukkitEntity().getPersistentDataContainer().set(TASER_TICKS, PersistentDataType.INTEGER, RandomUtils.rand(5 * 20, 10 * 20));
-                                        if (entity.getBukkitEntity() instanceof Player player && RandomUtils.rand_is(0.4)) Knock.knock(player);
-                                    }
-                                    case TRAUMATIC -> {
-                                        if (entity.getBukkitEntity() instanceof LivingEntity lentity) lentity.addPotionEffect(TRAUMATIC_FREEZE);
-                                        if (entity.getBukkitEntity() instanceof Player player && RandomUtils.rand_is(0.12)) Knock.knock(player);
-                                    }
-                                    default -> {}
-                                }
-                            });
+                            bulletSetting.map(v -> v.bullet_action).ifPresent(action -> action.execute(entity));
                         }
 
                         arrow.discard();

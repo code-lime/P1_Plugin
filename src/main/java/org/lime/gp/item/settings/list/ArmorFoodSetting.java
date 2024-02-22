@@ -35,7 +35,7 @@ import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
                 JProperty.require(IName.raw("saturation"), IJElement.raw(0.5), IComment.text("Количество насыщенности снимаемое за прыжок")),
                 JProperty.require(IName.raw("food"), IJElement.raw(0.5), IComment.text("Количество еды снимаемое за прыжок при пустой насыщенности")),
                 JProperty.optional(IName.raw("isHand"), IJElement.bool(), IComment.text("Указывает срабатывает ли снятие при нахождении предмета в основной или второстепенной руке"))
-        ), "Снятие насыщенности и еды при прыжках");
+        ), IComment.text("Снятие насыщенности и еды при прыжках"));
     }
 }
 

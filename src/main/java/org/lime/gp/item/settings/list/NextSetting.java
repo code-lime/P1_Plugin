@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
                         .or(IJElement.anyObject(
                                 JProperty.require(IName.link(docs.regexItem()), IJElement.raw(1.0), IComment.text("Числовым значением является вес рандома"))
                         )),
-                "Настройка-расширение к которому обращаются другие настройки");
+                IComment.text("Настройка-расширение к которому обращаются другие настройки"));
     }
 }
 

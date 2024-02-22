@@ -227,11 +227,11 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                 .ifPresentOrElse(fluid -> {
                     this.level = json.getAsInt("level").orElse(0);
                     this.fluid = this.level <= 0 ? null : fluid;
-                    syncDisplayVariable();
+                    syncDisplayVariable(metadata());
                 }, () -> {
                     this.level = 0;
                     this.fluid = null;
-                    syncDisplayVariable();
+                    syncDisplayVariable(metadata());
                 });
     }
     @Override public json.builder.object write() {
@@ -253,7 +253,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                 net.minecraft.world.item.ItemStack potion = CraftItemStack.asNMSCopy(fluid.createBottle());
                 level--;
                 if (level <= 0) fluid = null;
-                syncDisplayVariable();
+                syncDisplayVariable(metadata);
                 saveData();
 
                 Item item = itemstack.getItem();
@@ -272,11 +272,11 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                 .map(fluid -> {
                     if (this.fluid == null) {
                         this.fluid = fluid;
-                        syncDisplayVariable();
+                        syncDisplayVariable(metadata);
                     }
                     if (!fluid.equals(this.fluid)) return EnumInteractionResult.SUCCESS;
                     level++;
-                    syncDisplayVariable();
+                    syncDisplayVariable(metadata);
                     saveData();
                     entityhuman.setItemInHand(enumhand, ItemLiquidUtil.createFilledResult(itemstack, entityhuman, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE)));
                     entityhuman.awardStat(StatisticList.USE_CAULDRON);
@@ -287,7 +287,7 @@ public class BottleInstance extends BlockInstance implements CustomTileMetadata.
                 })
                 .orElse(EnumInteractionResult.PASS);
     }
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.modify(map -> {
             map.put("water_color", ChatColorHex.toHex(Optional.ofNullable(fluid).map(IFluid::waterColor).orElse(ThirstSetting.DEFAULT_WATER_COLOR)).substring(1));
             map.put("water_level", String.valueOf(level));

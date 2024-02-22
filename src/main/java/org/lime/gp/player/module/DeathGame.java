@@ -30,6 +30,7 @@ import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.module.npc.eplayer.Pose;
 import org.lime.gp.module.npc.eplayer.RawEPlayer;
 import org.lime.gp.player.module.needs.INeedEffect;
+import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.plugin.CoreElement;
 import org.lime.system.execute.Action1;
 import org.lime.system.json;
@@ -47,6 +48,8 @@ public class DeathGame {
                 .addCommand("death.user", v -> ConfirmCommand.setup(v, "смерть", DeathGame::deathUser));
     }
     private static void init() {
+        NeedSystem.register(DeathGame::getDeathNeeds);
+
         lime.repeat(DeathGame::update, 10);
         EPlayerModule.registry(() -> deathEPlayers.values().stream());
         sync();
@@ -140,7 +143,7 @@ public class DeathGame {
             });
         }), 1);
     }
-    public static Stream<INeedEffect<?>> getDeathNeeds(Player player) {
+    private static Stream<INeedEffect<?>> getDeathNeeds(Player player) {
         return UserRow.getBy(player)
                 .flatMap(v -> v.dieDate)
                 .map(DateTime::getTotalSeconds)

@@ -19,6 +19,6 @@ import org.lime.gp.item.settings.Setting;
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("damage_multiply"), IJElement.raw(0.5), IComment.text("Множитель, на который умножается урон выпускаемой стрелы"))
-        ), "Настройка стрелы выпускаемой из лука");
+        ), IComment.text("Настройка стрелы выпускаемой из лука"));
     }
 }

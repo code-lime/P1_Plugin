@@ -40,6 +40,6 @@ import org.lime.system.range.IRange;
                 JProperty.optional(IName.raw("slots"), IJElement.anyObject(
                         JProperty.require(IName.link(docs.range()), IJElement.link(docs.regexItem()))
                 ), IComment.text("Список слотов и предметов которые в него можно положить. Пропущенные слоты будут автоматически заблокированы для взаимодействия"))
-        ), "Позволяет открыть внутренний инвентарь предмета при его нахождении в слотах брони");
+        ), IComment.text("Позволяет открыть внутренний инвентарь предмета при его нахождении в слотах брони"));
     }
 }

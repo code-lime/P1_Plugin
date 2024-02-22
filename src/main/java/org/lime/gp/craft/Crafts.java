@@ -140,7 +140,15 @@ public class Crafts {
         removeCrafts(regexList);
         regex_to_crafts.clear();
 
-        craftList.forEach(Recipes.CRAFTING_MANAGER::addRecipe);
+        craftList.forEach(recipe -> {
+            try {
+                Recipes.CRAFTING_MANAGER.addRecipe(recipe);
+                Bukkit.getRecipe(CraftNamespacedKey.fromMinecraft(recipe.getId()));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Craft '"+recipe.getId()+"' error loaded!", e);
+            }
+        });
+
         lime.once(RecipesBook::reload, 1);
     }
 

@@ -186,9 +186,9 @@ import java.util.stream.Stream;
         IIndexGroup table_info = JsonGroup.of("TABLE_INFO", "table_info", JObject.of(
                 JProperty.optional(IName.raw("material"), IJElement.link(docs.vanillaMaterial()), IComment.text("Изменение типа предмета")),
                 JProperty.optional(IName.raw("id"), IJElement.raw(10), IComment.empty()
-                        .append(IComment.text("Изменение"))
+                        .append(IComment.text("Изменение "))
                         .append(IComment.raw("id"))
-                        .append(IComment.text("предмета"))),
+                        .append(IComment.text(" предмета"))),
                 JProperty.optional(IName.raw("context"), IJElement.any(), IComment.warning("Будет удалено в последующем обновлении"))
         ));
         IIndexGroup table_key = JsonEnumInfo.of("TABLE_KEY", "table_key", ImmutableList.of(
@@ -198,7 +198,7 @@ import java.util.stream.Stream;
 
         return JsonGroup.of(index, index, IJElement.anyObject(
                 JProperty.require(IName.link(table_key), IJElement.link(table_info))
-        ), "Устанавливает статус работы урона сплешом у меча")
+        ), IComment.text("Устанавливает статус работы урона сплешом у меча"))
                 .withChilds(table_type, table_key, table_info);
     }
 }

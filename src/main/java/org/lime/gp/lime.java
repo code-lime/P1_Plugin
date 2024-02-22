@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.core;
+import org.lime.gp.docs.Docs;
+import org.lime.gp.item.settings.use.UseSetting;
 import org.lime.system.json;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
@@ -182,7 +184,7 @@ public class lime extends core {
         add(ThreadPool.create());
         add(Methods.create());
         JavaScript.createAdd();
-        models = (Models) add(Models.create(JavaScript.js)).element().map(v -> v.instance).orElseThrow();
+        models = (Models) add(Models.create(JavaScript.js, Docs.link.builderTypes())).element().map(v -> v.instance).orElseThrow();
         AnyEvent.addEvent("models.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, models::keys), (p, key) -> lime.logOP("Model '" + key + "':\n" + models.get(key).map(BaseBuilder::source).map(JsonElement::toString).orElse("NULL")));
         library(IConfig.getLibraryFiles("mp3spi-1.9.13.jar", "JDA-5.0.0-beta.12-withDependencies.jar"));
         //library("gdx-1.11.1-SNAPSHOT.jar", "gdx-jnigen-loader-2.3.1.jar", "gdx-bullet-1.11.1-SNAPSHOT.jar");

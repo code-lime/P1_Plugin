@@ -14,6 +14,6 @@ import org.lime.gp.item.settings.Setting;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.nullable(), "При взятии такого-же предмета происходит сброс времени поднятия");
+        return JsonGroup.of(index, index, IJElement.nullable(), IComment.text("При взятии такого-же предмета происходит сброс времени поднятия"));
     }
 }

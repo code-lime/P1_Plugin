@@ -3,9 +3,11 @@ package org.lime.gp.block.component.list;
 import com.google.gson.JsonObject;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.objects.IGPoseSeat;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.level.block.BlockSkullInteractInfo;
+import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
@@ -18,14 +20,17 @@ import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.block.component.InfoComponent;
+import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.lime;
 import org.lime.gp.module.SingleModules;
 import org.lime.system.utils.MathUtils;
 
+import java.util.Optional;
+
 @InfoComponent.Component(name = "lay")
-public final class LayComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Interactable {
+public final class LayComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Interactable, CustomTileMetadata.Tickable, IDisplayVariable {
     public final double rotation;
     public final Vector offset;
     public final boolean sitAtBlock;
@@ -42,8 +47,8 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
         Player bukkitPlayer = eplayer.getBukkitEntity();
         if (!GSitAPI.getSeats(metadata.block()).isEmpty() || lime.isSit(bukkitPlayer) || lime.isLay(bukkitPlayer))
             return EnumInteractionResult.PASS;
-        double rotation = metadata.list(DisplayInstance.class)
-                .findAny()
+        Optional<DisplayInstance> display = metadata.list(DisplayInstance.class).findAny();
+        double rotation = display
                 .flatMap(DisplayInstance::getRotation)
                 .orElse(InfoComponent.Rotation.Value.ANGLE_0)
                 .angle / 360.0;
@@ -57,7 +62,20 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
         SingleModules.beds.put(bedLoc, bukkitPlayer.getUniqueId());
 
         IGPoseSeat pose = GSitAPI.createPose(metadata.block(), eplayer.getBukkitEntity(), Pose.SLEEPING, rotated_offset.getX(), rotated_offset.getY(), rotated_offset.getZ(), (float) rotation, sitAtBlock);
-        return pose == null ? EnumInteractionResult.PASS : EnumInteractionResult.CONSUME;
+        if (pose == null) return EnumInteractionResult.PASS;
+        syncDisplayVariable(metadata);
+        return EnumInteractionResult.CONSUME;
+    }
+    @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
+        if (MinecraftServer.currentTick % 5 != 0) return;
+        syncDisplayVariable(metadata);
+    }
+
+    @Override public void syncDisplayVariable(CustomTileMetadata metadata) {
+        String bedLoc = MathUtils.getString(metadata.location());
+        metadata.list(DisplayInstance.class)
+                .findAny()
+                .ifPresent(displayInstance -> displayInstance.set("lay", String.valueOf(SingleModules.beds.containsKey(bedLoc) || !GSitAPI.getSeats(metadata.block()).isEmpty()).toLowerCase()));
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
@@ -65,6 +83,16 @@ public final class LayComponent extends ComponentStatic<JsonObject> implements C
                 JProperty.optional(IName.raw("rotation"), IJElement.raw(10.0), IComment.text("Относительный угол поворота")),
                 JProperty.optional(IName.raw("offset"), IJElement.link(docs.vector()), IComment.text("Относительная позиция")),
                 JProperty.optional(IName.raw("sit_at_block"), IJElement.bool(), IComment.text("Привязываться ли к высоте блока"))
-        ), "На блок можно лечь");
+        ), IComment.text("На блок можно лечь"));
     }
 }
+
+
+
+
+
+
+
+
+
+

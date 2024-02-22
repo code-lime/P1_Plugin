@@ -2,8 +2,6 @@ package org.lime.gp.player.menu;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.monster.EntityZombie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,8 +12,8 @@ import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.sound.Sounds;
 import org.lime.system.Regex;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast2;
 
 import java.util.ArrayList;
 import java.util.HashMap;

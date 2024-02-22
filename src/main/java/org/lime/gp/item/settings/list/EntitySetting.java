@@ -87,6 +87,6 @@ import java.util.stream.Collectors;
                                         .append(IComment.raw("any_color"))
                                         .italic()
                                 ))
-        ), "Заменяет спавн энтити на энтити из `entities.json`");
+        ), IComment.text("Заменяет спавн энтити на энтити из `entities.json`"));
     }
 }

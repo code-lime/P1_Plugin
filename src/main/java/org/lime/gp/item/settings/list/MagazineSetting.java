@@ -97,7 +97,7 @@ import org.lime.system.utils.ItemUtils;
                 JProperty.require(IName.raw("size"), IJElement.raw(10), IComment.text("Количество хранимых патронов")),
                 JProperty.optional(IName.raw("sound_load"), IJElement.link(docs.sound()), IComment.text("Устанавливает звук добавления патрона")),
                 JProperty.optional(IName.raw("sound_unload"), IJElement.link(docs.sound()), IComment.text("Устанавливает звук доставания патрона"))
-        ), "Используется в меню " + docs.menuInsert().link(), "Передаваемые `args` в предмет: `bullet_count` и `bullets`");
+        ), IComment.text("Используется в меню"), IComment.text("Передаваемые `args` в предмет: `bullet_count` и `bullets`"));
     }
 }
 

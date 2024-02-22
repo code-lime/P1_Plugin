@@ -7,15 +7,19 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
-import org.lime.gp.item.UseSetting;
+import org.lime.gp.item.settings.use.ITimeUse;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.Elemental;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.item.settings.Setting;
+import org.lime.gp.item.settings.use.target.ITarget;
+import org.lime.gp.item.settings.use.target.SelfTarget;
 
-@Setting(name = "use_to_elemental") public class UseToElementalSetting extends ItemSetting<JsonObject> implements UseSetting.ITimeUse {
+import java.util.Optional;
+
+@Setting(name = "use_to_elemental") public class UseToElementalSetting extends ItemSetting<JsonObject> implements ITimeUse<SelfTarget> {
     public final int time;
     public final int cooldown;
     public final Boolean shift;
@@ -25,6 +29,7 @@ import org.lime.gp.item.settings.Setting;
     public final String prefixSelf;
     public final String prefixTarget;
     public final String prefixCooldown;
+    private final boolean silent;
 
     public UseToElementalSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
@@ -47,26 +52,32 @@ import org.lime.gp.item.settings.Setting;
         } else {
             prefixSelf = prefixTarget = prefixCooldown = "";
         }
+        this.silent = !json.has("silent") || json.get("silent").getAsBoolean();
     }
+    @Override public boolean silent() { return silent; }
     @Override public EquipmentSlot arm() { return arm; }
+
     @Override public int getTime() { return time; }
     @Override public int getCooldown() { return cooldown; }
     @Override public String prefix(boolean self) { return self ? prefixSelf : prefixTarget; }
     @Override public String cooldownPrefix() { return prefixCooldown; }
 
-    @Override public void timeUse(Player player, Player target, ItemStack item) {
-        Elemental.execute(player, new DataContext(), elemental);
+    @Override public Optional<SelfTarget> tryCast(Player player, ITarget target, EquipmentSlot arm, boolean shift) {
+        return this.shift != null && this.shift != shift
+                ? Optional.empty()
+                : Optional.of(SelfTarget.Instance);
     }
-    @Override public boolean use(Player player, Player target, EquipmentSlot arm, boolean shift) {
-        if (this.shift != null && this.shift != shift) return false;
-        return UseSetting.ITimeUse.super.use(player, target, arm, shift);
+    @Override public boolean timeUse(Player player, SelfTarget target, ItemStack item) {
+        Elemental.execute(player, new DataContext(), elemental);
+        return true;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
-                JProperty.require(IName.raw("elemental"), IJElement.link(docs.elemental()), IComment.text("Элементаль, который будет вызван")),
+                JProperty.require(IName.raw("elemental"), IJElement.link(docs.elementalName()), IComment.text("Элементаль, который будет вызван")),
                 JProperty.require(IName.raw("arm"), IJElement.link(docs.handType()), IComment.text("Тип руки, в которой происходит взаимодействие")),
                 JProperty.optional(IName.raw("time"), IJElement.raw(10), IComment.text("Время использования предмета в тиках")),
+                JProperty.optional(IName.raw("silent"), IJElement.bool(), IComment.text("Будет ли проигран звук ломания предмета")),
                 JProperty.optional(IName.raw("cooldown"), IJElement.raw(10), IComment.text("Время между использованиями предмета в тиках")),
                 JProperty.optional(IName.raw("shift"), IJElement.bool(), IComment.empty()
                         .append(IComment.text("Требуется ли нажимать "))
@@ -78,6 +89,6 @@ import org.lime.gp.item.settings.Setting;
                                 JProperty.optional(IName.raw("target"), IJElement.raw("PREFIX TEXT")),
                                 JProperty.optional(IName.raw("cooldown"), IJElement.raw("PREFIX TEXT"))
                         )), IComment.text("Отображаемый префикс перетаймеров использования"))
-        ), "Предмет вызывает элементаль. После использования возможен вызов " + docs.settingsLink(NextSetting.class).link());
+        ), IComment.text("Предмет вызывает элементаль. После использования возможен вызов ").append(IComment.link(docs.settingsLink(NextSetting.class))));
     }
 }

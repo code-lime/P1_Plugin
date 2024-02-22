@@ -42,7 +42,6 @@ public class RangeOutputSlot implements IOutputSlot {
                     return new ItemStack(net.minecraft.world.item.Items.STONE, 0);
                 });
     }
-
     @Override public net.minecraft.world.item.ItemStack create(boolean isPreview, IOutputVariable variable) {
         return Items.getItemCreator(key)
                 .map(v -> v.createItem(amount.getIntValue(64)))
@@ -52,6 +51,8 @@ public class RangeOutputSlot implements IOutputSlot {
                     return new ItemStack(net.minecraft.world.item.Items.STONE, 0);
                 });
     }
+    @Override public int maxStackSize() { return amount.getIntMax(64); }
+
     @Override public boolean test(ItemStack item) {
         return Items.getGlobalKeyByItem(item).map(key::equalsIgnoreCase).orElse(false);
     }

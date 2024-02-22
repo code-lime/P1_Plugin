@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
 import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.docs.IDocsLink;
@@ -44,7 +45,7 @@ import org.lime.gp.lime;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.bool(), "Указывает, можно ли держать данный предмет в неосновной руке");
+        return JsonGroup.of(index, index, IJElement.bool(), IComment.text("Указывает, можно ли держать данный предмет в неосновной руке"));
     }
 }
 

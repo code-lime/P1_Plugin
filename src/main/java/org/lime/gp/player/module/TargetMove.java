@@ -20,18 +20,16 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.lime.core;
 import org.lime.display.Passenger;
 import org.lime.plugin.CoreElement;
-import org.lime.display.Displays;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.lime;
 import org.lime.gp.player.module.drugs.Drugs;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -124,13 +122,16 @@ public class TargetMove implements Listener {
         targets.values().removeIf(v -> target.equals(v.val0));
     }
     public static double getHeight(Block block) {
-        return IntStream.range(-1, 2)
+        return getOptionalHeight(block).orElseGet(() -> (double) block.getY());
+    }
+    public static Optional<Double> getOptionalHeight(Block block) {
+        OptionalDouble opt = IntStream.range(-1, 2)
                 .mapToObj(y -> block.getRelative(0, y, 0))
                 .map(Block::getBoundingBox)
                 .filter(v -> v.getHeight() > 0)
                 .mapToDouble(BoundingBox::getMaxY)
-                .max()
-                .orElseGet(block::getY);
+                .max();
+        return opt.isEmpty() ? Optional.empty() : Optional.of(opt.getAsDouble());
     }
     public static void moveSeat(final GSeat seat, final Location location) {
         lime.nextTick(() -> {

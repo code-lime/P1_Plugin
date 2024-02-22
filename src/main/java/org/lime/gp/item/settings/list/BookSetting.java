@@ -88,6 +88,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
                                 .append(IComment.text("Устанавливает страницы книги. Является списком строк на странице. Для разделения страницы на несколько используется символ "))
                                 .append(IComment.raw("\\t"))
                                 .append(IComment.text(" (TAB).")))
-        ), "Устанавливает параметры книги");
+        ), IComment.text("Устанавливает параметры книги"));
     }
 }

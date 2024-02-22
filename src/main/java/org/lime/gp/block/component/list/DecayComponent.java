@@ -35,6 +35,6 @@ import org.lime.system.range.*;
                 JProperty.require(IName.raw("ticks"), IJElement.link(docs.range()), IComment.text("Время, через которое блок изменится")),
                 JProperty.require(IName.raw("replace"), IJElement.link(docs.setBlock()), IComment.text("Блок, на который произойдет замена")),
                 JProperty.optional(IName.raw("display_count"), IJElement.raw(10), IComment.text("Количество целых частей в прогрессе"))
-        ), "Изменение блока по прохождению определенного времени");
+        ), IComment.text("Изменение блока по прохождению определенного времени"));
     }
 }

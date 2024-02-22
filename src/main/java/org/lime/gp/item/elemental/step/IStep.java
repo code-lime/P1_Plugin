@@ -3,131 +3,30 @@ package org.lime.gp.item.elemental.step;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.lime.gp.item.Items;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.JObject;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.DataContext;
-import org.lime.gp.item.elemental.step.action.*;
-import org.lime.gp.item.elemental.step.group.*;
-import org.lime.gp.item.elemental.step.wait.QueueStep;
-import org.lime.gp.item.elemental.step.wait.WaitStep;
-import org.lime.gp.module.mobs.spawn.ISpawn;
-import org.lime.json.JsonObjectOptional;
-import org.lime.system.utils.MathUtils;
+import org.lime.gp.item.elemental.Elemental;
+import org.lime.gp.item.elemental.step.action.NoneStep;
+import org.lime.gp.item.elemental.step.action.OtherStep;
+import org.lime.gp.item.elemental.step.group.ListStep;
+import org.lime.unsafe;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-public interface IStep {
+public interface IStep<T extends IStep<T>> {
     void execute(Player player, DataContext context, Transformation location);
+    T parse(JsonObject json);
+    //JObject docs(IDocsLink docs);
 
-    static IStep parse(JsonElement raw) {
-        if (raw.isJsonNull()) return NoneStep.Instance;
+    static IStep<?> parse(JsonElement raw) {
+        if (raw.isJsonNull()) return NoneStep.instance();
         else if (raw.isJsonObject()) {
             JsonObject json = raw.getAsJsonObject();
             String type = json.get("type").getAsString();
-            return switch (type) {
-                case "delta" -> new DeltaStep(
-                        parse(json.get("step")),
-                        MathUtils.getVector(json.get("delta").getAsString()),
-                        json.get("count").getAsInt()
-                );
-                case "dynamic" -> new DynamicStep(
-                        json.get("js").getAsString(),
-                        json.has("args")
-                                ? JsonObjectOptional.of(json.getAsJsonObject("args"))
-                                : new JsonObjectOptional()
-                );
-                case "function" -> new FunctionStep(
-                        parse(json.get("step")),
-                        json.get("js").getAsString(),
-                        json.has("args")
-                                ? JsonObjectOptional.of(json.getAsJsonObject("args"))
-                                : new JsonObjectOptional()
-                );
-                case "list" -> new ListStep(
-                        json.getAsJsonArray("steps").asList().stream().map(IStep::parse).toList()
-                );
-                case "offset" -> new OffsetStep(
-                        parse(json.get("step")),
-                        MathUtils.transformation(json.get("offset")),
-                        json.has("only_yaw") && json.get("only_yaw").getAsBoolean()
-                );
-                case "palette" -> new PaletteStep(
-                        json.getAsJsonObject("palette")
-                                .entrySet()
-                                .stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, kv -> parse(kv.getValue()))),
-                        json.getAsJsonArray("map")
-                                .asList()
-                                .stream()
-                                .map(v -> v.getAsJsonArray()
-                                        .asList()
-                                        .stream()
-                                        .map(JsonElement::getAsString)
-                                        .toList()
-                                )
-                                .toList()
-                );
-
-                case "queue" -> new QueueStep(
-                        json.getAsJsonArray("steps").asList().stream().map(IStep::parse).toList(),
-                        json.get("sec").getAsDouble()
-                );
-                case "wait" -> new WaitStep(
-                        IStep.parse(json.get("step")),
-                        json.get("sec").getAsDouble()
-                );
-
-                case "entity" -> new EntityStep(ISpawn.parse(json.get("entity")));
-                case "block.fake" -> new FakeBlockStep(
-                        Material.valueOf(json.get("material").getAsString()),
-                        json.has("states")
-                                ? json.getAsJsonObject("states")
-                                .entrySet()
-                                .stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString()))
-                                : Collections.emptyMap(),
-                        MathUtils.getVector(json.get("radius").getAsString()),
-                        json.get("self").getAsBoolean(),
-                        json.get("undo_sec").getAsFloat(),
-                        json.get("force").getAsBoolean()
-                );
-                case "none" -> NoneStep.Instance;
-                case "other" -> new OtherStep(json.get("other").getAsString());
-                case "potion" -> new PotionStep(
-                        Items.parseEffect(json.getAsJsonObject("potion")),
-                        MathUtils.getVector(json.get("radius").getAsString()),
-                        json.get("self").getAsBoolean()
-                );
-                case "particle" -> new ParticleStep(
-                        ParticleStep.parseParticle(json.get("particle").getAsJsonObject()),
-                        MathUtils.getVector(json.get("radius").getAsString()),
-                        json.get("self").getAsBoolean()
-                );
-                case "block.set" -> new SetBlockStep(
-                        Material.valueOf(json.get("material").getAsString()),
-                        json.has("states")
-                                ? Collections.emptyMap()
-                                : json.getAsJsonObject("states")
-                                .entrySet()
-                                .stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().getAsString())),
-                        json.get("force").getAsBoolean()
-                );
-                case "sound" -> new SoundStep(
-                        json.get("sound").getAsString(),
-                        json.get("self").getAsBoolean()
-                );
-                case "velocity" -> new VelocityStep(
-                        MathUtils.transformation(json.get("point")),
-                        json.get("power").getAsFloat(),
-                        MathUtils.getVector(json.get("radius").getAsString()),
-                        json.get("self").getAsBoolean()
-                );
-                default -> throw new IllegalArgumentException("Not supported type of step: " + type);
-            };
+            Class<? extends IStep<?>> stepClass = Elemental.stepsClasses.get(type);
+            if (stepClass == null) throw new IllegalArgumentException("Not supported type of step: " + type);
+            return unsafe.createInstance(stepClass).parse(json);
         } else if (raw.isJsonArray()) return new ListStep(raw.getAsJsonArray().asList().stream().map(IStep::parse).toList());
         else return new OtherStep(raw.getAsString());
     }

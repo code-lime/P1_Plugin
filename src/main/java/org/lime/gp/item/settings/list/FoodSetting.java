@@ -44,7 +44,7 @@ import java.util.HashMap;
                 JProperty.require(IName.raw("types"), IJElement.anyObject(
                         JProperty.require(IName.link(food_type), IJElement.link(food_info))
                 ))
-        )), "Добавляет характеристики еде. Если не указывать "+food_type.link()+" то настройка устанавливается для "+IJElement.raw(FoodType.Vanilla.name()))
+        )), IComment.text("Добавляет характеристики еде. Если не указывать ").append(IComment.link(food_type)).append(IComment.text(" то настройка устанавливается для ")).append(IComment.raw(FoodType.Vanilla.name())))
                 .withChilds(food_info, food_type);
     }
 }

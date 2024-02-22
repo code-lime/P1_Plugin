@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import net.coreprotect.event.AsyncItemInfoEvent;
+import net.kyori.adventure.text.Component;
 import net.minecraft.ResourceKeyInvalidException;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
@@ -159,11 +160,18 @@ public class Items implements Listener {
             });
             if (last.val0 != null && last.val1 != null)
                 idGoups.add(last);
-            lime.logOP("List of IDs: [" + idGoups.stream()
+            ;
+            lime.logOP(Component.text("List of IDs: ").append(json.formatComponent(json.by(idGoups.stream()
                     .map(v -> Objects.equals(v.val0, v.val1) ? String.valueOf(v.val0) : (v.val0 + ".." + v.val1))
-                    .map(v -> "\"" + v + "\"")
-                    .collect(Collectors.joining(","))
-                    +"]");
+                    .toList()).build(), null)));
+        });
+        AnyEvent.addEvent("item.ids.duplicate", AnyEvent.type.owner_console, (player) -> {
+            Map<Integer, Set<String>> ids = creatorIDs
+                    .values()
+                    .stream()
+                    .collect(Collectors.groupingBy(IItemCreator::getID, Collectors.mapping(IItemCreator::getKey, Collectors.toSet())));
+            ids.entrySet().removeIf(v -> v.getValue().size() <= 1 || v.getKey() == 0);
+            lime.logOP(Component.text("Data of duplicates: ").append(json.formatComponent(json.by(ids).build())));
         });
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
             _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));

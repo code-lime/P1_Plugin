@@ -3,7 +3,7 @@ package org.lime.gp.module.biome.weather;
 import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.level.biome.BiomeFog;
-import org.lime.gp.extension.JsonNBT;
+import org.lime.display.ext.JsonNBT;
 import org.lime.gp.module.biome.time.SeasonKey;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;

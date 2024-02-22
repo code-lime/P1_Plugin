@@ -3,6 +3,7 @@ package org.lime.gp.player.module.needs.thirst;
 import com.google.gson.JsonObject;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.lime.gp.player.module.needs.NeedSystem;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.extension.JManager;
@@ -27,7 +28,13 @@ public class Thirst implements Listener {
                 .<JsonObject>addConfig("thirst", v -> v.withInvoke(Thirst::config).withDefault(new JsonObject()));
     }
 
+    private static Stream<INeedEffect<?>> getThirstNeeds(Player player) {
+        return StateData.getThirstNeeds(getThirst(player).value);
+    }
+
     public static void init() {
+        NeedSystem.register(Thirst::getThirstNeeds);
+
         AnyEvent.addEvent("thirst.value", AnyEvent.type.other, builder -> builder.createParam(Double::parseDouble, "[value:0-20]"), Thirst::thirstValue);
         AnyEvent.addEvent("thirst.state.add", AnyEvent.type.other, builder -> builder.createParam(StateData::getStateBy, StateData::getStateKeys), Thirst::thirstState);
 
@@ -108,10 +115,6 @@ public class Thirst implements Listener {
             case BADLANDS, ERODED_BADLANDS, WOODED_BADLANDS, DESERT, SAVANNA, SAVANNA_PLATEAU, WINDSWEPT_SAVANNA -> true;
             default -> false;
         };
-    }
-
-    public static Stream<INeedEffect<?>> getThirstNeeds(Player player) {
-        return StateData.getThirstNeeds(getThirst(player).value);
     }
 
     public static ThirstData getThirst(Player player) {

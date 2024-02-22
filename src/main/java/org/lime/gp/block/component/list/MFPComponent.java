@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import org.bukkit.util.Vector;
 import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.ComponentDynamic;
@@ -30,5 +31,11 @@ public final class MFPComponent extends ComponentDynamic<JsonObject, MFPInstance
 
     @Override public MFPInstance createInstance(CustomTileMetadata metadata) { return new MFPInstance(this, metadata); }
     @Override public Class<MFPInstance> classInstance() { return MFPInstance.class; }
-    @Override public IIndexGroup docs(String index, IDocsLink docs) { throw new ToDoException("BLOCK COMPONENT: " + index); }
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        return JsonGroup.of(index, JObject.of(
+                JProperty.require(IName.raw("offset"), IJElement.link(docs.vector()), IComment.text("Расположение отображения")),
+                JProperty.require(IName.raw("out_rotation"), IJElement.raw(1.2), IComment.text("Угол выбрасывания предмета")),
+                JProperty.require(IName.raw("out_offset"), IJElement.link(docs.vector()), IComment.text("Расположение выбрасывания предмета"))
+        ));
+    }
 }

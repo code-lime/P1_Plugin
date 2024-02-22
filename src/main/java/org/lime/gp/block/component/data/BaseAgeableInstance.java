@@ -46,7 +46,7 @@ public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> exte
         writeDebug("Change age: " + ageValue + " -> " + value);
         ageValue = value;
         saveData();
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
         onAgeUpdated();
     }
     public abstract AgeableData ageableData();
@@ -73,7 +73,7 @@ public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> exte
         if (oldAge != newAge) {
             writeDebug("Change age: " + oldAge + " -> " + newAge);
             saveData();
-            syncDisplayVariable();
+            syncDisplayVariable(metadata);
             onAgeUpdated();
         }
     }
@@ -83,7 +83,7 @@ public abstract class BaseAgeableInstance<T extends ComponentDynamic<?, ?>> exte
         return true;
     }
 
-    @Override public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         writeDebug("syncDisplayVariable");
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> {
             display.modify(this::modifyDisplayVariable);

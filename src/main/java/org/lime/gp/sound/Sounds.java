@@ -28,17 +28,17 @@ public class Sounds {
 
     public static ConcurrentHashMap<String, ISound> sounds = new ConcurrentHashMap<>();
     public static void playSound(String key, Player player) {
-        if (key == null) return;
+        if (key == null || key.isEmpty()) return;
         Optional.ofNullable(sounds.get(key))
                 .ifPresentOrElse(sound -> sound.playSound(player), () -> lime.logOP("Sound '"+key+"' not founded!"));
     }
     public static void playSound(String key, Player player, Vector position) {
-        if (key == null) return;
+        if (key == null || key.isEmpty()) return;
         Optional.ofNullable(sounds.get(key))
                 .ifPresentOrElse(sound -> sound.playSound(player, position), () -> lime.logOP("Sound '"+key+"' not founded!"));
     }
     public static void playSound(String key, Location location) {
-        if (key == null) return;
+        if (key == null || key.isEmpty()) return;
         String[] args = key.split(" ");
         Optional.ofNullable(sounds.get(args[0]))
                 .ifPresentOrElse(sound -> sound.playSound(args.length == 4

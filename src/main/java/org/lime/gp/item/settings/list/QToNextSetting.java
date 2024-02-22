@@ -18,6 +18,6 @@ import com.google.gson.JsonObject;
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.optional(IName.raw("sound"), IJElement.link(docs.sound()), IComment.text("Звук при взаимодействии"))
-        ), "Предмет, заменяемый на предмет из "+docs.settingsLink(NextSetting.class).link()+" по нажатию `Q` в инвентаре");
+        ), IComment.text("Предмет, заменяемый на предмет из ").append(IComment.link(docs.settingsLink(NextSetting.class))).append(IComment.text(" по нажатию `Q` в инвентаре")));
     }
 }

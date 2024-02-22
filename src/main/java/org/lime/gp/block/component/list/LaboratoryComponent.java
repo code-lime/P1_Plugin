@@ -43,6 +43,6 @@ public final class LaboratoryComponent extends ComponentDynamic<JsonObject, Labo
                         JProperty.require(IName.raw("thirst"), IJElement.anyList(IJElement.link(docs.location())), IComment.text("Список позиций слотов с жидкостью")),
                         JProperty.require(IName.raw("dust"), IJElement.link(docs.location()), IComment.text("Позиция слота с предметами"))
                 ), IComment.text("Данные о входных слотах"))
-        ), "Блок явзяется лабораторией");
+        ), IComment.text("Блок явзяется лабораторией"));
     }
 }

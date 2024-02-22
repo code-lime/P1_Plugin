@@ -33,6 +33,6 @@ public final class BottleComponent extends ComponentDynamic<JsonObject, BottleIn
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.optional(IName.raw("total_level"), IJElement.raw(10), IComment.text("Максимальный уровень воды"))
-        ), "Добавляет возможность хранить жидкость в блоке").withChilds();
+        ), IComment.text("Добавляет возможность хранить жидкость в блоке")).withChilds();
     }
 }

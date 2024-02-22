@@ -6,15 +6,19 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
-import org.lime.gp.item.UseSetting;
+import org.lime.gp.item.settings.use.ITimeUse;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.*;
 
 import com.google.gson.JsonObject;
+import org.lime.gp.item.settings.use.target.ITarget;
+import org.lime.gp.item.settings.use.target.SelfTarget;
 import org.lime.gp.sound.Sounds;
 
-@Setting(name = "use_to_next") public class UseToNextSetting extends ItemSetting<JsonObject> implements UseSetting.ITimeUse {
+import java.util.Optional;
+
+@Setting(name = "use_to_next") public class UseToNextSetting extends ItemSetting<JsonObject> implements ITimeUse<SelfTarget> {
     public final int time;
     public final int cooldown;
     public final Boolean shift;
@@ -24,6 +28,7 @@ import org.lime.gp.sound.Sounds;
     public final String prefixSelf;
     public final String prefixTarget;
     public final String prefixCooldown;
+    public final boolean silent;
 
     public UseToNextSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
@@ -46,19 +51,24 @@ import org.lime.gp.sound.Sounds;
         } else {
             prefixSelf = prefixTarget = prefixCooldown = "";
         }
+        this.silent = !json.has("silent") || json.get("silent").getAsBoolean();
     }
+    @Override public boolean silent() { return silent; }
     @Override public EquipmentSlot arm() { return arm; }
+
     @Override public int getTime() { return time; }
     @Override public int getCooldown() { return cooldown; }
     @Override public String prefix(boolean self) { return self ? prefixSelf : prefixTarget; }
     @Override public String cooldownPrefix() { return prefixCooldown; }
 
-    @Override public void timeUse(Player player, Player target, ItemStack item) {
-        Sounds.playSound(sound, player.getLocation());
+    @Override public Optional<SelfTarget> tryCast(Player player, ITarget target, EquipmentSlot arm, boolean shift) {
+        return this.shift != null && this.shift != shift
+                ? Optional.empty()
+                : Optional.of(SelfTarget.Instance);
     }
-    @Override public boolean use(Player player, Player target, EquipmentSlot arm, boolean shift) {
-        if (this.shift != null && this.shift != shift) return false;
-        return UseSetting.ITimeUse.super.use(player, target, arm, shift);
+    @Override public boolean timeUse(Player player, SelfTarget target, ItemStack item) {
+        Sounds.playSound(sound, player.getLocation());
+        return true;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
@@ -71,12 +81,13 @@ import org.lime.gp.sound.Sounds;
                         .append(IComment.raw("SHIFT"))
                         .append(IComment.text(" для использования. Если не указано - проверка на нажатие отсуствует"))),
                 JProperty.optional(IName.raw("sound"), IJElement.link(docs.sound()), IComment.text("Звук при взаимодействии")),
+                JProperty.optional(IName.raw("silent"), IJElement.bool(), IComment.text("Будет ли проигран звук ломания предмета")),
                 JProperty.optional(IName.raw("prefix"), IJElement.raw("PREFIX TEXT")
                         .or(JObject.of(
                                 JProperty.require(IName.raw("self"), IJElement.raw("PREFIX TEXT")),
                                 JProperty.optional(IName.raw("target"), IJElement.raw("PREFIX TEXT")),
                                 JProperty.optional(IName.raw("cooldown"), IJElement.raw("PREFIX TEXT"))
                         )), IComment.text("Отображаемый префикс перетаймеров использования"))
-        ), "Предмет используется. После использования возможен вызов " + docs.settingsLink(NextSetting.class).link());
+        ), IComment.text("Предмет используется. После использования возможен вызов ").append(IComment.link(docs.settingsLink(NextSetting.class))));
     }
 }

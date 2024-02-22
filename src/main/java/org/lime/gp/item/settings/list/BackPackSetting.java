@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.IComment;
 import org.lime.docs.json.JObject;
 import org.lime.docs.json.JsonGroup;
 import org.lime.gp.item.data.ItemCreator;
@@ -45,7 +46,7 @@ import com.google.gson.JsonObject;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, JObject.of(), "*Не используется");
+        return JsonGroup.of(index, index, JObject.of(), IComment.text("*Не используется"));
     }
 }
 

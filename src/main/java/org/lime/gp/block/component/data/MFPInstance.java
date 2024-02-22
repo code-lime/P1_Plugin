@@ -80,7 +80,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
                 .orElseGet(() -> CraftItemStack.asNMSCopy(head))
         ));
         if (save) saveData();
-        syncDisplayVariable();
+        syncDisplayVariable(metadata());
     }
 
     @Override public void read(JsonObjectOptional json) {
@@ -121,7 +121,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
     }
     
     private static final Pattern REMOVE_FORMATS = Pattern.compile("§.");
-    public final void syncDisplayVariable() {
+    @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
         MFPComponent component = component();
         Optional<Toast4<String, Optional<String>, Optional<String>, Integer>> text = Optional.ofNullable(head)
             .filter(ItemStack::hasItemMeta)

@@ -26,6 +26,6 @@ import com.google.gson.JsonObject;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        return JsonGroup.of(index, index, IJElement.link(docs.regexItem()), "В руках игрока будет отображатся как указанный предмет. В указанный предмет в `args` передается `original_id` являющийся `id` текущего предмета");
+        return JsonGroup.of(index, index, IJElement.link(docs.regexItem()), IComment.text("В руках игрока будет отображатся как указанный предмет. В указанный предмет в `args` передается `original_id` являющийся `id` текущего предмета"));
     }
 }

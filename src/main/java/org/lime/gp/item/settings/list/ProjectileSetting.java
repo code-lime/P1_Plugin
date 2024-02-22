@@ -45,7 +45,7 @@ import java.util.List;
                         .append(IComment.raw("возврат"))),
                 JProperty.optional(IName.raw("damage"), IJElement.raw(1.5), IComment.text("Урон бросаемого предмета")),
                 JProperty.optional(IName.raw("tags"), IJElement.anyList(IJElement.raw("TAG")), IComment.text("Тэги добавляемые в бросаемый предмет"))
-        ), "Бросаемый предмет");
+        ), IComment.text("Бросаемый предмет"));
     }
 }
 

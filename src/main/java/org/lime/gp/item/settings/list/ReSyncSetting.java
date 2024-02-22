@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("version"), IJElement.raw("v1.0"), IComment.text("Версия данных")),
                 JProperty.require(IName.raw("list"), IJElement.anyList(IJElement.link(resync_type)), IComment.text("Список обновляемых данных"))
-        ), "Обновляет ванильные данные предмета при изменении версии")
+        ), IComment.text("Обновляет ванильные данные предмета при изменении версии"))
                 .withChild(resync_type);
     }
 }
