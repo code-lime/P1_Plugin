@@ -112,6 +112,18 @@ public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.I
         postInit();
     }
 
+    private static void updateData(Display.ItemDisplay itemFrame, ItemDisplayObject data) {
+        Vector offset_translation = data.offset_translation();
+        Vector offset_scale = data.offset_scale();
+        itemFrame.setTransformation(
+                new Transformation(
+                        new Vector3f((float) offset_translation.getX(), (float)offset_translation.getY(), (float)offset_translation.getZ()),
+                        null,
+                        new Vector3f((float) offset_scale.getX(), (float)offset_scale.getY(), (float)offset_scale.getZ()),
+                        null)
+        );
+        itemFrame.setYRot(data.rotation().angle + (float)data.offset_rotation());
+    }
     @Override public void update(ItemDisplayObject data, double delta) {
         super.update(data, delta);
         if (this.data.index().equals(data.index())) {
@@ -119,12 +131,8 @@ public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.I
             return;
         }
         this.data = data;
-        entity.setYRot(calculateAngle());
+        updateData(entity, data);
         invokeAll(this::sendDataWatcher);
-    }
-
-    private float calculateAngle() {
-        return data.rotation().angle + (float)data.offset_rotation();
     }
 
     @Override protected void editDataWatcher(Player player, EditedDataWatcher dataWatcher) {
@@ -135,16 +143,7 @@ public class BlockItemDisplay extends ObjectDisplay<ItemDisplayObject, Display.I
         Display.ItemDisplay itemFrame = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, ((CraftWorld)location.getWorld()).getHandle());
         itemFrame.setPos(location.getBlockX() + 0.5, location.getBlockY() + 0.5, location.getBlockZ() + 0.5);
         itemFrame.setViewRange(1000);
-        Vector offset_translation = data.offset_translation();
-        Vector offset_scale = data.offset_scale();
-        itemFrame.setTransformation(
-                new Transformation(
-                        new Vector3f((float) offset_translation.getX(), (float)offset_translation.getY(), (float)offset_translation.getZ()),
-                        null,
-                        new Vector3f((float) offset_scale.getX(), (float)offset_scale.getY(), (float)offset_scale.getZ()),
-                        null)
-        );
-        itemFrame.setYRot(calculateAngle());
+        updateData(itemFrame, data);
         return itemFrame;
     }
 
