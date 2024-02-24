@@ -1,14 +1,17 @@
 package org.lime.gp.database.rows;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.sql.ResultSet;
-import java.util.*;
-
 import org.bukkit.entity.Player;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.system.Time;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Calendar;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class BanListRow extends BaseRow {
     public enum Type {
@@ -22,7 +25,7 @@ public class BanListRow extends BaseRow {
     public String owner;
     public Calendar createTime;
 
-    public BanListRow(ResultSet set) {
+    public BanListRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         user = MySql.readObject(set, "user", String.class);

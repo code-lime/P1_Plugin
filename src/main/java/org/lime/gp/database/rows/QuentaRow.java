@@ -2,9 +2,9 @@ package org.lime.gp.database.rows;
 
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 
-import java.sql.ResultSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,7 +12,7 @@ public class QuentaRow extends BaseRow {
     public int id;
     public int userID;
 
-    public QuentaRow(ResultSet set) {
+    public QuentaRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         userID = MySql.readObject(set, "user_id", Integer.class);

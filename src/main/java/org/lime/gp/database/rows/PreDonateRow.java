@@ -1,10 +1,10 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Calendar;
 import java.util.Map;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.system.Time;
 
 public class PreDonateRow extends BaseRow {
@@ -27,7 +27,7 @@ public class PreDonateRow extends BaseRow {
     public PreDonateRow.State state;
     public PreDonateRow.State whitelist;
 
-    public PreDonateRow(ResultSet set) {
+    public PreDonateRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         name = MySql.readObject(set, "name", String.class);

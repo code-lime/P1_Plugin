@@ -1,6 +1,5 @@
 package org.lime.gp.database.tables;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -10,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
@@ -38,8 +38,8 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
     private final String where;
     private final String key;
     private final boolean optional;
-    private final Func2<ResultSet, V, String> fKey;
-    private final Func1<ResultSet, V> fValue;
+    private final Func2<MySqlRow, V, String> fKey;
+    private final Func1<MySqlRow, V> fValue;
     private final Map<String, Func1<V, String>> other;
     private final Map<KeyedTable.Event, List<Action2<V, KeyedTable.Event>>> events;
 
@@ -73,7 +73,7 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
 
     public boolean isInit() { return this.isInit; }
 
-    private KeyedTable(String index, String table, String where, String key, boolean optional, Func2<ResultSet, V, String> fKey, Func1<ResultSet, V> fValue, Map<String, Func1<V, String>> other, ImmutableList<Toast2<Event, Action2<V, Event>>> events) {
+    private KeyedTable(String index, String table, String where, String key, boolean optional, Func2<MySqlRow, V, String> fKey, Func1<MySqlRow, V> fValue, Map<String, Func1<V, String>> other, ImmutableList<Toast2<Event, Action2<V, Event>>> events) {
         this.index = index;
         this.table = table;
         this.where_select = "last_update > @last" + (where == null ? "" : (" AND (" + where + ")"));
@@ -186,12 +186,12 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
         private final String _where;
         private final String _key;
         private final boolean _optional;
-        private final Func2<ResultSet, V, String> _fKey;
-        private final Func1<ResultSet, V> _fValue;
+        private final Func2<MySqlRow, V, String> _fKey;
+        private final Func1<MySqlRow, V> _fValue;
         private final ImmutableMap<String, Func1<V, String>> _other;
         private final ImmutableList<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>> _events;
 
-        private Builder(String index, String table, String where, String key, boolean optional, Func2<ResultSet, V, String> fKey, Func1<ResultSet, V> fValue, ImmutableMap<String, Func1<V, String>> other, ImmutableList<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>> events) {
+        private Builder(String index, String table, String where, String key, boolean optional, Func2<MySqlRow, V, String> fKey, Func1<MySqlRow, V> fValue, ImmutableMap<String, Func1<V, String>> other, ImmutableList<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>> events) {
             this._index = index;
             this._table = table;
             this._where = where;
@@ -208,7 +208,7 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
         public KeyedTable.Builder<V> optional(boolean optional) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, optional, _fKey, _fValue, _other, _events); }
 
         public KeyedTable.Builder<V> where(String where) { return new KeyedTable.Builder<V>(_index, _table, where, _key, _optional, _fKey, _fValue, _other, _events); }
-        public KeyedTable.Builder<V> key(String key, Func1<ResultSet, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, _optional, (v1,v2) -> func.invoke(v1), _fValue, _other, _events); }
+        public KeyedTable.Builder<V> key(String key, Func1<MySqlRow, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, _optional, (v1,v2) -> func.invoke(v1), _fValue, _other, _events); }
         public KeyedTable.Builder<V> keyed(String key, Func1<V, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, key, _optional, (v1,v2) -> func.invoke(v2), _fValue, _other, _events); }
         public KeyedTable.Builder<V> other(String key, Func1<V, String> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _optional, _fKey, _fValue, ImmutableMap.<String, Func1<V, String>>builder().putAll(_other).put(key, func).build(), _events); }
 
@@ -218,10 +218,10 @@ public class KeyedTable<V extends BaseRow> extends ITable<V> {
         public KeyedTable.Builder<V> event(KeyedTable.Event key, Action2<V, KeyedTable.Event> func) { return new KeyedTable.Builder<>(_index, _table, _where, _key, _optional, _fKey, _fValue, _other, ImmutableList.<Toast2<KeyedTable.Event, Action2<V, KeyedTable.Event>>>builder().addAll(_events).add(Toast.of(key, func)).build()); }
         public KeyedTable.Builder<V> event(KeyedTable.Event key, Action1<V> func) { return event(key, (a,b) -> func.invoke(a)); }
 
-        public KeyedTable.Builder<V> value(Func1<ResultSet, V> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _optional, _fKey, func, _other, _events); }
+        public KeyedTable.Builder<V> value(Func1<MySqlRow, V> func) { return new KeyedTable.Builder<V>(_index, _table, _where, _key, _optional, _fKey, func, _other, _events); }
 
         public KeyedTable<V> build() { return new KeyedTable<>(_index, _table, _where, _key, _optional, _fKey, _fValue, _other, _events); }
     }
 
-    public static <V extends BaseRow>KeyedTable.Builder<V> of(String table, Func1<ResultSet, V> value) { return new KeyedTable.Builder<>(table, table, null, null, false, null, value, ImmutableMap.of(), ImmutableList.of()); }
+    public static <V extends BaseRow>KeyedTable.Builder<V> of(String table, Func1<MySqlRow, V> value) { return new KeyedTable.Builder<>(table, table, null, null, false, null, value, ImmutableMap.of(), ImmutableList.of()); }
 }

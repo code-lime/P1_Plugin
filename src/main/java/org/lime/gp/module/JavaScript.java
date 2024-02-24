@@ -1,5 +1,6 @@
 package org.lime.gp.module;
 
+import com.caoccao.javet.values.reference.V8ValueObject;
 import com.google.gson.JsonElement;
 import com.mojang.math.Transformation;
 import org.bukkit.Bukkit;
@@ -7,25 +8,28 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.chat.ChatMessages;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.mysql.MySqlAsync;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.gp.module.biome.time.DayManager;
+import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.json.JsonObjectOptional;
+import org.lime.system.execute.Action0;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Func0;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
 import org.lime.system.utils.MathUtils;
 
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -95,7 +99,7 @@ public class JavaScript {
             try { return Class.forName(type2); } catch (ClassNotFoundException e) { return null; }
         }
 
-        public Object read(ResultSet set, String name, Class<?> tClass) { return MySql.readObject(set, name, tClass); }
+        public Object read(MySqlRow set, String name, Class<?> tClass) { return MySql.readObject(set, name, tClass); }
         public void log(String text) { lime.logOP(text); }
         public void repeat(Action0 func, double sec) {
             this.inits.add(lime.repeat(func, sec));
@@ -169,7 +173,10 @@ public class JavaScript {
 
     public static void getJsStringNext(String js, Action1<String> callback) { JavaScript.js.getJsStringNext(js, callback); }
 
-    public static void invoke(String js) { JavaScript.js.invoke(js); }
-    public static Optional<Object> invoke(String js, Map<String, Object> values) { return JavaScript.js.invoke(js, values); }
+    public static V8ValueObject createNative() {
+        return js.createNative();
+    }
 
+    public static void invoke(String js) { JavaScript.js.invoke(js); }
+    public static void invoke(String js, Map<String, Object> values) { JavaScript.js.invoke(js, values); }
 }

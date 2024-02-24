@@ -1,9 +1,9 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.*;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 
 public class FriendRow extends BaseRow {
@@ -13,7 +13,7 @@ public class FriendRow extends BaseRow {
     public String friendName;
     public int sendInfo;
 
-    public FriendRow(ResultSet set) {
+    public FriendRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         userID = MySql.readObject(set, "user_id", Integer.class);

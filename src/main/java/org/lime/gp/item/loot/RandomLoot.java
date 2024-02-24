@@ -6,7 +6,6 @@ import org.lime.docs.IIndexDocs;
 import org.lime.docs.json.*;
 import org.lime.gp.module.loot.IPopulateLoot;
 import org.lime.system.utils.RandomUtils;
-import org.openjdk.nashorn.internal.scripts.JO;
 
 import java.util.ArrayList;
 import java.util.Collections;

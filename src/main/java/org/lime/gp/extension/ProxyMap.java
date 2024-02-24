@@ -5,10 +5,7 @@ import javax.annotation.Nullable;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class ProxyMap<K, V> implements Map<K, V> {
     private final Map<K, V> base;
@@ -42,8 +39,8 @@ public class ProxyMap<K, V> implements Map<K, V> {
         dirty.set0(true);
     }
 
-    @Deprecated @NotNull @Override public Set<K> keySet() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
-    @Deprecated @NotNull @Override public Collection<V> values() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
+    @Deprecated @NotNull @Override public Set<K> keySet() throws UnsupportedOperationException { return Collections.emptySet(); /*throw new UnsupportedOperationException();*/ }
+    @Deprecated @NotNull @Override public Collection<V> values() throws UnsupportedOperationException { return Collections.emptySet(); /*throw new UnsupportedOperationException();*/ }
     @Deprecated @NotNull @Override public Set<Entry<K, V>> entrySet() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 
     @Override public boolean equals(Object o) { return base.equals(o); }

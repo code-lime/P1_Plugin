@@ -1,5 +1,6 @@
 package org.lime.gp.database.mysql;
 
+import com.caoccao.javet.values.reference.IV8ValueObject;
 import com.google.common.collect.Streams;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -13,10 +14,10 @@ import org.bukkit.Bukkit;
 import org.lime.database.MiniConnectionPoolManager;
 import org.lime.gp.lime;
 import org.lime.system.Time;
+import org.lime.system.json;
 import org.lime.system.map;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.io.Closeable;
 import java.lang.reflect.Array;
@@ -138,13 +139,8 @@ public final class MySql implements Closeable {
             String str = stream.map(MySql::toSqlObject).collect(Collectors.joining(","));
             return "(" + (str.isEmpty() ? "NULL" : str) + ")";
         }
-        else if (value instanceof ScriptObjectMirror obj) {
-            if (obj.isArray()) {
-                JsonArray json = new JsonArray();
-                obj.values().forEach(v -> json.add(toSqlObject(v)));
-                return toSqlObject(json);
-            }
-            return toSqlObject(new Gson().toJsonTree(obj));
+        else if (value instanceof IV8ValueObject obj) {
+            return toSqlObject(json.parse(obj.toJsonString()));
         }
         else {
             lime.logOP("CLASS: " + value.getClass());
@@ -160,6 +156,11 @@ public final class MySql implements Closeable {
                 if (value instanceof Calendar) return Time.formatCalendar((Calendar)value, false);
                 return value.toString();
         }
+    }
+    public static String fromSqlObjectString(Object value) {
+        if (value == null) return "null";
+        if (value instanceof Calendar) return Time.formatCalendar((Calendar)value, false);
+        return value.toString();
     }
     static PreparedStatement prepareStatement(int state, ExecuteData debug, Connection connection, Toast1<String> sql, Map<String, Object> args) throws SQLException {
         if (args != null) {
@@ -184,6 +185,7 @@ public final class MySql implements Closeable {
         return map.of();
     }
 
+    /*
     public static int columnsCount(ResultSet set) {
         try {
             return set.getMetaData().getColumnCount();
@@ -243,8 +245,32 @@ public final class MySql implements Closeable {
             throw new IllegalArgumentException("ReadObject", ex);
         }
     }
-
     public static Object readEmpty(ResultSet set) {
+        return new Object();
+    }
+    */
+    public static int columnsCount(MySqlRow set) {
+        return set.columnsCount();
+    }
+    public static Object readObject(MySqlRow set, int index) {
+        return set.readObject(index);
+    }
+    public static <T>T readObject(MySqlRow set, int index, Class<T> tClass) {
+        return set.readObject(index, tClass);
+    }
+    public static Object readObject(MySqlRow set, String column) {
+        return set.readObject(column);
+    }
+    public static <T>T readObject(MySqlRow set, String column, Class<T> tClass) {
+        return set.readObject(column, tClass);
+    }
+    public static <T>Optional<T> readObjectOptional(MySqlRow set, String column, Class<T> tClass) {
+        return set.readObjectOptional(column, tClass);
+    }
+    public static boolean hasColumn(MySqlRow set, String column) {
+        return set.hasColumn(column);
+    }
+    public static Object readEmpty(MySqlRow set) {
         return new Object();
     }
 

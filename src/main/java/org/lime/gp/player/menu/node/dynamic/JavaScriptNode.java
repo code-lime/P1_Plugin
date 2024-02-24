@@ -72,11 +72,12 @@ public class JavaScriptNode extends BaseNode {
             }
             args.put(key, value);
         });
+        /*TODO*//*
         JavaScript.invoke(inputExecute.get(inputCode) + "", args)
                         .ifPresent(result -> {
                             outputResult.setNext(data, result);
                             outputAction.setNext(data, true);
                             outputAction.executeNext(player, nodes, data);
-                        });
+                        });*/
     }
 }

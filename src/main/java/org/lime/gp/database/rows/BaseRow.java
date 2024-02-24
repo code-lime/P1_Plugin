@@ -1,15 +1,15 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.system.toast.*;
 
 public abstract class BaseRow {
-    protected BaseRow(ResultSet set) { }
+    protected BaseRow(MySqlRow set) { }
     public Map<String, String> appendToReplace(Map<String, String> map) { return map; }
     public String applyToString(String line) { return applyToString(line, '{', '}'); }
     public String applyToString(String line, char start, char end) { return applyToString(line, start, end, new HashMap<>()); }

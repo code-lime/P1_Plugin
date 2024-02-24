@@ -41,7 +41,7 @@ public class BlockModelDisplay extends ObjectDisplay<ModelDisplayObject, Marker>
     @Override public void update(ModelDisplayObject data, double delta) {
         this.data = data;
         super.update(data, delta);
-        data.model().animation().apply(model.js, data.data());
+        /*TODO*///data.model().animation().apply(model.js, data.data());
         this.invokeAll(this::sendData);
     }
 

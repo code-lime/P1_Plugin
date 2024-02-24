@@ -2,8 +2,8 @@ package org.lime.gp.database.rows;
 
 import org.apache.commons.lang.StringUtils;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 
-import java.sql.ResultSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +23,7 @@ public class ReJoinRow extends BaseRow {
     public String identifier() { return identifier; }
 
 
-    public ReJoinRow(ResultSet set) {
+    public ReJoinRow(MySqlRow set) {
         super(set);
         index = MySql.readObject(set, "index", Integer.class);
         select = MySql.readObject(set, "select", Integer.class) == 1;

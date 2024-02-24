@@ -130,7 +130,7 @@ public class ChatMessages implements Listener {
                 .addCommand("js.test", v -> v
                         .withCheck(ServerOperator::isOp)
                         .withExecutor((sender, args) -> {
-                            sender.sendMessage(String.valueOf(JavaScript.invoke(String.join(" ", args), Collections.emptyMap()).orElse(null)));
+                            sender.sendMessage(String.valueOf(JavaScript.getJsString(String.join(" ", args)).orElse(null)));
                             return true;
                         })
                 );

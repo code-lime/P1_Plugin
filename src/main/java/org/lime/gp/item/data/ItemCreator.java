@@ -118,6 +118,8 @@ public class ItemCreator extends IItemCreator {
         this.item = json.get("item").getAsString();
         this.nullable_cache_item = EnumUtils.tryParse(Material.class, this.item).orElse(null);
         this.name = json.has("name") ? json.get("name").getAsString() : null;
+        if (json.has("id") && !json.get("id").isJsonPrimitive())
+            lime.logOP("ID IN '"+key+"' NOT SINGLE LINE: " + json.get("id") + " IN "+ json);
         this.id = json.has("id") ? json.get("id").getAsString() : null;
 
         int _id = 0;

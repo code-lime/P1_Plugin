@@ -1,5 +1,6 @@
 package org.lime.gp.block.component.data;
 
+import com.caoccao.javet.annotations.V8Function;
 import org.lime.gp.block.BlockComponentInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.CustomTileMetadata.Tickable;
