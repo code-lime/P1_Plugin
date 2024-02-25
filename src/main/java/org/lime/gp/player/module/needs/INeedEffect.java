@@ -155,6 +155,7 @@ public interface INeedEffect<T extends INeedEffect<T>> {
             case "thirst" -> Type.THIRST.create(json);
             case "food" -> Type.FOOD.create(json);
             case "effect" -> Type.EFFECT.create(json);
+            case "text" -> Type.TEXT.create(json);
             default -> throw new IllegalArgumentException("Type '"+json.get("type").getAsString()+"' not supported");
         };
     }
