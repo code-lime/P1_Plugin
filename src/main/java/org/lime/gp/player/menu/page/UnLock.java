@@ -72,7 +72,7 @@ public class UnLock extends Base {
 
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
-        apply.get("block_x").ifPresent(x -> apply.get("block_y").ifPresent(y -> apply.get("block_z").ifPresent(z -> {
+        apply.get("block_pos_x").ifPresent(x -> apply.get("block_pos_y").ifPresent(y -> apply.get("block_pos_z").ifPresent(z -> {
             Location blockLocation = new Location(player.getWorld(), Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z));
             for (Toast2<String, UnLockData> item : unlock) {
                 if (JavaScript.isJsTrue(ChatHelper.formatText(item.val0, apply)).filter(_v -> _v).isEmpty()) continue;
