@@ -37,16 +37,16 @@ import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 import org.bukkit.Material;
+import org.lime.Position;
 import org.lime.display.DisplayManager;
 import org.lime.display.Displays;
 import org.lime.display.ObjectDisplay;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.Blocks;
+import org.lime.gp.block.component.data.OtherGenericInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.Methods;
-import org.lime.gp.database.rows.AnyRow;
-import org.lime.gp.database.rows.HouseRow;
-import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.database.rows.*;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.extension.Zone;
 import org.lime.gp.lime;
@@ -55,11 +55,9 @@ import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.selector.ZoneSelector;
 import org.lime.gp.player.ui.EditorUI;
 import org.lime.plugin.CoreElement;
-import org.lime.system.EnumFlag;
 import org.lime.system.map;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
-import org.lime.system.utils.ParseUtils;
 import org.lime.system.utils.RandomUtils;
 
 import javax.imageio.ImageIO;
@@ -71,9 +69,61 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class TownInventory implements Listener {
+    public interface IPrivatePattern {
+        boolean isCantBlock(String block);
+        boolean isCantBreaks(String block);
+        boolean isCantEntity(EntityType entity);
+
+        boolean isCheck(String block);
+        boolean isCheck(EntityType entity);
+
+        static IPrivatePattern combine(List<? extends IPrivatePattern> patterns) {
+            return new IPrivatePattern() {
+                @Override public boolean isCantBlock(String block) {
+                    for (IPrivatePattern pattern : patterns)
+                        if (!pattern.isCantBlock(block))
+                            return false;
+                    return true;
+                }
+                @Override public boolean isCantBreaks(String block) {
+                    for (IPrivatePattern pattern : patterns)
+                        if (!pattern.isCantBreaks(block))
+                            return false;
+                    return true;
+                }
+                @Override public boolean isCantEntity(EntityType entity) {
+                    for (IPrivatePattern pattern : patterns)
+                        if (!pattern.isCantEntity(entity))
+                            return false;
+                    return true;
+                }
+
+                @Override public boolean isCheck(String block) {
+                    for (IPrivatePattern pattern : patterns)
+                        if (pattern.isCheck(block))
+                            return true;
+                    return false;
+                }
+                @Override public boolean isCheck(EntityType entity) {
+                    for (IPrivatePattern pattern : patterns)
+                        if (pattern.isCheck(entity))
+                            return true;
+                    return false;
+                }
+            };
+        }
+        IPrivatePattern EMPTY = new IPrivatePattern() {
+            @Override public boolean isCantBlock(String block) { return true; }
+            @Override public boolean isCantBreaks(String block) { return true; }
+            @Override public boolean isCantEntity(EntityType entity) { return true; }
+
+            @Override public boolean isCheck(String block) { return false; }
+            @Override public boolean isCheck(EntityType entity) { return false; }
+        };
+    }
+
     private static boolean debug = false;
 
     private record ImagePoint(int x, int y) {
@@ -221,8 +271,8 @@ public class TownInventory implements Listener {
                     DisplayHtml.buffer.clear();
                     DrawMap.bufferReset();
                     Displays.initDisplay(HOME_MANAGER);
-                })))
-                .<JsonObject>addConfig("private_pattern", v -> v.withInvoke(TownInventory::patternConfig).withDefault(new JsonObject()));
+                })));
+                //.<JsonObject>addConfig("private_pattern", v -> v.withInvoke(TownInventory::patternConfig).withDefault(new JsonObject()));
     }
 
     public enum HtmlType {
@@ -248,44 +298,14 @@ public class TownInventory implements Listener {
     }
     private static final HomeManager HOME_MANAGER = new HomeManager();
 
-    public static class PrivatePattern extends EnumFlag {
-        private static final HashMap<String, PrivatePattern> patternBreaks = new HashMap<>();
-        private static final HashMap<String, PrivatePattern> patternBlocks = new HashMap<>();
-        private static final HashMap<EntityType, PrivatePattern> patternEntities = new HashMap<>();
-        public final int index;
-        public final String name;
-        public final List<String> blocks;
-        public final List<String> breaks;
-        public final List<EntityType> entities;
-        private PrivatePattern(int index, String name, List<String> breaks, List<String> blocks, List<EntityType> entities) {
-            this.index = index;
-            this.name = name;
-            this.breaks = breaks;
-            this.blocks = blocks;
-            this.entities = entities;
-        }
-        public static PrivatePattern parse(String name, JsonObject json) {
-            int index = json.get("index").getAsInt();
-
-            return new PrivatePattern(
-                    index,
-                    name,
-                    ParseUtils.parseGet(json, "breaks", Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v),
-                    ParseUtils.parseGet(json, "blocks", Stream.concat(Blocks.creators.keySet().stream(), Arrays.stream(Material.values()).map(Enum::name)).collect(Collectors.toSet()), v -> v),
-                    ParseUtils.parseGet(json, "entities", List.of(EntityType.values()), Enum::name));
-        }
-        private void addToPatterns() {
-            this.breaks.forEach(m -> patternBreaks.put(m, this));
-            this.blocks.forEach(m -> patternBlocks.put(m, this));
-            this.entities.forEach(m -> patternEntities.put(m, this));
-        }
-
-        @Override protected long getBit() {
-            return 1L << index;
-        }
+    private static final ConcurrentHashMap<Integer, IPrivatePattern> housePatterns = new ConcurrentHashMap<>();
+    public static void onUpdate(PrivateHouseRow row) {
+        lime.onceTicks(() -> housePatterns.put(row.houseId, IPrivatePattern.combine(PrivateHouseRow
+                .getBy(v -> v.houseId == row.houseId && !v.status)
+                .stream()
+                .flatMap(v -> PrivatePatternRow.getBy(v.patternId).stream())
+                .toList())), 2);
     }
-
-    public static final HashMap<String, PrivatePattern> patterns = new HashMap<>();
 
     private static boolean HTML_RENDER = true;
 
@@ -340,6 +360,7 @@ public class TownInventory implements Listener {
         boolean isShift = player.isSneaking();
         display.onClick(player, isShift);
     }
+    /*
     public static void patternConfig(JsonObject json) {
         HashMap<String, PrivatePattern> patterns = new HashMap<>();
         json.entrySet().forEach(kv -> patterns.put(kv.getKey(), PrivatePattern.parse(kv.getKey(), kv.getValue().getAsJsonObject())));
@@ -351,6 +372,7 @@ public class TownInventory implements Listener {
         TownInventory.patterns.put("NONE", null);
         patterns.values().forEach(PrivatePattern::addToPatterns);
     }
+    */
 
     private static class HomeDisplay extends ObjectDisplay<HouseRow, EntityItemFrame> {
         private static final ConcurrentHashMap<Integer, byte[]> house_list = new ConcurrentHashMap<>();
@@ -453,19 +475,25 @@ public class TownInventory implements Listener {
         return null;
     }
     private static boolean isCantBreak(Block block, Player player) {
-        PrivatePattern privateType = PrivatePattern.patternBreaks.getOrDefault(Blocks.getBlockKey(block), null);
-        if (privateType == null) return false;
-        return isCant(privateType, block.getLocation().add(0.5, 0.5, 0.5), player);
+        //PrivatePattern privateType = PrivatePattern.patternBreaks.getOrDefault(Blocks.getBlockKey(block), null);
+        //if (privateType == null) return false;
+        String blockKey = Blocks.getBlockKey(block);
+        if (!Tables.PRIVATE_PATTERN.hasBy(row -> row.isCheck(blockKey))) return false;
+        return isCant(v -> v.isCantBlock(blockKey), block.getLocation().add(0.5, 0.5, 0.5), player);
     }
     private static boolean isCantBlock(Block block, Player player) {
-        PrivatePattern privateType = PrivatePattern.patternBlocks.getOrDefault(Blocks.getBlockKey(block), null);
-        if (privateType == null) return false;
-        return isCant(privateType, block.getLocation().add(0.5, 0.5, 0.5), player);
+        //PrivatePattern privateType = PrivatePattern.patternBlocks.getOrDefault(Blocks.getBlockKey(block), null);
+        //if (privateType == null) return false;
+        String blockKey = Blocks.getBlockKey(block);
+        if (!Tables.PRIVATE_PATTERN.hasBy(row -> row.isCheck(blockKey))) return false;
+        return isCant(v -> v.isCantBlock(blockKey), block.getLocation().add(0.5, 0.5, 0.5), player);
     }
     private static boolean isCantDamage(EntityType entity, Location pos, Player player) {
-        PrivatePattern privateType = PrivatePattern.patternEntities.getOrDefault(entity, null);
-        if (privateType == null) return false;
-        return isCant(privateType, pos, player);
+        //Func1<IPrivatePattern, Boolean> privateCant
+        //PrivatePattern privateType = PrivatePattern.patternEntities.getOrDefault(entity, null);
+        //if (privateType == null) return false;
+        if (!Tables.PRIVATE_PATTERN.hasBy(row -> row.isCheck(entity))) return false;
+        return isCant(v -> v.isCantEntity(entity), pos, player);
     }
 
     private static class HomePerm {
@@ -473,15 +501,15 @@ public class TownInventory implements Listener {
         private final List<HomePerm> perms = new ArrayList<>();
         private HomePerm(HouseRow row) { this.row = row; }
         private void child(HomePerm room) { perms.add(room); }
-        public Boolean isCan(PrivatePattern privateType, Location pos, UserRow user) {
-            return display(privateType, pos, user, false).val1;
+        public Boolean isCan(Func1<IPrivatePattern, Boolean> privateCant, Location pos, UserRow user) {
+            return display(privateCant, pos, user, false).val1;
         }
-        public Toast2<List<String>, Boolean> display(PrivatePattern privateType, Location pos, UserRow user, boolean createList) {
+        public Toast2<List<String>, Boolean> display(Func1<IPrivatePattern, Boolean> privateCant, Location pos, UserRow user, boolean createList) {
             String prefix = StringUtils.leftPad(String.valueOf(row.id), 2, '0');
             List<String> list = createList ? new ArrayList<>() : null;
             Boolean state = null;
             for (HomePerm perm : perms) {
-                Toast2<List<String>, Boolean> _state = perm.display(privateType, pos, user, createList);
+                Toast2<List<String>, Boolean> _state = perm.display(privateCant, pos, user, createList);
                 if (createList) _state.val0.forEach(line -> list.add(" - " + line));
                 if (state == null || state) state = _state.val1 == null ? state : _state.val1;
                 else state = false;
@@ -496,7 +524,7 @@ public class TownInventory implements Listener {
                     state = true;
                     if (createList) list.add(ChatColor.GREEN + prefix + ": SUB");
                 }
-                else if (!PrivatePattern.has(row.private_flags, privateType)) {
+                else if (privateCant.invoke(housePatterns.getOrDefault(row.id, IPrivatePattern.EMPTY))) {
                     state = state != null && state;
                     if (createList) list.add(ChatColor.RED + prefix + ": PRIVATE");
                 }
@@ -523,11 +551,11 @@ public class TownInventory implements Listener {
             });
             return new ArrayList<>(map.values());
         }
-        public static boolean isCanAll(PrivatePattern privateType, Location pos, UserRow user) {
+        public static boolean isCanAll(Func1<IPrivatePattern, Boolean> privateCant, Location pos, UserRow user) {
             List<HomePerm> homes = HomePerm.getAll();
             Boolean state = null;
             for (HomePerm home : homes) {
-                Boolean _state = home.isCan(privateType, pos, user);
+                Boolean _state = home.isCan(privateCant, pos, user);
                 if (state == null || state) state = _state == null ? state : _state;
                 else state = false;
             }
@@ -535,8 +563,10 @@ public class TownInventory implements Listener {
         }
     }
 
-    private static boolean isCant(PrivatePattern privateType, Location pos, Player player) {
-        return UserRow.getBy(player.getUniqueId()).map(user -> !user.isOwner() && !HomePerm.isCanAll(privateType, pos, user)).orElse(true);
+    private static boolean isCant(Func1<IPrivatePattern, Boolean> privateCant, Location pos, Player player) {
+        return UserRow.getBy(player.getUniqueId())
+                .map(user -> !user.isOwner() && !HomePerm.isCanAll(privateCant, pos, user))
+                .orElse(true);
     }
     private static Player getOwner(Entity damager) {
         if (damager instanceof Player) return (Player)damager;
@@ -565,6 +595,7 @@ public class TownInventory implements Listener {
         if (block == null) return;
         Player player = e.getPlayer();
         if (player.getWorld() != lime.MainWorld) return;
+        lime.logOP("ICB.0: " + Blocks.getBlockKey(block));
         if (isCantBlock(block, player)) {
             if (block.getType() == Material.LECTERN) {
                 Lectern lectern = (Lectern) block.getState();
@@ -578,13 +609,37 @@ public class TownInventory implements Listener {
                     }
                 }
             }
-            MenuCreator.show(player, "interact.lock", Apply.of()
-                    .add("block_x", String.valueOf(block.getX()))
-                    .add("block_y", String.valueOf(block.getY()))
-                    .add("block_z", String.valueOf(block.getZ()))
-                    .add("block_type", block.getType().name())
-            );
+
+            lime.logOP("ICB.1");
+            Apply data = Apply.of()
+                    .add("block_type", block.getType().name());
+            Blocks.of(block)
+                    .flatMap(Blocks::customOf)
+                    .map(metadata -> metadata.list(OtherGenericInstance.class).findFirst().flatMap(OtherGenericInstance::owner).flatMap(Blocks::customOf).orElse(metadata))
+                    .ifPresentOrElse(
+                            metadata -> {
+                                Position position = metadata.position();
+                                data
+                                        .add("block_pos_x", String.valueOf(position.x))
+                                        .add("block_pos_y", String.valueOf(position.y))
+                                        .add("block_pos_z", String.valueOf(position.z))
+                                        .add("block_pos", position.toSave())
+
+                                        .add("block_key", metadata.key.type())
+                                        .add("block_uuid", metadata.key.uuid().toString());
+                            },
+                            () -> data
+                                    .add("block_pos_x", String.valueOf(block.getX()))
+                                    .add("block_pos_y", String.valueOf(block.getY()))
+                                    .add("block_pos_z", String.valueOf(block.getZ()))
+                                    .add("block_pos", block.getX() + " " + block.getY() + " " + block.getZ()));
+
+            MenuCreator.show(player, "interact.lock", data);
             e.setCancelled(true);
+            /*
+                            .add("block_uuid", metadata.key.uuid().toString())
+                .add("block_pos", position.toSave())
+            */
         }
     }
     @EventHandler public static void onSwap(PlayerArmorStandManipulateEvent e) {

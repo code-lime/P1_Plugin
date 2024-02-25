@@ -1,5 +1,6 @@
 package org.lime.gp.database.tables;
 
+import org.lime.gp.player.inventory.TownInventory;
 import org.lime.gp.player.module.DeathGame;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
@@ -178,5 +179,16 @@ public class Tables {
             .optional()
             .keyed("id", v -> String.valueOf(v.id))
             .other("user_id", v -> String.valueOf(v.userID))
+            .build();
+
+    public static final KeyedTable<PrivateHouseRow> PRIVATE_HOUSE = KeyedTable.of("private_house", PrivateHouseRow::new)
+            .optional()
+            .keyed("id", v -> String.valueOf(v.id))
+            .event(KeyedTable.Event.Removed, TownInventory::onUpdate)
+            .event(KeyedTable.Event.Updated, TownInventory::onUpdate)
+            .build();
+    public static final KeyedTable<PrivatePatternRow> PRIVATE_PATTERN = KeyedTable.of("private_pattern", PrivatePatternRow::new)
+            .optional()
+            .keyed("id", v -> String.valueOf(v.id))
             .build();
 }
