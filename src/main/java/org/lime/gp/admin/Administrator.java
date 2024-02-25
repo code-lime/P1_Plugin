@@ -36,6 +36,7 @@ import org.lime.gp.player.module.*;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
 import org.lime.gp.player.module.needs.thirst.Thirst;
 import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.player.voice.Voice;
 import org.lime.plugin.CoreElement;
 import org.lime.system.Time;
@@ -418,7 +419,7 @@ public class Administrator implements Listener {
             if (player == null) return;
             effects.forEach(player::addPotionEffect);
             Thirst.thirstReset(player);
-            CustomUI.TextUI.show(player, "До выхода: " + (row.timeToEnd == null ? "Неограничено" : Time.formatTotalTime(row.timeToEnd, Time.Format.DAY_TIME)) + (isNullOrEmpty(row.reason) ? "" : (" | Причина: " + row.reason)), 15);
+            CustomUI.TextUI.show(player, ImageBuilder.of(player, "До выхода: " + (row.timeToEnd == null ? "Неограничено" : Time.formatTotalTime(row.timeToEnd, Time.Format.DAY_TIME)) + (isNullOrEmpty(row.reason) ? "" : (" | Причина: " + row.reason))), 15);
             Location playerLoc = player.getLocation();
             if (lime.isLay(player)) {
                 Death.up(player);
@@ -458,7 +459,7 @@ public class Administrator implements Listener {
                 else {
                     tags.remove("leg.broken");
                     SleepSaturation.reset(player);
-                    if (isImmortality) CustomUI.TextUI.show(player, "[Бессмертие]", 15);
+                    if (isImmortality) CustomUI.TextUI.show(player, ImageBuilder.of(player, "[Бессмертие]"), 15);
                     if (Death.isDamageLay(uuid)) Death.up(uuid);
                     player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                     ProxyFoodMetaData.ofPlayer(player)

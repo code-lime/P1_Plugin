@@ -40,6 +40,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.lime.docs.json.IComment;
 import org.lime.docs.json.IEnumDocs;
+import org.lime.gp.player.ui.CustomUI;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.item.Items;
@@ -176,7 +177,8 @@ public class Bullets implements Listener {
                         .filter(ticks -> !(entity instanceof Player player && gmList.contains(player.getGameMode())))
                         .ifPresent(ticks -> {
                             float rnd = (float) RandomUtils.rand(0.0, 0.5);
-                            entity.showTitle(Title.title(BLUR.withColor(TextColor.color(rnd, rnd, 0.5f)).build(), Component.empty(), Title.Times.times(Duration.ZERO, Duration.ofMillis(250), Duration.ZERO)));
+                            if (entity instanceof Player player)
+                                CustomUI.TitleUI.show(player, BLUR.withColor(TextColor.color(rnd, rnd, 0.5f)));
                             entity.addPotionEffect(TASER_FREEZE);
                             if (ticks % 10 == 0 && entity instanceof CraftLivingEntity centity) {
                                 EntityLiving eentity = centity.getHandle();

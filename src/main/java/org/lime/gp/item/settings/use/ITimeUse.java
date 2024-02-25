@@ -14,6 +14,7 @@ import org.lime.gp.player.module.Death;
 import org.lime.gp.player.module.HandCuffs;
 import org.lime.gp.player.perm.Perms;
 import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.ImageBuilder;
 
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ public interface ITimeUse<T extends ITarget> extends IUse<T> {
                         .map(setting -> {
                             double sec = Cooldown.getCooldown(player.getUniqueId(), useCooldownKey());
                             if (sec <= 0) return false;
-                            CustomUI.TextUI.show(player, cooldownPrefix() + UseSetting.timerMs((int) Math.floor(sec * 20)));
+                            CustomUI.TextUI.show(player, ImageBuilder.of(player, cooldownPrefix() + UseSetting.timerMs((int) Math.floor(sec * 20))));
                             return true;
                         })
                 )
@@ -72,7 +73,7 @@ public interface ITimeUse<T extends ITarget> extends IUse<T> {
                                 CustomUI.TextUI.hide(player);
                                 return true;
                             }
-                            CustomUI.TextUI.show(player, prefix(target.isSelf()) + UseSetting.timerMs(_ticks));
+                            CustomUI.TextUI.show(player, ImageBuilder.of(player, prefix(target.isSelf()) + UseSetting.timerMs(_ticks)));
                             Cooldown.setCooldown(player.getUniqueId(), "use_item", 1);
                             lime.onceTicks(() -> {
                                 if (!item.isSimilar(player.getInventory().getItemInMainHand())) return;

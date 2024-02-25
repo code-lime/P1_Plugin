@@ -4,11 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-
 import org.bukkit.entity.Player;
-
 import org.lime.gp.chat.ChatHelper;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +27,9 @@ public class ImageBuilder {
     }
 
     public static ImageBuilder of(Player player, String text) {
+        return of(text, ChatHelper.getTextSize(player, text), true);
+    }
+    public static ImageBuilder of(Player player, Component text) {
         return of(text, ChatHelper.getTextSize(player, text), true);
     }
     public static ImageBuilder of(String image, int size, boolean shadow) {

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutBoss;
 import net.minecraft.world.BossBattle;
@@ -27,12 +28,14 @@ import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.RemoteExecuteSetting;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.player.module.Login;
 import org.lime.plugin.CoreElement;
 import org.lime.system.json;
 import org.lime.system.map;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
+import java.time.Duration;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -73,7 +76,8 @@ public class CustomUI implements Listener {
 
     public enum IType {
         ACTIONBAR,
-        BOSSBAR;
+        BOSSBAR,
+        TITLE;
 
         private static final HashMap<UUID, Integer> is_show = new HashMap<>();
 
@@ -91,10 +95,10 @@ public class CustomUI implements Listener {
                 return false;
             });
         }
-        public void show(Player player, Component component) {
+        public void show(Player player, Component component, boolean empty) {
             switch (this) {
-                case ACTIONBAR: player.sendActionBar(component.append(NOT_SUPPORTED)); return;
-                case BOSSBAR: {
+                case ACTIONBAR -> player.sendActionBar(component.append(NOT_SUPPORTED));
+                case BOSSBAR -> {
                     if (!ExtMethods.isPlayerLoaded(player)) return;
                     UUID uuid = player.getUniqueId();
                     Integer count = is_show.getOrDefault(uuid, null);
@@ -103,7 +107,12 @@ public class CustomUI implements Listener {
                             : PacketPlayOutBoss::createAddPacket;
                     is_show.put(uuid, 3);
                     PacketManager.sendPacket(player, action.invoke(new CustomBossBattle(player.getUniqueId(), ChatHelper.toNMS(component), BossBattle.BarColor.WHITE, BossBattle.BarStyle.PROGRESS, 1)));
-                    return;
+                }
+                case TITLE -> {
+                    if (!ExtMethods.isPlayerLoaded(player)) return;
+                    if (Login.isTitleLogin(player)) return;
+                    if (empty) return;
+                    player.showTitle(Title.title(component, Component.empty(), Title.Times.times(Duration.ZERO, Duration.ofMillis(250), Duration.ZERO)));
                 }
             }
         }
@@ -303,20 +312,20 @@ public class CustomUI implements Listener {
     }
     public static class TextUI extends GUI {
         private TextUI() { super(IType.ACTIONBAR); }
-        private static final HashMap<UUID, Toast3<String, Integer, Component>> showTexts = new HashMap<>();
+        private static final HashMap<UUID, Toast2<Integer, Collection<ImageBuilder>>> showTexts = new HashMap<>();
 
-        public static void show(Player player, String text) {
+        public static void show(Player player, ImageBuilder text) {
             show(player, text, 3);
         }
-        public static void show(Player player, String text, int ticks) {
-            showTexts.put(player.getUniqueId(), Toast.of(text, ticks, Component.text(text)));
+        public static void show(Player player, ImageBuilder text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ticks, Collections.singleton(text)));
             CustomUI.updatePlayer(player);
         }
-        public static void show(Player player, Component text) {
+        public static void show(Player player, Collection<ImageBuilder> text) {
             show(player, text, 3);
         }
-        public static void show(Player player, Component text, int ticks) {
-            showTexts.put(player.getUniqueId(), Toast.of(ChatHelper.getText(text), ticks, text));
+        public static void show(Player player, Collection<ImageBuilder> text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ticks, text));
             CustomUI.updatePlayer(player);
         }
         public static void hide(Player player) {
@@ -325,22 +334,60 @@ public class CustomUI implements Listener {
         }
         @Override public Collection<ImageBuilder> getUI(Player player) {
             UUID uuid = player.getUniqueId();
-            Toast3<String, Integer, Component> uses = showTexts.getOrDefault(uuid, null);
+            Toast2<Integer, Collection<ImageBuilder>> uses = showTexts.getOrDefault(uuid, null);
             if (uses == null) return Collections.emptyList();
-            uses.val1--;
-            if (uses.val1 <= 0) showTexts.remove(uuid);
-            return Collections.singleton(ImageBuilder.of(uses.val2, ChatHelper.getTextSize(player, uses.val0), true));
+            uses.val0--;
+            if (uses.val0 <= 0) showTexts.remove(uuid);
+            return uses.val1;
+        }
+    }
+    public static class BossBarUI extends GUI {
+        private BossBarUI() { super(IType.BOSSBAR); }
+        private static final HashMap<UUID, Toast2<Integer, Collection<ImageBuilder>>> showTexts = new HashMap<>();
+
+        public static void show(Player player, ImageBuilder text) {
+            show(player, text, 3);
+        }
+        public static void show(Player player, ImageBuilder text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ticks, Collections.singleton(text)));
+            CustomUI.updatePlayer(player);
+        }
+        public static void show(Player player, Collection<ImageBuilder> text) {
+            show(player, text, 3);
+        }
+        public static void show(Player player, Collection<ImageBuilder> text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ticks, text));
+            CustomUI.updatePlayer(player);
+        }
+        public static void hide(Player player) {
+            showTexts.remove(player.getUniqueId());
+            CustomUI.updatePlayer(player);
+        }
+        @Override public Collection<ImageBuilder> getUI(Player player) {
+            UUID uuid = player.getUniqueId();
+            Toast2<Integer, Collection<ImageBuilder>> uses = showTexts.getOrDefault(uuid, null);
+            if (uses == null) return Collections.emptyList();
+            uses.val0--;
+            if (uses.val0 <= 0) showTexts.remove(uuid);
+            return uses.val1;
         }
     }
     public static class TitleUI extends GUI {
-        private TitleUI() { super(IType.BOSSBAR); }
-        private static final HashMap<UUID, Toast2<String, Integer>> showTexts = new HashMap<>();
+        private TitleUI() { super(IType.TITLE); }
+        private static final HashMap<UUID, Toast2<Integer, Collection<ImageBuilder>>> showTexts = new HashMap<>();
 
-        public static void show(Player player, String text) {
+        public static void show(Player player, ImageBuilder text) {
             show(player, text, 3);
         }
-        public static void show(Player player, String text, int ticks) {
-            showTexts.put(player.getUniqueId(), Toast.of(text, ticks));
+        public static void show(Player player, ImageBuilder text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ticks, Collections.singleton(text)));
+            CustomUI.updatePlayer(player);
+        }
+        public static void show(Player player, Collection<ImageBuilder> text) {
+            show(player, text, 3);
+        }
+        public static void show(Player player, Collection<ImageBuilder> text, int ticks) {
+            showTexts.put(player.getUniqueId(), Toast.of(ticks, text));
             CustomUI.updatePlayer(player);
         }
         public static void hide(Player player) {
@@ -349,17 +396,18 @@ public class CustomUI implements Listener {
         }
         @Override public Collection<ImageBuilder> getUI(Player player) {
             UUID uuid = player.getUniqueId();
-            Toast2<String, Integer> uses = showTexts.getOrDefault(uuid, null);
+            Toast2<Integer, Collection<ImageBuilder>> uses = showTexts.getOrDefault(uuid, null);
             if (uses == null) return Collections.emptyList();
-            uses.val1--;
-            if (uses.val1 <= 0) showTexts.remove(uuid);
-            return Collections.singleton(ImageBuilder.of(player, uses.val0));
+            uses.val0--;
+            if (uses.val0 <= 0) showTexts.remove(uuid);
+            return uses.val1;
         }
     }
 
     public static void init() {
         CustomUI.addListener(new TextUI());
         CustomUI.addListener(new TextGlobalUI());
+        CustomUI.addListener(new BossBarUI());
         CustomUI.addListener(new TitleUI());
         lime.repeatTicks(CustomUI::update, 2);
     }
@@ -423,7 +471,7 @@ public class CustomUI implements Listener {
         HashMap<IType, List<ImageBuilder>> builders = new HashMap<>();
         for (IType type : IType.values()) builders.put(type, new LinkedList<>());
         for (IUI iui : iuis) builders.get(iui.getType()).addAll(iui.getUI(player));
-        builders.forEach((type, list) -> type.show(player, Component.empty().append(ImageBuilder.join(list, 1))));
+        builders.forEach((type, list) -> type.show(player, Component.empty().append(ImageBuilder.join(list, 1)), list.isEmpty()));
     }
     @EventHandler public static void on(PlayerJoinEvent e) { RP.send(e.getPlayer()); }
 }

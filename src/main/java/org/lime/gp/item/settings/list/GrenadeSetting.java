@@ -50,6 +50,7 @@ import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.module.TargetMove;
 import org.lime.gp.player.module.needs.INeedEffect;
 import org.lime.gp.player.module.needs.NeedSystem;
+import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonObjectOptional;
@@ -260,7 +261,7 @@ public class GrenadeSetting extends ItemSetting<JsonObject> implements ITimeUse<
             ImageBuilder blur = Bullets.BLUR.withColor(TextColor.color(1f, 1f, 1f));
             for (int i = 0; i < Math.min(BLUR_FLASH, blurForce / 2); i++)
                 images.add(blur);
-            player.showTitle(Title.title(ImageBuilder.join(images), Component.empty(), Title.Times.times(Duration.ZERO, Duration.ofMillis(250), Duration.ZERO)));
+            CustomUI.TitleUI.show(player, images);
             lime.onceTicks(() -> tick(player, blurForce - 1), 1);
         }
     }

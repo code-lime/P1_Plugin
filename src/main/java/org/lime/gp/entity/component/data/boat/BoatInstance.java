@@ -37,6 +37,7 @@ import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.module.DrawText;
 import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.Time;
 import org.lime.system.json;
@@ -174,7 +175,7 @@ public class BoatInstance extends EntityComponentInstance<BoatComponent> impleme
                             .flatMap(v -> v.sitter().map(__v -> Toast.of(_v, __v)).stream()))
                     .findAny()
                     .ifPresentOrElse(data -> data.invoke((display, player) ->
-                                    CustomUI.TextUI.show(player, LangMessages.Message.Boat_Status.getSingleMessage(Apply.of().add(display.getAll())), 15)),
+                                    CustomUI.TextUI.show(player, ImageBuilder.of(player, LangMessages.Message.Boat_Status.getSingleMessage(Apply.of().add(display.getAll()))), 15)),
                             () -> input.set(0, 0));
 
             forceInput = forceInput.lerp(input, 0.1f);

@@ -25,6 +25,7 @@ import org.lime.gp.item.settings.use.target.PlayerTarget;
 import org.lime.gp.item.settings.use.target.SelfTarget;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.plugin.CoreElement;
 import org.lime.system.execute.Action2;
 import org.lime.system.execute.Execute;
@@ -136,7 +137,7 @@ public class UseSetting implements Listener {
         }
         Location l1 = player.getLocation().clone();
         Location l2 = target.getLocation().clone();
-        CustomUI.TextUI.show(player, timerMs(ticks));
+        CustomUI.TextUI.show(player, ImageBuilder.of(player, timerMs(ticks)));
         Cooldown.setCooldown(player.getUniqueId(), "use_item", 1);
         lime.onceTicks(() -> {
             if (!isDistance(l1, player.getLocation(), distance) || !isDistance(l2, target.getLocation(), distance)) return;
