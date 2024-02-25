@@ -36,6 +36,7 @@ import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.*;
+import org.lime.gp.lime;
 import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
@@ -64,6 +65,16 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         public SafeBoxCounter(Position position) {
             this.position = position;
         }
+    }
+
+    public void executeOpen() {
+        CustomTileMetadata metadata = metadata();
+        SafeBoxComponent component = component();
+        Sounds.playSound(component.sound_open, metadata.location(0.5, 0.5, 0.5));
+        timeToClose = System.currentTimeMillis() + 1000L * component.close_time;
+        syncDisplayVariable(metadata);
+        saveData();
+        open();
     }
 
     public Long timeToClose = null;
@@ -141,6 +152,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         return true;
     }
     @Override public EnumInteractionResult onInteract(CustomTileMetadata metadata, BlockSkullInteractInfo event) {
+        if (!component().interact) return EnumInteractionResult.PASS;
         List<HouseRow> houseRows = HouseRow.getInHouse(metadata.location());
         if (houseRows.stream().noneMatch(v -> v.type == HouseRow.HouseType.BANK_VAULT)) return EnumInteractionResult.PASS;
         if (HouseRow.useType(houseRows, event.player().getUUID()) != HouseRow.UseType.Deny) return EnumInteractionResult.PASS;
@@ -220,11 +232,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
                         target.openMenu(_this);
                     }
                     public void open() {
-                        Sounds.playSound(component.sound_open, metadata.location(0.5, 0.5, 0.5));
-                        timeToClose = System.currentTimeMillis() + 1000L * component.close_time;
-                        syncDisplayVariable(metadata);
-                        saveData();
-                        SafeBoxInstance.this.open();
+                        executeOpen();
                         target.closeContainer();
                     }
                     @Override protected Slot addSlot(Slot slot) {
@@ -323,7 +331,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
         return EnumInteractionResult.CONSUME;
     }
     @Override public final void syncDisplayVariable(CustomTileMetadata metadata) {
-        if (!component().small) return;
+        //if (!component().small) return;
         metadata().list(DisplayInstance.class).findAny().ifPresent(display -> display.set("open_state", timeToClose == null ? "false" : "true"));
     }
 }
