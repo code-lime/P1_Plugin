@@ -27,8 +27,8 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.lime.core;
 import org.lime.gp.database.rows.CityRow;
+import org.lime.gp.player.ui.CustomUI;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.database.Methods;
@@ -39,7 +39,6 @@ import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.system.Time;
 import org.lime.system.map;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 
 import java.net.InetAddress;
@@ -188,10 +187,14 @@ public class Login implements Listener {
         lime.repeat(Login::update, 0.1);
     }
     private static final HashMap<Player, BukkitTask> teleportToMain = new HashMap<>();
+    private static final HashMap<UUID, Long> timeTitleLogin = new HashMap<>();
+
     private static final Component single = ImageBuilder.of(0xEff9, 2000).withColor(NamedTextColor.BLACK).build();
 
     public static void update() {
         if (!Tables.USER_TABLE.isInit()) return;
+        long now = System.currentTimeMillis();
+        timeTitleLogin.entrySet().removeIf(kv -> kv.getValue() < now);
         teleportToMain.entrySet().removeIf(kv -> {
             if (kv.getKey().isOnline()) return false;
             kv.getValue().cancel();
@@ -203,8 +206,9 @@ public class Login implements Listener {
                 if (player.getGameMode() == GameMode.SURVIVAL) player.setGameMode(GameMode.ADVENTURE);
                 if (isInit) {
                     if (!teleportToMain.containsKey(player)) {
-                        player.showTitle(Title.title(single, Component.empty(), Title.Times.times(Duration.ofSeconds(5), Duration.ofSeconds(2), Duration.ofSeconds(5))));
                         teleportToMain.put(player, lime.once(() -> player.teleport(getMainLocation(player)), 5));
+                        timeTitleLogin.put(player.getUniqueId(), now + 13 * 1000);
+                        player.showTitle(Title.title(single, Component.empty(), Title.Times.times(Duration.ofSeconds(5), Duration.ofSeconds(2), Duration.ofSeconds(5))));
                     }
                 }
             } else {
@@ -224,6 +228,9 @@ public class Login implements Listener {
 
     public static boolean isLogin(Player player) {
         return player.getWorld() == lime.LoginWorld;
+    }
+    public static boolean isTitleLogin(Player player) {
+        return timeTitleLogin.containsKey(player.getUniqueId());
     }
 
     private static final Map<UUID, Map<UUID, String>> multiList = map.<UUID, Map<UUID, String>>of()
