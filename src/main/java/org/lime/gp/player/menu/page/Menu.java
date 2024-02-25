@@ -37,7 +37,7 @@ public class Menu extends Base {
     public ItemCreator background;
     public int rows;
     public HashMap<Integer, ISlot> slots = new HashMap<>();
-    public HashMap<String, Table> tables = new HashMap<>();
+    public List<Toast2<String, Table>> tables = new ArrayList<>();
     public List<Roll> rolls = new ArrayList<>();
 
     private static int getRows(int slots) {
@@ -55,7 +55,7 @@ public class Menu extends Base {
             //rangeOf(kv.getKey()).forEach(i -> slots.put(i, slot));
         });
         background = json.has("background") ? StaticSlot.parse(json.get("background").getAsJsonObject()) : null;
-        if (json.has("tables")) json.get("tables").getAsJsonObject().entrySet().forEach(kv -> tables.put(kv.getKey(), Table.parse(this, kv.getValue().getAsJsonObject())));
+        if (json.has("tables")) json.get("tables").getAsJsonObject().entrySet().forEach(kv -> tables.add(Toast.of(kv.getKey(), Table.parse(this, kv.getValue().getAsJsonObject()))));
         if (json.has("rolls")) json.get("rolls").getAsJsonArray().forEach(kv -> rolls.add(Roll.parse(this, kv.getAsJsonObject())));
     }
 /*
@@ -71,7 +71,7 @@ public class Menu extends Base {
 */
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
         if (player == null) return;
-        List<Toast2<String, Table>> _tables = tables.entrySet().stream().map(v -> Toast.of(ChatHelper.formatText(v.getKey(), apply), v.getValue())).collect(Collectors.toList());
+        List<Toast2<String, Table>> _tables = tables.stream().map(v -> Toast.of(ChatHelper.formatText(v.val0, apply), v.val1)).collect(Collectors.toList());
         IterableUtils.waitAllAnyAsyns(_tables, (String table, Action1<ITable<? extends BaseRow>> callback) -> Tables
                 .getTable(table, callback)
                 .withSQL((sql) -> Logged.log(player, sql, this)), tableData -> {
