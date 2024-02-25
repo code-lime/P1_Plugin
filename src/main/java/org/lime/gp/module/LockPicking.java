@@ -3,11 +3,9 @@ package org.lime.gp.module;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Openable;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Openable;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.system.utils.RandomUtils;
@@ -35,10 +33,10 @@ public class LockPicking {
     private static void executeOpenSound(Player player, int x, int y, int z, @Nullable String sound) {
         World world = player.getWorld();
         Block block = world.getBlockAt(x, y, z);
-        BlockState state = block.getState();
-        if (!(state instanceof Openable openable)) return;
+        BlockData data = block.getBlockData();
+        if (!(data instanceof Openable openable)) return;
         openable.setOpen(!openable.isOpen());
-        state.update();
+        block.setBlockData(data);
         if (sound != null) world.playSound(block.getLocation().add(0.5f,0.5f,0.5f), sound, SoundCategory.BLOCKS, 1.0f, (float) RandomUtils.rand(0.0, 1.0) * 0.1f + 0.9f);
         CoreProtectHandle.logInteract(block, player);
     }

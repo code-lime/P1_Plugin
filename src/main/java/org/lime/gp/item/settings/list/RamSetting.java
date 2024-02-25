@@ -2,7 +2,7 @@ package org.lime.gp.item.settings.list;
 
 import com.google.gson.JsonObject;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Door;
 import org.bukkit.block.data.type.Gate;
 import org.bukkit.block.data.type.TrapDoor;
@@ -54,14 +54,14 @@ import java.util.Optional;
 
     @Override public Optional<BlockTarget> tryCast(Player player, ITarget target, EquipmentSlot arm, boolean shift) {
         return target.castToBlock().filter(v -> {
-            BlockState state = v.getState();
-            return state instanceof TrapDoor || state instanceof Door || state instanceof Gate;
+            BlockData data = v.getData();
+            return data instanceof TrapDoor || data instanceof Door || data instanceof Gate;
         });
     }
     @Override public boolean timeUse(Player player, BlockTarget target, ItemStack item) {
         Block block = target.getLocation().getBlock();
-        BlockState state = block.getState();
-        if (!(state instanceof TrapDoor || state instanceof Door || state instanceof Gate)) return false;
+        BlockData data = block.getBlockData();
+        if (!(data instanceof TrapDoor || data instanceof Door || data instanceof Gate)) return false;
         Sounds.playSound(sound, player.getLocation());
         if (RandomUtils.rand_is(chance))
             block.breakNaturally();
