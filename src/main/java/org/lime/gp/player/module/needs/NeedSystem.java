@@ -30,7 +30,7 @@ public class NeedSystem {
     private static void tick() {
         Bukkit.getOnlinePlayers()
                 .forEach(player -> getPlayerNeeds(INeedEffect.Type.EFFECT, player)
-                        .forEach(effect -> tryAddEffects(player)));
+                        .forEach(effect -> effect.tick(player)));
     }
     public static void register(Func1<Player, Stream<INeedEffect<?>>> needs) {
         NeedSystem.needsComponents.add(needs);
@@ -57,13 +57,6 @@ public class NeedSystem {
     public static double getSleepMutate(Player player) { return getPlayerMutate(INeedEffect.Type.SLEEP, player); }
     public static double getThirstMutate(Player player) { return getPlayerMutate(INeedEffect.Type.THIRST, player); }
     public static double getFoodMutate(Player player) { return getPlayerMutate(INeedEffect.Type.FOOD, player); }
-
-    public static void tryAddEffects(Player player) {
-        int currentTick = MinecraftServer.currentTick;
-        getPlayerNeeds(INeedEffect.Type.EFFECT, player)
-                .filter(v -> currentTick % v.delay() == 0)
-                .forEach(effect -> effect.effect().apply(player));
-    }
 }
 
 

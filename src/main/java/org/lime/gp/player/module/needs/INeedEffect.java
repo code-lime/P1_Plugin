@@ -2,13 +2,23 @@ package org.lime.gp.player.module.needs;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.minecraft.server.MinecraftServer;
+import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.lime.docs.IIndexDocs;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
+import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.Items;
+import org.lime.gp.player.ui.CustomUI;
+import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.system.execute.Func2;
+
+import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public interface INeedEffect<T extends INeedEffect<T>> {
     class Type<T extends INeedEffect<T>> {
@@ -33,6 +43,9 @@ public interface INeedEffect<T extends INeedEffect<T>> {
     }
     interface Mutate extends INeedEffect<Mutate> {
         double value();
+
+        @Override default void tick(Player player) {}
+
         static Mutate of(Type<Mutate> type, double value) {
             return new Mutate() {
                 @Override public Type<Mutate> type() { return type; }
@@ -54,6 +67,12 @@ public interface INeedEffect<T extends INeedEffect<T>> {
         int delay();
         PotionEffect effect();
 
+        @Override default void tick(Player player) {
+            int currentTick = MinecraftServer.currentTick;
+            if (currentTick % delay() == 0)
+                effect().apply(player);
+        }
+
         static Effect parse(Type<Effect> type, JsonObject json) {
             int delay = json.get("delay").getAsInt();
             PotionEffect effect = Items.parseEffect(json.get("effect").getAsJsonObject());
@@ -73,6 +92,7 @@ public interface INeedEffect<T extends INeedEffect<T>> {
         }
     }
     Type<T> type();
+    void tick(Player player);
 
     static INeedEffect<?> parse(JsonObject json) {
         return switch (json.get("type").getAsString()) {
