@@ -231,7 +231,7 @@ public class Blocks implements Listener {
                 );
     }
 
-    public static final HashMap<String, BlockInfo> creators = new HashMap<>();
+    public static final ConcurrentHashMap<String, BlockInfo> creators = new ConcurrentHashMap<>();
     private static final HashMap<String, BlockInfo> defaultBlocks = new HashMap<>();
     private static final HashMap<String, JsonObject> overrides = new HashMap<>();
     private static final HashMap<Material, List<BlockInfo.Replacer<?>>> replaceBlocks = new HashMap<>();
@@ -255,6 +255,7 @@ public class Blocks implements Listener {
                 .orElseGet(() -> block.getType().name());
     }
 
+    public static long index = 0;
     public static void config(JsonObject json) {
         HashMap<String, BlockInfo> creators = new HashMap<>(defaultBlocks);
         JsonElement modify_json = json.remove("MODIFY_LIST");
@@ -281,6 +282,7 @@ public class Blocks implements Listener {
         Blocks.creators.values().forEach(creator -> replaceBlocks.putAll(creator.replaces));
         CacheBlockDisplay.reset();
         BlockDisplay.resetDisplay();
+        index++;
     }
     public static final LockToast2<Long, Long> nextAsyncTimes = Toast.lock(0L, 0L);
     public static final LockToast1<TickTimeInfo> deltaTime = Toast.lock(new TickTimeInfo());
