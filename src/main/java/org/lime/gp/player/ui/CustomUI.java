@@ -19,10 +19,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.lime.gp.entity.Entities;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.lime;
 import org.lime.gp.block.Blocks;
-import org.lime.gp.block.component.list.RemoteExecuteComponent;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
@@ -192,7 +192,14 @@ public class CustomUI implements Listener {
                     .add(Blocks.creators.values()
                         .stream()
                         .flatMap(v -> v.components.values().stream())
-                        .map(v -> v instanceof RemoteExecuteComponent c ? c : null)
+                        .map(v -> v instanceof org.lime.gp.block.component.list.RemoteExecuteComponent c ? c : null)
+                        .filter(Objects::nonNull)
+                        .flatMap(v -> v.execute.stream())
+                        .iterator(), item -> item)
+                    .add(Entities.creators.values()
+                        .stream()
+                        .flatMap(v -> v.components.values().stream())
+                        .map(v -> v instanceof org.lime.gp.entity.component.list.RemoteExecuteComponent c ? c : null)
                         .filter(Objects::nonNull)
                         .flatMap(v -> v.execute.stream())
                         .iterator(), item -> item)
