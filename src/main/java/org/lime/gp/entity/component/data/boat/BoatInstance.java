@@ -175,7 +175,7 @@ public class BoatInstance extends EntityComponentInstance<BoatComponent> impleme
                             .flatMap(v -> v.sitter().map(__v -> Toast.of(_v, __v)).stream()))
                     .findAny()
                     .ifPresentOrElse(data -> data.invoke((display, player) ->
-                                    CustomUI.TextUI.show(player, ImageBuilder.of(player, LangMessages.Message.Boat_Status.getSingleMessage(Apply.of().add(display.getAll()))), 15)),
+                                    CustomUI.TextUI.show(player, ImageBuilder.of(player, LangMessages.Message.Boat_Status.getSingleMessage(Apply.of().add(display.getAll()))), 30)),
                             () -> input.set(0, 0));
 
             forceInput = forceInput.lerp(input, 0.1f);

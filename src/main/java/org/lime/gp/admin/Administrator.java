@@ -419,7 +419,7 @@ public class Administrator implements Listener {
             if (player == null) return;
             effects.forEach(player::addPotionEffect);
             Thirst.thirstReset(player);
-            CustomUI.TextUI.show(player, ImageBuilder.of(player, "До выхода: " + (row.timeToEnd == null ? "Неограничено" : Time.formatTotalTime(row.timeToEnd, Time.Format.DAY_TIME)) + (isNullOrEmpty(row.reason) ? "" : (" | Причина: " + row.reason))), 15);
+            CustomUI.TextUI.show(player, ImageBuilder.of(player, "До выхода: " + (row.timeToEnd == null ? "Неограничено" : Time.formatTotalTime(row.timeToEnd, Time.Format.DAY_TIME)) + (isNullOrEmpty(row.reason) ? "" : (" | Причина: " + row.reason))), 30);
             Location playerLoc = player.getLocation();
             if (lime.isLay(player)) {
                 Death.up(player);
@@ -459,7 +459,7 @@ public class Administrator implements Listener {
                 else {
                     tags.remove("leg.broken");
                     SleepSaturation.reset(player);
-                    if (isImmortality) CustomUI.TextUI.show(player, ImageBuilder.of(player, "[Бессмертие]"), 15);
+                    if (isImmortality) CustomUI.TextUI.show(player, ImageBuilder.of(player, "[Бессмертие]"), 30);
                     if (Death.isDamageLay(uuid)) Death.up(uuid);
                     player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
                     ProxyFoodMetaData.ofPlayer(player)
