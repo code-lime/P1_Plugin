@@ -1,15 +1,10 @@
 package org.lime.gp.player.module.needs;
 
-import com.google.common.collect.Streams;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.lime.gp.item.settings.list.ArmorNeedSetting;
-import org.lime.gp.player.module.DeathGame;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
-import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
-import org.lime.gp.player.module.needs.thirst.Thirst;
+import org.lime.plugin.CoreElement;
 import org.lime.system.execute.Func1;
 
 import java.util.ArrayList;
@@ -29,7 +24,7 @@ public class NeedSystem {
     }
     private static void tick() {
         Bukkit.getOnlinePlayers()
-                .forEach(player -> getPlayerNeeds(INeedEffect.Type.EFFECT, player)
+                .forEach(player -> getPlayerNeeds(player)
                         .forEach(effect -> effect.tick(player)));
     }
     public static void register(Func1<Player, Stream<INeedEffect<?>>> needs) {
