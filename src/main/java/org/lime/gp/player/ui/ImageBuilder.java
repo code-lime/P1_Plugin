@@ -1,12 +1,18 @@
 package org.lime.gp.player.ui;
 
+import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.player.module.needs.INeedEffect;
+import org.lime.system.execute.Func1;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,6 +139,32 @@ public class ImageBuilder {
         return space(size + offset - (absolute ? 1 : 0))
                 .append(image.color(changeShadow(color, shadow)))
                 .append(space(size - oSize - offset));
+    }
+
+    public static Func1<Player, ImageBuilder> createBuilder(JsonObject json) {
+        String message = json.get("message").getAsString();
+        Integer size = json.has("size") ? (Integer)json.get("size").getAsInt() : null;
+        int offset = json.has("offset") ? json.get("offset").getAsInt() : 0;
+        boolean shadow = !json.has("shadow") || json.get("shadow").getAsBoolean();
+        TextColor color = json.has("color") ? TextColor.fromHexString(json.get("color").getAsString()) : null;
+
+        return player -> {
+            Integer _size = size;
+            if (_size == null) _size = ChatHelper.getTextSize(player, message);
+            ImageBuilder image = ImageBuilder.of(message, _size, shadow).withOffset(offset);
+            if (color != null) image = image.withColor(color);
+            return image;
+        };
+    }
+
+    public static IIndexGroup docs(String index) {
+        return JsonGroup.of(index, JObject.of(
+                JProperty.require(IName.raw("message"), IJElement.text("MESSAGE"), IComment.text("Текст сообщения")),
+                JProperty.optional(IName.raw("size"), IJElement.raw(16), IComment.text("Ширина сообщения в пикселях (для отображения изображений)")),
+                JProperty.optional(IName.raw("offset"), IJElement.raw(16), IComment.text("Сдвиг сообщения по горизонтали в пикселях")),
+                JProperty.optional(IName.raw("shadow"), IJElement.bool(), IComment.text("Отображение тени сообщения")),
+                JProperty.optional(IName.raw("color"), IJElement.raw("#FFFFFF"), IComment.text("Hex цвет сообщения"))
+        ));
     }
 }
 
