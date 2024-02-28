@@ -221,7 +221,7 @@ public class Entities implements Listener {
         Entities.creators.putAll(creators);
     }
 
-    private static final HashMap<String, EntityInfo> creators = new HashMap<>();
+    public static final HashMap<String, EntityInfo> creators = new HashMap<>();
     private static final HashMap<String, EntityInfo> defaultBlocks = new HashMap<>();
     private static final HashMap<String, JsonObject> overrides = new HashMap<>();
 
