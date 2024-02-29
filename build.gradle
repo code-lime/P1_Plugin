@@ -29,8 +29,8 @@ String _build = "194"
 boolean _remote = true
 boolean _mapped = true
 
-sourceCompatibility = '17'
-targetCompatibility = '17'
+sourceCompatibility = '20'
+targetCompatibility = '20'
 
 dependencies {
     compileOnly(
