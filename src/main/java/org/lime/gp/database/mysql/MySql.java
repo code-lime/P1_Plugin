@@ -16,7 +16,6 @@ import org.lime.system.Time;
 import org.lime.system.map;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.io.Closeable;
 import java.lang.reflect.Array;
@@ -137,14 +136,6 @@ public final class MySql implements Closeable {
         else if (value instanceof Stream<?> stream) {
             String str = stream.map(MySql::toSqlObject).collect(Collectors.joining(","));
             return "(" + (str.isEmpty() ? "NULL" : str) + ")";
-        }
-        else if (value instanceof ScriptObjectMirror obj) {
-            if (obj.isArray()) {
-                JsonArray json = new JsonArray();
-                obj.values().forEach(v -> json.add(toSqlObject(v)));
-                return toSqlObject(json);
-            }
-            return toSqlObject(new Gson().toJsonTree(obj));
         }
         else {
             lime.logOP("CLASS: " + value.getClass());
