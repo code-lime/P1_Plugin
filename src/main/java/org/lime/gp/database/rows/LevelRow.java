@@ -1,10 +1,10 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 
 public class LevelRow extends BaseRow {
@@ -16,7 +16,7 @@ public class LevelRow extends BaseRow {
     public final int level;
     public final double exp;
 
-    public LevelRow(ResultSet set) {
+    public LevelRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
 

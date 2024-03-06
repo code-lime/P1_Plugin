@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.player.inventory.TownInventory;
 import org.lime.system.Regex;
@@ -26,7 +27,7 @@ public class PrivatePatternRow extends BaseRow implements TownInventory.IPrivate
     public PatternType type;
     public String filter;
 
-    public PrivatePatternRow(ResultSet set) {
+    public PrivatePatternRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         type = PatternType.valueOf(MySql.readObject(set, "type", String.class));

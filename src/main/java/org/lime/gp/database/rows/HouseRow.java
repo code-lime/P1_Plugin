@@ -1,6 +1,5 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.*;
 
 import org.bukkit.Bukkit;
@@ -10,6 +9,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.Position;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.system.json;
 import org.lime.system.execute.*;
 import org.lime.gp.lime;
@@ -45,7 +45,7 @@ public class HouseRow extends BaseRow {
     public long private_flags;
     public JsonObject data;
 
-    public HouseRow(ResultSet set) {
+    public HouseRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         isRoom = MySql.readObject(set, "is_room", Integer.class) == 1;

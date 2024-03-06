@@ -65,7 +65,7 @@ public class SQLNode extends BaseNode {
             Methods.SQL.Async.rawSqlOnce(query, set -> {
                 List<Object> list = new ArrayList<>();
                 for (String key : keys) {
-                    try { list.add(set.getObject(key)); }
+                    try { list.add(set.readObject(key)); }
                     catch (Exception e) { list.add(null); }
                 }
                 return list;

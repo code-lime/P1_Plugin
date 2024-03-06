@@ -1,16 +1,16 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Map;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 
 public class SmsPresetRow extends BaseRow {
     public int id;
     public String phone;
     public String text;
 
-    public SmsPresetRow(ResultSet set) {
+    public SmsPresetRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         phone = MySql.readObject(set, "phone", String.class);

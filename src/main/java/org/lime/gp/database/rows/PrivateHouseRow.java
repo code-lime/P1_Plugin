@@ -1,6 +1,7 @@
 package org.lime.gp.database.rows;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.system.execute.Func1;
 
@@ -14,7 +15,7 @@ public class PrivateHouseRow extends BaseRow {
     public int patternId;
     public boolean status;
 
-    public PrivateHouseRow(ResultSet set) {
+    public PrivateHouseRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         houseId = MySql.readObject(set, "house_id", Integer.class);
