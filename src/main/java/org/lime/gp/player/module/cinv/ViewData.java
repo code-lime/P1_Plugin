@@ -41,11 +41,19 @@ public class ViewData {
     private int itemsShowLength = 0;
     private int groupsShowLength = 0;
 
-    public void itemsOffsetMove(int delta, boolean fullPage) {
-        itemsOffset += delta * (fullPage ? itemsShowLength() : itemsStepLength());
+    public void itemsOffsetMove(int delta, boolean fullPage, boolean shift) {
+        if (shift) {
+            itemsOffset = delta > 0 ? Integer.MAX_VALUE : 0;
+        } else {
+            itemsOffset += delta * (fullPage ? itemsShowLength() : itemsStepLength());
+        }
     }
-    public void groupOffsetMove(int delta, boolean fullPage) {
-        groupOffset += delta * (fullPage ? groupsShowLength() : 1);
+    public void groupOffsetMove(int delta, boolean fullPage, boolean shift) {
+        if (shift) {
+            groupOffset = delta > 0 ? Integer.MAX_VALUE : 0;
+        } else {
+            groupOffset += delta * (fullPage ? groupsShowLength() : 1);
+        }
     }
 
 

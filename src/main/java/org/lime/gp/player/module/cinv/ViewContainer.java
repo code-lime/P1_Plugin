@@ -75,6 +75,11 @@ public abstract class ViewContainer extends ContainerChest {
             Component.empty()
                     .append(Component.text("[ПКМ]").color(NamedTextColor.AQUA))
                     .append(Component.text(" Сдвинуть на всю страницу").color(NamedTextColor.YELLOW))
+                    .decoration(TextDecoration.ITALIC, false),
+            Component.empty()
+                    .append(Component.text("[SHIFT+ЛКМ/ПКМ]").color(NamedTextColor.AQUA))
+                    .append(Component.text(" Сдвинуть до конца").color(NamedTextColor.YELLOW))
+                    .decoration(TextDecoration.ITALIC, false)
     };
 
     public static final net.minecraft.world.item.ItemStack UP = headOf(Component.text("UP"), UP_HEAD, LEFT_RIGHT_FULL);
@@ -94,22 +99,22 @@ public abstract class ViewContainer extends ContainerChest {
     public enum SlotType {
         Up((slot, view, slotType, slotTypeIndex) -> new StaticClickSlot(slot, view, slotType, slotTypeIndex, UP) {
             @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
-                view.itemsOffsetMove(-1, click.isRightClick());
+                view.itemsOffsetMove(-1, click.isRightClick(), click.isShiftClick());
             }
         }),
         Down((slot, view, slotType, slotTypeIndex) -> new StaticClickSlot(slot, view, slotType, slotTypeIndex, DOWN) {
             @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
-                view.itemsOffsetMove(1, click.isRightClick());
+                view.itemsOffsetMove(1, click.isRightClick(), click.isShiftClick());
             }
         }),
         Right((slot, view, slotType, slotTypeIndex) -> new StaticClickSlot(slot, view, slotType, slotTypeIndex, RIGHT) {
             @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
-                view.groupOffsetMove(1, click.isRightClick());
+                view.groupOffsetMove(1, click.isRightClick(), click.isShiftClick());
             }
         }),
         Left((slot, view, slotType, slotTypeIndex) -> new StaticClickSlot(slot, view, slotType, slotTypeIndex, LEFT) {
             @Override public void onSlotClick(EntityHuman player, InventoryClickType type, ClickType click) {
-                view.groupOffsetMove(-1, click.isRightClick());
+                view.groupOffsetMove(-1, click.isRightClick(), click.isShiftClick());
             }
         }),
 

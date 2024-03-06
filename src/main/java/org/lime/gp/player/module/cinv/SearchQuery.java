@@ -81,11 +81,19 @@ public class SearchQuery {
             }
 
             @Override public void clickInput(EntityHuman human, ClickType click) {
-                offset -= click.isRightClick() ? showLength : stepLength;
+                if (click.isShiftClick()) {
+                    offset = 0;
+                } else {
+                    offset -= click.isRightClick() ? showLength : stepLength;
+                }
                 syncInput();
             }
             @Override public void clickCenter(EntityHuman human, ClickType click) {
-                offset += click.isRightClick() ? showLength : stepLength;
+                if (click.isShiftClick()) {
+                    offset = Integer.MAX_VALUE;
+                } else {
+                    offset += click.isRightClick() ? showLength : stepLength;
+                }
                 syncInput();
             }
             @Override public void clickOutput(EntityHuman human, ClickType click) {
