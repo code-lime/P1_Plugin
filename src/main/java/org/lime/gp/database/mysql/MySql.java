@@ -1,8 +1,6 @@
 package org.lime.gp.database.mysql;
 
 import com.google.common.collect.Streams;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import net.kyori.adventure.text.Component;
@@ -13,14 +11,19 @@ import org.bukkit.Bukkit;
 import org.lime.database.MiniConnectionPoolManager;
 import org.lime.gp.lime;
 import org.lime.system.Time;
+import org.lime.system.execute.Action0;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Func0;
 import org.lime.system.map;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast1;
+import org.lime.system.toast.Toast2;
 
 import java.io.Closeable;
 import java.lang.reflect.Array;
-import java.sql.*;
-import java.util.Date;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -152,6 +155,11 @@ public final class MySql implements Closeable {
                 return value.toString();
         }
     }
+    public static String fromSqlObjectString(Object value) {
+        if (value == null) return "null";
+        if (value instanceof Calendar) return Time.formatCalendar((Calendar)value, false);
+        return value.toString();
+    }
     static PreparedStatement prepareStatement(int state, ExecuteData debug, Connection connection, Toast1<String> sql, Map<String, Object> args) throws SQLException {
         if (args != null) {
             for (Map.Entry<String, Object> arg : args.entrySet()) sql.val0 = sql.val0.replace("@" + arg.getKey(), toSqlObject(arg.getValue()));
@@ -175,6 +183,7 @@ public final class MySql implements Closeable {
         return map.of();
     }
 
+    /*
     public static int columnsCount(ResultSet set) {
         try {
             return set.getMetaData().getColumnCount();
@@ -234,8 +243,32 @@ public final class MySql implements Closeable {
             throw new IllegalArgumentException("ReadObject", ex);
         }
     }
-
     public static Object readEmpty(ResultSet set) {
+        return new Object();
+    }
+    */
+    public static int columnsCount(MySqlRow set) {
+        return set.columnsCount();
+    }
+    public static Object readObject(MySqlRow set, int index) {
+        return set.readObject(index);
+    }
+    public static <T>T readObject(MySqlRow set, int index, Class<T> tClass) {
+        return set.readObject(index, tClass);
+    }
+    public static Object readObject(MySqlRow set, String column) {
+        return set.readObject(column);
+    }
+    public static <T>T readObject(MySqlRow set, String column, Class<T> tClass) {
+        return set.readObject(column, tClass);
+    }
+    public static <T>Optional<T> readObjectOptional(MySqlRow set, String column, Class<T> tClass) {
+        return set.readObjectOptional(column, tClass);
+    }
+    public static boolean hasColumn(MySqlRow set, String column) {
+        return set.hasColumn(column);
+    }
+    public static Object readEmpty(MySqlRow set) {
         return new Object();
     }
 

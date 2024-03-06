@@ -1,9 +1,9 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.*;
 
 import org.bukkit.entity.Player;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.system.Time;
 import org.lime.gp.database.mysql.MySql;
@@ -53,7 +53,7 @@ public class UserRow extends BaseRow {
         };
     }
 
-    public UserRow(ResultSet set) {
+    public UserRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));

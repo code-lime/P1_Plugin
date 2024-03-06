@@ -11,20 +11,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.damage.EntityDamageByPlayerEvent;
-import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
 
-import java.sql.ResultSet;
 import java.util.*;
 
 public class ChurchManager implements Listener {
@@ -171,7 +168,7 @@ public class ChurchManager implements Listener {
     }
 
     private static abstract class IEffect {
-        public static IEffect parse(ResultSet set) {
+        public static IEffect parse(MySqlRow set) {
             int id = MySql.readObject(set, "id", Integer.class);
             int house_id = MySql.readObject(set, "house_id", Integer.class);
             String target = MySql.readObject(set, "target", String.class);

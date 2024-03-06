@@ -7,6 +7,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
@@ -95,7 +96,7 @@ public class JavaScript {
             try { return Class.forName(type2); } catch (ClassNotFoundException e) { return null; }
         }
 
-        public Object read(ResultSet set, String name, Class<?> tClass) { return MySql.readObject(set, name, tClass); }
+        public Object read(MySqlRow set, String name, Class<?> tClass) { return MySql.readObject(set, name, tClass); }
         public void log(String text) { lime.logOP(text); }
         public void repeat(Action0 func, double sec) {
             this.inits.add(lime.repeat(func, sec));

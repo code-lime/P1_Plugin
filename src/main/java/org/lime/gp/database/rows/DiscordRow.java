@@ -1,16 +1,16 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Map;
 import java.util.UUID;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 
 public class DiscordRow extends BaseRow {
     public long discordID;
     public UUID uuid;
 
-    public DiscordRow(ResultSet set) {
+    public DiscordRow(MySqlRow set) {
         super(set);
         discordID = MySql.readObject(set, "discord_id", Long.class);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));

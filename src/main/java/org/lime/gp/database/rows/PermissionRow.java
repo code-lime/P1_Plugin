@@ -1,12 +1,12 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
 import org.lime.gp.database.mysql.MySql;
@@ -31,7 +31,7 @@ public class PermissionRow extends BaseRow {
     public UUID uuid;
     public List<String> permissions;
 
-    public PermissionRow(ResultSet set) {
+    public PermissionRow(MySqlRow set) {
         super(set);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));
         permissions = Streams.stream(json.parse(MySql.readObject(set, "permissions", String.class)).getAsJsonArray().iterator()).map(JsonElement::getAsString).toList();

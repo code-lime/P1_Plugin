@@ -1,12 +1,12 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
 import org.lime.display.models.display.IAnimationData;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 
 public class PetsRow extends BaseRow implements IAnimationData {
     public int id;
@@ -16,7 +16,7 @@ public class PetsRow extends BaseRow implements IAnimationData {
     public String name;
     public String color;
 
-    public PetsRow(ResultSet set) {
+    public PetsRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));

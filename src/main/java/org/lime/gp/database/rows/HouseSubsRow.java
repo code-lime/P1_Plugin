@@ -1,9 +1,9 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Map;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 
 public class HouseSubsRow extends BaseRow {
     public int id;
@@ -11,7 +11,7 @@ public class HouseSubsRow extends BaseRow {
     public int houseID;
     public int isOwner;
 
-    public HouseSubsRow(ResultSet set) {
+    public HouseSubsRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         userID = MySql.readObject(set, "user_id", Integer.class);

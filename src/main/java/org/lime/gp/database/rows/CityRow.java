@@ -5,11 +5,10 @@ import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 
-import java.sql.ResultSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,7 +22,7 @@ public class CityRow extends BaseRow {
     public Optional<Vector> posMain;
     public Optional<Vector> posSpawn;
 
-    public CityRow(ResultSet set) {
+    public CityRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         owner = MySql.readObjectOptional(set, "owner", Integer.class);

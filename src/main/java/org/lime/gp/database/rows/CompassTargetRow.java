@@ -1,9 +1,9 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Map;
 
 import org.bukkit.Location;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.system.execute.*;
 import org.lime.gp.lime;
 import org.lime.gp.database.mysql.MySql;
@@ -38,7 +38,7 @@ public class CompassTargetRow extends BaseRow {
         return type.getLocation(target);
     }
 
-    public CompassTargetRow(ResultSet set) {
+    public CompassTargetRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));

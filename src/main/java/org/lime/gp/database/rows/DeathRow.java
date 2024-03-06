@@ -2,13 +2,13 @@ package org.lime.gp.database.rows;
 
 import org.bukkit.Location;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.system.utils.MathUtils;
 
 import javax.annotation.Nullable;
-import java.sql.ResultSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public class DeathRow extends BaseRow {
         HIDE
     }
 
-    public DeathRow(ResultSet set) {
+    public DeathRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         userID = MySql.readObject(set, "user_id", Integer.class);

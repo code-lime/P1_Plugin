@@ -1,10 +1,10 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Calendar;
 import java.util.Map;
 
 import org.lime.Position;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.lime;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
@@ -20,7 +20,7 @@ public class PrisonRow extends BaseRow {
     public Position outPos;
     public Calendar endTime;
 
-    public PrisonRow(ResultSet set) {
+    public PrisonRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         houseID = MySql.readObject(set, "house_id", Integer.class);

@@ -1,11 +1,11 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 
 public class UserFlagsRow extends BaseRow {
@@ -13,7 +13,7 @@ public class UserFlagsRow extends BaseRow {
     public UUID uuid;
     public int backPackID;
 
-    public UserFlagsRow(ResultSet set) {
+    public UserFlagsRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));

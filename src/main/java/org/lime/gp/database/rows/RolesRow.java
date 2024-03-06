@@ -1,9 +1,9 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Optional;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 
 import net.kyori.adventure.text.format.TextColor;
@@ -16,7 +16,7 @@ public class RolesRow extends BaseRow {
     public int groupID;
     public boolean isStatic;
 
-    public RolesRow(ResultSet set) {
+    public RolesRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         color = TextColor.fromHexString("#" + MySql.readObject(set, "color", String.class));

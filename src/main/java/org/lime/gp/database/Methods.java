@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 import org.lime.Position;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
@@ -106,7 +107,7 @@ public class Methods {
         );
     }
 
-    public static Optional<Vector> readPositionOptional(ResultSet set, String prefix) {
+    public static Optional<Vector> readPositionOptional(MySqlRow set, String prefix) {
         prefix = prefix != null ? (prefix + "_") : "";
         String _prefix = prefix;
         return MySql.readObjectOptional(set, _prefix + "x", Integer.class)
@@ -114,14 +115,14 @@ public class Methods {
                         .flatMap(y -> MySql.readObjectOptional(set, _prefix + "z", Integer.class)
                                 .map(z -> new Vector(x, y, z))));
     }
-    public static Vector readPosition(ResultSet set, String prefix) {
+    public static Vector readPosition(MySqlRow set, String prefix) {
         prefix = prefix != null ? (prefix + "_") : "";
         int x = MySql.readObject(set, prefix + "x", Integer.class);
         int y = MySql.readObject(set, prefix + "y", Integer.class);
         int z = MySql.readObject(set, prefix + "z", Integer.class);
         return new Vector(x,y,z);
     }
-    public static Position readPosition(ResultSet set, World world, String prefix) {
+    public static Position readPosition(MySqlRow set, World world, String prefix) {
         return new Position(world, readPosition(set, prefix));
     }
 
@@ -166,7 +167,7 @@ public class Methods {
             return end_time.map(v -> v.getTimeInMillis() < System.currentTimeMillis()).orElse(false);
         }
 
-        private WarnInfo(ResultSet set) {
+        private WarnInfo(MySqlRow set) {
             uuid = UUID.fromString(MySql.readObject(set, "uuid", String.class));
             reason = MySql.readObject(set, "reason", String.class);
             owner = Optional.ofNullable(MySql.readObject(set, "owner", String.class)).map(UUID::fromString).orElse(null);

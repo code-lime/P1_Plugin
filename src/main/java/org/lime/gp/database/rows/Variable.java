@@ -1,15 +1,15 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.Map;
 
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.tables.Tables;
 
 public class Variable extends BaseRow {
     public double church;
-    public Variable(ResultSet set) {
+    public Variable(MySqlRow set) {
         super(set);
         church = MySql.readObject(set, "church", Double.class);
     }

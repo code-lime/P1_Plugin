@@ -1,10 +1,10 @@
 package org.lime.gp.database.rows;
 
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.extension.ExtMethods;
 
 import com.google.common.collect.ImmutableSet;
@@ -16,7 +16,7 @@ public class UserCraftsRow extends BaseRow {
     public String craftRegex;
     public Integer useCount;
 
-    public UserCraftsRow(ResultSet set) {
+    public UserCraftsRow(MySqlRow set) {
         super(set);
         id = MySql.readObject(set, "id", Integer.class);
         uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));
