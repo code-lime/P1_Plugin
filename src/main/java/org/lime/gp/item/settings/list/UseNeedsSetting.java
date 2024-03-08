@@ -113,7 +113,7 @@ import java.util.stream.Stream;
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("needs"), IJElement.anyList(IJElement.link(docs.need())),  IComment.text("Добавляет потребность при использовании")),
-                JProperty.optional(IName.raw("needs_time"), IJElement.raw(10), IComment.text("Время активности потребности")),
+                JProperty.require(IName.raw("needs_time"), IJElement.raw(10), IComment.text("Время активности потребности в тиках")),
                 JProperty.optional(IName.raw("time"), IJElement.raw(10), IComment.text("Время использования предмета в тиках")),
                 JProperty.optional(IName.raw("silent"), IJElement.bool(), IComment.text("Будет ли проигран звук ломания предмета")),
                 JProperty.optional(IName.raw("cooldown"), IJElement.raw(10), IComment.text("Время между использованиями предмета в тиках")),
