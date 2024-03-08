@@ -70,7 +70,7 @@ import org.lime.invokable.IInvokable;
 import org.lime.plugin.IConfig;
 import org.lime.plugin.TimerBuilder;
 import org.lime.plugin.Timers;
-import patch.Patcher;
+import patch.gp.MutatePatcher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -83,7 +83,7 @@ public class lime extends core {
     @Override public String getConfigFile() { return "plugins/p1/"; }
 
     static {
-        Patcher.patch(lime.class.getClassLoader().getResource("patch.json"));
+        MutatePatcher.register();
     }
 
     //<editor-fold desc="CORE INIT">
