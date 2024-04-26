@@ -2,6 +2,7 @@ package org.lime.gp.item.weapon;
 
 import com.google.gson.JsonPrimitive;
 import net.minecraft.world.entity.EnumItemSlot;
+import net.minecraft.world.entity.player.EntityHuman;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -209,12 +210,14 @@ public class WeaponData {
 
             bullet_location.add(bullet_location.getDirection().multiply(0.5)).add(new Vector(0, -0.5, 0));
 
-            Bullets.spawnBullet(shooter, bullet_location, weapon.bullet_speed, weapon.bullet_down, weapon.damage_scale * bullet.damage, bullet.creator().getID());
+            Bullets.spawnBullet(shooter, bullet_location, weapon.bullet_speed, weapon.bullet_down, weapon.damage_scale * bullet.damage, bullet.creator().getID(), item);
         }
         Sounds.playSound(weapon.sound_shoot, location);
         return true;
     }
     public boolean shoot(Player shooter, CraftItemStack main_hand, int wait_ticks) {
+        if (!(shooter instanceof CraftPlayer handle))
+            return false;
         item = main_hand;
         if (waitInitTime - System.currentTimeMillis() > 0) return false;
         return WeaponSetting.getMagazine(item)
@@ -223,10 +226,15 @@ public class WeaponData {
                     List<ItemStack> bullets = MagazineSetting.getBullets(magazine).orElseGet(ArrayList::new);
                     int length = bullets.size();
                     if (length == 0) return null;
-                    ItemStack bullet = bullets.remove(length - 1);
-                    MagazineSetting.setBullets(magazine, bullets);
-                    ammo = length - 1;
-                    WeaponSetting.setMagazine(item, magazine == item ? null : magazine);
+                    ItemStack bullet;
+                    if (handle.getHandle().getAbilities().instabuild) {
+                        bullet = bullets.get(length - 1).clone();
+                    } else {
+                        bullet = bullets.remove(length - 1);
+                        MagazineSetting.setBullets(magazine, bullets);
+                        ammo = length - 1;
+                        WeaponSetting.setMagazine(item, magazine == item ? null : magazine);
+                    }
                     item.handle.hurtAndBreak(1, ((CraftPlayer)shooter).getHandle(), e2 -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND));
                     return bullet;
                 })

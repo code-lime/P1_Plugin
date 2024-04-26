@@ -1,5 +1,7 @@
 package org.lime.gp.block.component.data;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.item.EntityItem;
@@ -14,9 +16,8 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.MultiBlockComponent;
 import org.lime.json.JsonObjectOptional;
+import org.lime.system.execute.Func2;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 
 import java.util.*;
@@ -25,7 +26,7 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
     public interface OwnerVariableModifiable extends CustomTileMetadata.Element {
         void onOwnerVariableModify(CustomTileMetadata metadata, Map<String, String> variables);
     }
-    public final HashMap<UUID, BlockPosition> positions = new HashMap<>();
+    public final HashMap<UUID, BlockPosition> offsets = new HashMap<>();
 
     @Override public MultiBlockComponent component() { return (MultiBlockComponent)super.component(); }
 
@@ -34,28 +35,47 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
     }
 
     @Override public void read(JsonObjectOptional json) {
-        positions.clear();
-        json.getAsJsonObject("positions")
-                .map(JsonObjectOptional::entrySet)
-                .stream()
-                .flatMap(Collection::stream)
-                .forEach(kv -> kv.getValue().getAsString().ifPresent(value -> positions.put(UUID.fromString(kv.getKey()), parse(value))));
+        offsets.clear();
+
+        json.getAsJsonObject("offsets")
+                .ifPresentOrElse(v -> v.forEach((key, offset) -> offset.getAsString().ifPresent(value -> offsets.put(UUID.fromString(key), parse(value)))),
+                        () -> {
+                            BlockPosition position = metadata().skull.getBlockPos();
+                            json.getAsJsonObject("positions")
+                                    .ifPresent(v -> v.forEach((key, pos) -> pos.getAsString().ifPresent(value -> offsets.put(UUID.fromString(key), parse(value).subtract(position)))));
+                        });
     }
     @Override public json.builder.object write() {
         return json.object()
-                .addObject("positions", _v -> _v.add(positions, UUID::toString, v -> v.getX() + " " + v.getY() + " " + v.getZ()));
+                .addObject("offsets", _v -> _v.add(offsets, UUID::toString, v -> v.getX() + " " + v.getY() + " " + v.getZ()));
     }
+    public static JsonObject mapBlockUuids(JsonObject json, BlockPosition position, Func2<BlockPosition, UUID, UUID> mapper) {
+        if (json.has("offsets")) {
+            json = json.deepCopy();
+            Map<String, JsonElement> offsets = json.getAsJsonObject("offsets").asMap();
+            Map<String, JsonElement> elements = new HashMap<>();
+            offsets.forEach((key, value) -> {
+                BlockPosition offset = parse(value.getAsString());
+                elements.put(mapper.invoke(position.offset(offset), UUID.fromString(key)).toString(), value);
+            });
+            offsets.clear();
+            offsets.putAll(elements);
+        }
+        return json;
+    }
+
     private static BlockPosition parse(String text) {
         var pos = MathUtils.getPosToast(text);
         return new BlockPosition(pos.val0, pos.val1, pos.val2);
     }
     public void child(UUID uuid, BlockPosition position) {
-        positions.put(uuid, position);
+        offsets.put(uuid, position.subtract(metadata().skull.getBlockPos()));
         saveData();
     }
     private int ticker = 0;
     private long lastVariableIndex = -1;
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
+        BlockPosition position = metadata.skull.getBlockPos();
         World world = metadata.skull.getLevel();
         metadata.list(DisplayInstance.class)
                 .findAny()
@@ -64,7 +84,7 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
                     if (variableIndex == lastVariableIndex) return;
                     lastVariableIndex = variableIndex;
                     Map<String, String> variable = display.getAll();
-                    positions.forEach((uuid, pos) -> world.getBlockEntity(pos, TileEntityTypes.SKULL)
+                    offsets.forEach((uuid, offset) -> world.getBlockEntity(position.offset(offset), TileEntityTypes.SKULL)
                             .flatMap(Blocks::customOf)
                             .ifPresent(v -> v.list(OwnerVariableModifiable.class)
                                     .forEach(_v -> _v.onOwnerVariableModify(v, variable))
@@ -72,7 +92,7 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
                     );
                 });
         if ((ticker++ % 40) != 0) return;
-        positions.forEach((uuid, pos) -> world.getBlockEntity(pos, TileEntityTypes.SKULL)
+        offsets.forEach((uuid, offset) -> world.getBlockEntity(position.offset(offset), TileEntityTypes.SKULL)
                 .map(v -> v instanceof TileEntityLimeSkull skull ? skull : null)
                 .ifPresentOrElse(skull -> {
                     if (skull.customUUID().filter(_uuid -> _uuid.equals(uuid)).isEmpty()) metadata.setAir();
@@ -83,15 +103,17 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
         inDestroyMethod = true;
         Optional<EntityPlayer> ofplayer = event.player().map(v -> v instanceof EntityPlayer p ? p : null);
         World world = event.world();
-        positions.forEach((uuid, pos) -> world.getBlockEntity(pos, TileEntityTypes.SKULL)
+        BlockPosition position = metadata.skull.getBlockPos();
+
+        offsets.forEach((uuid, offset) -> world.getBlockEntity(position.offset(offset), TileEntityTypes.SKULL)
                 .flatMap(Blocks::customOf)
                 .map(v -> v.skull)
                 .filter(other -> other.customUUID().filter(_uuid -> _uuid.equals(uuid)).isPresent())
                 .ifPresent(skull -> ofplayer.ifPresentOrElse(player -> {
                     List<EntityItem> captureDrops = world.captureDrops;
-                    player.gameMode.destroyBlock(pos);
+                    player.gameMode.destroyBlock(position.offset(offset));
                     world.captureDrops = captureDrops;
-                }, () -> world.destroyBlock(pos, false))));
+                }, () -> world.destroyBlock(position.offset(offset), false))));
         inDestroyMethod = false;
     }
 }

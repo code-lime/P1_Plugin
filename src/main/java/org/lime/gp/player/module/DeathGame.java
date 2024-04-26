@@ -101,14 +101,23 @@ public class DeathGame {
                     .forEach(item -> Items.dropGiveItem(player, item, true));
         }));
     }
-    private static String saveEquipment(Map<EquipmentSlot, ItemStack> display, List<ItemStack> items) {
+    public static String saveEquipment(PlayerInventory inventory, List<ItemStack> items) {
+        HashMap<EquipmentSlot, ItemStack> display = new HashMap<>();
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || item.getType().isAir()) continue;
+            display.put(slot, item.clone());
+        }
+        return saveEquipment(display, items);
+    }
+    public static String saveEquipment(Map<EquipmentSlot, ItemStack> display, List<ItemStack> items) {
         return json.object()
                 .addObject("display", v -> v.add(display, Enum::name, ItemUtils::saveItem))
                 .addArray("items", v -> v.add(items, ItemUtils::saveItem))
                 .build()
                 .toString();
     }
-    private static Toast2<Map<EnumItemSlot, net.minecraft.world.item.ItemStack>, List<ItemStack>> loadEquipment(String equipment) {
+    public static Toast2<Map<EnumItemSlot, net.minecraft.world.item.ItemStack>, List<ItemStack>> loadEquipment(String equipment) {
         if (equipment == null || equipment.isBlank()) return Toast.of(Collections.emptyMap(), Collections.emptyList());
         JsonObject _equipment = json.parse(equipment).getAsJsonObject();
         JsonObject _display = _equipment.getAsJsonObject("display");

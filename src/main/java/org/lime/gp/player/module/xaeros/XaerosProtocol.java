@@ -1,12 +1,16 @@
 package org.lime.gp.player.module.xaeros;
 
+import com.google.gson.JsonObject;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketDataSerializer;
 import org.bukkit.entity.Player;
+import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.lime;
 import org.lime.gp.player.module.xaeros.packet.*;
 import org.lime.plugin.CoreElement;
-import org.lime.system.toast.*;
+import org.lime.system.json;
 import org.lime.system.execute.*;
+import org.lime.system.utils.RandomUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +21,13 @@ public class XaerosProtocol {
     public static final PluginChannel WorldMap = new PluginChannel("xaeroworldmap:main");
     public static final PluginChannel MiniMap = new PluginChannel("xaerominimap:main");
 
+    private static int SERVER_ID = RandomUtils.rand(10000, 10000000);
+    private static boolean ENABLE = false;
+
+    public static int serverId() {
+        return SERVER_ID;
+    }
+
     public static Optional<PluginChannel> findChannel(String key) {
         return WorldMap.is(key) ? Optional.of(WorldMap) : MiniMap.is(key) ? Optional.of(MiniMap) : Optional.empty();
     }
@@ -26,18 +37,40 @@ public class XaerosProtocol {
 
     public static CoreElement create() {
         return CoreElement.create(XaerosProtocol.class)
-                .withInit(XaerosProtocol::init);
+                .withInit(XaerosProtocol::init)
+                .<JsonObject>addConfig("data/xaeroworldmap", v -> v
+                        .withDefault(json.object()
+                                .add("server_id", SERVER_ID)
+                                .add("enable", true)
+                                .build()
+                        )
+                        .withInvoke(json -> {
+                            SERVER_ID = json.get("server_id").getAsInt();
+                            ENABLE = json.get("enable").getAsBoolean();
+
+                            if (ENABLE) {
+                                WorldMap.register();
+                                MiniMap.register();
+                            } else {
+                                WorldMap.unregister();
+                                MiniMap.unregister();
+                            }
+                        })
+                );
+    }
+    private static void changeEnable(boolean enable) {
+        ENABLE = !ENABLE;
+        lime.writeAllConfig("data/xaeroworldmap", json.format(json.object().add("server_id", SERVER_ID).add("enable", ENABLE).build()));
+        if (ENABLE) {
+            WorldMap.register();
+            MiniMap.register();
+        } else {
+            WorldMap.unregister();
+            MiniMap.unregister();
+        }
     }
 
     private static void init() {
-        /*
-        messageHandler.register(0, LevelMapProperties.class, null, new LevelMapPropertiesConsumer(), LevelMapProperties::read, LevelMapProperties::write);
-        messageHandler.register(1, HandshakePacket.class, new HandshakePacket.ServerHandler(), new HandshakePacket.ClientHandler(), HandshakePacket::read, HandshakePacket::write);
-        messageHandler.register(2, ClientboundTrackedPlayerPacket.class, null, new ClientboundTrackedPlayerPacket.Handler(), ClientboundTrackedPlayerPacket::read, ClientboundTrackedPlayerPacket::write);
-        messageHandler.register(3, ClientboundPlayerTrackerResetPacket.class, null, new ClientboundPlayerTrackerResetPacket.Handler(), ClientboundPlayerTrackerResetPacket::read, ClientboundPlayerTrackerResetPacket::write);
-        messageHandler.register(4, ClientboundRulesPacket.class, null, new ClientboundRulesPacket.ClientHandler(), ClientboundRulesPacket::read, ClientboundRulesPacket::write);
-        */
-
         packetToId.put(PacketOutWorld.class, 0);
         packetToId.put(HandshakePacket.class, 1);
         packetToId.put(PacketOutUpdatePlayer.class, 2);
@@ -47,8 +80,12 @@ public class XaerosProtocol {
 
         idToPacket.put(1, HandshakePacket::read);
 
-        WorldMap.register();
-        MiniMap.register();
+        AnyEvent.addEvent("xaeroworldmap", AnyEvent.type.owner_console, v -> v.createParam("enable", "disable"), (p, status) -> {
+            switch (status) {
+                case "enable" -> changeEnable(true);
+                case "disable" -> changeEnable(false);
+            }
+        });
     }
 
     public static Optional<IInPacket> toPacket(byte[] raw) {

@@ -8,4 +8,10 @@ public interface ITarget {
 
     Optional<BlockTarget> castToBlock();
     Optional<PlayerTarget> castToPlayer();
+    Optional<EntityTarget> castToEntity();
+    default Optional<ILocationTarget> castToLocation() {
+        return this instanceof ILocationTarget locationTarget
+                ? Optional.of(locationTarget)
+                : Optional.empty();
+    }
 }

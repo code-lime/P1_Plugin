@@ -30,7 +30,7 @@ public class ModifyLootTable implements Listener {
         DEBUG = json.has("DEBUG") && json.remove("DEBUG").getAsBoolean();
 
         LinkedHashMap<String, Toast2<ILoot, LootModifyAction>> lootTables = new LinkedHashMap<>();
-        json.entrySet().forEach(kv -> LootModifyAction.parse(kv.getKey(), kv.getValue())
+        lime.combineParent(json, false, false).entrySet().forEach(kv -> LootModifyAction.parse(kv.getKey(), kv.getValue())
                 .invoke((key, loot, action) -> lootTables.put(key, Toast.of(loot, action))));
         ModifyLootTable.modifyLootTable.clear();
         ModifyLootTable.modifyLootTable.putAll(lootTables);

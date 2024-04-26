@@ -2,13 +2,12 @@ package org.lime.gp.entity.component.display.instance;
 
 import net.minecraft.world.entity.EntityLimeMarker;
 import net.minecraft.world.entity.EntityMarkerEventDestroy;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.lime.display.models.shadow.IBuilder;
 import org.lime.gp.block.component.display.event.ChunkCoordCache;
 import org.lime.gp.block.component.display.instance.TickTimeInfo;
+import org.lime.gp.block.component.display.instance.UnmodifiableMergeMap;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.Entities;
 import org.lime.gp.entity.EntityInstance;
@@ -19,7 +18,6 @@ import org.lime.gp.entity.component.display.partial.list.ModelPartial;
 import org.lime.gp.entity.component.list.DisplayComponent;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.extension.ProxyMap;
-import org.lime.gp.lime;
 import org.lime.gp.module.EntityPosition;
 import org.lime.gp.module.TimeoutData;
 import org.lime.json.JsonObjectOptional;
@@ -33,6 +31,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public final class DisplayInstance extends EntityInstance implements
         CustomEntityMetadata.Tickable,
@@ -167,10 +166,11 @@ public final class DisplayInstance extends EntityInstance implements
                 partials.remove(uuid);
                 return;
             }
+            Map<String, String> playerVariables = UnmodifiableMergeMap.of(variables, player.getScoreboardTags().stream().collect(Collectors.toMap(v -> "tag." + v, v -> "true")));
             ChunkCoordCache.getCoord(uuid).ifPresentOrElse(cache -> {
                 int distanceChunk = cache.distance(entityCoord);
                 partials.compute(uuid, (k, v) -> {
-                    Partial partial = getPartial(distanceChunk, variables).orElse(null);
+                    Partial partial = getPartial(distanceChunk, playerVariables).orElse(null);
                     if (partial == null) return null;
                     if (partial instanceof ModelPartial model) model.model().ifPresent(_model -> modelMap.computeIfAbsent(
                             new EntityModelDisplay.EntityModelKey(marker.getUUID(), _model.unique(), unique()),

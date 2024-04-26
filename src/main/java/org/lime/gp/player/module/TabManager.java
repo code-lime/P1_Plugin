@@ -97,6 +97,9 @@ public class TabManager implements Listener {
         if (dat == null) return null;
         return dat.index;
     }
+    public static int getPayerID(UUID uuid) {
+        return PlayerData.getPlayerData(uuid).index;
+    }
     public static int getPayerIDorDefault(UUID uuid, int def) {
         PlayerData dat = PlayerData.getPlayerDataOrNull(uuid);
         if (dat == null) return def;
@@ -296,7 +299,6 @@ public class TabManager implements Listener {
                 playerInfo.setData(data);*/
             }
         });
-        
 
         donates.clear();
         Methods.donateVip(list -> {

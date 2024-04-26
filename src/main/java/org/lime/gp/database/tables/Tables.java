@@ -123,7 +123,7 @@ public class Tables {
             .keyed("id", v -> String.valueOf(v.id))
             .build();
     public static final KeyedTable<PermissionRow> PERMISSIONS_TABLE = KeyedTable.of("permissions", PermissionRow::new)
-            .keyed("uuid", v -> v.uuid.toString())
+            .keyed("uuid", v -> v.rawUuid)
             .event(KeyedTable.Event.Removed, PermissionRow::removed)
             .build();
     public static final KeyedTable<UserFlagsRow> USERFLAGS_TABLE = KeyedTable.of("user_flags", UserFlagsRow::new)
@@ -190,5 +190,7 @@ public class Tables {
     public static final KeyedTable<PrivatePatternRow> PRIVATE_PATTERN = KeyedTable.of("private_pattern", PrivatePatternRow::new)
             .optional()
             .keyed("id", v -> String.valueOf(v.id))
+            .event(KeyedTable.Event.Removed, TownInventory::onUpdate)
+            .event(KeyedTable.Event.Updated, TownInventory::onUpdate)
             .build();
 }

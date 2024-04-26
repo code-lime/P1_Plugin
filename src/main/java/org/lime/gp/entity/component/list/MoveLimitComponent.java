@@ -15,10 +15,12 @@ import java.util.Map;
 @InfoComponent.Component(name = "move_limit")
 public class MoveLimitComponent extends ComponentDynamic<JsonObject, MoveLimitInstance> {
     public final double total;
+    public final boolean destroy;
     public final Map<Checker, IRange> repair = new HashMap<>();
     public MoveLimitComponent(EntityInfo info, JsonObject json) {
         super(info, json);
         total = json.get("total").getAsDouble();
+        destroy = !json.has("destroy") || json.get("destroy").getAsBoolean();
         json.get("repair")
                 .getAsJsonObject()
                 .entrySet()

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
     @Override public void apply(ItemMeta meta, Apply apply) {
         JsonObject data = new JsonObject();
         apply.list().forEach((key, value) -> {
-            if (key.startsWith("entity_data.")) data.addProperty(key.substring(11), value);
+            if (key.startsWith("entity_data.")) data.addProperty(key.substring(12), value);
         });
         if (data.size() <= 0) return;
         meta.getPersistentDataContainer().set(ENTITY_DATA_KEY, LimePersistentDataType.JSON_OBJECT, data);

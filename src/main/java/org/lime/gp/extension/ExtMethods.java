@@ -12,6 +12,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
+import org.lime.display.Displays;
 import org.lime.gp.lime;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
@@ -61,7 +62,7 @@ public class ExtMethods {
         player.getInventory().setItem(slot, old);
     }
     public static boolean isPlayerLoaded(Player player) {
-        return player.getResourcePackStatus() != PlayerResourcePackStatusEvent.Status.ACCEPTED;
+        return Displays.isPlayerLoaded(player);
     }
     public static Optional<Integer> parseInt(String text) {
         try { return Optional.of(Integer.parseInt(text)); }

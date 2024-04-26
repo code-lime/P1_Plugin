@@ -1,6 +1,7 @@
 package org.lime.gp.block.component.data;
 
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_20_R1.block.CraftBlock;
 import org.lime.gp.block.BlockComponentInstance;
@@ -12,6 +13,8 @@ import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
 import org.lime.system.toast.Toast3;
+
+import java.util.List;
 
 public class BombInstance extends BlockComponentInstance<BombComponent> implements CustomTileMetadata.Tickable {
     public BombInstance(BombComponent component, CustomTileMetadata metadata) {
@@ -42,10 +45,12 @@ public class BombInstance extends BlockComponentInstance<BombComponent> implemen
         Block block = metadata.block();
         metadata.setAir();
 
+        List<Material> blacklist = component.blacklist;
+
         Sounds.playSound(component.sound_boom, metadata.location());
         for (Toast3<Integer, Integer, Integer> k : component.blocks) {
             Toast3<Integer, Integer, Integer> p = rotation.rotate(k);
-            if (block.getRelative(p.val0, p.val1, p.val2) instanceof CraftBlock target && target.getNMS().isDestroyable())
+            if (block.getRelative(p.val0, p.val1, p.val2) instanceof CraftBlock target && target.getNMS().isDestroyable() && !blacklist.contains(target.getType()))
                 target.breakNaturally();
         }
     }

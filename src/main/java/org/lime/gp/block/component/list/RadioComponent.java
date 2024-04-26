@@ -11,6 +11,8 @@ import org.lime.gp.block.component.data.voice.RadioInstance;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.player.voice.RadioData;
 
+import javax.annotation.Nullable;
+
 @InfoComponent.Component(name = "radio")
 public final class RadioComponent extends ComponentDynamic<JsonObject, RadioInstance> {
     public final int min_level;
@@ -22,6 +24,7 @@ public final class RadioComponent extends ComponentDynamic<JsonObject, RadioInst
     public final short max_distance;
     public final short def_distance;
     public final RadioData.RadioState state;
+    public final @Nullable String category;
 
     public final boolean noise;
 
@@ -55,6 +58,7 @@ public final class RadioComponent extends ComponentDynamic<JsonObject, RadioInst
         noise = json.has("noise") ? json.get("noise").getAsBoolean() : false;
         
         state = json.has("state") ? RadioData.RadioState.valueOf(json.get("state").getAsString()) : RadioData.RadioState.all;
+        category = json.has("category") ? json.get("category").getAsString() : null;
     }
 
     @Override public RadioInstance createInstance(CustomTileMetadata metadata) { return new RadioInstance(this, metadata); }

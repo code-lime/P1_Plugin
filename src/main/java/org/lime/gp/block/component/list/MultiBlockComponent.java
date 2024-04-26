@@ -2,6 +2,7 @@ package org.lime.gp.block.component.list;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.core.BlockPosition;
 import net.minecraft.world.level.block.entity.TileEntityLimeSkull;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -41,15 +42,18 @@ public final class MultiBlockComponent extends ComponentDynamic<JsonObject, Mult
             String key = _json.getAsString();
             return new IBlock() {
                 @Override public Optional<List<TileEntityLimeSkull>> set(Player player, UUID ownerBlock, String ownerBlockType, Position position, Value rotation, Toast3<Integer, Integer, Integer> local) {
-                    return Blocks.creator(key).map(block -> block.setMultiBlock(player, position.offset(rotation.rotate(local)), map.<String, JsonObject>of()
-                                .add("other.generic", json.object()
-                                        .add("position", position.toSave())
-                                        .add("owner", ownerBlock.toString())
-                                        .add("owner_type", ownerBlockType)
-                                        .build()
-                                )
-                                .add("display", json.object().add("rotation", rotation.angle + "").build())
-                                .build(), rotation))
+                    return Blocks.creator(key).map(block -> {
+                                var offset = rotation.rotate(local);
+                                return block.setMultiBlock(player, position.offset(offset), map.<String, JsonObject>of()
+                                        .add("other.generic", json.object()
+                                                .add("offset", -offset.val0 + " " + -offset.val1 + " " + -offset.val2)
+                                                .add("owner", ownerBlock.toString())
+                                                .add("owner_type", ownerBlockType)
+                                                .build()
+                                        )
+                                        .add("display", json.object().add("rotation", rotation.angle + "").build())
+                                        .build(), rotation);
+                            })
                         .filter(skulls -> {
                             skulls.forEach(skull -> CoreProtectHandle.logSetBlock(skull, player));
                             return true;

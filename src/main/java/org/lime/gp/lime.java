@@ -146,6 +146,9 @@ public class lime extends core {
     public static boolean isSit(Player player) {
         return GSitAPI.isSitting(player);
     }
+    public static boolean isCrawl(Player player) {
+        return GSitAPI.isCrawling(player);
+    }
     public static void unSit(Player player) {
         GSeat seat = GSitAPI.getSeat(player);
         if (seat == null) return;
@@ -157,7 +160,8 @@ public class lime extends core {
         GSitAPI.removePose(seat.getPlayer(), GetUpReason.PLUGIN, true);
     }
 
-    public static org.lime.autodownload autodownload;
+    public static org.lime.modules.autodownload autodownload;
+    public static org.lime.modules.proxy proxy;
     public static Models models;
     private static final boolean isDevelopment = System.getProperty("org.lime.development", "false").equalsIgnoreCase("true");
 
@@ -180,12 +184,12 @@ public class lime extends core {
         worlds.add(CustomWorld = (CraftWorld)new WorldCreator("world_custom").type(WorldType.FLAT).createWorld());
         
         add(branch.create());
-        autodownload = (org.lime.autodownload) add(org.lime.autodownload.create()).element().map(v -> v.instance).orElseThrow();
+        autodownload = (org.lime.modules.autodownload) add(org.lime.modules.autodownload.create()).element().map(v -> v.instance).orElseThrow();
+        proxy = (org.lime.modules.proxy) add(org.lime.modules.proxy.create()).element().map(v -> v.instance).orElseThrow();
         add(ThreadPool.create());
         add(Methods.create());
         JavaScript.createAdd();
         models = (Models) add(Models.create(JavaScript.js, Docs.link.builderTypes())).element().map(v -> v.instance).orElseThrow();
-        AnyEvent.addEvent("models.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, models::keys), (p, key) -> lime.logOP("Model '" + key + "':\n" + models.get(key).map(BaseBuilder::source).map(JsonElement::toString).orElse("NULL")));
         library(IConfig.getLibraryFiles("mp3spi-1.9.13.jar", "JDA-5.0.0-beta.12-withDependencies.jar"));
         //library("gdx-1.11.1-SNAPSHOT.jar", "gdx-jnigen-loader-2.3.1.jar", "gdx-bullet-1.11.1-SNAPSHOT.jar");
         //library("ode4j-core-0.4.1.jar");

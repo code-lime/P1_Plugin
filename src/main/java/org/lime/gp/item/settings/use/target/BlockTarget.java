@@ -7,7 +7,7 @@ import org.bukkit.block.data.BlockData;
 
 import java.util.Optional;
 
-public class BlockTarget implements ITarget {
+public class BlockTarget implements ILocationTarget {
     private final Location location;
     private final BlockState state;
     private final BlockData data;
@@ -21,16 +21,11 @@ public class BlockTarget implements ITarget {
     @Override public boolean isSelf() { return false; }
     @Override public boolean isActive() { return location.getBlock().getState().equals(state); }
 
-    public Location getLocation() {
-        return location;
-    }
-    public BlockState getState() {
-        return state;
-    }
-    public BlockData getData() {
-        return data;
-    }
+    public Location getLocation() { return location; }
+    public BlockState getState() { return state; }
+    public BlockData getData() { return data; }
 
     @Override public Optional<BlockTarget> castToBlock() { return Optional.of(this); }
     @Override public Optional<PlayerTarget> castToPlayer() { return Optional.empty(); }
+    @Override public Optional<EntityTarget> castToEntity() { return Optional.empty(); }
 }

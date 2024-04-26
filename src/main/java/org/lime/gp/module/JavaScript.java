@@ -2,31 +2,42 @@ package org.lime.gp.module;
 
 import com.google.gson.JsonElement;
 import com.mojang.math.Transformation;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.network.protocol.game.PacketDebug;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.lime.gp.database.mysql.MySqlRow;
-import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.chat.ChatMessages;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.mysql.MySqlAsync;
+import org.lime.gp.database.mysql.MySqlRow;
+import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.Cooldown;
 import org.lime.gp.lime;
 import org.lime.gp.module.biome.time.DateTime;
 import org.lime.gp.module.biome.time.DayManager;
+import org.lime.gp.module.npc.EPlayerModule;
+import org.lime.gp.module.worlds.IWorldService;
+import org.lime.gp.module.worlds.RootWorldService;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.gp.player.module.TabManager;
 import org.lime.json.JsonObjectOptional;
+import org.lime.system.execute.Action0;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Func0;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 
-import java.sql.ResultSet;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -39,6 +50,8 @@ public class JavaScript {
     }
 
     public static class JSMenu extends org.lime.JavaScript.InstanceJS {
+        private static final RootWorldService worldService = new RootWorldService();
+
         private static final ConcurrentHashMap<String, Object> staticMemory = new ConcurrentHashMap<>();
         public Object memoryGetOrAdd(String key, Func0<Object> def) {
             return staticMemory.computeIfAbsent(key, k -> def.invoke());
@@ -98,17 +111,19 @@ public class JavaScript {
 
         public Object read(MySqlRow set, String name, Class<?> tClass) { return MySql.readObject(set, name, tClass); }
         public void log(String text) { lime.logOP(text); }
-        public void repeat(Action0 func, double sec) {
-            this.inits.add(lime.repeat(func, sec));
-        }
 
         public String toJsonString(Object obj) {
             return json.by(obj).build().toString();
         }
-        public void once(Action0 func, double sec) {
-            Toast1<BukkitTask> bukkitTask = Toast.of(null);
-            bukkitTask.val0 = lime.once(func, sec);
-            this.inits.add(bukkitTask.val0);
+        public BukkitTask repeat(Action0 func, double sec) {
+            BukkitTask task = lime.repeat(func, sec);
+            this.inits.add(task);
+            return task;
+        }
+        public BukkitTask once(Action0 func, double sec) {
+            BukkitTask task = lime.once(func, sec);
+            this.inits.add(task);
+            return task;
         }
         public String sql(String table, String check, String filter, String output) { return ChatHelper.applySqlJs(table, check, filter, output); }
         public void show(String uuid, String menu) { this.show(uuid, menu, 0, new HashMap<>()); }
@@ -137,6 +152,28 @@ public class JavaScript {
             Player player = Bukkit.getPlayer(UUID.fromString(uuid));
             return player != null && player.removeScoreboardTag(tag);
         }
+        public List<String> withTag(String tag) {
+            List<String> uuids = new ArrayList<>();
+            Bukkit.getOnlinePlayers()
+                    .forEach(v -> {
+                        if (v.getScoreboardTags().contains(tag))
+                            uuids.add(v.getUniqueId().toString());
+                    });
+            return uuids;
+        }
+        public Map<String, List<String>> getTagsMap() {
+            Map<String, List<String>> tags = new HashMap<>();
+            Bukkit.getOnlinePlayers()
+                    .forEach(v -> tags.put(v.getUniqueId().toString(), new ArrayList<>(v.getScoreboardTags())));
+            return tags;
+        }
+
+        public IWorldService worlds() {
+            return worldService;
+        }
+        public void sendToServer(String uuid, String server) {
+            lime.proxy.connect(Bukkit.getPlayer(UUID.fromString(uuid)), server);
+        }
 
         public void showHeadText(String uuid, String text) {
             ChatMessages.showHeadText(UUID.fromString(uuid), text);
@@ -146,11 +183,42 @@ public class JavaScript {
         public Map<String, Object> objectTransformation(Transformation transformation) { return JsonObjectOptional.of(MathUtils.transformation(transformation)).createObject(); }
         public Transformation composeTransformation(Transformation a, Transformation b) { return MathUtils.transform(a, b); }
 
-        public void execute(String command) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        public Player rawPlayer(String uuid) {
+            return Bukkit.getPlayer(UUID.fromString(uuid));
+        }
+        public World rawWorld(String name) {
+            return Bukkit.getWorld(name);
+        }
+
+        public String execute(String command) {
+            List<String> outputLines = new ArrayList<>();
+            Bukkit.dispatchCommand(Bukkit.createCommandSender(component ->
+                    outputLines.add(LegacyComponentSerializer.legacyAmpersand().serialize(component))), command);
+            return String.join("\n", outputLines);
         }
         public void execute(String uuid, String command) {
             Bukkit.dispatchCommand(Bukkit.getPlayer(UUID.fromString(uuid)), command);
+        }
+
+        public @Nullable Integer getTimedId(String uuid) {
+            return TabManager.getPayerIDorNull(UUID.fromString(uuid));
+        }
+        public @Nullable Integer getStaticId(String uuid) {
+            return UserRow.getBy(UUID.fromString(uuid))
+                    .map(v -> v.id)
+                    .orElse(null);
+        }
+
+        public void sendBlockMarker(Location location, String message, String argb, double time) {
+            PacketDebug.sendGameTestAddMarker(
+                ((CraftWorld)location.getWorld()).getHandle(),
+                new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
+                message,
+                Integer.parseUnsignedInt(argb, 16),
+                (int)(time * 1000));
+        }
+        public void clearBlockMarker(World world) {
+            PacketDebug.sendGameTestClearPacket(((CraftWorld)world).getHandle());
         }
     }
 

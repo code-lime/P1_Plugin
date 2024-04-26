@@ -23,6 +23,7 @@ import org.lime.plugin.CoreElement;
 import org.lime.system.json;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChurchManager implements Listener {
     private static double func_pow;
@@ -63,7 +64,7 @@ public class ChurchManager implements Listener {
     public static void update() {
         Methods.SQL.Async.rawSqlQuery("SELECT * FROM church", IEffect::parse, list -> list.forEach(IEffect::sync));
         effect_list.entrySet().removeIf(kv -> kv.getValue().isRemove());
-        effects.forEach((uuid, data) -> data.entrySet().removeIf(kv -> !effect_list.containsKey(kv.getKey())));
+        effects.forEach((uuid, data) -> data.entrySet().removeIf(kv -> !effect_list.containsKey(kv.getKey()) || !kv.getValue().isEnable(uuid)));
     }
 
     public static class EffectUI implements CustomUI.IUI {
@@ -103,7 +104,9 @@ public class ChurchManager implements Listener {
         }
         @Override public Collection<ImageBuilder> getUI(Player player) {
             HashMap<Integer, IEffect> effects = ChurchManager.effects.getOrDefault(player.getUniqueId(), null);
+            //lime.logOP("GU.0 : " + player.getName() + " | " + effects);
             if (effects == null) return Collections.emptyList();
+            //lime.logOP("GU.1 : " + player.getName() + " | " + effects.size());
             List<ImageBuilder> builders = new LinkedList<>();
             int i = -1;
             for (IEffect effect : effects.values()) {
@@ -185,6 +188,8 @@ public class ChurchManager implements Listener {
             ticks--;
             return ticks <= 0;
         }
+        protected abstract boolean isEnable(UUID uuid);
+        protected abstract void disable(UUID uuid);
 
         private int id;
         private int time;
@@ -206,15 +211,31 @@ public class ChurchManager implements Listener {
         public abstract List<ImageBuilder> icon();
     }
     private static class GlobalEffect extends IEffect {
+        private final ConcurrentHashMap<UUID, Object> cachePlayers = new ConcurrentHashMap<>();
+
+        @Override protected boolean isEnable(UUID uuid) { return cachePlayers.containsKey(uuid); }
+        @Override protected void disable(UUID uuid) { cachePlayers.remove(uuid); }
+
         protected GlobalEffect(int house_id, EffectType type) { super(house_id, type); }
 
         @Override public void sync() {
             effect_list.put(getID(), this);
-            Tables.HOUSE_TABLE.get(String.valueOf(getHouseID())).ifPresent(house -> house.center().getNearbyPlayers(global_distance).forEach(player -> effects.compute(player.getUniqueId(), (k, v) -> {
-                if (v == null) v = new HashMap<>();
-                v.put(getID(), this);
-                return v;
-            })));
+            HashSet<UUID> removePlayers = new HashSet<>(cachePlayers.keySet());
+            Tables.HOUSE_TABLE.get(String.valueOf(getHouseID()))
+                    .ifPresent(house -> house.center().getNearbyPlayers(global_distance)
+                            .forEach(player -> {
+                                UUID uuid = player.getUniqueId();
+                                removePlayers.remove(uuid);
+                                cachePlayers.put(uuid, new Object());
+                                effects.compute(uuid, (k, v) -> {
+                                        if (v == null) v = new HashMap<>();
+                                        var old = v.put(getID(), this);
+                                        if (old != null && old != this)
+                                            old.disable(uuid);
+                                        return v;
+                                });
+                            }));
+            removePlayers.forEach(cachePlayers::remove);
         }
         @Override public List<ImageBuilder> icon() {
             return Arrays.asList(
@@ -236,11 +257,22 @@ public class ChurchManager implements Listener {
             this.uuid = uuid;
         }
 
+        private boolean enable = true;
+        @Override protected boolean isEnable(UUID uuid) {
+            return enable && this.uuid.equals(uuid);
+        }
+        @Override protected void disable(UUID uuid) {
+            this.enable = false;
+        }
+
         @Override public void sync() {
+            this.enable = true;
             effect_list.put(getID(), this);
             effects.compute(uuid, (k, v) -> {
                 if (v == null) v = new HashMap<>();
-                v.put(getID(), this);
+                var old = v.put(getID(), this);
+                if (old != null && old != this)
+                    old.disable(uuid);
                 return v;
             });
         }
@@ -284,11 +316,6 @@ public class ChurchManager implements Listener {
         e.setCancelled(true);
     }
 }
-
-
-
-
-
 
 
 

@@ -42,7 +42,7 @@ public class ConfigEPlayer implements IEPlayer {
         this.key = key;
 
         location = MathUtils.getLocation(json.has("world") ? Bukkit.getWorlds().get(json.get("world").getAsInt()) : lime.MainWorld, json.get("location").getAsString());
-        skin = json.get("skin").getAsString();
+        skin = json.has("skin") ? json.get("skin").getAsString() : null;
         menu = json.has("menu") ? json.get("menu").getAsString() : null;
         if (json.has("single")) {
             if (json.get("single").isJsonNull()) single = null;
@@ -80,7 +80,7 @@ public class ConfigEPlayer implements IEPlayer {
     @Override public Pose pose() { return sit ? Pose.SIT : Pose.NONE; }
 
     @Override public boolean isShow(UUID uuid) { return !hide || EPlayerModule.shows(uuid).contains(key); }
-    @Override public GameProfile setSkin(GameProfile profile) { return Skins.setSkinOrDownload(profile, skin); }
+    @Override public GameProfile setSkin(GameProfile profile) { return skin == null ? profile : Skins.setSkinOrDownload(profile, skin); }
 
     @Override public List<Component> getDisplayName(Player player) {
         List<Component> nick = new ArrayList<>(name);

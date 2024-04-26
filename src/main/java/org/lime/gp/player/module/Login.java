@@ -27,18 +27,18 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.lime.gp.database.rows.CityRow;
-import org.lime.gp.player.ui.CustomUI;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.Administrator;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.database.Methods;
+import org.lime.gp.database.rows.CityRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.plugin.CoreElement;
 import org.lime.system.Time;
 import org.lime.system.map;
-import org.lime.system.toast.*;
+import org.lime.system.toast.Toast;
 import org.lime.system.utils.MathUtils;
 
 import java.net.InetAddress;
@@ -184,6 +184,18 @@ public class Login implements Listener {
     }
 
     public static void init() {
+        AnyEvent.addEvent("only_op", AnyEvent.type.owner_console, v -> v.createParam("enable", "disable"), (s,v) -> {
+            switch (v) {
+                case "enable" -> {
+                    only_op = true;
+                    lime.logOP("Enabled only_op");
+                }
+                case "disable" -> {
+                    only_op = false;
+                    lime.logOP("Disabled only_op");
+                }
+            }
+        });
         lime.repeat(Login::update, 0.1);
     }
     private static final HashMap<Player, BukkitTask> teleportToMain = new HashMap<>();
@@ -236,18 +248,27 @@ public class Login implements Listener {
     private static final Map<UUID, Map<UUID, String>> multiList = map.<UUID, Map<UUID, String>>of()
             .add(UUID.fromString("ce6e763f-a669-40eb-866d-019e6ddca12c"),
                     map.<UUID, String>of(true)
-                        .add(UUID.fromString("00000000-0000-1000-0000-000000000000"), "Code_Lime#2")
-                        .add(UUID.fromString("00000000-0000-1000-0001-000000000001"), "Code_Lime#3")
+                        .add(UUID.fromString("00000000-0000-1000-0000-000000000000"), "Code_Lime.2")
+                        .add(UUID.fromString("00000000-0000-1000-0001-000000000001"), "Code_Lime.3")
                         .build()
             )
             .add(UUID.fromString("f76d2058-a107-413c-973e-101fb20c9fdb"),
                     map.<UUID, String>of(true)
-                            .add(UUID.fromString("00000000-0000-1000-0000-000000000001"), "Aleks_Bur#2")
+                            .add(UUID.fromString("00000000-0000-1000-0000-000000000001"), "Aleks_Bur.2")
                             .build()
             )
             .add(UUID.fromString("fb87fd2f-620d-464e-a7dd-6e2ee1b38e33"),
                     map.<UUID, String>of(true)
-                            .add(UUID.fromString("00000000-0000-1000-0000-000000000002"), "mihannik#2")
+                            .add(UUID.fromString("00000000-0000-1000-0000-000000000002"), "mihannik.2")
+                            .add(UUID.fromString("00000000-0000-1000-0000-300000000002"), "mihannik.3")
+                            .add(UUID.fromString("00000000-0000-1000-0000-400000000002"), "mihannik.4")
+                            .add(UUID.fromString("00000000-0000-1000-0000-500000000002"), "mihannik.5")
+                            .add(UUID.fromString("00000000-0000-1000-0000-600000000002"), "mihannik.6")
+                            .add(UUID.fromString("00000000-0000-1000-0000-700000000002"), "mihannik.7")
+                            .add(UUID.fromString("00000000-0000-1000-0000-800000000002"), "mihannik.8")
+                            .add(UUID.fromString("00000000-0000-1000-0000-900000000002"), "mihannik.9")
+                            .add(UUID.fromString("00000000-0000-1000-0000-A00000000002"), "mihannik.A")
+                            .add(UUID.fromString("00000000-0000-1000-0000-B00000000002"), "mihannik.B")
                             .build()
             )
             .build();

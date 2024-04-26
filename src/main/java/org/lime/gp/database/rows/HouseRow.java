@@ -18,6 +18,7 @@ import org.lime.gp.database.mysql.MySql;
 import org.lime.gp.database.tables.Tables;
 
 import com.google.gson.JsonObject;
+import org.lime.system.utils.EnumUtils;
 import org.lime.system.utils.MathUtils;
 
 public class HouseRow extends BaseRow {
@@ -41,6 +42,7 @@ public class HouseRow extends BaseRow {
     public Vector posMax;
     public Position posMain;
     public BlockFace posFace;
+    public String rawType;
     public HouseRow.HouseType type;
     public long private_flags;
     public JsonObject data;
@@ -71,7 +73,8 @@ public class HouseRow extends BaseRow {
         posMain = Methods.readPosition(set, lime.MainWorld, "posMain");
         posFace = BlockFace.valueOf(MySql.readObject(set, "posFace", String.class));
         String type = MySql.readObject(set, "type", String.class);
-        this.type = type == null ? null : HouseType.valueOf(type);
+        rawType = type;
+        this.type = type == null ? null : EnumUtils.tryParse(HouseType.class, type).orElse(null);
         private_flags = MySql.readObject(set, "private", Long.class);
         String data = MySql.readObject(set, "data", String.class);
         this.data = data == null ? null : json.parse(data).getAsJsonObject();

@@ -233,7 +233,7 @@ public class Blocks implements Listener {
 
     public static final ConcurrentHashMap<String, BlockInfo> creators = new ConcurrentHashMap<>();
     private static final HashMap<String, BlockInfo> defaultBlocks = new HashMap<>();
-    private static final HashMap<String, JsonObject> overrides = new HashMap<>();
+    public static final HashMap<String, JsonObject> overrides = new HashMap<>();
     private static final HashMap<Material, List<BlockInfo.Replacer<?>>> replaceBlocks = new HashMap<>();
 
     public static Optional<BlockInfo> creator(String key) {
@@ -255,7 +255,10 @@ public class Blocks implements Listener {
                 .orElseGet(() -> block.getType().name());
     }
 
-    public static long index = 0;
+    private static long index = 0;
+    public static long getLoadedIndex() {
+        return index;
+    }
     public static void config(JsonObject json) {
         HashMap<String, BlockInfo> creators = new HashMap<>(defaultBlocks);
         JsonElement modify_json = json.remove("MODIFY_LIST");
@@ -274,7 +277,12 @@ public class Blocks implements Listener {
         overrides.clear();
         json.entrySet().forEach((kv) -> {
             overrides.put(kv.getKey(), kv.getValue().getAsJsonObject());
-            creators.put(kv.getKey(), new BlockInfo(kv.getKey(), kv.getValue().getAsJsonObject()));
+            try {
+                creators.put(kv.getKey(), new BlockInfo(kv.getKey(), kv.getValue().getAsJsonObject()));
+            } catch (Exception e) {
+                lime.logOP("Error in '"+kv.getKey()+"' block json");
+                throw e;
+            }
         });
         replaceBlocks.clear();
         Blocks.creators.clear();
@@ -289,7 +297,6 @@ public class Blocks implements Listener {
     private static final LockToast2<TickTimeInfo,TickTimeInfo> lastDeltaTime = Toast.lock(new TickTimeInfo(),new TickTimeInfo());
     
     public static void init() {
-        AnyEvent.addEvent("blocks.json", AnyEvent.type.owner_console, b -> b.createParam(v -> v, overrides::keySet), (p, key) -> lime.logOP("Block '" + key + "':\n" + overrides.getOrDefault(key, null)));
         setBlockData(0.0f);
         AnyEvent.addEvent("delta.show.blocks", AnyEvent.type.owner_console, p -> lime.logOP(Component.text("[Blocks] DeltaShow:\n" + nextAsyncTimes.call(v -> String.join("\n",
                 " - Last call: " + Time.formatCalendar(Time.moscowTime(v.val0), true),

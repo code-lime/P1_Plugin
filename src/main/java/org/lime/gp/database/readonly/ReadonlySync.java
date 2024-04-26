@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.lime.gp.admin.Administrator;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.entity.Entities;
-import org.lime.gp.entity.component.data.OwnerInstance;
 import org.lime.gp.entity.component.list.OwnerComponent;
 import org.lime.gp.item.settings.list.HideNickSetting;
 import org.lime.gp.lime;
@@ -74,7 +73,7 @@ public class ReadonlySync {
                         ONLINE_POSITIONS_READONLY_ENABLE ? 0 : (int)location.getBlockZ(), //system.round(location.getZ(), 3),
                         world,
 
-                        TabManager.getPayerIDorNull(uuid),
+                        TabManager.getPayerID(uuid),
 
                         data.map(v -> v.icon).orElse(null),
                         data.map(v -> v.name).orElse(null),

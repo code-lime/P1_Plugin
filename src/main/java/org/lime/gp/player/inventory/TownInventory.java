@@ -79,25 +79,27 @@ public class TownInventory implements Listener {
         boolean isCheck(String block);
         boolean isCheck(EntityType entity);
 
+        String info();
+
         static IPrivatePattern combine(List<? extends IPrivatePattern> patterns) {
             return new IPrivatePattern() {
                 @Override public boolean isCantBlock(String block) {
                     for (IPrivatePattern pattern : patterns)
-                        if (!pattern.isCantBlock(block))
-                            return false;
-                    return true;
+                        if (pattern.isCantBlock(block))
+                            return true;
+                    return false;
                 }
                 @Override public boolean isCantBreaks(String block) {
                     for (IPrivatePattern pattern : patterns)
-                        if (!pattern.isCantBreaks(block))
-                            return false;
-                    return true;
+                        if (pattern.isCantBreaks(block))
+                            return true;
+                    return false;
                 }
                 @Override public boolean isCantEntity(EntityType entity) {
                     for (IPrivatePattern pattern : patterns)
-                        if (!pattern.isCantEntity(entity))
-                            return false;
-                    return true;
+                        if (pattern.isCantEntity(entity))
+                            return true;
+                    return false;
                 }
 
                 @Override public boolean isCheck(String block) {
@@ -112,6 +114,8 @@ public class TownInventory implements Listener {
                             return true;
                     return false;
                 }
+
+                @Override public String info() { return "["+patterns.stream().map(IPrivatePattern::info).collect(Collectors.joining(","))+"]"; }
             };
         }
         IPrivatePattern EMPTY = new IPrivatePattern() {
@@ -121,6 +125,8 @@ public class TownInventory implements Listener {
 
             @Override public boolean isCheck(String block) { return false; }
             @Override public boolean isCheck(EntityType entity) { return false; }
+
+            @Override public String info() { return "EMPTY"; }
         };
     }
 
@@ -299,12 +305,26 @@ public class TownInventory implements Listener {
     private static final HomeManager HOME_MANAGER = new HomeManager();
 
     private static final ConcurrentHashMap<Integer, IPrivatePattern> housePatterns = new ConcurrentHashMap<>();
+    public static void onUpdate(int houseId) {
+        lime.onceTicks(() -> {
+            List<PrivatePatternRow> lockPatterns = new ArrayList<>(Tables.PRIVATE_PATTERN.getRows());
+
+            Set<Integer> unlockPatterns = PrivateHouseRow
+                    .getBy(v -> v.houseId == houseId && !v.isLock)
+                    .stream()
+                    .map(v -> v.patternId)
+                    .collect(Collectors.toSet());
+
+            lockPatterns.removeIf(v -> unlockPatterns.contains(v.id));
+
+            housePatterns.put(houseId, IPrivatePattern.combine(lockPatterns));
+        }, 2);
+    }
     public static void onUpdate(PrivateHouseRow row) {
-        lime.onceTicks(() -> housePatterns.put(row.houseId, IPrivatePattern.combine(PrivateHouseRow
-                .getBy(v -> v.houseId == row.houseId && !v.status)
-                .stream()
-                .flatMap(v -> PrivatePatternRow.getBy(v.patternId).stream())
-                .toList())), 2);
+        onUpdate(row.houseId);
+    }
+    public static void onUpdate(PrivatePatternRow row) {
+        housePatterns.keySet().forEach(TownInventory::onUpdate);
     }
 
     private static boolean HTML_RENDER = true;
@@ -595,7 +615,6 @@ public class TownInventory implements Listener {
         if (block == null) return;
         Player player = e.getPlayer();
         if (player.getWorld() != lime.MainWorld) return;
-        lime.logOP("ICB.0: " + Blocks.getBlockKey(block));
         if (isCantBlock(block, player)) {
             if (block.getType() == Material.LECTERN) {
                 Lectern lectern = (Lectern) block.getState();
@@ -610,7 +629,6 @@ public class TownInventory implements Listener {
                 }
             }
 
-            lime.logOP("ICB.1");
             Apply data = Apply.of()
                     .add("block_type", block.getType().name());
             Blocks.of(block)

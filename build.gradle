@@ -1,20 +1,12 @@
+import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
+
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.function.Predicate
-import java.util.jar.JarFile
-import java.io.*;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
-import org.gradle.plugins.ide.eclipse.model.Library
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 plugins {
     id 'java'
@@ -45,11 +37,8 @@ dependencies {
             files(libPath("ProtocolLib.jar")),
             files(libPath("JDA-5.0.0-beta.12-withDependencies.jar")),
             files(libPath("voicechat-bukkit-2.4.24.jar")),
-            files(libPath("byte-buddy-1.11.18.jar")),
-            files(libPath("byte-buddy-agent-1.11.18.jar")),
-            files(libPath("Physics-1.11.0.jar")),
-            files(libPath("ode4j-core-0.4.1.jar")),
-            files(libPath("mp3spi-1.9.13.jar"))
+            files(libPath("mp3spi-1.9.13.jar")),
+            files(libPath("worldedit-bukkit-7.3.0.jar"))
     )
 }
 

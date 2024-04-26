@@ -11,7 +11,6 @@ import org.lime.system.Regex;
 import org.lime.system.execute.Func1;
 
 import javax.annotation.Nullable;
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,7 +52,7 @@ public class PrivatePatternRow extends BaseRow implements TownInventory.IPrivate
 
     private void tryInitialize() {
         long nowIndex = switch (type) {
-            case BLOCK, BREAK -> Blocks.index;
+            case BLOCK, BREAK -> Blocks.getLoadedIndex();
             default -> 0;
         };
         if (nowIndex == index) return;
@@ -76,15 +75,15 @@ public class PrivatePatternRow extends BaseRow implements TownInventory.IPrivate
 
     @Override public boolean isCantBlock(String block) {
         tryInitialize();
-        return blocks == null || !blocks.contains(block);
+        return blocks != null && blocks.contains(block);
     }
     @Override public boolean isCantBreaks(String block) {
         tryInitialize();
-        return breaks == null || !breaks.contains(block);
+        return breaks != null && breaks.contains(block);
     }
     @Override public boolean isCantEntity(EntityType entity) {
         tryInitialize();
-        return entities == null || entities.contains(entity);
+        return entities != null && entities.contains(entity);
     }
 
     @Override public boolean isCheck(String block) {
@@ -94,5 +93,9 @@ public class PrivatePatternRow extends BaseRow implements TownInventory.IPrivate
     @Override public boolean isCheck(EntityType entity) {
         tryInitialize();
         return entities != null && entities.contains(entity);
+    }
+
+    @Override public String info() {
+        return type + "$" + filter;
     }
 }

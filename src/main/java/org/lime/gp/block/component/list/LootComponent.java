@@ -35,9 +35,12 @@ public final class LootComponent extends ComponentStatic<JsonObject> implements 
         super(info, json);
         Map<String, Integer> items = new HashMap<>();
         json.getAsJsonObject("items").entrySet().forEach(kv -> {
-            items.put(kv.getKey(), kv.getValue().getAsInt());
-            if (Items.getItemCreator(kv.getKey()).isPresent()) return;
-            lime.logOP("[Warning] Key of item in spawn '" + kv.getKey() + "' not founded!");
+            String itemName = kv.getKey();
+            if (itemName.equals("*"))
+                itemName = info.getKey();
+            items.put(itemName, kv.getValue().getAsInt());
+            if (Items.getItemCreator(itemName).isPresent()) return;
+            lime.logOP("[Warning] Key of item in spawn '" + itemName + "' not founded!");
         });
         this.items = items;
         if (json.has("args"))

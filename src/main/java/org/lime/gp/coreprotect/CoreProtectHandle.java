@@ -22,13 +22,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.lime.Position;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.list.*;
+import org.lime.gp.item.settings.list.MagnifierSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.perm.Grants;
 import org.lime.gp.player.perm.Perms;
+import org.lime.plugin.CoreElement;
 import org.lime.system.Time;
 import org.lime.system.json;
 
@@ -110,7 +110,7 @@ public class CoreProtectHandle implements Listener {
                     .map(v -> v instanceof ItemCreator _v ? _v : null)
                     .filter(creator -> creator.has(MagnifierSetting.class))
                     .filter(creator -> Perms.getCanData(player).isCanUse(creator.getKey()))
-                    .ifPresentOrElse(creator -> Grants.getGrantData(player.getUniqueId()).filter(v -> v.magnifier).ifPresent(role -> {
+                    .ifPresentOrElse(creator -> Grants.getGrantData(player.getUniqueId()).filter(v -> v.magnifier).findAny().ifPresent(role -> {
                         if (coi_toggle.containsKey(player)) return;
                         inspecting(player, true);
                         coi_toggle.put(player, player.getUniqueId());
@@ -162,6 +162,18 @@ public class CoreProtectHandle implements Listener {
             BlockState blockState = world.getBlockState(pos.getX(), pos.getY(), pos.getZ());
             net.coreprotect.consumer.Queue.queueBlockPlace(player.getName(), blockState, blockState.getType(), null, null, -1, 0, null);
         }
+        private static void onBlockPlace(Block block, Player player) {
+            World world = block.getWorld();
+            if (!Config.getConfig(world).BLOCK_PLACE) return;
+            BlockState blockState = block.getState();
+            net.coreprotect.consumer.Queue.queueBlockPlace(player.getName(), blockState, blockState.getType(), null, null, -1, 0, null);
+        }
+        private static void onBlockDestroy(Block block, Player player) {
+            World world = block.getWorld();
+            if (!Config.getConfig(world).BLOCK_BREAK) return;
+            BlockState blockState = block.getState();
+            net.coreprotect.consumer.Queue.queueBlockBreak(player.getName(), blockState, blockState.getType(), blockState.getBlockData().getAsString(), block.getType(), 0, 1);
+        }
         private static void onBlockInteract(Block block, Player player) {
             net.coreprotect.consumer.Queue.queuePlayerInteraction(player.getName(), block.getState(), block.getType());
         }
@@ -169,6 +181,7 @@ public class CoreProtectHandle implements Listener {
             queuePlayerCommand(player, command, getTime(false));
         }
     }
+
     public static void logDrop(Location location, Player player, ItemStack item) {
         _0.onPlayerDropItem(location, player, item);
     }
@@ -184,6 +197,13 @@ public class CoreProtectHandle implements Listener {
     public static void logCommand(Player player, String command) {
         _0.onPlayerCommand(player, command);
     }
+    public static void logPlace(Block block, Player player) {
+        _0.onBlockPlace(block, player);
+    }
+    public static void logDestroy(Block block, Player player) {
+        _0.onBlockDestroy(block, player);
+    }
+
     public static void syncTransaction(Player player, Position position) {
         CoreProtect.getInstance().getAPI().logContainerTransaction(player.getName(), position.getLocation());
     }

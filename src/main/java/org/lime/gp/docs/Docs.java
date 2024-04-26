@@ -7,7 +7,10 @@ import org.lime.gp.block.component.ComponentStatic;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.lime;
+import org.lime.gp.player.menu.page.Menu;
 import org.lime.plugin.CoreElement;
+
+import java.util.Comparator;
 
 public class Docs {
     public static final IDocsLink link = IDocsLink.source(true);
@@ -31,7 +34,7 @@ public class Docs {
         DocsFolder root = DocsFolder.root("docs")
                 .file("base", v -> v
                         .add(IIndexGroup.empty("Базовые элементы", "base", null)
-                                .withChilds(link.child().toList())))
+                                .withChilds(link.child().sorted(Comparator.comparing(IIndexDocs::index)).toList())))
                 .file("model", _v -> _v
                         .add(IIndexGroup.empty("Модель", "model", null)
                                 .withChilds(model)))
@@ -40,10 +43,10 @@ public class Docs {
                                 .withChilds(loot)))
                 .file("settings", _v -> _v
                         .add(IIndexGroup.empty("Настройки предметов", "settings", null)
-                                .withChilds(ItemSetting.allDocs(link).toList())))
+                                .withChilds(ItemSetting.allDocs(link).sorted(Comparator.comparing(IIndexDocs::index)).toList())))
                 .file("components", _v -> _v
                         .add(IIndexGroup.empty("Настройки блоков", "components", null)
-                                .withChilds(ComponentStatic.allDocs(link).toList())))
+                                .withChilds(ComponentStatic.allDocs(link).sorted(Comparator.comparing(IIndexDocs::index)).toList())))
         ;
 
         if (root.save(lime.getConfigFile("").toPath())) {

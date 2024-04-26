@@ -14,6 +14,9 @@ import org.lime.gp.item.elemental.step.action.OtherStep;
 import org.lime.gp.item.elemental.step.group.ListStep;
 import org.lime.unsafe;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 public interface IStep<T extends IStep<T>> {
     void execute(Player player, DataContext context, Transformation location);
     T parse(JsonObject json);

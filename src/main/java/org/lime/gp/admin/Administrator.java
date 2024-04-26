@@ -61,6 +61,7 @@ public class Administrator implements Listener {
         ATP("lime.admin.atp"),
         ATP_TO("lime.admin.atp.to"),
         AGM("lime.admin.agm"),
+        ASPECTATORTP("lime.admin.spectator.tp"),
         ATARGET("lime.admin.target"),
         AMUTE("lime.admin.amute"),
         IGNORE_FULL("lime.admin.ignore_full");
@@ -69,7 +70,12 @@ public class Administrator implements Listener {
             return permissible.hasPermission(permission());
         }
         public boolean checkOffline(UUID uuid) {
-            return Tables.PERMISSIONS_TABLE.get(uuid.toString()).filter(v -> v.permissions.contains(permission())).isPresent();
+            return Tables.PERMISSIONS_TABLE.get(uuid.toString())
+                    .filter(v -> v.permissions.contains(permission()))
+                    .or(() -> Tables.PERMISSIONS_TABLE
+                            .get("*")
+                            .filter(v -> v.permissions.contains(permission())))
+                    .isPresent();
         }
 
         private final String perm;

@@ -3,11 +3,8 @@ package org.lime.gp.item.settings.list;
 import com.destroystokyo.paper.ParticleBuilder;
 import com.destroystokyo.paper.event.player.PlayerLaunchProjectileEvent;
 import com.google.gson.JsonObject;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.title.Title;
-import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.projectile.EntitySnowball;
@@ -16,7 +13,6 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftSnowball;
@@ -61,7 +57,6 @@ import org.lime.system.toast.Toast2;
 import org.lime.unsafe;
 
 import javax.annotation.Nullable;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -307,7 +302,8 @@ public class GrenadeSetting extends ItemSetting<JsonObject> implements ITimeUse<
                     return;
                 double level = 1 - Math.max(0, Math.min(1, minDistanceSqr / sqrRadius));
                 EntityLiving handle = entity.getHandle();
-                handle.hurt(handle.damageSources().explosion(null, null), (float)(damage * level));
+
+                handle.hurt(handle.damageSources().cactus(), (float)(damage * level));
             });
         }
     }
@@ -463,7 +459,7 @@ public class GrenadeSetting extends ItemSetting<JsonObject> implements ITimeUse<
     private final String prefixCooldown;
     private final Boolean shift;
     private final EquipmentSlot arm;
-    private final boolean slient;
+    private final boolean silent;
 
     private final IGrenade grenade;
 
@@ -474,7 +470,7 @@ public class GrenadeSetting extends ItemSetting<JsonObject> implements ITimeUse<
     @Override public boolean timeUse(Player player, SelfTarget target, ItemStack item) {
         return player instanceof CraftPlayer handle && throwExecute(handle.getHandle(), item, false, null);
     }
-    @Override public boolean silent() { return slient; }
+    @Override public boolean silent() { return silent; }
     @Override public EquipmentSlot arm() { return arm; }
     @Override public Optional<SelfTarget> tryCast(Player player, ITarget target, EquipmentSlot arm, boolean shift) {
         return this.shift != null && this.shift != shift
@@ -532,7 +528,7 @@ public class GrenadeSetting extends ItemSetting<JsonObject> implements ITimeUse<
 
         shift = optJson.getAsBoolean("shift").orElse(null);
         arm = EquipmentSlot.valueOf(json.get("arm").getAsString());
-        slient = optJson.getAsBoolean("slient").orElse(false);
+        silent = optJson.getAsBoolean("silent").orElse(false);
 
         JsonObject grenade = json.getAsJsonObject("grenade");
         GrenadeType type = GrenadeType.valueOf(grenade.get("type").getAsString());

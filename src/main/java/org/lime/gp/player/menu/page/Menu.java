@@ -17,6 +17,7 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.ITable;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.lime;
 import org.lime.gp.player.inventory.gui.ContainerGUI;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.menu.Logged;
@@ -29,6 +30,7 @@ import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.inventory.MainPlayerInventory;
 import org.lime.system.utils.IterableUtils;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,8 +71,11 @@ public class Menu extends Base {
         return list;
     }
 */
-    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        if (player == null) return;
+    @Override protected void showGenerate(UserRow row, @Nullable Player player, int page, Apply apply) {
+        if (player == null) {
+            lime.logOP("Menu '"+getKey()+"' not called! User is NULL");
+            return;
+        }
         List<Toast2<String, Table>> _tables = tables.stream().map(v -> Toast.of(ChatHelper.formatText(v.val0, apply), v.val1)).collect(Collectors.toList());
         IterableUtils.waitAllAnyAsyns(_tables, (String table, Action1<ITable<? extends BaseRow>> callback) -> Tables
                 .getTable(table, callback)

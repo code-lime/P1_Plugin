@@ -2,13 +2,11 @@ package patch.gp;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandListenerWrapper;
+import net.minecraft.commands.arguments.blocks.ArgumentTileLocation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.data.worldgen.BiomeSettings;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.commands.CommandHelp;
-import net.minecraft.server.commands.CommandMe;
-import net.minecraft.server.commands.CommandTeamMsg;
-import net.minecraft.server.commands.CommandTell;
+import net.minecraft.server.commands.*;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.EntityCaveSpider;
@@ -53,6 +51,7 @@ import patch.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class MutatePatcher extends BasePluginPatcher {
     public static void register() {
@@ -779,13 +778,11 @@ public class MutatePatcher extends BasePluginPatcher {
                             @Override public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
                                 super.visitFieldInsn(opcode, owner, name, descriptor);
 
-                                Native.log(owner +"."+ Native.getSpigotName(EntityArrow.class, name, descriptor, false) + descriptor);
-
                                 if (owner.equals(Type.getInternalName(EntityArrow.class))
-                                        && Native.getSpigotName(EntityArrow.class, name, descriptor, false).equals("baseDamage")
+                                        && Native.getMojangName(EntityArrow.class, name, descriptor, false).equals("baseDamage")
                                         && descriptor.equals(Type.getDescriptor(double.class)))
                                 {
-                                    super.visitInsn(Opcodes.D2F);
+                                    //super.visitInsn(Opcodes.D2F);
                                     super.visitIntInsn(Opcodes.ALOAD, 0);
                                     super.visitIntInsn(Opcodes.ALOAD, 1);
                                     Native.writeMethod(Execute.func(EntityTridentBaseDamageEvent::execute), super::visitMethodInsn);
@@ -797,7 +794,7 @@ public class MutatePatcher extends BasePluginPatcher {
                 .patchMethod(IMethodFilter.of(EntityArrow.class, "onHitEntity", Type.getMethodType(Type.VOID_TYPE, Type.getType(MovingObjectPositionEntity.class)), true),
                         MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
                             @Override protected List<String> createProgressList() {
-                                return List.of("Event.PlayerArrowCriticalEvent", "THROW");
+                                return List.of("Event.PlayerArrowCriticalEvent");
                             }
 
                             int critical = 0;
@@ -852,6 +849,61 @@ public class MutatePatcher extends BasePluginPatcher {
 
                                 Native.log("Replace full method");
                                 setProgress("Replace.StriderPassenger");
+                            }
+                        }))
+                .patchMethod(IMethodFilter.of(CommandSetBlock.class, "setBlock", Type.getMethodType(Type.INT_TYPE, Type.getType(CommandListenerWrapper.class), Type.getType(BlockPosition.class), Type.getType(ArgumentTileLocation.class), Type.getType(CommandSetBlock.Mode.class), Type.getType(Predicate.class)), true),
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.CommandSetBlockEvent");
+                            }
+
+                            int status = 0;
+                            @Override public void visitLineNumber(int line, Label start) {
+                                super.visitLineNumber(line, start);
+                                if (status == 0) {
+                                    status = 1;
+                                    super.visitVarInsn(Opcodes.ALOAD, 0);
+                                    super.visitVarInsn(Opcodes.ALOAD, 1);
+                                    super.visitVarInsn(Opcodes.ALOAD, 2);
+                                    super.visitVarInsn(Opcodes.ALOAD, 3);
+                                    super.visitVarInsn(Opcodes.ALOAD, 4);
+                                    Native.writeMethod(Execute.func(CommandSetBlockEvent::execute), super::visitMethodInsn);
+
+                                    Label elseMarker = new Label();
+                                    super.visitJumpInsn(Opcodes.IFEQ, elseMarker);
+                                    super.visitInsn(Opcodes.ICONST_0);
+                                    super.visitInsn(Opcodes.IRETURN);
+                                    super.visitLabel(elseMarker);
+
+                                    setProgress("Event.CommandSetBlockEvent");
+                                }
+                            }
+                        }))
+                .patchMethod(IMethodFilter.of(CommandFill.class, "fillBlocks", true),
+                        MethodPatcher.mutate(v -> new ProgressMethodVisitor(v, v) {
+                            @Override protected List<String> createProgressList() {
+                                return List.of("Event.CommandFillEvent");
+                            }
+
+                            int status = 0;
+                            @Override public void visitLineNumber(int line, Label start) {
+                                super.visitLineNumber(line, start);
+                                if (status == 0) {
+                                    status = 1;
+                                    super.visitVarInsn(Opcodes.ALOAD, 0);
+                                    super.visitVarInsn(Opcodes.ALOAD, 1);
+                                    super.visitVarInsn(Opcodes.ALOAD, 2);
+                                    super.visitVarInsn(Opcodes.ALOAD, 4);
+                                    Native.writeMethod(Execute.func(CommandFillEvent::execute), super::visitMethodInsn);
+
+                                    Label elseMarker = new Label();
+                                    super.visitJumpInsn(Opcodes.IFEQ, elseMarker);
+                                    super.visitInsn(Opcodes.ICONST_0);
+                                    super.visitInsn(Opcodes.IRETURN);
+                                    super.visitLabel(elseMarker);
+
+                                    setProgress("Event.CommandFillEvent");
+                                }
                             }
                         }));
 

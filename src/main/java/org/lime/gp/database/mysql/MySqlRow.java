@@ -1,6 +1,7 @@
 package org.lime.gp.database.mysql;
 
 import com.mysql.cj.MysqlType;
+import org.lime.system.utils.EnumUtils;
 
 import java.sql.Date;
 import java.sql.*;
@@ -72,6 +73,8 @@ public class MySqlRow {
         else if (tClass == Float.class) return tClass.cast(Float.parseFloat(value));
         else if (tClass == Double.class) return tClass.cast(Double.parseDouble(value));
         else if (tClass == String.class) return tClass.cast(value);
+        else if (tClass == UUID.class) return tClass.cast(UUID.fromString(value));
+        else if (tClass.isEnum()) return EnumUtils.forceParseEnum(tClass, value);
         else throw new IllegalArgumentException("Not supported type " + tClass + " from type " + value.getClass());
     }
     private static <T>T from(java.util.Date value, Class<T> tClass) {
@@ -95,10 +98,10 @@ public class MySqlRow {
 
         return switch (mysqlType) {
             case BIT, BOOLEAN -> from((Boolean) value, tClass);
-            case TINYINT, TINYINT_UNSIGNED, SMALLINT, SMALLINT_UNSIGNED, MEDIUMINT, MEDIUMINT_UNSIGNED, INT -> from((Integer) value, tClass);
-            case INT_UNSIGNED, BIGINT -> from((Long) value, tClass);
-            case FLOAT, FLOAT_UNSIGNED -> from((Float) value, tClass);
-            case DOUBLE, DOUBLE_UNSIGNED -> from((Double) value, tClass);
+            case TINYINT, TINYINT_UNSIGNED, SMALLINT, SMALLINT_UNSIGNED, MEDIUMINT,
+                    MEDIUMINT_UNSIGNED, INT, INT_UNSIGNED, BIGINT, FLOAT, FLOAT_UNSIGNED,
+                    DECIMAL, DECIMAL_UNSIGNED,
+                    DOUBLE, DOUBLE_UNSIGNED -> from((Number) value, tClass);
             case CHAR, ENUM, SET, VARCHAR, TINYTEXT, TEXT, MEDIUMTEXT, LONGTEXT, JSON -> from((String) value, tClass);
             case DATE, TIME, TIMESTAMP, DATETIME -> {
                 if (value instanceof Date date)

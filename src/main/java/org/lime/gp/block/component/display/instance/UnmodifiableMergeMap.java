@@ -1,12 +1,6 @@
 package org.lime.gp.block.component.display.instance;
 
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -18,6 +12,19 @@ public class UnmodifiableMergeMap<K,V> extends AbstractMap<K,V> {
     public UnmodifiableMergeMap(Map<K, V> first, Map<K, V> second) {
         this.first = Objects.requireNonNull(first);
         this.second = Objects.requireNonNull(second);
+    }
+
+    public static <K,V>Map<K,V> of(Map<K, V> first, Map<K, V> second) {
+        return new UnmodifiableMergeMap<>(first, second);
+    }
+    public static <K,V>Map<K,V> of(Stream<Map<K, V>> maps) {
+        return Collections.unmodifiableMap(maps.reduce(UnmodifiableMergeMap::new).orElseGet(Collections::emptyMap));
+    }
+    public static <K,V>Map<K,V> of(Map<K, V>... maps) {
+        return of(Stream.of(maps));
+    }
+    public static <K,V>Map<K,V> of(Collection<Map<K, V>> maps) {
+        return of(maps.stream());
     }
 
     // mandatory methods

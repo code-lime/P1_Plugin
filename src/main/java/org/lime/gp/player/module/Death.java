@@ -1,6 +1,8 @@
 package org.lime.gp.player.module;
 
+import com.destroystokyo.paper.ParticleBuilder;
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
+import com.google.gson.JsonPrimitive;
 import dev.geco.gsit.api.GSitAPI;
 import dev.geco.gsit.api.event.PreEntityGetUpSitEvent;
 import dev.geco.gsit.api.event.PrePlayerGetUpPoseEvent;
@@ -11,24 +13,44 @@ import net.minecraft.core.EnumDirection;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
-
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Pose;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 import org.lime.display.Passenger;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.Apply;
+import org.lime.gp.chat.LangMessages;
 import org.lime.gp.coreprotect.CoreProtectHandle;
 import org.lime.gp.database.rows.CityRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.entity.component.data.BackPackInstance;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.settings.use.UseSetting;
 import org.lime.gp.item.Vest;
-import org.lime.gp.item.settings.list.*;
+import org.lime.gp.item.settings.list.BackPackDropSetting;
+import org.lime.gp.item.settings.use.UseSetting;
 import org.lime.gp.lime;
 import org.lime.gp.module.DrawInteraction;
 import org.lime.gp.module.JavaScript;
@@ -37,36 +59,11 @@ import org.lime.gp.player.inventory.WalletInventory;
 import org.lime.gp.player.level.LevelModule;
 import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.gp.chat.LangMessages;
 import org.lime.gp.player.module.drugs.Drugs;
-import org.lime.gp.player.module.needs.thirst.Thirst;
 import org.lime.gp.player.module.needs.food.ProxyFoodMetaData;
+import org.lime.gp.player.module.needs.thirst.Thirst;
 import org.lime.gp.player.ui.Infection;
-import com.destroystokyo.paper.ParticleBuilder;
-import com.google.gson.JsonPrimitive;
-import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.Mob;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.util.Vector;
 import org.lime.plugin.CoreElement;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Pose;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffectType;
 import org.lime.reflection;
 import org.lime.system.json;
 import org.lime.system.utils.MathUtils;
@@ -78,6 +75,7 @@ import java.util.*;
 public class Death implements Listener {
     private static Location DEFAULT_SPAWN_LOCATION;
     private static boolean DEATH_VOICE_ENABLE = true;
+    private static long DIE_TIMER_DELTA = 60 * 1000;
 
     public static Location getSpawnLocation(UUID uuid) {
         return UserRow.getBy(uuid)
@@ -105,6 +103,11 @@ public class Death implements Listener {
                         .withDefault(new JsonPrimitive(DEATH_VOICE_ENABLE))
                         .withInvoke(json -> DEATH_VOICE_ENABLE = json.getAsBoolean())
                 )
+                .<JsonPrimitive>addConfig("config", v -> v
+                        .withParent("die_timer_delta")
+                        .withDefault(new JsonPrimitive(DIE_TIMER_DELTA))
+                        .withInvoke(json -> DIE_TIMER_DELTA = json.getAsLong())
+                )
                 .withInstance();
     }
 
@@ -114,7 +117,6 @@ public class Death implements Listener {
         public final long dieTime;
         public final Entity killer;
         public long showTimes;
-        private static final long showTimesTotal = 60 * 1000;
         public boolean canKill = false;
 
         public DieInfo(Player player, @Nullable Entity killer) {
@@ -131,7 +133,7 @@ public class Death implements Listener {
             if (now <= showTimes) return;
             long time = (showTimes - dieTime) / 1000;
             MenuCreator.showLang(player, LangEnum.DIE_TIMER, Apply.of().add("time", String.valueOf(time)));
-            showTimes = showTimesTotal + now;
+            showTimes = DIE_TIMER_DELTA + now;
         }
         public boolean canKill() { return canKill; }
         public void setCanKill() { canKill = true; }
@@ -508,6 +510,13 @@ public class Death implements Listener {
         Player player = e.getEntity();
         UUID uuid = player.getUniqueId();
         e.setCancelled(true);
+
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            dieCooldown.remove(uuid);
+            player.teleport(player.getWorld().getSpawnLocation());
+            return;
+        }
+
         if (!dieCooldown.containsKey(uuid)) {
             EntityDamageEvent damage = player.getLastDamageCause();
             Entity killer = null;
@@ -515,12 +524,16 @@ public class Death implements Listener {
                 if (damage instanceof EntityDamageByEntityEvent ee && (killer = ee.getDamager()) instanceof Mob mob)
                     mob.setTarget(null);
             }
-            //lime.logOP("Killer: " + killer);
-            //lime.logOP("PlayerKiller: " + ExtMethods.damagerPlayer(killer).orElse(null));
             dieCooldown.put(uuid, new DieInfo(player, ExtMethods.damagerPlayer(killer).orElse(null)));
             return;
         }
         kill(player, Reason.KILL);
+    }
+    @EventHandler public static void on(PlayerRespawnEvent e) {
+        Player player = e.getPlayer();
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            player.setGameMode(GameMode.SPECTATOR);
+        }
     }
     @EventHandler public static void on(EntityDamageByEntityEvent e) {
         List<UUID> uuids = new ArrayList<>();
@@ -535,6 +548,7 @@ public class Death implements Listener {
     }
     @EventHandler(ignoreCancelled = true) public static void on(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player player)) return;
+
         UUID uuid = player.getUniqueId();
         switch (e.getCause()) {
             case FALL:

@@ -19,21 +19,11 @@ public class XaerosDraw implements Listener {
     public static CoreElement create() {
         return CoreElement.create(XaerosDraw.class)
                 .withInit(XaerosDraw::init)
-                .withInstance()
-                .<JsonObject>addConfig("xaeroworldmap", v -> v
-                        .withDefault(json.object()
-                                .add("server_id", SERVER_ID)
-                                .build()
-                        )
-                        .withInvoke(json -> {
-                            SERVER_ID = json.get("server_id").getAsInt();
-                        })
-                );
+                .withInstance();
     }
 
     public static boolean allowFilter(Player player) { return player.isOp(); }
 
-    private static int SERVER_ID = RandomUtils.rand(10000, 10000000);
     private static void init() { lime.repeat(XaerosDraw::update, 1); }
     private static final HashSet<Player> syncToPlayers = new HashSet<>();
     private static final HashMap<UUID, Boolean> lastSendPlayers = new HashMap<>();
@@ -71,7 +61,7 @@ public class XaerosDraw implements Listener {
                     .ifPresent(channel -> channel.send(List.of(player), List.of(
                             new HandshakePacket(2),
                             new PacketOutRules(true, true, true),
-                            new PacketOutWorld(SERVER_ID)
+                            new PacketOutWorld(XaerosProtocol.serverId())
                     )));
     }
     @EventHandler private static void on(PlayerChangedWorldEvent e) {
@@ -80,7 +70,7 @@ public class XaerosDraw implements Listener {
             XaerosProtocol.broadcastToAll(player, List.of(
                     new HandshakePacket(2),
                     new PacketOutRules(true, true, true),
-                    new PacketOutWorld(SERVER_ID)
+                    new PacketOutWorld(XaerosProtocol.serverId())
             ));
     }
 }

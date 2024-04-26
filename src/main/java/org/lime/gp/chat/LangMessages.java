@@ -4,17 +4,14 @@ import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import net.kyori.adventure.text.JoinConfiguration;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
-import org.lime.gp.lime;
-import org.lime.system.Time;
-import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
+import org.lime.system.json;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,7 +77,7 @@ public class LangMessages {
 
         Entity_BackPack_Lock("entity", "backpack", "lock"),
         Entity_BackPack_Unlock("entity", "backpack", "unlock"),
-
+        Entity_FakeUser(Component.text("⌚").color(NamedTextColor.YELLOW), "entity", "fake_user"),
         Work_Error_Use("work", "error", "use"),
 
         Block_Error_Limit("block", "error", "limit"),

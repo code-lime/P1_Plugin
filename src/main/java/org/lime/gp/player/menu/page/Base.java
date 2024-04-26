@@ -11,21 +11,22 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.ITable;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.item.Items;
-import org.lime.gp.item.settings.list.*;
+import org.lime.gp.item.settings.list.LockMenuSetting;
+import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
-import org.lime.gp.player.menu.ActionSlot;
 import org.lime.system.delete.DeleteHandle;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.execute.Action1;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast2;
+import org.lime.system.toast.Toast3;
 import org.lime.system.utils.IterableUtils;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
 
 public abstract class Base implements Logged.ILoggedDelete {
     private String key;
@@ -55,11 +56,12 @@ public abstract class Base implements Logged.ILoggedDelete {
     @Override public boolean isDeleted() { return deleteHandle.isDeleted(); }
     @Override public void delete() { deleteHandle.delete(); }
 
-    public boolean show(Player player, int page, @Nullable Logged.ILoggedDelete caller, Apply apply) {
+    public boolean show(@Nullable Player player, int page, @Nullable Logged.ILoggedDelete caller, Apply apply) {
         if (isDeleted()) {
             if (player != null) player.closeInventory();
             return false;
         }
+
         Apply send_apply = Apply.of();
         UserRow row;
         if (player != null) {
@@ -107,7 +109,7 @@ public abstract class Base implements Logged.ILoggedDelete {
         return true;
     }
 
-    protected abstract void showGenerate(UserRow row, Player player, int page, Apply apply);
+    protected abstract void showGenerate(UserRow row, @Nullable Player player, int page, Apply apply);
 
     public static Base parse(String key, JsonObject json) {
         Base menu;

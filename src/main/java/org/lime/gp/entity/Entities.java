@@ -287,6 +287,8 @@ public class Entities implements Listener {
             PersistentDataContainer container = _marker.getPersistentDataContainer();
             new LimeKey(_marker.getUniqueId(), type.getKey()).setKey(container, LimeKey.KeyType.CUSTOM_ENTITY);
             data.forEach((key, value) -> container.set(ofKey(key), LimePersistentDataType.JSON_OBJECT, value));
+            if (_marker instanceof CraftMarker marker)
+                marker.getHandle().setYRot(location.getYaw());
         })).getHandle());
     }
 
@@ -299,7 +301,8 @@ public class Entities implements Listener {
                                     .map(row -> {
                                         BlockPosition pos = e.getPos();
                                         Location location = CraftLocation.toBukkit(Vec3D.atBottomCenterOf(pos), e.getWorld().getWorld(), player.getBukkitYaw(), player.getXRot());
-                                        EntityLimeMarker marker = spawn(location, info, setting.entityArgs(item.asBukkitMirror()));
+                                        var data = setting.entityArgs(item.asBukkitMirror());
+                                        EntityLimeMarker marker = spawn(location, info, data);
                                         e.setOverride(marker);
                                         EntityOwner.setOwner(marker.getBukkitEntity(), row);
                                         return true;

@@ -38,8 +38,14 @@ public class SearchQuery {
             private static final Component[] LEFT_RIGHT_FULL__UP;
             private static final Component[] LEFT_RIGHT_FULL__DOWN;
             static {
-                LEFT_RIGHT_FULL__UP = Stream.concat(Stream.of(Component.text("UP")), Stream.of(ViewContainer.LEFT_RIGHT_FULL)).toArray(Component[]::new);
-                LEFT_RIGHT_FULL__DOWN = Stream.concat(Stream.of(Component.text("DOWN")), Stream.of(ViewContainer.LEFT_RIGHT_FULL)).toArray(Component[]::new);
+                LEFT_RIGHT_FULL__UP = Stream.concat(
+                        Stream.of(Component.text("UP").decoration(TextDecoration.ITALIC, false).color(NamedTextColor.AQUA)),
+                        Stream.of(ViewContainer.LEFT_RIGHT_FULL)
+                ).toArray(Component[]::new);
+                LEFT_RIGHT_FULL__DOWN = Stream.concat(
+                        Stream.of(Component.text("DOWN").decoration(TextDecoration.ITALIC, false).color(NamedTextColor.AQUA)),
+                        Stream.of(ViewContainer.LEFT_RIGHT_FULL)
+                ).toArray(Component[]::new);
             }
 
             private void syncInput() {
@@ -55,7 +61,9 @@ public class SearchQuery {
 
             @Override public ItemStack getInput() { return input; }
             @Override public ItemStack getCenter() { return output; }
-            @Override public ItemStack getOutput() { return ViewContainer.BACK; }
+            @Override public ItemStack getOutput() {
+                return SearchQuery.this.viewContainer.isSimple() ? ItemStack.EMPTY : ViewContainer.BACK;
+            }
 
             private int offset = 0;
 
@@ -97,13 +105,14 @@ public class SearchQuery {
                 syncInput();
             }
             @Override public void clickOutput(EntityHuman human, ClickType click) {
+                if (SearchQuery.this.viewContainer.isSimple()) return;
                 viewContainer.forceOpen(human);
             }
 
             @Override public Slot createPlayerSlot(Slot slot) {
                 int deltaIndex = slot.index - 3;
                 if (deltaIndex >= showLength) return slot;
-                //ItemStack indexedItem = ViewContainer.of(Component.text("SLOT: " + deltaIndex), deltaIndex + 1);
+
                 return new InterfaceManager.AbstractBaseSlot(slot) {
                     @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
                     @Override public net.minecraft.world.item.ItemStack getItem() { return getElement(deltaIndex).map(ItemElement::show).map(CraftItemStack::asNMSCopy).orElse(ItemStack.EMPTY); }
@@ -115,27 +124,6 @@ public class SearchQuery {
                             getElement(deltaIndex).ifPresent(element -> element.click(viewContainer, handler, click));
                     }
                 };
-                /*
-        new InterfaceManager.AbstractBaseSlot(slot) {
-            @Override public boolean mayPlace(net.minecraft.world.item.ItemStack stack) { return false; }
-            @Override public net.minecraft.world.item.ItemStack getItem() {
-                return switch (index) {
-                    case 0 -> getInput();
-                    case 1 -> getCenter();
-                    case 2 -> getOutput();
-                    default -> net.minecraft.world.item.ItemStack.EMPTY;
-                };
-            }
-            @Override public boolean mayPickup(EntityHuman human) {
-                switch (index) {
-                    case 0 -> clickInput(human);
-                    case 1 -> clickCenter(human);
-                    case 2 -> clickOutput(human);
-                }
-                return false;
-            }
-        }
-                */
             }
 
             private static <T>Stream<T> timeout(Stream<T> stream, long timeoutMs) {
@@ -174,24 +162,13 @@ public class SearchQuery {
                     return item;
                 }
             }
-            private static final ItemElement TIMEOUT_ELEMENT = new ItemElement(TimeoutCreator.TIMEOUT);
+            private static final ItemElement TIMEOUT_ELEMENT = new ItemElement(TimeoutCreator.TIMEOUT, false);
 
             @Override public void input(String line) {
-                //lime.logOP("Input: " + line);
                 int executorID = lastExecutor.edit0(v -> v + 1);
-                if (line.isEmpty()) {
-                    //lime.logOP("Clear search: " + executorID);
-                    this.items.set0(Collections.emptyList());
-                    //this.slotsChanged(inventory);
-                    return;
-                }
-                //lime.logOP("Start search: " + executorID);
-                lime.invokeAsync(() -> timeout(viewContainer.viewData().groups.rawSearch(line), 1000, Optional.of(TIMEOUT_ELEMENT)).toList(), items -> {
-                    //lime.logOP("End search: " + executorID);
+                lime.invokeAsync(() -> timeout(viewContainer.viewData().groups.rawSearch(line.isEmpty() ? null : line), 1000, Optional.of(TIMEOUT_ELEMENT)).toList(), items -> {
                     if (!Objects.equals(lastExecutor.get0(), executorID)) return;
-                    //lime.logOP("Setup search: " + executorID);
                     this.items.set0(items);
-                    //this.slotsChanged(inventory);
                 });
             }
         };

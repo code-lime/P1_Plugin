@@ -63,15 +63,15 @@ public class ArrowBow implements Listener {
         e.setCancelled(true);
     }
 
-    public static ItemStack getBowItem(Projectile projectile) {
-        PersistentDataContainer container = projectile.getPersistentDataContainer();
+    private static ItemStack getBowItem(PersistentDataContainer container) {
         if (!container.has(BOW_KEY)) return ItemStack.EMPTY;
         return CraftItemStack.asNMSCopy(org.bukkit.inventory.ItemStack.deserializeBytes(container.get(BOW_KEY, PersistentDataType.BYTE_ARRAY)));
     }
+    public static ItemStack getBowItem(Projectile projectile) {
+        return getBowItem(projectile.getPersistentDataContainer());
+    }
     public static ItemStack getBowItem(IProjectile projectile) {
-        PersistentDataContainer container = projectile.getBukkitEntity().getPersistentDataContainer();
-        if (!container.has(BOW_KEY)) return ItemStack.EMPTY;
-        return CraftItemStack.asNMSCopy(org.bukkit.inventory.ItemStack.deserializeBytes(container.get(BOW_KEY, PersistentDataType.BYTE_ARRAY)));
+        return getBowItem(projectile.getBukkitEntity().getPersistentDataContainer());
     }
 
     public static void setBowItem(Projectile projectile, org.bukkit.inventory.ItemStack item) {

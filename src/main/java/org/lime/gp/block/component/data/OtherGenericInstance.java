@@ -1,5 +1,6 @@
 package org.lime.gp.block.component.data;
 
+import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.EnumInteractionResult;
@@ -19,15 +20,17 @@ import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.OtherGenericComponent;
 import org.lime.gp.extension.LimePersistentDataType;
 import org.lime.json.JsonObjectOptional;
+import org.lime.system.execute.Func2;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.system.utils.MathUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class OtherGenericInstance extends BlockInstance implements CustomTileMetadata.Tickable, MultiBlockInstance.OwnerVariableModifiable, CustomTileMetadata.Interactable, CustomTileMetadata.Destroyable, CustomTileMetadata.Damageable {
-    public BlockPosition position;
+    public BlockPosition offset;
     public UUID owner;
     public String owner_type;
 
@@ -44,15 +47,29 @@ public class OtherGenericInstance extends BlockInstance implements CustomTileMet
     }
 
     @Override public void read(JsonObjectOptional json) {
-        this.position = json.getAsString("position").map(OtherGenericInstance::parse).orElse(null);
+        this.offset = json.getAsString("offset")
+                .map(OtherGenericInstance::parse)
+                .or(() -> json.getAsString("position")
+                        .map(OtherGenericInstance::parse)
+                        .map(v -> v.subtract(metadata().skull.getBlockPos())))
+                .orElse(null);
         this.owner = json.getAsString("owner").map(UUID::fromString).orElse(null);
         this.owner_type = json.getAsString("owner_type").orElse(null);
     }
     @Override public json.builder.object write() {
         return json.object()
-                .add("position", this.position == null ? null : (position.getX() +" " + position.getY() + " " + position.getZ()))
+                .add("offset", this.offset == null ? null : (offset.getX() +" " + offset.getY() + " " + offset.getZ()))
                 .add("owner", this.owner)
                 .add("owner_type", this.owner_type);
+    }
+    public static JsonObject mapBlockUuids(JsonObject json, BlockPosition position, Func2<BlockPosition, UUID, UUID> mapper) {
+        if (json.has("owner") && json.has("offset")) {
+            json = json.deepCopy();
+            BlockPosition offset = parse(json.get("offset").getAsString());
+
+            json.addProperty("owner", mapper.invoke(position.offset(offset), UUID.fromString(json.get("owner").getAsString())).toString());
+        }
+        return json;
     }
 
     public static Optional<String> tryGetOwnerType(PersistentDataContainer container) {
@@ -62,8 +79,9 @@ public class OtherGenericInstance extends BlockInstance implements CustomTileMet
     }
 
     public Optional<TileEntityLimeSkull> owner() {
-        return Optional.of(metadata().skull.getLevel())
-                .flatMap(v -> Optional.ofNullable(position).flatMap(_v -> v.getBlockEntity(_v, TileEntityTypes.SKULL)))
+        TileEntityLimeSkull base = metadata().skull;
+        return Optional.of(base.getLevel())
+                .flatMap(v -> Optional.ofNullable(offset).map(_v -> base.getBlockPos().offset(_v)).flatMap(_v -> v.getBlockEntity(_v, TileEntityTypes.SKULL)))
                 .map(v -> v instanceof TileEntityLimeSkull skull ? skull : null)
                 .filter(v -> v.customUUID().filter(uuid -> uuid.equals(owner)).isPresent());
     }

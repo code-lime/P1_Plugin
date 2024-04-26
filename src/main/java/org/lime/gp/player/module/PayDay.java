@@ -1,5 +1,6 @@
 package org.lime.gp.player.module;
 
+import com.google.gson.JsonPrimitive;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.core;
@@ -14,8 +15,14 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class PayDay {
+    private static boolean ENABLE = true;
+
     public static CoreElement create() {
         return CoreElement.create(PayDay.class)
+                .<JsonPrimitive>addConfig("config", v -> v
+                        .withParent("payday")
+                        .withDefault(new JsonPrimitive(ENABLE))
+                        .withInvoke(_v -> ENABLE = _v.getAsBoolean()))
                 .withInit(PayDay::init);
     }
 
@@ -27,6 +34,8 @@ public class PayDay {
         lime.repeat(() -> Bukkit.getOnlinePlayers().forEach(player -> playTime.put(player.getUniqueId(), playTime.getOrDefault(player.getUniqueId(), 0) + 1)), 60);
     }
     public static void doThis() {
+        if (!ENABLE)
+            return;
         HashMap<UUID, Methods.PayDayInput> payDayInput = new HashMap<>();
         Bukkit.getOnlinePlayers().forEach(player -> {
             if (playTime.getOrDefault(player.getUniqueId(), 0) < 30) {

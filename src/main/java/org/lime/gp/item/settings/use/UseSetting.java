@@ -32,9 +32,11 @@ import org.lime.system.execute.Execute;
 import org.lime.system.execute.Func2;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 public class UseSetting implements Listener {
+
     public static CoreElement create() {
         return CoreElement.create(UseSetting.class)
                 .withInstance()
@@ -151,28 +153,29 @@ public class UseSetting implements Listener {
     }
     public static void modifyUseItem(EntityPlayer player, net.minecraft.world.item.ItemStack item, boolean silent) {
         if (player.level().isClientSide || player.getAbilities().instabuild) return;
+        var nextExecute = Items.getAll(INext.class, item);
         Optional<NextSetting> nextOption = Items.getOptional(NextSetting.class, item);
+        CraftPlayer craftPlayer = player.getBukkitEntity();
         if (item.isDamageableItem()) {
             item.hurtAndBreak(1, player, e2 -> nextOption
                 .flatMap(NextSetting::next)
                 .map(IItemCreator::createItem)
                 .ifPresentOrElse(
-                        v -> Items.dropGiveItem(e2.getBukkitEntity(), v, false),
+                        v -> Items.dropGiveItem(craftPlayer, v, false),
                         silent ? Execute.actionEmpty() : () -> e2.broadcastBreakEvent(EnumItemSlot.MAINHAND)
                 ));
-            player.inventoryMenu.broadcastFullState();
-
         } else {
             item.shrink(1);
             nextOption
                 .flatMap(NextSetting::next)
                 .map(IItemCreator::createItem)
                 .ifPresentOrElse(
-                        v -> Items.dropGiveItem(player.getBukkitEntity(), v, false),
+                        v -> Items.dropGiveItem(craftPlayer, v, false),
                         silent ? Execute.actionEmpty() : () -> player.broadcastBreakEvent(EnumItemSlot.MAINHAND)
                 );
-            player.inventoryMenu.broadcastFullState();
         }
+        player.inventoryMenu.broadcastFullState();
+        nextExecute.forEach(next -> next.executeNext(craftPlayer));
     }
 }
 

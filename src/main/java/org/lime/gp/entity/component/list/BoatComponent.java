@@ -12,6 +12,7 @@ public class BoatComponent extends ComponentDynamic<JsonObject, BoatInstance> {
     public final float width;
     public final float height;
     public final float length;
+    public final boolean debug;
 
     public final float speedAngle;
     public final float speedForward;
@@ -22,6 +23,7 @@ public class BoatComponent extends ComponentDynamic<JsonObject, BoatInstance> {
         this.width = json.get("width").getAsFloat();
         this.height = json.get("height").getAsFloat();
         this.length = json.get("length").getAsFloat();
+        this.debug = json.has("debug") && json.get("debug").getAsJsonPrimitive().getAsBoolean();
 
         JsonObject speed = json.getAsJsonObject("speed");
         speedAngle = speed.get("angle").getAsFloat();

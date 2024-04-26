@@ -1,12 +1,10 @@
 package org.lime.gp.block.component.list;
 
-import com.badlogic.gdx.utils.Json;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.core.EnumDirection;
 import org.lime.Position;
-import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.block.BlockInfo;
@@ -22,7 +20,6 @@ import org.lime.gp.docs.IDocsLink;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @InfoComponent.Component(name = "menu")
 public final class MenuComponent extends ComponentDynamic<JsonElement, MenuInstance> {

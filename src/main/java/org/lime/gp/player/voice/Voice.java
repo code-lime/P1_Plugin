@@ -1,5 +1,6 @@
 package org.lime.gp.player.voice;
 
+import com.google.gson.JsonObject;
 import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.api.*;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
@@ -42,12 +43,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nullable;
-import org.lime.core;
+import javax.imageio.ImageIO;
+
 import org.lime.gp.player.module.Death;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.player.menu.LangEnum;
+import org.lime.system.execute.Execute;
+import org.lime.system.json;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RadioInstance;
 import org.lime.gp.chat.Apply;
@@ -65,9 +68,12 @@ import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.system.utils.RandomUtils;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Voice implements VoicechatPlugin {
@@ -102,6 +108,19 @@ public class Voice implements VoicechatPlugin {
         return CoreElement.create(Voice.class)
                 .withInit(Voice::init)
                 .withUninit(Voice::uninit)
+                .<JsonObject>addConfig("config", v -> v
+                        .withParent("voice_category")
+                        .withDefault(json.object()
+                                .addObject("global_radio", _v -> _v
+                                        .add("icon", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAgUlEQVQ4jcWSwRHAIAgEwbHCK5TerIC8YBRD1OSR/TgZOQ7OEP0N9x+qqlsiZtfVXgxgy1VV1ZrUeCkij+JoMjRorU0jRmerMZgOdo8wM/sEu/sbtmo5EdzlU2JRdgIgAFOT6RUyYniGh7jKwJytTkTGEFdkBt4gG3HF5//glWvPBUazRYu4BvdOAAAAAElFTkSuQmCC")
+                                        .add("name", "Радио")
+                                        .add("description", "Громкость звука, издаваемого радио."))
+                                .addObject("global_waltal", _v -> _v
+                                        .add("icon", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAdklEQVQ4jcWSUQ7AIAhDy7IL6kG9myfovkiYo9HNj/VLCNQHARAiyTd5WcSgTyYkWUphjGPdoQzMzPzde0/zAGBIpBDHZgA4s+Zaa0pFkqPJw8DVWrvFylTuYFWSQP24TOAjjKMsGzjBjOR/gnSJ8fJm2r7EbV2KdFR7DwGI3wAAAABJRU5ErkJggg==")
+                                        .add("name", "Рация")
+                                        .add("description", "Громкость звука, издаваемого рацией."))
+                                .build())
+                        .withInvoke(Voice::config))
                 .addCommand("voice", v -> v
                         .withTab((sender, args) -> switch (args.length) {
                             case 1 -> sender.isOp() ? List.of("reconnect", "reconnect-all") : List.of("reconnect");
@@ -145,7 +164,7 @@ public class Voice implements VoicechatPlugin {
                 );
     }
 
-    public static VoicechatApi API;
+    public static VoicechatServerApi API;
     //public static Opus OPUS;
     private static final MinecraftServer server = MinecraftServer.getServer();
 
@@ -245,10 +264,60 @@ public class Voice implements VoicechatPlugin {
         Bukkit.getServer().getServicesManager().unregister(Instance);
     }
 
-    @Override public void initialize(VoicechatApi api) {
-        API = api;
-        //OPUS = new Opus(api);
+    private static void config(JsonObject json) {
+        if (API == null) {
+            lime.once(() -> {
+                if (API == null) {
+                    lime.logOP("Voice chat disabled!");
+                    return;
+                }
+                registerConfig(API, json);
+            }, 5);
+        } else {
+            registerConfig(API, json);
+        }
     }
+
+    private static void registerConfig(VoicechatServerApi api, JsonObject json) {
+        api.getVolumeCategories().forEach(api::unregisterVolumeCategory);
+        json.entrySet().forEach(kv -> {
+            String key = kv.getKey();
+            VolumeCategory.Builder builder = api.volumeCategoryBuilder()
+                    .setId(key);
+
+            JsonObject category = kv.getValue().getAsJsonObject();
+            builder.setName(category.get("name").getAsString());
+
+            if (category.has("description"))
+                builder.setDescription(category.get("description").getAsString());
+            if (category.has("icon"))
+                builder.setIcon(pixelsFromBase64(category.get("icon").getAsString()));
+
+            api.registerVolumeCategory(builder.build());
+        });
+    }
+
+    private static int[][] pixelsFromBase64(String base64) {
+        BufferedImage image = Execute.<ByteArrayInputStream, BufferedImage>funcEx(ImageIO::read)
+                .throwable()
+                .invoke(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+
+        int sizeX = image.getWidth();
+        int sizeY = image.getHeight();
+
+        int[][] pixels = new int[sizeX][sizeY];
+
+        for (int x = 0; x < sizeX; x++)
+            for (int y = 0; y < sizeY; y++)
+                pixels[x][y] = image.getRGB(x, y);
+
+        return pixels;
+    }
+
+    @Override public void initialize(VoicechatApi api) {
+        API = (VoicechatServerApi) api;
+    }
+
     @Override public String getPluginId() { return "lime"; }
     @Override public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, Voice::on);

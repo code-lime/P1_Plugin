@@ -2,7 +2,6 @@ package org.lime.gp.module.npc.display;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.DataWatcher;
 import net.minecraft.network.syncher.DataWatcherObject;
@@ -21,10 +20,8 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
-import org.lime.display.Displays;
 import org.lime.display.EditedDataWatcher;
 import org.lime.display.ObjectDisplay;
-import org.lime.display.Passenger;
 import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.display.models.display.ChildEntityDisplay;
 import org.lime.gp.extension.ExtMethods;
@@ -35,7 +32,6 @@ import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.module.npc.eplayer.IEPlayer;
 import org.lime.gp.module.npc.eplayer.Pose;
 import org.lime.packetwrapper.WrapperPlayServerEntityTeleport;
-import org.lime.system.execute.Action2;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,7 +81,7 @@ public class EPlayerDisplay extends ObjectDisplay<IEPlayer, EntityPlayer> {
         PacketPlayOutEntityEquipment ppoee = new PacketPlayOutEntityEquipment(entityID, equipment);
 
         Boolean single = npc.single();
-        if (single != null && single) {
+        if (single == null || single) {
             PacketPlayOutEntityTeleport movePacket = new PacketPlayOutEntityTeleport(entity);
             PacketPlayOutEntityHeadRotation headPacket = new PacketPlayOutEntityHeadRotation(entity, (byte) MathHelper.floor((entity.getYRot() % 360.0F) * 256.0F / 360.0F));
             lime.nextTick(() -> PacketManager.sendPackets(player, movePacket, headPacket));
@@ -122,9 +118,6 @@ public class EPlayerDisplay extends ObjectDisplay<IEPlayer, EntityPlayer> {
         super.editDataWatcher(player, dataWatcher);
     }
     @Override public void update(IEPlayer npc, double delta) {
-        if (npc != this.npc) {
-
-        }
         Boolean single = npc.single();
         if (single != null && single) {
             Player near = this.getNearShow(getTargetDistance(), p -> p.getGameMode() != GameMode.SPECTATOR);

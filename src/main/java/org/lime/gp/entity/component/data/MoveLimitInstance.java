@@ -16,8 +16,9 @@ import org.lime.gp.entity.component.list.MoveLimitComponent;
 import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
 import org.lime.gp.extension.Cooldown;
-import org.lime.gp.item.settings.use.UseSetting;
+import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.item.data.Checker;
+import org.lime.gp.item.settings.use.UseSetting;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
 import org.lime.system.range.IRange;
@@ -35,8 +36,12 @@ public class MoveLimitInstance extends EntityComponentInstance<MoveLimitComponen
 
     private double value = 1;
 
+    public boolean isActive() {
+        return value > 0;
+    }
+
     @Override public void read(JsonObjectOptional json) {
-        value = Math.max(1 / component().total, Math.min(1, json.getAsDouble("value").orElse(1.0)));
+        value = Math.max(1 / component().total, Math.min(1, json.getAsString("value").flatMap(ExtMethods::parseDouble).orElse(1.0)));
     }
     @Override public json.builder.object write() {
         return json.object().add("value", value);
@@ -45,16 +50,17 @@ public class MoveLimitInstance extends EntityComponentInstance<MoveLimitComponen
         value = Math.max(0, Math.min(1, value));
         if (this.value == value) return;
         this.value = value;
-        if (this.value <= 0) {
-            EntityLimeMarker marker = metadata().marker;
-            metadata().destroyWithLoot(v -> v
-                    .withParameter(LootContextParameters.DAMAGE_SOURCE, marker.damageSources().starve())
-                    .withParameter(LootContextParameters.KILLER_ENTITY, marker)
-            );
-            return;
-        }
         saveData();
         syncDisplayVariable();
+
+        if (this.value > 0) return;
+        if (!component().destroy) return;
+
+        EntityLimeMarker marker = metadata().marker;
+        metadata().destroyWithLoot(v -> v
+                .withParameter(LootContextParameters.DAMAGE_SOURCE, marker.damageSources().starve())
+                .withParameter(LootContextParameters.KILLER_ENTITY, marker)
+        );
     }
     private void changeValue(double delta) {
         setValue(this.value + delta);

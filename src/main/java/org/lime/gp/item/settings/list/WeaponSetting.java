@@ -2,6 +2,7 @@ package org.lime.gp.item.settings.list;
 
 import java.util.*;
 
+import com.google.gson.JsonElement;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -9,6 +10,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
+import org.lime._system;
+import org.lime.display.models.ExecutorJavaScript;
+import org.lime.display.models.IExecutor;
+import org.lime.display.models.JavaScriptChild;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
@@ -26,6 +31,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import net.kyori.adventure.text.format.TextColor;
+import org.lime.system.execute.Execute;
 import org.lime.system.utils.ItemUtils;
 import org.lime.system.utils.MathUtils;
 
@@ -91,7 +97,7 @@ import org.lime.system.utils.MathUtils;
     public final String sound_pose;
     public final String sound_state;
 
-    public final String display;
+    public final IExecutor display;
 
     public WeaponSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
@@ -120,7 +126,18 @@ import org.lime.system.utils.MathUtils;
         sound_pose = json.has("sound_pose") ? json.get("sound_pose").getAsString() : null;
         sound_state = json.has("sound_state") ? json.get("sound_state").getAsString() : null;
 
-        display = json.has("display") ? json.get("display").getAsString() : String.valueOf(creator.getID());
+        if (json.has("display")) {
+            JsonElement element = json.get("display");
+            if (element.isJsonObject()) {
+                display = new ExecutorJavaScript(element.getAsJsonObject(), JavaScript.js);
+            } else {
+                display = new ExecutorJavaScript(org.lime.system.json.object()
+                        .add("apply", element.getAsString())
+                        .build(), JavaScript.js);
+            }
+        } else {
+            display = v -> Optional.of(creator.getID());
+        }
     }
 
     public static Optional<ItemStack> getMagazine(ItemStack weapon) {
@@ -163,11 +180,10 @@ import org.lime.system.utils.MathUtils;
                 "magazine_id", magazine_id == null ? "" : String.valueOf(magazine_id),
                 "bullet_count", String.valueOf(bullet_count)
         );
-        String _display = display;
-        for (var kv : args.entrySet()) _display = _display.replace("{" + kv.getKey() + "}", kv.getValue().toString());
-        return JavaScript.getJsInt(_display, args).orElseGet(() -> creator().getID());
+        return display.execute(args)
+                .map(v -> v instanceof Number val ? val.intValue() : Integer.parseInt(v.toString()))
+                .orElseGet(() -> creator().getID());
     }
-
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
         IIndexGroup weapon_state = JsonEnumInfo.of("WEAPON_STATE", "weapon_state", WeaponData.State.class);

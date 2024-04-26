@@ -1,19 +1,24 @@
 package org.lime.gp.player.module;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
+import org.lime.gp.admin.Administrator;
 import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 
-public class Spectator {
+public class Spectator implements Listener {
     public static CoreElement create() {
         return CoreElement.create(Spectator.class)
-                .withInit(Spectator::init);
+                .withInit(Spectator::init)
+                .withInstance();
     }
     public static void init() {
         lime.repeatTicks(() -> Bukkit.getOnlinePlayers().forEach(player -> {
@@ -38,7 +43,7 @@ public class Spectator {
                 });
                 return;
             }
-            boolean seeSpectator = owner.isOp() || (owner.getGameMode() == GameMode.SPECTATOR && !Ghost.isGhost(owner));
+            boolean seeSpectator = owner.isOp() || owner.getGameMode() == GameMode.CREATIVE || (owner.getGameMode() == GameMode.SPECTATOR && !Ghost.isGhost(owner));
             Bukkit.getOnlinePlayers().forEach(target -> {
                 if (owner.equals(target)) return;
                 boolean canSee = owner.canSee(target);
@@ -50,5 +55,14 @@ public class Spectator {
                 }
             });
         }), 1);
+    }
+
+    @EventHandler public static void on(PlayerTeleportEvent e) {
+        if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE)
+            return;
+        if (Administrator.Permissions.ASPECTATORTP.check(e.getPlayer()))
+            return;
+        e.getPlayer().sendMessage(Component.text("У вас не хватает прав").color(NamedTextColor.RED));
+        e.setCancelled(true);
     }
 }

@@ -6,6 +6,7 @@ import com.mojang.math.Transformation;
 import org.bukkit.entity.Player;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.item.elemental.step.IStep;
+import org.lime.gp.item.settings.use.target.ILocationTarget;
 import org.lime.gp.lime;
 import org.lime.plugin.CoreElement;
 import org.lime.reflection;
@@ -68,8 +69,8 @@ public class Elemental {
         Elemental.steps.clear();
         Elemental.steps.putAll(steps);
     }
-    public static void execute(Player player, DataContext context, String elemental) {
-        execute(player, context, elemental, MathUtils.transformation(player.getLocation()));
+    public static void execute(Player target, DataContext context, String elemental) {
+        execute(target, context, elemental, MathUtils.transformation(target.getLocation()));
     }
     public static void execute(Player player, DataContext context, String elemental, Transformation location) {
         IStep<?> step = steps.get(elemental);

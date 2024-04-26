@@ -17,6 +17,8 @@ import org.lime.system.execute.*;
 
 import com.google.gson.JsonObject;
 
+import javax.annotation.Nullable;
+
 @Setting(name = "radio") public class RadioSetting extends ItemSetting<JsonObject> {
     public final int min_level;// 1490,
     public final int def_level;
@@ -27,12 +29,14 @@ import com.google.gson.JsonObject;
     public final boolean noise;
     public final boolean is_on;
     public final RadioData.RadioState state;
+    public final @Nullable String category;
     public RadioSetting(ItemCreator creator, JsonObject json) {
         super(creator, json);
         min_level = json.get("min_level").getAsInt();
         def_level = json.get("def_level").getAsInt();
         max_level = json.get("max_level").getAsInt();
         total_distance = json.get("total_distance").getAsShort();
+        category = json.has("category") ? json.get("category").getAsString() : null;
         on = json.get("on").getAsInt();
         off = json.get("off").getAsInt();
         is_on = !json.has("is_on") || json.get("is_on").getAsBoolean();
@@ -56,6 +60,7 @@ import com.google.gson.JsonObject;
                 JProperty.require(IName.raw("on"), IJElement.raw(10), IComment.text("ID включенного состояния")),
                 JProperty.require(IName.raw("off"), IJElement.raw(10), IComment.text("ID выключенного состояния")),
                 JProperty.optional(IName.raw("is_on"), IJElement.bool(), IComment.text("Состояние включения")),
+                JProperty.optional(IName.raw("category"), IJElement.bool(), IComment.text("Категория, в которую будет проигрываться звук")),
                 JProperty.optional(IName.raw("noise"), IJElement.bool(), IComment.text("Есть ли шум")),
                 JProperty.optional(IName.raw("state"), IJElement.raw("STATE"), IComment.empty()
                         .append(IComment.text("Возможные состояния: "))

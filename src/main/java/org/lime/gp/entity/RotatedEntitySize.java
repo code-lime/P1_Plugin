@@ -54,11 +54,12 @@ public class RotatedEntitySize extends EntitySize implements ITargetBoundingBox 
             maxZ = Math.max(maxZ, z);
         }
 
-        return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ, true);
+        return new AxisAlignedBB(minX, minY, minZ, maxX - 1, maxY, maxZ - 1, true);
     }
     @Override public @Nonnull AxisAlignedBB makeBoundingBox(double x, double y, double z) {
         float f = Math.max(this.width, this.length) / 2.0F;
         return new AxisAlignedBB(x - f, y, z - f, x + f, y + this.height, z + f);
+        //return new AxisAlignedBB(x, y, z, x, y + this.height, z);
     }
     @Override public @Nonnull EntitySize scale(float widthRatio, float heightRatio) {
         return (this.fixed || (widthRatio == 1.0F && heightRatio == 1.0F))

@@ -1,17 +1,18 @@
 package org.lime.gp.player.inventory;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -23,33 +24,43 @@ import org.bukkit.inventory.PlayerInventory;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.database.tables.Tables;
+import org.lime.gp.extension.Cooldown;
 import org.lime.gp.item.Items;
-import org.lime.gp.player.module.cinv.CreativeInventory;
-import org.lime.gp.player.module.cinv.ViewContainer;
 import org.lime.gp.item.data.IItemCreator;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.list.*;
+import org.lime.gp.item.settings.list.SlotsSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.LangEnum;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.module.Ghost;
-import org.lime.gp.extension.Cooldown;
+import org.lime.gp.player.module.cinv.CreativeInventory;
+import org.lime.gp.player.module.cinv.ViewContainer;
 import org.lime.plugin.CoreElement;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Action2;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast2;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 public final class MainPlayerInventory implements Listener {
+    private static boolean PREDONATE_SLOT_ALWAYS = false;
+
     public static CoreElement create() {
         return CoreElement.create(MainPlayerInventory.class)
                 .withInit(MainPlayerInventory::init)
                 .withInstance()
+                .<JsonPrimitive>addConfig("config", v -> v
+                        .withParent("predonate.slot.always")
+                        .withDefault(new JsonPrimitive(false))
+                        .withInvoke(json -> PREDONATE_SLOT_ALWAYS = json.getAsBoolean())
+                )
                 .<JsonObject>addConfig("slot_counter", v -> v.withInvoke(MainPlayerInventory::reloadConfig).withDefault(new JsonObject()));
     }
 
     private static final HashMap<Material, Integer> slotCounter = new HashMap<>();
+    private static int defaultCount = 0;
     private static final ItemStack CINV = CraftItemStack.asBukkitCopy(ViewContainer.of(
                     Component.text("CINV")
                             .decoration(TextDecoration.ITALIC, false)
@@ -73,14 +84,14 @@ public final class MainPlayerInventory implements Listener {
         clickData.put(22, new ClickSlot(null, player -> {
             if (isCooldown(player)) return;
             lime.nextTick(() -> {
-                if (!UserRow.hasBy(player.getUniqueId()) || Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isEmpty()) return;
+                if (!UserRow.hasBy(player.getUniqueId()) || !(PREDONATE_SLOT_ALWAYS || Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isPresent())) return;
                 player.closeInventory();
                 MenuCreator.show(player, "phone.predonate");
             });
         }) {
             private static ItemStack PRE_DONATE = null;
             @Override public ItemStack create(Player player) {
-                return UserRow.hasBy(player.getUniqueId()) && Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isPresent()
+                return UserRow.hasBy(player.getUniqueId()) && (PREDONATE_SLOT_ALWAYS || Tables.PREDONATE_ITEMS_TABLE.getBy(v -> v.uuid.equals(player.getUniqueId())).isPresent())
                         ? PRE_DONATE == null ? (PRE_DONATE = MainPlayerInventory.createPreDonate()) : PRE_DONATE
                         : MainPlayerInventory.createBarrier(false);
             }
@@ -88,7 +99,7 @@ public final class MainPlayerInventory implements Listener {
         clickData.put(23, new ClickSlot(Items.createItem("phone.cinv").orElse(CINV), (player, clickType) -> {
             if (isCooldown(player)) return;
             lime.nextTick(() -> {
-                if (clickType == ClickType.DROP) CreativeInventory.openSearch(player);
+                if (clickType == ClickType.DROP) CreativeInventory.openSearch(player, false);
                 else CreativeInventory.open(player);
             });
         }));
@@ -119,8 +130,15 @@ public final class MainPlayerInventory implements Listener {
         lime.repeat(MainPlayerInventory::update, 0.5);
     }
     public static void reloadConfig(JsonObject json) {
+        defaultCount = 0;
         slotCounter.clear();
-        json.entrySet().forEach(kv -> slotCounter.put(Material.valueOf(kv.getKey()), kv.getValue().getAsInt()));
+        json.entrySet().forEach(kv -> {
+            if (kv.getKey().equals("DEFAULT")) {
+                defaultCount = kv.getValue().getAsInt();
+            } else {
+                slotCounter.put(Material.valueOf(kv.getKey()), kv.getValue().getAsInt());
+            }
+        });
     }
     public static void update() {
         Bukkit.getOnlinePlayers().forEach(MainPlayerInventory::updateInventory);
@@ -207,7 +225,7 @@ public final class MainPlayerInventory implements Listener {
 
     public static void updateInventory(Player player) {
         PlayerInventory inventory = player.getInventory();
-        int slots = 1;
+        int slots = player.getScoreboardTags().contains("inventory.full") ? 18 : defaultCount;
         for (ItemStack item : inventory.getArmorContents()) slots += getSlotCounter(item);
         if (slots > 18) slots = 18;
         else if (slots < 1) slots = 1;
@@ -268,7 +286,7 @@ public final class MainPlayerInventory implements Listener {
         Player player = e.getPlayer();
         if (player.isOp() && e.getItemDrop().getItemStack().isSimilar(CINV)) {
             e.getItemDrop().remove();
-            CreativeInventory.openSearch(player);
+            CreativeInventory.openSearch(player, false);
             isCooldown(player);
         }
     }

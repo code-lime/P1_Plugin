@@ -18,7 +18,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.permissions.ServerOperator;
-import javax.annotation.Nullable;
 import org.lime.Position;
 import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.BlockDisplay;
@@ -32,8 +31,10 @@ import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.plugin.CoreElement;
 import org.lime.system.toast.Toast;
 import org.lime.system.toast.Toast1;
+import org.lime.system.toast.Toast2;
 import org.lime.system.utils.IterableUtils;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -173,12 +174,12 @@ public class CustomTileMetadata extends TileMetadata {
     }
 
     private boolean isFirst = true;
-    public record ChunkGroup(long chunk) implements TimeoutData.TKeyedGroup<Long> {
-        public ChunkGroup(BlockPosition pos) {
-            this(ChunkCoordIntPair.asLong(pos));
+    public record ChunkGroup(UUID worldUUID, long chunk) implements TimeoutData.TKeyedGroup<Toast2<UUID, Long>> {
+        public ChunkGroup(UUID worldUUID, BlockPosition pos) {
+            this(worldUUID, ChunkCoordIntPair.asLong(pos));
         }
 
-        @Override public Long groupID() { return chunk; }
+        @Override public Toast2<UUID, Long> groupID() { return Toast.of(worldUUID, chunk); }
     }
     public static class ChunkBlockTimeout extends TimeoutData.IGroupTimeout {
         public final UUID worldUUID;
@@ -223,7 +224,8 @@ public class CustomTileMetadata extends TileMetadata {
                         });
                     });
                     ChunkBlockTimeout timeout = new ChunkBlockTimeout(this, position());
-                    boolean firstSync = TimeoutData.put(new ChunkGroup(ChunkCoordIntPair.asLong(timeout.pos)), key.uuid(), ChunkBlockTimeout.class, timeout);
+
+                    boolean firstSync = TimeoutData.put(new ChunkGroup(event.getWorld().getWorld().getUID(), timeout.pos), key.uuid(), ChunkBlockTimeout.class, timeout);
                     //if (debug) lime.logOP("Tick debug block!");
                     boolean firstTick = isFirst;
                     if (firstTick) isFirst = false;
@@ -243,7 +245,7 @@ public class CustomTileMetadata extends TileMetadata {
         TileEntityLimeSkull skull = event.getSkull();
         BlockPosition pos = skull.getBlockPos();
         CacheBlockDisplay.resetCacheBlock(skull);
-        TimeoutData.remove(new ChunkGroup(ChunkCoordIntPair.asLong(pos)), key.uuid(), ChunkBlockTimeout.class);
+        TimeoutData.remove(new ChunkGroup(skull.getLevel().getWorld().getUID(), pos), key.uuid(), ChunkBlockTimeout.class);
     }
 
     private final Map<Integer, Integer> interactLocker = new HashMap<>();

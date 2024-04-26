@@ -27,7 +27,6 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.persistence.PersistentDataType;
 import org.lime.Position;
-import org.lime.core;
 import org.lime.plugin.CoreElement;
 import org.lime.gp.block.Blocks;
 import org.lime.gp.block.component.InfoComponent;
@@ -46,7 +45,6 @@ import org.lime.gp.lime;
 import org.lime.gp.module.loot.Parameters;
 import org.lime.system.Regex;
 import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 import org.lime.gp.extension.JManager;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.player.level.LevelModule;
@@ -197,7 +195,7 @@ public class Perms implements Listener {
 
         work.map(Works.works::get).map(v -> v.canData).ifPresent(canData::add);
         work.flatMap(workID -> row.flatMap(v -> LevelModule.getLevelStep(v.id, workID))).map(v -> v.canData).ifPresent(canData::add);
-        if (role != 0) row.flatMap(Grants::getGrantData).ifPresent(grantData -> {
+        if (role != 0) row.stream().flatMap(Grants::getGrantData).forEach(grantData -> {
             canData.add(grantData.canData);
             work.map(grantData.worksCans::get).ifPresent(canData::add);
         });
@@ -321,7 +319,7 @@ public class Perms implements Listener {
             return;
         }
         Items.getOptional(BlockLimitSetting.class, e.getItemInHand())
-                .flatMap(v -> v.isLimitWithGet(e.getBlock().getLocation()).map(_v -> Toast.of(_v, v.limit)))
+                .flatMap(v -> v.getLimit(e.getBlock().getLocation()))
                 .ifPresent(dat -> dat.invoke((count, limit) -> {
                     e.setCancelled(true);
                     LangMessages.Message.Block_Error_Limit.sendMessage(e.getPlayer(), Apply.of()

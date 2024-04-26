@@ -37,7 +37,7 @@ public class GroupElement {
         this.items = items;
     }
 
-    public Stream<ItemElement> rawSearch(String search) {
-        return items.stream().filter(v -> v.isSearch(search));
+    public Stream<ItemElement> rawSearch(@Nullable String search) {
+        return search == null ? items.stream() : items.stream().filter(v -> v.isSearch(search));
     }
 }

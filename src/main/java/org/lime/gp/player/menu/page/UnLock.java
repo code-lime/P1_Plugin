@@ -27,6 +27,7 @@ import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.DeKeySetting;
+import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.menu.ActionSlot;
@@ -71,7 +72,10 @@ public class UnLock extends Base {
     }
 
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        if (player == null) return;
+        if (player == null) {
+            lime.logOP("Menu '"+getKey()+"' not called! User is NULL");
+            return;
+        }
         apply.get("block_pos_x").ifPresent(x -> apply.get("block_pos_y").ifPresent(y -> apply.get("block_pos_z").ifPresent(z -> {
             Location blockLocation = new Location(player.getWorld(), Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(z));
             for (Toast2<String, UnLockData> item : unlock) {

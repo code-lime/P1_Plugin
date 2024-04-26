@@ -14,6 +14,7 @@ import org.lime.gp.module.TimeoutData;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,6 +27,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Radio {
+    public record LevelInfo(int volume, @Nullable String category){}
+
     public static CoreElement create() {
         return CoreElement.create(Radio.class)
                 .withInit(Radio::init);
@@ -36,7 +39,7 @@ public class Radio {
             return true;
         }), 30);
         addListener(() -> Bukkit.getOnlinePlayers().stream().map(player -> {
-            HashMap<Integer, Integer> levels = RadioData.getOutput(player);
+            HashMap<Integer, LevelInfo> levels = RadioData.getOutput(player);
             UUID uuid = player.getUniqueId();
             Location pos = player.getLocation();
             return levels.size() == 0 ? (RadioElement)null : new PlayerRadioElement() {
@@ -54,7 +57,8 @@ public class Radio {
                     if (info.noise()) noise = info.local().distance(pos.toVector()) / total_distance;
                     if (noise > 1) noise = 1;
                     else if (noise < 0) noise = 0;
-                    Voice.sendPacket(uuid, new GroupSoundPacket(packet_sender, Voice.modifyVolume(info, packet_sender, data, levels.getOrDefault(level, 100), noise), Voice.nextSequence(packet_sender), ""));
+                    LevelInfo levelInfo = levels.getOrDefault(level, new LevelInfo(100, null));
+                    Voice.sendPacket(uuid, new GroupSoundPacket(packet_sender, Voice.modifyVolume(info, packet_sender, data, levelInfo.volume, noise), Voice.nextSequence(packet_sender), levelInfo.category));
                 }
             };
         }).filter(Objects::nonNull));
@@ -109,7 +113,7 @@ public class Radio {
                 @Override public UUID uuid() { return uuid; }
                 @Override public boolean noise() { return noise; }
                 @Override public Vector local() { return local; }
-                @Override public String prefix() { return uuid + ""; }
+                @Override public String prefix() { return String.valueOf(uuid); }
             };
         }
         static SenderInfo block(UUID uuid, Position position) {

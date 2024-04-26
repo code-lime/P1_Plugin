@@ -125,6 +125,7 @@ public class Crafts {
         hardcodeCrafts.add(create(key, recipe));
     }
 
+    public static final HashMap<String, JsonObject> overrides = new HashMap<>();
     public static void config(JsonObject json) {
         List<String> regexList = new ArrayList<>();
         if (json.has("remove")) {
@@ -132,8 +133,14 @@ public class Crafts {
             json.remove("remove");
         }
 
+        overrides.clear();
         List<IRecipe<?>> craftList = new ArrayList<>(hardcodeCrafts);
-        lime.combineParent(json, true, false).entrySet().forEach(kv -> craftList.add(create(kv.getKey(), kv.getValue().getAsJsonObject())));
+        lime.combineParent(json, true, false)
+                .entrySet()
+                .forEach(kv -> {
+                    overrides.put(kv.getKey(), kv.getValue().getAsJsonObject());
+                    craftList.add(create(kv.getKey(), kv.getValue().getAsJsonObject()));
+                });
         //craftList.add(ClickerRecipe.ANVIL_DEFAULT);
 
         index++;

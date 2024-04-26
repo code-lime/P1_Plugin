@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.entity.TileEntitySkullEventRemove;
 import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 import org.lime.gp.block.BlockInstance;
 import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.list.RadioComponent;
@@ -83,7 +84,7 @@ public class RadioInstance extends BlockInstance implements CustomTileMetadata.T
             if (sender.noise()) noise = sender.local().distance(location.toVector()) / total_distance;
             if (noise > 1) noise = 1;
             else if (noise < 0) noise = 0;
-            Voice.sendLocationPacket(location.getWorld(), new LocationSoundPacket(packet_sender, location, Voice.modifyVolume(sender, packet_sender, data, volume, noise), Voice.nextSequence(packet_sender), distance, null), true);
+            Voice.sendLocationPacket(location.getWorld(), new LocationSoundPacket(packet_sender, location, Voice.modifyVolume(sender, packet_sender, data, volume, noise), Voice.nextSequence(packet_sender), distance, component.category), true);
         }
     }
 

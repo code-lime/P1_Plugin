@@ -9,32 +9,34 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.lime.Position;
-import org.lime.gp.database.mysql.MySqlRow;
-import org.lime.gp.module.biome.time.DateTime;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.block.component.data.voice.RecorderInstance;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
 import org.lime.gp.database.rows.BanListRow;
+import org.lime.gp.database.rows.FakeUserRow;
 import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.extension.ExtMethods;
-import org.lime.gp.player.module.TabManager;
 import org.lime.gp.lime;
+import org.lime.gp.module.biome.time.DateTime;
+import org.lime.gp.player.module.TabManager;
+import org.lime.plugin.CoreElement;
 import org.lime.system.IJson;
 import org.lime.system.Time;
-import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import org.lime.system.json;
 import org.lime.system.map;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
 import org.lime.system.utils.MathUtils;
 import org.lime.web;
 
 import javax.annotation.Nullable;
 import java.net.InetAddress;
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -483,6 +485,20 @@ public class Methods {
     }
     public static void pardonUser(InetAddress ip, Action0 callback) {
         pardonUser(BanListRow.Type.IP, ip.getHostAddress(), callback);
+    }
+
+    public static void createFakeUser(Player player, String serverIndex) {
+        if (!isTableEnable("fake_users")) return;
+        Map<String, Object> row = new FakeUserRow(0, player, serverIndex).rawColumns();
+        List<String> columns = new ArrayList<>(row.keySet());
+        SQL.Async.rawSql("INSERT INTO fake_users ("+String.join(", ", columns)+") VALUES ("+columns.stream().map(v -> "@" + v).collect(Collectors.joining(", "))+")", row, () -> {});
+    }
+    public static void fakeUsers(Action1<List<FakeUserRow>> callback) {
+        if (!isTableEnable("fake_users")) {
+            callback.invoke(Collections.emptyList());
+            return;
+        }
+        SQL.Async.rawSqlQuery("SELECT * FROM fake_users", FakeUserRow::new, callback);
     }
 
     public static void ipListByUUIDs(Collection<UUID> uuids, Action1<Set<InetAddress>> ips) {

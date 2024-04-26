@@ -34,6 +34,8 @@ import org.lime.system.json;
         super(creator, json);
         json.getAsJsonObject("rotation").entrySet().forEach(kv -> {
             String value = kv.getValue().getAsString();
+            if (value.equals("*"))
+                value = creator.getKey();
             for (String key : kv.getKey().split("\\|"))
                 rotation.put(InfoComponent.Rotation.Value.ofAngle(Integer.parseInt(key)), value);
         });

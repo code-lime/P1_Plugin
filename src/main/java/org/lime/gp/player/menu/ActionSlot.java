@@ -15,6 +15,7 @@ import org.lime.system.Regex;
 import org.lime.system.toast.Toast;
 import org.lime.system.toast.Toast2;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,9 +85,9 @@ public class ActionSlot implements Logged.ILoggedDelete {
         return action;
     }
 
-    private void _invoke(Player player, Apply apply) {
+    private void _invoke(@Nullable Player player, Apply apply) {
         for (Toast2<String, String> arg : this.args) apply.add(arg.val0, ChatHelper.formatText(arg.val1, apply));
-        if (online && !player.isOnline()) {
+        if (online && (player == null || !player.isOnline())) {
             offlineActions.forEach(v -> v.invoke(player, apply, true));
             return;
         }
@@ -94,9 +95,15 @@ public class ActionSlot implements Logged.ILoggedDelete {
             String _cmd = ChatHelper.formatText(cmd, apply);
             if (_cmd.isEmpty()) return;
             if (_cmd.startsWith("!")) ExtMethods.executeCommand(_cmd.substring(1));
-            else Bukkit.dispatchCommand(player, _cmd);
+            else {
+                if (player == null) lime.logOP("Menu '"+getLoggedKey()+"' warning! Command '"+_cmd+"' can call only of player!");
+                else Bukkit.dispatchCommand(player, _cmd);
+            }
         });
-        messages.forEach(msg -> player.sendMessage(ChatHelper.formatComponent(msg, apply)));
+        messages.forEach(msg -> {
+            if (player == null) lime.logOP("Menu '"+getLoggedKey()+"' warning! Message '"+msg+"' can call only of player!");
+            else player.sendMessage(ChatHelper.formatComponent(msg, apply));
+        });
         logs.forEach(msg -> lime.logOP(ChatHelper.formatComponent(msg, apply)));
         sql.stream()
                 .map(sql -> ChatHelper.formatText(sql, apply))
@@ -105,7 +112,10 @@ public class ActionSlot implements Logged.ILoggedDelete {
                         .rawSql(sql, () -> {})
                         .withSQL((_sql) -> Logged.log(player, _sql, this))
                 );
-        if (close) player.closeInventory();
+        if (close) {
+            if (player == null) lime.logOP("Menu '"+getLoggedKey()+"' warning! Close inventory can only of player");
+            else player.closeInventory();
+        }
         else if (this.page != null) {
             String _page = ChatHelper.formatText(this.page, apply);
             String[] _args = _page.split(":");
@@ -126,16 +136,24 @@ public class ActionSlot implements Logged.ILoggedDelete {
             else MenuCreator.showOwner(player, _args[0], _args[1], this, Apply.of().add(localArgs));
         }
         actions.forEach(action -> action.invoke(player, apply, true));
-        sounds.forEach(sound -> Sounds.playSound(ChatHelper.formatText(sound, apply), player));
-        Location location = player.getLocation();
-        globalSounds.forEach(sound -> Sounds.playSound(ChatHelper.formatText(sound, apply), location));
+        if (!sounds.isEmpty()) {
+            if (player == null) lime.logOP("Menu '"+getLoggedKey()+"' warning! Sounds can play only of player!");
+            else sounds.forEach(sound -> Sounds.playSound(ChatHelper.formatText(sound, apply), player));
+        }
+        if (!globalSounds.isEmpty()) {
+            if (player == null) lime.logOP("Menu '"+getLoggedKey()+"' warning! Sounds can play only of player!");
+            else {
+                Location location = player.getLocation();
+                globalSounds.forEach(sound -> Sounds.playSound(ChatHelper.formatText(sound, apply), location));
+            }
+        }
         for (var kv : checkActions) {
             if (JavaScript.isJsTrue(ChatHelper.formatText(kv.val0, apply)).filter(_v -> _v).isEmpty()) continue;
             kv.val1.invoke(player, apply, true);
             break;
         }
     }
-    public void invoke(Player player, Apply apply, boolean isWait) {
+    public void invoke(@Nullable Player player, Apply apply, boolean isWait) {
         if (isDeleted()) return;
         if (!isWait || wait <= 0) _invoke(player, apply);
         else lime.onceTicks(() -> _invoke(player, apply), wait);

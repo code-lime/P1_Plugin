@@ -27,6 +27,7 @@ import net.minecraft.world.entity.player.*;
 import net.minecraft.world.entity.projectile.EntityArrow;
 import net.minecraft.world.entity.projectile.EntityProjectile;
 import net.minecraft.world.entity.projectile.EntityThrownTrident;
+import net.minecraft.world.entity.projectile.IProjectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -176,26 +177,26 @@ public class Items implements Listener {
         AnyEvent.addEvent("give.item", AnyEvent.type.other, builder -> builder.createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()).createParam(t -> json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), (player, _creators, args) -> {
             _creators.getWhitelistKeys().map(Items.creatorIDs::get).forEach(creator -> dropGiveItem(player, creator.createItem(b -> b.addApply(UserRow.getBy(player.getUniqueId()).map(v -> Apply.of().add(v)).orElseGet(Apply::of).add(args))), false));
         });
-        AnyEvent.addEvent("drop.item", AnyEvent.type.owner_console, builder -> builder
+        AnyEvent.addEvent("drop.item", AnyEvent.type.other, builder -> builder
             .createParam(Double::parseDouble, "[x]")
             .createParam(Double::parseDouble, "[y]")
             .createParam(Double::parseDouble, "[z]")
             .createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList()),
-             (s, x, y, z, _creators) -> {
+             (p, x, y, z, _creators) -> {
                 _creators.getWhitelistKeys()
                     .map(Items.creatorIDs::get)
-                    .forEach(creator -> Items.dropItem(new Location(lime.MainWorld, x, y, z), creator.createItem()));
+                    .forEach(creator -> Items.dropItem(new Location(p.getWorld(), x, y, z), creator.createItem()));
             });
-        AnyEvent.addEvent("drop.item", AnyEvent.type.owner_console, builder -> builder
+        AnyEvent.addEvent("drop.item", AnyEvent.type.other, builder -> builder
             .createParam(Double::parseDouble, "[x]")
             .createParam(Double::parseDouble, "[y]")
             .createParam(Double::parseDouble, "[z]")
             .createParam(Checker::createCheck, () -> creatorIDs.keySet().stream().filter(v -> !v.startsWith("Minecraft.")).toList())
             .createParam(t -> json.parse(t).getAsJsonObject().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, kv -> kv.getValue().isJsonPrimitive() ? kv.getValue().getAsString() : kv.getValue().toString())), "[args:json]"), 
-            (s, x, y, z, _creators, args) -> {
+            (p, x, y, z, _creators, args) -> {
                 _creators.getWhitelistKeys()
                     .map(Items.creatorIDs::get)
-                    .forEach(creator -> Items.dropItem(new Location(lime.MainWorld, x, y, z), creator.createItem(v -> v.addApply(Apply.of().add(args)))));
+                    .forEach(creator -> Items.dropItem(new Location(p.getWorld(), x, y, z), creator.createItem(v -> v.addApply(Apply.of().add(args)))));
             });
     }
 
@@ -220,6 +221,7 @@ public class Items implements Listener {
         creators.clear();
         creatorIDsNames.clear();
         creatorCoreProtectIDs.clear();
+        overrides.clear();
 
         JsonObject _new = lime.combineParent(json, true, false);
         hardcode_items.forEach(_new::add);
@@ -228,6 +230,7 @@ public class Items implements Listener {
             JsonObject value = kv.getValue().getAsJsonObject();
             ItemCreator creator = new ItemCreator(key, value);
             validateItemKey(key.toLowerCase());
+            overrides.put(key, value);
             creatorIDs.put(key, creator);
             if (creator.id != null) {
                 int id;
@@ -245,6 +248,7 @@ public class Items implements Listener {
 
     public static final LinkedHashMap<String, IItemCreator> creatorIDs = new LinkedHashMap<>();
     public static final LinkedHashMap<Integer, IItemCreator> creators = new LinkedHashMap<>();
+    public static final LinkedHashMap<String, JsonObject> overrides = new LinkedHashMap<>();
     public static final LinkedHashMap<Integer, Material> creatorMaterials = new LinkedHashMap<>();
     public static final LinkedHashMap<Integer, String> creatorNamesIDs = new LinkedHashMap<>();
     public static final LinkedHashMap<Integer, String> creatorCoreProtectIDs = new LinkedHashMap<>();
@@ -681,11 +685,11 @@ public class Items implements Listener {
         if (!e.isBlocking()) return;
         net.minecraft.world.item.ItemStack shield = e.getShield();
         Entity damageEntity = e.getSource().getEntity();
-        if (damageEntity instanceof EntityHuman human && human.getAttackStrengthScale(0.5f) < 1)
+        if (damageEntity instanceof EntityHuman human && !(e.getSource().getDirectEntity() instanceof EntityArrow) && human.getAttackStrengthScale(0.5f) < 1)
             return;
         net.minecraft.world.item.ItemStack attack;
         if (damageEntity instanceof EntityThrownTrident trident) attack = trident.getPickupItem();
-        else if (damageEntity instanceof EntityProjectile projectile) attack = ArrowBow.getBowItem(projectile);
+        else if (damageEntity instanceof IProjectile projectile) attack = ArrowBow.getBowItem(projectile);
         else if (damageEntity instanceof EntityLiving living) attack = living.getMainHandItem();
         else attack = net.minecraft.world.item.ItemStack.EMPTY;
         if (attack.getUseAnimation() == EnumAnimation.BLOCK) attack = net.minecraft.world.item.ItemStack.EMPTY;
@@ -695,7 +699,8 @@ public class Items implements Listener {
                 * Items.getOptional(ShieldIgnoreSetting.class, attack)
                 .map(v -> v.chance)
                 .orElse(0.0);
-        if (RandomUtils.rand_is(chance)) e.setBlocking(false);
+        if (RandomUtils.rand_is(chance))
+            e.setBlocking(false);
     }
     @EventHandler private static void on(EntityShootBowEvent e) {
         Items.getOptional(ArrowSetting.class, e.getBow())

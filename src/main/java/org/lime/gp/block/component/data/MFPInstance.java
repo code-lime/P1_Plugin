@@ -53,6 +53,7 @@ public class MFPInstance extends BlockComponentInstance<MFPComponent> implements
         builder = lime.models.builder().entity()
                 .entity(EntityTypes.ARMOR_STAND)
                 .local(new LocalLocation(component.offset).add(0, -0.4, -0.5, 0, 0))
+                .invisible(true)
                 .nbt(() -> {
                     EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND, lime.MainWorld.getHandle());
                     stand.setNoBasePlate(true);

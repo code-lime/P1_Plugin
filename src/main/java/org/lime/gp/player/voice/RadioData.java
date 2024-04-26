@@ -22,7 +22,9 @@ import org.lime.system.json;
 import org.lime.system.map;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
+import org.tritonus.share.TSettings;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class RadioData {
@@ -48,6 +50,7 @@ public class RadioData {
     public final int max_level;
     public final int def_level;
     public final double total_distance;
+    public final String category;
     public int volume = 100;
 
     public static int clampVolume(int volume) {
@@ -58,18 +61,19 @@ public class RadioData {
     }
 
     public RadioData(RadioSetting setting) {
-        this(setting.min_level, setting.max_level, setting.def_level, setting.state, setting.total_distance, setting.is_on);
+        this(setting.min_level, setting.max_level, setting.def_level, setting.state, setting.total_distance, setting.is_on, setting.category);
     }
     public RadioData(RadioComponent component) {
-        this(component.min_level, component.max_level, component.def_level, component.state, component.total_distance, false);
+        this(component.min_level, component.max_level, component.def_level, component.state, component.total_distance, false, component.category);
     }
-    public RadioData(int min_level, int max_level, int def_level, RadioState state, double total_distance, boolean enable) {
+    public RadioData(int min_level, int max_level, int def_level, RadioState state, double total_distance, boolean enable, @Nullable String category) {
         this.min_level = min_level;
         this.max_level = max_level;
         this.def_level = def_level;
         this.total_distance = total_distance;
         this.state = state;
         this.enable = enable;
+        this.category = category;
 
         this.level = clampLevel(def_level);
     }
@@ -82,6 +86,7 @@ public class RadioData {
                 .add("min_level", String.valueOf(min_level))
                 .add("max_level", String.valueOf(max_level))
                 .add("volume", String.valueOf(volume))
+                .add("category", category)
                 .build();
     }
     /*public List<Component> createLore(ItemCreator itemCreator) {
@@ -136,12 +141,17 @@ public class RadioData {
                 });
     }
 
-    public static HashMap<Integer, Integer> getOutput(Player player) {
-        HashMap<Integer, Integer> list = new HashMap<>();
+    public static HashMap<Integer, Radio.LevelInfo> getOutput(Player player) {
+        HashMap<Integer, Radio.LevelInfo> list = new HashMap<>();
         for (ItemStack item : player.getInventory().getContents()) {
             RadioData.getData(item).ifPresent(data -> {
-                if (data.enable && data.state.isOutput)
-                    list.compute(data.level, (k,v) -> v == null ? data.volume : Math.max(data.volume, v));
+                if (data.enable && data.state.isOutput) {
+                    list.compute(data.level, (k,v) -> v == null
+                            ? new Radio.LevelInfo(data.volume, data.category)
+                            : v.volume() < data.volume
+                            ? new Radio.LevelInfo(data.volume, data.category)
+                            : v);
+                }
             });
         }
         return list;

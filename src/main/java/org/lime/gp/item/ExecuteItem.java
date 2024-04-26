@@ -1,12 +1,5 @@
 package org.lime.gp.item;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -14,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -21,10 +15,16 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.lime.plugin.CoreElement;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.item.data.ItemCreator;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
+import org.lime.system.execute.Func2;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExecuteItem implements Listener {
     public static CoreElement create() {
@@ -35,8 +35,23 @@ public class ExecuteItem implements Listener {
     
     public static final List<Func2<ItemStack, Toast1<ItemMeta>, Boolean>> execute = new ArrayList<>();
 
+    private static boolean forceItemUpdate = false;
+
     public static void init() {
         execute.add(ExecuteItem::onExecute);
+
+        AnyEvent.addEvent("force.item.update", AnyEvent.type.owner_console, v -> v.createParam("enable", "disable"), (p, v) -> {
+            switch (v) {
+                case "enable" -> {
+                    forceItemUpdate = true;
+                    lime.logOP("Enabled forceItemUpdate");
+                }
+                case "disable" -> {
+                    forceItemUpdate = false;
+                    lime.logOP("Disabled forceItemUpdate");
+                }
+            }
+        });
     }
     
     public static void replace(ItemStack original, ItemStack item) {
@@ -88,6 +103,10 @@ public class ExecuteItem implements Listener {
         if (!save) return false;
         item.setItemMeta(metaBox.val0);
         return true;
+    }
+    @EventHandler public static void on(InventoryOpenEvent e) {
+        if (!forceItemUpdate) return;
+        e.getInventory().forEach(ExecuteItem::executeItem);
     }
     @EventHandler public static void on(InventoryClickEvent e) {
         if (e.getWhoClicked().getInventory().equals(e.getClickedInventory())) {

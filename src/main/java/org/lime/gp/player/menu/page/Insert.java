@@ -23,6 +23,7 @@ import org.lime.system.list;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class Insert extends Base {
@@ -89,10 +90,13 @@ public class Insert extends Base {
         if (json.has("output")) json.get("output").getAsJsonArray().forEach(kv -> output.add(ActionSlot.parse(this, kv.getAsJsonObject())));
     }
 
-    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        if (player == null) return;
+    @Override protected void showGenerate(UserRow row, @Nullable Player player, int page, Apply apply) {
+        if (player == null) {
+            lime.logOP("Menu '"+getKey()+"' not called! User is NULL");
+            return;
+        }
         open(player, ChatHelper.formatComponent(title, apply), rows, (cash) -> {
-            apply.add("weight", cash + "");
+            apply.add("weight", String.valueOf(cash));
             output.forEach(i -> i.invoke(player, apply, true));
         }, filter);
     }

@@ -1,15 +1,16 @@
 package org.lime.gp.player.perm;
 
 import com.google.gson.JsonObject;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
-import org.lime.gp.lime;
 import org.lime.gp.database.rows.RolesRow;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class Grants {
     public static CoreElement create() {
@@ -36,9 +37,19 @@ public class Grants {
             if (json.has("works")) json.get("works").getAsJsonObject().entrySet().forEach(kv -> worksCans.put(Integer.parseInt(kv.getKey()), new Perms.CanData(kv.getValue().getAsJsonObject())));
         }
     }
-    public static Optional<GrantData> getGrantData(UUID uuid) { return UserRow.getBy(uuid).flatMap(Grants::getGrantData); }
-    public static Optional<GrantData> getGrantData(int id) { return UserRow.getBy(id).flatMap(Grants::getGrantData); }
-    public static Optional<GrantData> getGrantData(UserRow user) { return Optional.ofNullable(user).flatMap(v -> RolesRow.getBy(user.role)).map(v -> grants.get(v.permissions)); }
+    public static Stream<GrantData> getGrantData(UUID uuid) {
+        return UserRow.getBy(uuid).stream().flatMap(Grants::getGrantData);
+    }
+    public static Stream<GrantData> getGrantData(int id) {
+        return UserRow.getBy(id).stream().flatMap(Grants::getGrantData);
+    }
+    public static Stream<GrantData> getGrantData(UserRow user) {
+        return Optional.ofNullable(user)
+                .flatMap(v -> RolesRow.getBy(user.role))
+                .stream()
+                .flatMap(v -> v.permissions.stream().map(grants::get))
+                .filter(Objects::nonNull);
+    }
 
     public static void config(JsonObject json) {
         HashMap<Integer, GrantData> _grants = new HashMap<>();

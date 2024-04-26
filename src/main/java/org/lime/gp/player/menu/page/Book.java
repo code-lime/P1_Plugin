@@ -11,9 +11,11 @@ import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.lime;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.ui.EditorUI;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,8 +32,11 @@ public class Book extends Base {
         json.get("pages").getAsJsonArray().forEach(_json -> pages.add(_json.isJsonArray() ? Streams.stream(_json.getAsJsonArray().iterator()).map(JsonElement::getAsString).collect(Collectors.toList()) : Collections.singletonList(_json.getAsString())));
     }
 
-    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        if (player == null) return;
+    @Override protected void showGenerate(UserRow row, @Nullable Player player, int page, Apply apply) {
+        if (player == null) {
+            lime.logOP("Menu '"+getKey()+"' not called! User is NULL");
+            return;
+        }
         List<Component> _pages = pages.stream()
             .map(v -> v.stream()
                 .map(_v -> ChatHelper.formatText(_v, apply))

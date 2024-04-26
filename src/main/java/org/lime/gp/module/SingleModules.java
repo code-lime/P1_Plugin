@@ -180,7 +180,9 @@ public class SingleModules implements Listener {
         e.joinMessage(null);
         Player player = e.getPlayer();
         player.sendMessage(Component.text(StringUtils.repeat(" \n", 100)));
-        LangMessages.Message.Chat_Join.sendMessage(player, Apply.of().add("uuid", player.getUniqueId().toString()));
+        LangMessages.Message.Chat_Join.sendMessage(player, Apply.of()
+                .add("uuid", player.getUniqueId().toString())
+                .add("user_name", player.getName()));
     }
     @EventHandler public static void on(PlayerQuitEvent e) {
         e.quitMessage(null);

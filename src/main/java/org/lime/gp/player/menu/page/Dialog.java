@@ -7,6 +7,7 @@ import org.lime.gp.database.rows.UserRow;
 import org.lime.gp.lime;
 import org.lime.gp.player.menu.ActionSlot;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +19,7 @@ public class Dialog extends Base {
         json.get("dialog").getAsJsonArray().forEach(kv -> dialog.add(ActionSlot.parse(this, kv.getAsJsonObject())));
     }
 
-    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        if (player == null) return;
+    @Override protected void showGenerate(UserRow row, @Nullable Player player, int page, Apply apply) {
         int waitTime = 0;
         for (ActionSlot action : dialog) {
             lime.onceTicks(() -> action.invoke(player, apply, true), waitTime);

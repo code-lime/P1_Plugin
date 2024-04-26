@@ -17,14 +17,17 @@ public class PufferfishShpric implements Listener {
     }
 
     public static final String SHPRIC = "Hospital.Tool.Shpric";
-    public static final String SHPRIC_PUFFERFISH = "Resource.Tool.Shpric_Pufferfish";
+    public static final String SHPRIC_PUFFERFISH = "(.*)\\.Tool\\.Shpric_Pufferfish";
 
     @EventHandler(ignoreCancelled = true) public static void on(PlayerInteractEntityEvent e) {
         if (e.getRightClicked() instanceof CraftPufferFish pufferFish && e.getPlayer() instanceof CraftPlayer player) {
             PlayerInventory inventory = e.getPlayer().getInventory();
             if (Items.getGlobalKeyByItem(inventory.getItemInMainHand()).filter(SHPRIC::equals).isEmpty()) return;
             pufferFish.getHandle().kill();
-            Items.createItem(SHPRIC_PUFFERFISH)
+            Items.getValuesRegex(SHPRIC_PUFFERFISH)
+                    .stream()
+                    .findAny()
+                    .map(v -> v.createItem(1))
                     .ifPresentOrElse(inventory::setItemInMainHand, () -> lime.logOP("ITEM '" + SHPRIC_PUFFERFISH + "' NOT FOUNDED!"));
         }
     }

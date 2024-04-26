@@ -411,7 +411,7 @@ public class Discord implements Listener {
         if (addRoles.size() != 0 || delRoles.size() != 0) actions.put("m."+discord_id+".roles", guild.modifyMemberRoles(member, addRoles, delRoles));
         if (log) lime.logOP("UPDATE.4: " + member.isOwner() + " | " + member.getNickname());
         if (
-                !(member.isOwner() || discord_id == 291179227754266624L) &&
+                !member.isOwner() &&
                 !user_name.equals(member.getNickname()) &&
                 !user_name.equals(member.getUser().getName()) &&
                 guild.getSelfMember().canInteract(member)
@@ -421,16 +421,29 @@ public class Discord implements Listener {
         return actions;
     }
     public static void reset(long discord_id) {
+        boolean log = debug && discord_id == 291179227754266624L;
+        if (log) lime.logOP("RESET." +discord_id);
         Methods.discordClear(discord_id, () -> Optional.ofNullable(getJDA()).ifPresent(jda -> jda.getGuilds().forEach(guild -> {
             Member member = guild.getMemberById(discord_id);
             if (member == null) return;
 
+            if (log) lime.logOP("RESET.MEMBER: " +member);
             List<Role> delRoles = new ArrayList<>();
-            getAllRoles().forEach(v -> delRoles.add(guild.getRoleById(v.roleID)));
+            getAllRoles().forEach(v -> {
+                Role role = guild.getRoleById(v.roleID);
+                if (log) lime.logOP("RESET.ROLE: " + v.roleID + " : " + role);
+                delRoles.add(role);
+            });
+            role_list.keySet().forEach(_roleId -> {
+                Role role = guild.getRoleById(_roleId);
+                if (log) lime.logOP("RESET.ROLE: " + _roleId + " : " + role);
+                delRoles.add(role);
+            });
 
-            role_list.keySet().forEach(_roleId -> delRoles.add(guild.getRoleById(_roleId)));
+            delRoles.removeIf(Objects::isNull);
             guild.modifyMemberRoles(member, new ArrayList<>(), delRoles).queue();
-            if (!member.isOwner()) member.modifyNickname(null).queue();
+            if (!member.isOwner() && guild.getSelfMember().canInteract(member))
+                member.modifyNickname(null).queue();
         })));
     }
 

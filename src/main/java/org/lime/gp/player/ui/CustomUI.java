@@ -1,40 +1,36 @@
 package org.lime.gp.player.ui;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.protocol.game.PacketPlayInResourcePackStatus;
 import net.minecraft.network.protocol.game.PacketPlayOutBoss;
 import net.minecraft.world.BossBattle;
-import org.apache.http.client.utils.URIBuilder;
-import org.bukkit.scheduler.BukkitTask;
-import org.lime.*;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.lime.gp.entity.Entities;
-import org.lime.gp.extension.ExtMethods;
-import org.lime.gp.lime;
-import org.lime.gp.block.Blocks;
-import org.lime.gp.extension.PacketManager;
-import org.lime.gp.item.Items;
-import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.list.RemoteExecuteSetting;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.extension.ExtMethods;
+import org.lime.gp.extension.PacketManager;
+import org.lime.gp.lime;
 import org.lime.gp.player.module.Login;
+import org.lime.gp.player.ui.respurcepack.ResourcePackData;
+import org.lime.gp.player.ui.respurcepack.ShareData;
 import org.lime.plugin.CoreElement;
+import org.lime.system.execute.Func1;
 import org.lime.system.json;
-import org.lime.system.map;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast2;
+import org.lime.system.toast.Toast3;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
 
@@ -49,7 +45,7 @@ public class CustomUI implements Listener {
                 .addEmpty("rp-share", CustomUI::share)
                 .<JsonObject>addConfig("resourcepack", v -> v.withInvoke(CustomUI::config).withDefault(new JsonObject()))
                 .<JsonElement>addConfig("share", v -> v.withInvoke(CustomUI::configShare).withDefault(JsonNull.INSTANCE))
-                .<JsonElement>addConfig("unique_rp", v -> v.withInvoke(CustomUI::configUp).withDefault(JsonNull.INSTANCE));
+                .<JsonObject>addConfig("data/unique_rp", v -> v.withInvoke(CustomUI::configUp).withDefault(json.object().addNull("id").build()));
     }
 
     private static class CustomBossBattle extends BossBattle {
@@ -97,7 +93,7 @@ public class CustomUI implements Listener {
         }
         public void show(Player player, Component component, boolean empty) {
             switch (this) {
-                case ACTIONBAR -> player.sendActionBar(component.append(NOT_SUPPORTED));
+                case ACTIONBAR -> player.sendActionBar(component.append(RP.notSupported()));
                 case BOSSBAR -> {
                     if (!ExtMethods.isPlayerLoaded(player)) return;
                     UUID uuid = player.getUniqueId();
@@ -132,160 +128,8 @@ public class CustomUI implements Listener {
         iuis.add(iui);
     }
 
-    public record Share(
-        String url,
-        String owner,
-        String repo,
-        String branch,
-        Map<String, String> headers) {
-        public static Share parse(JsonObject json) {
-            return new Share(
-                json.get("url").getAsString(),
-                json.get("owner").getAsString(),
-                json.get("repo").getAsString(),
-                json.get("branch").getAsString(),
-                map.<String, String>of()
-                    .add(json.get("headers")
-                        .getAsJsonObject()
-                        .entrySet()
-                        .iterator(),
-                        kv -> kv.getKey(),
-                        kv -> kv.getValue().getAsString())
-                    .build()
-            );
-        }
-
-        public String replace(String text) {
-            return text
-                .replace("{owner}", owner)
-                .replace("{repo}", repo)
-                .replace("{branch}", branch);
-        }
-
-        private static void logLoggerLine(String line) {
-            if (!line.isBlank()) {
-                if (line.startsWith("ADMIN:")) {
-                    Component component = Component.text("[Share]  - ").append(ChatHelper.formatComponent(line.substring(6)));
-                    Bukkit.getOnlinePlayers().forEach(player -> {
-                        if (!player.isOp()) return;
-                        player.sendMessage(component);
-                    });
-                } else if (line.startsWith("CONSOLE:")) {
-                    Component component = Component.text("[Share]  - ").append(ChatHelper.formatComponent(line.substring(8)));
-                    Bukkit.getConsoleSender().sendMessage(component);
-                } else {
-                    lime.logOP("[Share]  - " + line);
-                }
-            }
-        }
-        public void share() {
-            lime.logOP("[Share] Setup remote generator...");
-            String jsonString = json.object()
-                .addArray("execute", _v -> _v
-                    .add(Items.creatorIDs.values()
-                        .stream()
-                        .map(v -> v instanceof ItemCreator c ? c : null)
-                        .filter(Objects::nonNull)
-                        .flatMap(v -> Items.getAll(RemoteExecuteSetting.class, v).stream())
-                        .flatMap(v -> v.execute.stream())
-                        .iterator(), item -> item)
-                    .add(Blocks.creators.values()
-                        .stream()
-                        .flatMap(v -> v.components.values().stream())
-                        .map(v -> v instanceof org.lime.gp.block.component.list.RemoteExecuteComponent c ? c : null)
-                        .filter(Objects::nonNull)
-                        .flatMap(v -> v.execute.stream())
-                        .iterator(), item -> item)
-                    .add(Entities.creators.values()
-                        .stream()
-                        .flatMap(v -> v.components.values().stream())
-                        .map(v -> v instanceof org.lime.gp.entity.component.list.RemoteExecuteComponent c ? c : null)
-                        .filter(Objects::nonNull)
-                        .flatMap(v -> v.execute.stream())
-                        .iterator(), item -> item)
-                )
-                .add("owner", owner)
-                .add("repo", repo)
-                .add("branch", branch)
-                .build()
-                .toString();
-            lime.logOP("[Share] Execute remote generator...");
-            web.method.POST
-                    .create(url, jsonString)
-                    .expectContinue(true)
-                    .headers(headers)
-                    .json()
-                    .map(JsonElement::getAsJsonObject)
-                    .executeAsync((logger, _code) -> {
-                        String logID = logger.get("id").getAsString();
-                        Toast2<BukkitTask, Integer> task = Toast.of(null, 5);
-                        lime.logOP("[Share] Remote generator logs:");
-                        task.val0 = lime.repeat(() -> {
-                            if (task.val1 <= 0) {
-                                lime.logOP("[Share] Remote generator closed");
-                                task.val0.cancel();
-                                return;
-                            }
-                            task.val1--;
-                            web.method.POST
-                                    .create(url, json.object()
-                                            .add("logger", logID)
-                                            .build()
-                                            .toString()
-                                    )
-                                    .expectContinue(true)
-                                    .headers(headers)
-                                    .json()
-                                    .map(JsonElement::getAsJsonObject)
-                                    .executeAsync((log, __code) -> {
-                                        String status = log.get("status").getAsString();
-                                        switch (status) {
-                                            case "end" -> {
-                                                JsonArray array = log.getAsJsonArray("lines");
-                                                array.forEach(line -> logLoggerLine(line.getAsString()));
-                                                if (array.size() == 0) return;
-                                            }
-                                            case "lines" -> log.getAsJsonArray("lines")
-                                                    .forEach(line -> logLoggerLine(line.getAsString()));
-                                            case "close" -> {
-                                                task.val0.cancel();
-                                                lime.logOP("[Share] Remote generator closed");
-                                            }
-                                        }
-                                        task.val1 = 5;
-                                    });
-                        }, 1);
-                    });
-        }
-    }
-    private static class ResourcePack {
-        public String RP_URL;
-        public String VERSION;
-
-        public ResourcePack(String URL, String VERSION) {
-            this.RP_URL = URL;
-            this.VERSION = VERSION;
-        }
-
-        private static String createUrl(String url, String version) {
-            try {
-                URIBuilder _url = new URIBuilder(url);
-                //_url.addParameter("v", version);
-                UP_POSTFIX.ifPresent(unique -> _url.addParameter("unique", unique));
-                return _url.toString();
-            } catch (Exception e) {
-                throw new IllegalArgumentException(e);
-            }
-        }
-        public void send(Player player) {
-            if (RP_URL == null) return;
-            player.setResourcePack(createUrl(SHARE == null ? RP_URL : (SHARE.replace(RP_URL)), VERSION), VERSION);
-        }
-    }
-    private static ResourcePack RP;
-    private static Share SHARE;
-    private static String VERSION;
-    private static Component NOT_SUPPORTED;
+    private static ResourcePackData RP = ResourcePackData.createEmpty();
+    private static @Nullable ShareData SHARE;
     private static boolean REQIRE_RP;
 
     public static class TextGlobalUI extends GUI {
@@ -419,48 +263,22 @@ public class CustomUI implements Listener {
         lime.repeatTicks(CustomUI::update, 2);
     }
     public static void config(JsonObject json) {
-        VERSION = json.get("version").isJsonNull() ? "0.0.0" : json.get("version").getAsString();
-        String v0 = "0";
-        String v1 = "0";
-        String v2 = "0";
-        String build = "0";
-        String[] key = VERSION.split("\\.");
-        for (int i = 0; i < key.length; i++) {
-            switch (i) {
-                case 0: v0 = key[i]; break;
-                case 1: v1 = key[i]; break;
-                case 2: v2 = key[i]; break;
-                case 3: build = key[i]; break;
-                default: break;
-            }
-        }
-        for (int i = 0; i < 3; i++)
-        VERSION = String.join(".", v0, v1, v2);
-        Component not_supported = Component.translatable("ЭТОТ РЕСУРСПАК НЕ ПОДДЕРЖИВАЕТСЯ! v"+VERSION+" | THIS RESOURCEPACK IS NOT SUPPORTED! v"+VERSION+" | ", TextColor.color(255, 0, 0));
-        NOT_SUPPORTED = Component.empty();
-        for (int i = 0; i < 10; i++) NOT_SUPPORTED = NOT_SUPPORTED.append(not_supported);
-        RP = new ResourcePack(
-                json.get("version").isJsonNull() ? null : json.get("default").getAsString(),
-                VERSION + "." + build);
-    }
-    public static void configShare(JsonElement _json) {
-        if (_json.isJsonNull()) {
-            SHARE = null;
-        } else {
-            SHARE = Share.parse(_json.getAsJsonObject());
-        }
-    }
-    private static Optional<String> UP_POSTFIX = Optional.empty();
-    public static void configUp(JsonElement _json) {
-        UP_POSTFIX = _json.isJsonNull() ? Optional.empty() : Optional.of(_json.getAsString());
+        RP = json.get("version").isJsonNull()
+                ? RP.empty()
+                : RP.update(json.get("default").getAsString(), json.get("version").getAsString());
     }
     public static void sendAll() {
-        Bukkit.getOnlinePlayers().forEach(RP::send);
+        Bukkit.getOnlinePlayers().forEach(v -> RP.send(v, SHARE));
     }
-    public static void up() {
-        String unique = UUID.randomUUID().toString();
-        UP_POSTFIX = Optional.of(unique);
-        lime.writeAllConfig("unique_rp", unique);
+    public static void update() {
+        Bukkit.getOnlinePlayers().forEach(CustomUI::updatePlayer);
+        IType.sync();
+    }
+
+    public static void configShare(JsonElement _json) {
+        SHARE = _json.isJsonNull()
+                ? null
+                : ShareData.parse(_json.getAsJsonObject());
     }
     public static void share() {
         if (SHARE == null) {
@@ -470,17 +288,26 @@ public class CustomUI implements Listener {
         lime.logOP("Start share...");
         SHARE.share();
     }
-    public static void update() {
-        Bukkit.getOnlinePlayers().forEach(CustomUI::updatePlayer);
-        IType.sync();
+
+    public static void configUp(JsonObject _json) {
+        JsonElement id = _json.get("id");
+        RP = RP.updateIndex(id.isJsonNull() ? null : id.getAsString());
     }
+    public static void up() {
+        String unique = UUID.randomUUID().toString();
+        RP = RP.updateIndex(unique);
+        lime.writeAllConfig("data/unique_rp", json.format(json.object().add("id", unique).build()));
+    }
+
     public static void updatePlayer(Player player) {
         HashMap<IType, List<ImageBuilder>> builders = new HashMap<>();
         for (IType type : IType.values()) builders.put(type, new LinkedList<>());
         for (IUI iui : iuis) builders.get(iui.getType()).addAll(iui.getUI(player));
         builders.forEach((type, list) -> type.show(player, Component.empty().append(ImageBuilder.join(list, 1)), list.isEmpty()));
     }
-    @EventHandler public static void on(PlayerJoinEvent e) { RP.send(e.getPlayer()); }
+    @EventHandler public static void on(PlayerJoinEvent e) {
+        RP.send(e.getPlayer(), SHARE);
+    }
 }
 
 

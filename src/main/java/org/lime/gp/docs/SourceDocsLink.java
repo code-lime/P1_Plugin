@@ -41,7 +41,7 @@ public final class SourceDocsLink implements IDocsLink {
 
     private static final ConcurrentHashMap<Class<?>, Boolean> checked = new ConcurrentHashMap<>();
     private static IIndexGroup remoteGroup(String title, String url) {
-        return IIndexGroup.raw(title, null, () -> Stream.of("Список возможных значений: [LINK]("+url+")"));
+        return IIndexGroup.raw(title, null, () -> Stream.of("Список возможных значений: <a href=\""+url+"\" target=\"_blank\">LINK</a>"));
     }
     private static IIndexGroup remoteGroup(String title, Class<?> tClass) {
         String url = "https://hub.spigotmc.org/javadocs/bukkit/" + tClass.getName().replace('.', '/') + ".html";

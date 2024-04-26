@@ -7,6 +7,7 @@ import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.LimeKey;
 import net.minecraft.world.entity.EntityLimeMarker;
 import net.minecraft.world.entity.EntityMarkerEventDestroy;
+import net.minecraft.world.entity.monster.EntitySilverfish;
 import net.minecraft.world.level.ChunkCoordIntPair;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTableInfo;

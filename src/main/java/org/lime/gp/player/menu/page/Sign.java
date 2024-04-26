@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.lime;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.player.ui.EditorUI;
 
@@ -23,7 +24,10 @@ public class Sign extends Base {
     }
 
     @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
-        if (player == null) return;
+        if (player == null) {
+            lime.logOP("Menu '"+getKey()+"' not called! User is NULL");
+            return;
+        }
         EditorUI.openSign(player, this.lines.stream().map(v -> ChatHelper.formatText(v, apply)).collect(Collectors.toList()), _lines -> {
             apply.add("line0", _lines.get(0)).add("line1", _lines.get(1)).add("line2", _lines.get(2)).add("line3", _lines.get(3));
             output.forEach(i -> i.invoke(player, apply, true));

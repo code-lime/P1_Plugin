@@ -1,20 +1,18 @@
 package org.lime.gp.database.rows;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.lime.gp.database.mysql.MySqlRow;
-import org.lime.plugin.CoreElement;
-import org.lime.gp.lime;
-import org.lime.gp.database.mysql.MySql;
-import org.lime.gp.database.tables.Tables;
-
 import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.lime.gp.database.mysql.MySql;
+import org.lime.gp.database.mysql.MySqlRow;
+import org.lime.gp.database.tables.Tables;
+import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 import org.lime.system.json;
+
+import javax.annotation.Nullable;
+import java.util.*;
 
 public class PermissionRow extends BaseRow {
     public static CoreElement create() {
@@ -28,17 +26,26 @@ public class PermissionRow extends BaseRow {
         PermissionRow.sync();
     }
 
-    public UUID uuid;
+    private @Nullable UUID uuid;
+    public String rawUuid;
     public List<String> permissions;
+
+    private Collection<? extends Player> getPlayers() {
+        if (uuid == null) return Bukkit.getOnlinePlayers();
+
+        Player player = Bukkit.getPlayer(uuid);
+        return player == null ? Collections.emptySet() : Collections.singleton(player);
+    }
 
     public PermissionRow(MySqlRow set) {
         super(set);
-        uuid = java.util.UUID.fromString(MySql.readObject(set, "uuid", String.class));
+        rawUuid = MySql.readObject(set, "uuid", String.class);
+        uuid = rawUuid.equals("*") ? null : java.util.UUID.fromString(rawUuid);
         permissions = Streams.stream(json.parse(MySql.readObject(set, "permissions", String.class)).getAsJsonArray().iterator()).map(JsonElement::getAsString).toList();
     }
     @Override public Map<String, String> appendToReplace(Map<String, String> map) {
         map = super.appendToReplace(map);
-        map.put("uuid", uuid.toString());
+        map.put("uuid", uuid == null ? "*" : uuid.toString());
         map.put("permissions", String.join(", ", permissions));
         return map;
     }
@@ -53,16 +60,14 @@ public class PermissionRow extends BaseRow {
 
     public void removed() {
         lime.nextTick(() -> {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player == null) return;
-            permissions.forEach(perm -> unsetPermission(player, perm));
+            Collection<? extends Player> modifyPlayers = getPlayers();
+            modifyPlayers.forEach(player -> permissions.forEach(perm -> unsetPermission(player, perm)));
         });
     }
     public static void sync() {
         Tables.PERMISSIONS_TABLE.getRows().forEach(row -> {
-            Player player = Bukkit.getPlayer(row.uuid);
-            if (player == null) return;
-            row.permissions.forEach(perm -> setPermission(player, perm));
+            Collection<? extends Player> modifyPlayers = row.getPlayers();
+            modifyPlayers.forEach(player -> row.permissions.forEach(perm -> setPermission(player, perm)));
         });
     }
 }

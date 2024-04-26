@@ -5,12 +5,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.database.rows.UserRow;
+import org.lime.gp.lime;
 import org.lime.gp.player.menu.Logged;
 import org.lime.gp.player.menu.MenuCreator;
 import org.lime.gp.player.menu.SelectObject;
 import org.lime.gp.player.menu.ActionSlot;
 import org.lime.gp.extension.Cooldown;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -86,7 +88,7 @@ public class Select extends Base {
         return getKey() + (dynamic ? UUID.randomUUID().toString() : "");
     }
 
-    @Override protected void showGenerate(UserRow row, Player player, int page, Apply apply) {
+    @Override protected void showGenerate(UserRow row, @Nullable Player player, int page, Apply apply) {
         UUID other_uuid;
         try {
             other_uuid = UUID.fromString(apply.getOrDefault("other_uuid", null));
@@ -98,7 +100,10 @@ public class Select extends Base {
         try {
             select_uuid = UUID.fromString(apply.getOrDefault("select_uuid", null));
         } catch (Exception e) {
-            if (player == null) return;
+            if (player == null) {
+                lime.logOP("Menu '"+getKey()+"' not called! User is NULL and arg `select_uuid` is NULL");
+                return;
+            }
             select_uuid = player.getUniqueId();
         }
 

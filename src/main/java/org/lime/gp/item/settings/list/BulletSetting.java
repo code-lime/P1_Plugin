@@ -4,33 +4,28 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import net.minecraft.world.entity.EntityLiving;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftLivingEntity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataType;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.*;
-import org.lime.gp.item.weapon.Bullets;
-import org.lime.gp.player.module.Knock;
+import org.lime.gp.item.weapon.BulletAction;
 import org.lime.gp.sound.SoundMaterial;
 import org.lime.gp.sound.Sounds;
 
 import com.google.gson.JsonObject;
 
 import net.minecraft.world.level.block.state.IBlockData;
-import org.lime.system.execute.Action1;
+import org.lime.json.JsonElementOptional;
+import org.lime.json.JsonNullOptional;
 import org.lime.system.utils.EnumUtils;
-import org.lime.system.utils.RandomUtils;
 
 @Setting(name = "bullet") public class BulletSetting extends ItemSetting<JsonObject> {
     public final String bullet_type;
-    public final Bullets.BulletAction bullet_action;
+    public final BulletAction bullet_action;
+    public final JsonElementOptional bullet_data;
     public final int count;
     public final double damage;
     public final double time_sec;
@@ -53,12 +48,13 @@ import org.lime.system.utils.RandomUtils;
         }
 
         bullet_action = json.has("bullet_action")
-                ? EnumUtils.tryParse(Bullets.BulletAction.class, json.get("bullet_action").getAsString())
-                .orElseThrow(() -> new IllegalArgumentException("bullet_action can't be '" + json.get("bullet_action").getAsString() + "'. Only: " + Arrays.stream(Bullets.BulletAction.values())
+                ? EnumUtils.tryParse(BulletAction.class, json.get("bullet_action").getAsString())
+                .orElseThrow(() -> new IllegalArgumentException("bullet_action can't be '" + json.get("bullet_action").getAsString() + "'. Only: " + Arrays.stream(BulletAction.values())
                         .map(Enum::name)
                         .collect(Collectors.joining(", ")))
                 )
-                : Bullets.BulletAction.NONE;
+                : BulletAction.NONE;
+        bullet_data = json.has("bullet_data") ? JsonElementOptional.of(json.get("bullet_data")) : JsonNullOptional.INSTANCE;
 
         if (json.has("sound_hit")) json.getAsJsonObject("sound_hit").entrySet().forEach(kv -> sound_hit.put(SoundMaterial.valueOf(kv.getKey()), kv.getValue().getAsString()));
     }
@@ -71,9 +67,10 @@ import org.lime.system.utils.RandomUtils;
     }
 
     @Override public IIndexGroup docs(String index, IDocsLink docs) {
-        IIndexGroup bulletAction = JsonEnumInfo.of("BULLET_ACTION", Bullets.BulletAction.class);
+        IIndexGroup bulletAction = JsonEnumInfo.of("BULLET_ACTION", BulletAction.class);
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("bullet_type"), IJElement.raw("BULLET_TYPE"), IComment.text("Пользвательский тип патрона")),
+                JProperty.require(IName.raw("bullet_data"), IJElement.link(docs.json()), IComment.text("Данные патрона")),
                 JProperty.optional(IName.raw("count"), IJElement.raw(1), IComment.text("Количество вылетающих пуль")),
                 JProperty.require(IName.raw("damage"), IJElement.raw(1.5), IComment.text("Урон одной вылетающей пули")),
                 JProperty.optional(IName.raw("time"),

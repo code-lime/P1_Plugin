@@ -1,6 +1,5 @@
 package org.lime.gp.entity.component.data.boat;
 
-import com.mojang.datafixers.kinds.App;
 import io.papermc.paper.util.CachedLists;
 import io.papermc.paper.util.CollisionUtil;
 import net.minecraft.core.BlockPosition;
@@ -15,13 +14,12 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AxisAlignedBB;
 import net.minecraft.world.phys.Vec3D;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.lime.display.Displays;
-import org.lime.display.Passenger;
-import org.lime.display.models.display.BaseChildDisplay;
 import org.lime.display.models.sitter.IExitLocation;
 import org.lime.display.models.sitter.ISitter;
 import org.lime.gp.chat.Apply;
@@ -29,22 +27,25 @@ import org.lime.gp.chat.LangMessages;
 import org.lime.gp.entity.CustomEntityMetadata;
 import org.lime.gp.entity.EntityComponentInstance;
 import org.lime.gp.entity.RotatedEntitySize;
+import org.lime.gp.entity.component.data.MoveLimitInstance;
 import org.lime.gp.entity.component.display.display.EntityModelDisplay;
 import org.lime.gp.entity.component.display.instance.DisplayInstance;
 import org.lime.gp.entity.component.list.BoatComponent;
 import org.lime.gp.entity.event.EntityMarkerEventInput;
 import org.lime.gp.entity.event.EntityMarkerEventInteract;
 import org.lime.gp.entity.event.EntityMarkerEventTick;
-import org.lime.gp.module.DrawText;
+import org.lime.gp.extension.Zone;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.json.JsonObjectOptional;
-import org.lime.system.Time;
 import org.lime.system.json;
 import org.lime.system.toast.Toast;
 import org.lime.system.toast.Toast2;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class BoatInstance extends EntityComponentInstance<BoatComponent> implements
@@ -85,13 +86,14 @@ public class BoatInstance extends EntityComponentInstance<BoatComponent> impleme
             CachedLists.returnTempCollisionList(collisions);
         }
     }
-    private static boolean tryRotateEntity(EntityLimeMarker marker, float deltaAngle) {
+    private static boolean tryRotateEntity(EntityLimeMarker marker, float deltaAngle, boolean debug) {
         World world = marker.level();
         AxisAlignedBB before = marker.getBoundingBox();
         Vec3D pos = marker.position();
         float lastYaw = marker.getYRot();
         marker.setYRot((lastYaw + deltaAngle) % 360F);
         AxisAlignedBB rotated = marker.getBoundingBoxAt(pos.x, pos.y, pos.z);
+        if (debug) Zone.showBox(Bukkit.getOnlinePlayers(), marker.level().getWorld(), before, Particle.FLAME);
         boolean newCollision = hasCollision(world, marker, before, rotated);
         if (!newCollision) return true;
         marker.setYRot(lastYaw);
@@ -178,6 +180,9 @@ public class BoatInstance extends EntityComponentInstance<BoatComponent> impleme
                                     CustomUI.TextUI.show(player, ImageBuilder.of(player, LangMessages.Message.Boat_Status.getSingleMessage(Apply.of().add(display.getAll()))), 30)),
                             () -> input.set(0, 0));
 
+            if (!metadata.list(MoveLimitInstance.class).findAny().map(MoveLimitInstance::isActive).orElse(true))
+                input.set(0, 0);
+
             forceInput = forceInput.lerp(input, 0.1f);
 
             float yaw = location.getYaw();
@@ -192,7 +197,7 @@ public class BoatInstance extends EntityComponentInstance<BoatComponent> impleme
 
             int deltaSign = forceInput.y < 0 ? -1 : 1;
 
-            if (!tryRotateEntity(marker, deltaSign * delta.length() * forceInput.x * -component.speedAngle)) {
+            if (!tryRotateEntity(marker, deltaSign * delta.length() * forceInput.x * -component.speedAngle, component.debug)) {
                 Vector3f right = new Vector3f(cosYaw, 0, sinYaw);
                 delta.add(right.mul(0.001f).mul(deltaSign));
             }
