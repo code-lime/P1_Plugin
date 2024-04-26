@@ -487,18 +487,20 @@ public class Methods {
         pardonUser(BanListRow.Type.IP, ip.getHostAddress(), callback);
     }
 
-    public static void createFakeUser(Player player, String serverIndex) {
+    public static void createFakeUser(Player player, String serverIndex, int lifeTime) {
         if (!isTableEnable("fake_users")) return;
-        Map<String, Object> row = new FakeUserRow(0, player, serverIndex).rawColumns();
+        Map<String, Object> row = new FakeUserRow(0, player, serverIndex, lifeTime).rawColumns();
         List<String> columns = new ArrayList<>(row.keySet());
         SQL.Async.rawSql("INSERT INTO fake_users ("+String.join(", ", columns)+") VALUES ("+columns.stream().map(v -> "@" + v).collect(Collectors.joining(", "))+")", row, () -> {});
     }
-    public static void fakeUsers(Action1<List<FakeUserRow>> callback) {
+    public static void updateFakeUsers(String serverIndex, Action1<List<FakeUserRow>> callback) {
         if (!isTableEnable("fake_users")) {
             callback.invoke(Collections.emptyList());
             return;
         }
-        SQL.Async.rawSqlQuery("SELECT * FROM fake_users", FakeUserRow::new, callback);
+        SQL.Async.rawSql("UPDATE fake_users SET life_time = life_time - 1",
+                () -> SQL.Async.rawSql("DELETE FROM fake_users WHERE server_index != @server_index OR life_time <= 0", Map.of("server_index", serverIndex),
+                        () -> SQL.Async.rawSqlQuery("SELECT * FROM fake_users", FakeUserRow::new, callback)));
     }
 
     public static void ipListByUUIDs(Collection<UUID> uuids, Action1<Set<InetAddress>> ips) {

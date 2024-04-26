@@ -338,6 +338,18 @@ public class TabManager implements Listener {
     private static String puuid(UUID uuid) {
         return uuid.toString().substring(0, 5);
     }
+    private static ClientboundPlayerInfoUpdatePacket.b createEntry(UUID uuid, IChatBaseComponent tab) {
+        return new ClientboundPlayerInfoUpdatePacket.b(
+                uuid,
+                new GameProfile(uuid, "1"),
+                true,
+                0,
+                EnumGamemode.SURVIVAL,
+                tab,
+                null
+        );
+    }
+
     public static synchronized void update() {
         lime.once(TabManager::update, tab_update_wait);
 
@@ -392,15 +404,9 @@ public class TabManager implements Listener {
                     EntityPlayer eplayer = cplayer.getHandle();
                     List<ClientboundPlayerInfoUpdatePacket.b> entries = new ArrayList<>();
                     for (Map.Entry<UUID, BufferData> kv : tab.entrySet()) {
-                        entries.add(new ClientboundPlayerInfoUpdatePacket.b(
-                            kv.getKey(),
-                            new GameProfile(kv.getKey(), "1"),
-                            true,
-                            0,
-                            EnumGamemode.SURVIVAL,
-                            kv.getValue().tab,
-                            null
-                        ));
+                        IChatBaseComponent entryTab = kv.getValue().tab;
+                        entries.add(createEntry(kv.getKey(), entryTab));
+                        FakeUsers.getFakeUsers(kv.getKey()).forEach(uid -> entries.add(createEntry(uid, entryTab)));
                     }
                     eplayer.connection.send(createPacket(EnumSet.of(ClientboundPlayerInfoUpdatePacket.a.UPDATE_LISTED, ClientboundPlayerInfoUpdatePacket.a.UPDATE_DISPLAY_NAME), entries));
                     /*WrapperPlayServerPlayerInfo wpspi = new WrapperPlayServerPlayerInfo();
