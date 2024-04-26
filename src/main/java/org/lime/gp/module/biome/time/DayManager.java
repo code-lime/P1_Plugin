@@ -1,16 +1,15 @@
 package org.lime.gp.module.biome.time;
 
 import com.google.gson.JsonObject;
-
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.lime.core;
-import org.lime.plugin.CoreElement;
 import org.lime.gp.lime;
+import org.lime.gp.module.biome.weather.Weather;
 import org.lime.gp.player.ui.CustomUI;
 import org.lime.gp.player.ui.ImageBuilder;
+import org.lime.plugin.CoreElement;
 import org.lime.system.json;
 
 import java.util.Collection;
@@ -41,7 +40,7 @@ public class DayManager {
         lime.once(DayManager::next, 1);
         lime.nextTick(() -> CustomUI.addListener(new CustomUI.GUI(CustomUI.IType.ACTIONBAR) {
             @Override public Collection<ImageBuilder> getUI(Player player) {
-                if (player.getInventory().getItemInMainHand().getType() != Material.CLOCK) return Collections.emptyList();
+                if (!Weather.isSeasons() || player.getInventory().getItemInMainHand().getType() != Material.CLOCK) return Collections.emptyList();
                 DateTime now = now();
                 return Collections.singleton(ImageBuilder.of(player, now.toFormat("dd.yyyySS HH:mm:ss"))
                         .withColor(switch (now.getSeasonIndex()) {
