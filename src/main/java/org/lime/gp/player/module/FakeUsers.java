@@ -4,9 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.world.level.EnumGamemode;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,6 +13,7 @@ import org.lime.gp.admin.AnyEvent;
 import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.Methods;
 import org.lime.gp.database.rows.FakeUserRow;
+import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
 import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.module.npc.eplayer.RawEPlayer;
@@ -28,7 +27,6 @@ import java.util.stream.Stream;
 
 public class FakeUsers implements Listener {
     public static final String serverIndex = UUID.randomUUID().toString();
-    private static final String fakeUserPrefix = "9473fe09-635a-3000-0000-";
 
     public static CoreElement create() {
         return CoreElement.create(FakeUsers.class)
@@ -37,15 +35,20 @@ public class FakeUsers implements Listener {
                 .withInstance();
     }
     private static final HashMap<Integer, Toast2<FakeUserRow, RawEPlayer>> eplayers = new HashMap<>();
-    private static final HashMap<UUID, HashSet<Integer>> tabShow = new HashMap<>();
+    private static final HashMap<UUID, HashSet<UUID>> tabShow = new HashMap<>();
 
     private static void init() {
-        AnyEvent.addEvent("fake.clone", AnyEvent.type.other, p -> Methods.createFakeUser(p, serverIndex));
+        AnyEvent.addEvent("fake.clone", AnyEvent.type.other, p -> Methods.createFakeUser(p, serverIndex, 10));
+        AnyEvent.addEvent("fake.clone", AnyEvent.type.other, v -> v.createParam(Integer::parseInt, "[lifeTime]"), (p, v) -> Methods.createFakeUser(p, serverIndex, v));
         lime.repeat(FakeUsers::update, 5);
         EPlayerModule.registry(() -> eplayers.values().stream().map(v -> v.val1));
     }
     private static void uninit() {
-
+        tabShow.forEach((uuid, target) -> {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null || target.isEmpty()) return;
+            PacketManager.sendPackets(player, target.stream().map(FakeUsers::createFakeUserPacketRemove));
+        });
     }
     private static void onClick(Player player, boolean isShift, UUID target) {
         lime.logOP("OC: " + player.getUniqueId() + " -> " + target + " " + (isShift ? "with" : "without") + " shift");
@@ -58,32 +61,36 @@ public class FakeUsers implements Listener {
                 .filter(v -> v.val0.uuid.equals(uuid))
                 .map(v -> v.val0.unique);
     }
-    private static ClientboundPlayerInfoUpdatePacket createFakeUserPacket(FakeUserRow row) {
-        UUID uuid = getFakeUserUid(id);
+    private static ClientboundPlayerInfoUpdatePacket createFakeUserPacket(UUID uuid, FakeUserRow row) {
         return new ClientboundPlayerInfoUpdatePacket(
-                EnumSet.of(ClientboundPlayerInfoUpdatePacket.a.ADD_PLAYER),
+                EnumSet.of(
+                        ClientboundPlayerInfoUpdatePacket.a.ADD_PLAYER,
+                        ClientboundPlayerInfoUpdatePacket.a.INITIALIZE_CHAT,
+                        ClientboundPlayerInfoUpdatePacket.a.UPDATE_GAME_MODE,
+                        ClientboundPlayerInfoUpdatePacket.a.UPDATE_LISTED,
+                        ClientboundPlayerInfoUpdatePacket.a.UPDATE_LATENCY,
+                        ClientboundPlayerInfoUpdatePacket.a.UPDATE_DISPLAY_NAME),
                 new ClientboundPlayerInfoUpdatePacket.b(
                         uuid,
-                        new GameProfile(uuid, "FAKE#" + id),
+                        new GameProfile(uuid, row.userName),
                         true,
                         0,
                         EnumGamemode.ADVENTURE,
                         null,
                         null));
     }
-    private static ClientboundPlayerInfoRemovePacket createFakeUserPacketRemove(int id) {
-        UUID uuid = getFakeUserUid(id);
+    private static ClientboundPlayerInfoRemovePacket createFakeUserPacketRemove(UUID uuid) {
         return new ClientboundPlayerInfoRemovePacket(List.of(uuid));
     }
 
     private static void update() {
-        Methods.fakeUsers(rows -> {
-            HashMap<Integer, UUID> existList = new HashMap<>();
+        Methods.updateFakeUsers(serverIndex, rows -> {
+            HashMap<UUID, FakeUserRow> existList = new HashMap<>();
             HashSet<Integer> removeList = new HashSet<>(eplayers.keySet());
             rows.forEach(row -> {
                 if (!serverIndex.equals(row.serverIndex))
                     return;
-                existList.put(row.id, row.unique);
+                existList.put(row.unique, row);
                 removeList.remove(row.id);
                 eplayers.computeIfAbsent(row.id, k -> Toast.of(row, new RawEPlayer(
                         "fake#" + row.id,
@@ -100,15 +107,15 @@ public class FakeUsers implements Listener {
             HashSet<UUID> removeTabs = new HashSet<>(tabShow.keySet());
             Bukkit.getOnlinePlayers().forEach(player -> {
                 removeTabs.remove(player.getUniqueId());
-                HashSet<Integer> shows = tabShow.computeIfAbsent(player.getUniqueId(), v -> new HashSet<>());
-                existList.forEach((id, unique) -> {
-                    if (shows.add(id))
-                        ((CraftPlayer)player).getHandle().connection.send(createFakeUserPacket(unique));
+                HashSet<UUID> shows = tabShow.computeIfAbsent(player.getUniqueId(), v -> new HashSet<>());
+                existList.forEach((unique, row) -> {
+                    if (!shows.add(unique)) return;
+                    PacketManager.sendPacket(player, createFakeUserPacket(unique, row));
                 });
-                shows.removeIf(id -> {
-                    if (existList.containsKey(id))
+                shows.removeIf(unique -> {
+                    if (existList.containsKey(unique))
                         return false;
-                    ((CraftPlayer)player).getHandle().connection.send(createFakeUserPacketRemove(id));
+                    PacketManager.sendPacket(player, createFakeUserPacketRemove(unique));
                     return true;
                 });
             });

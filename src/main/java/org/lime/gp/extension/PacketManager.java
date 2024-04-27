@@ -15,12 +15,17 @@ import org.lime.system.list;
 import org.lime.system.toast.*;
 import org.lime.system.execute.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class PacketManager {
     public static void sendPacket(Player player, Packet<?> packet) {
         ((CraftPlayer)player).getHandle().connection.send(packet);
     }
     public static void sendPackets(Player player, List<Packet<?>> packets) {
+        PlayerConnection playerConnection = ((CraftPlayer)player).getHandle().connection;
+        packets.forEach(playerConnection::send);
+    }
+    public static void sendPackets(Player player, Stream<Packet<?>> packets) {
         PlayerConnection playerConnection = ((CraftPlayer)player).getHandle().connection;
         packets.forEach(playerConnection::send);
     }

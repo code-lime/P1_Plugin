@@ -1,5 +1,6 @@
 package org.lime.gp.database.rows;
 
+import net.minecraft.core.UUIDUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class FakeUserRow extends BaseRow {
-    public final UUID unique = UUID.randomUUID();
+    public final UUID unique;
 
     public final int id;
     public final int userID;
@@ -32,6 +33,7 @@ public class FakeUserRow extends BaseRow {
     @Nullable public final String skin;
     public final String equipment;
     public final String serverIndex;
+    public final int lifeTime;
 
     public FakeUserRow(MySqlRow set) {
         super(set);
@@ -46,8 +48,10 @@ public class FakeUserRow extends BaseRow {
         this.skin = MySql.readObject(set, "skin", String.class);
         this.equipment = MySql.readObject(set, "equipment", String.class);
         this.serverIndex = MySql.readObject(set, "server_index", String.class);
+        this.lifeTime = MySql.readObject(set, "life_time", Integer.class);
+        this.unique = UUIDUtil.uuidFromIntArray(new int[] { this.id, this.userID, this.timedID, this.serverIndex.hashCode() });
     }
-    public FakeUserRow(int id, Player player, String serverIndex) {
+    public FakeUserRow(int id, Player player, String serverIndex, int lifeTime) {
         super(null);
         this.id = id;
         this.userID = UserRow.getBy(player).map(v -> v.id).orElse(0);
@@ -67,6 +71,8 @@ public class FakeUserRow extends BaseRow {
         this.skin = Skins.getProperty(player).toJson().toString();
         this.equipment = DeathGame.saveEquipment(player.getInventory(), List.of());
         this.serverIndex = serverIndex;
+        this.lifeTime = lifeTime;
+        this.unique = UUIDUtil.uuidFromIntArray(new int[] { this.id, this.userID, this.timedID, this.serverIndex.hashCode() });
     }
 
     public Map<String, Object> rawColumns() {
@@ -81,6 +87,7 @@ public class FakeUserRow extends BaseRow {
         map.put("skin", skin);
         map.put("equipment", equipment);
         map.put("server_index", serverIndex);
+        map.put("life_time", lifeTime);
         return map;
     }
 
@@ -97,6 +104,7 @@ public class FakeUserRow extends BaseRow {
         map.put("skin", skin);
         map.put("equipment", equipment);
         map.put("server_index", serverIndex);
+        map.put("life_time", String.valueOf(lifeTime));
         return map;
     }
 }
