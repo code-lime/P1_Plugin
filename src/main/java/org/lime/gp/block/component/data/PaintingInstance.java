@@ -16,11 +16,12 @@ import org.lime.gp.chat.LangMessages;
 import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.item.CartographyBrush;
 import org.lime.gp.item.CartographyBucket;
+import org.lime.gp.lime;
 import org.lime.gp.module.DrawMap;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.json;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast3;
 
 import java.util.UUID;
 
@@ -64,7 +65,7 @@ public class PaintingInstance extends BlockInstance implements CustomTileMetadat
             }).ifPresentOrElse(state -> {
                 if (state) {
                     display.set("display.color", ChatColorHex.toHex(brush_color).substring(1));
-                    display.reshow();
+                    lime.onceTicks(display::reshow, 5);
                 } else {
                     LangMessages.Message.Brush_Bucket_Empty.sendMessage(player, Apply.of()
                             .add("total_r", String.valueOf(delta.val0))
