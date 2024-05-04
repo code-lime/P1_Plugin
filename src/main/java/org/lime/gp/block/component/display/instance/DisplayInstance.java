@@ -320,25 +320,25 @@ public final class DisplayInstance extends BlockInstance implements
         partials.clear();
         variableDirty();
 
-        TimeoutData.remove(unique(), DisplayMap.class);
+        UUID displayUnique = unique();
+        TimeoutData.remove(displayUnique, DisplayMap.class);
         TileEntityLimeSkull skull = metadata().skull;
-        UUID block_uuid = metadata().key.uuid();
         BlockDisplay.MODEL_MANAGER.getDisplays()
                 .values()
                 .forEach(display -> {
-                    if (block_uuid.equals(display.key.block_uuid()))
+                    if (displayUnique.equals(display.key.block_uuid()))
                         display.hideAll();
                 });
         BlockDisplay.ITEM_FRAME_MANAGER.getDisplays()
                 .values()
                 .forEach(display -> {
-                    if (block_uuid.equals(display.block_uuid))
+                    if (displayUnique.equals(display.block_uuid))
                         display.hideAll();
                 });
         BlockDisplay.ITEM_MANAGER.getDisplays()
                 .values()
                 .forEach(display -> {
-                    if (block_uuid.equals(display.block_uuid))
+                    if (displayUnique.equals(display.block_uuid))
                         display.hideAll();
                 });
         markDirtyBlock(skull.getLevel(), skull.getBlockPos());
