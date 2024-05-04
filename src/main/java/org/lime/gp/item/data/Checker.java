@@ -1,16 +1,15 @@
 package org.lime.gp.item.data;
 
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.lime.gp.item.Items;
+import org.lime.system.Regex;
+import org.lime.system.execute.Func1;
+import org.lime.system.utils.RandomUtils;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.lime.system.Regex;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
-import org.lime.gp.item.Items;
-import org.lime.system.utils.RandomUtils;
 
 public interface Checker {
     default boolean check(ItemStack item) { return Items.getGlobalKeyByItem(item).map(this::check).orElse(false); }
