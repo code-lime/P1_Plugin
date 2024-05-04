@@ -21,6 +21,7 @@ import org.lime.system.json;
 import org.lime.system.utils.MathUtils;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public final class MultiBlockInstance extends BlockInstance implements CustomTileMetadata.Tickable, CustomTileMetadata.Destroyable {
     public interface OwnerVariableModifiable extends CustomTileMetadata.Element {
@@ -115,6 +116,21 @@ public final class MultiBlockInstance extends BlockInstance implements CustomTil
                     world.captureDrops = captureDrops;
                 }, () -> world.destroyBlock(position.offset(offset), false))));
         inDestroyMethod = false;
+    }
+
+    public Stream<TileEntityLimeSkull> getStructureBlocks() {
+        CustomTileMetadata metadata = metadata();
+        BlockPosition position = metadata.skull.getBlockPos();
+        World world = metadata.skull.getLevel();
+        return Stream.concat(
+                Stream.of(metadata.skull),
+                offsets.entrySet()
+                        .stream()
+                        .flatMap(kv -> world.getBlockEntity(position.offset(kv.getValue()), TileEntityTypes.SKULL)
+                                .map(v -> v instanceof TileEntityLimeSkull skull ? skull : null)
+                                .filter(v -> v.customUUID().filter(kv.getKey()::equals).isPresent())
+                                .stream())
+        );
     }
 }
 

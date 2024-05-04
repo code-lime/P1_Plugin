@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class OtherGenericInstance extends BlockInstance implements CustomTileMetadata.Tickable, MultiBlockInstance.OwnerVariableModifiable, CustomTileMetadata.Interactable, CustomTileMetadata.Destroyable, CustomTileMetadata.Damageable {
     public BlockPosition offset;
@@ -132,6 +133,13 @@ public class OtherGenericInstance extends BlockInstance implements CustomTileMet
                     map.keySet().removeIf(k -> k.startsWith("owner.") && !variables.containsKey(k.substring(6)));
                     return true;
                 }));
+    }
+
+    public Stream<TileEntityLimeSkull> getStructureBlocks() {
+        return owner()
+                .flatMap(Blocks::customOf)
+                .stream()
+                .flatMap(owner -> owner.list(MultiBlockInstance.class).flatMap(MultiBlockInstance::getStructureBlocks));
     }
 }
 
