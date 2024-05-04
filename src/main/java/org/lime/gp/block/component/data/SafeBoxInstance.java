@@ -1,5 +1,6 @@
 package org.lime.gp.block.component.data;
 
+import com.google.gson.JsonPrimitive;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -35,8 +36,8 @@ import org.lime.gp.extension.Cooldown;
 import org.lime.gp.extension.inventory.ReadonlyInventory;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.list.*;
-import org.lime.gp.lime;
+import org.lime.gp.item.settings.list.DeKeySetting;
+import org.lime.gp.item.settings.list.InsertSetting;
 import org.lime.gp.module.TimeoutData;
 import org.lime.gp.player.inventory.gui.InterfaceManager;
 import org.lime.gp.player.perm.Perms;
@@ -44,9 +45,10 @@ import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonObjectOptional;
+import org.lime.plugin.CoreElement;
 import org.lime.system.json;
 import org.lime.system.map;
-import org.lime.system.toast.*;
+import org.lime.system.toast.Toast;
 import org.lime.system.utils.ItemUtils;
 import org.lime.system.utils.RandomUtils;
 
@@ -55,6 +57,18 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> implements CustomTileMetadata.Interactable, Tickable, CustomTileMetadata.Removeable, IDisplayVariable {
+    private static int MIN_PLAYERS = 50;
+
+    public static CoreElement create() {
+        return CoreElement.create(SafeBoxInstance.class)
+                .addConfig("safe_box.min_players", v -> v
+                        .withParent("config")
+                        .withDefault(new JsonPrimitive(MIN_PLAYERS))
+                        .withInvoke(_v -> MIN_PLAYERS = _v.getAsInt()));
+    }
+
+
+
     public final InventorySubcontainer items_container = new InventorySubcontainer(3 * 9);
     public SafeBoxInstance(SafeBoxComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
@@ -191,7 +205,7 @@ public class SafeBoxInstance extends BlockComponentInstance<SafeBoxComponent> im
             return EnumInteractionResult.CONSUME;
         }
         if (metadata.list(DisplayInstance.class).anyMatch(v -> "true".equals(v.getAll().get("open_state")))) return EnumInteractionResult.PASS;
-        if (Bukkit.getOnlinePlayers().size() / (double)Bukkit.getMaxPlayers() < 0.5 || !useDeKey(event.player(), event.hand())) return EnumInteractionResult.CONSUME;
+        if (Bukkit.getOnlinePlayers().size() < MIN_PLAYERS || !useDeKey(event.player(), event.hand())) return EnumInteractionResult.CONSUME;
 
         SafeBoxComponent component = component();
 
