@@ -1,7 +1,8 @@
 package org.lime.gp.module;
 
-import org.lime.plugin.CoreElement;
+import net.minecraft.server.MinecraftServer;
 import org.lime.gp.lime;
+import org.lime.plugin.CoreElement;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,22 +12,47 @@ import java.util.stream.Stream;
 public class TimeoutData {
     public static CoreElement create() {
         return CoreElement.create(TimeoutData.class)
-                .withInit(TimeoutData::init);
+                .withInit(TimeoutData::init)
+                .withUninit(TimeoutData::uninit);
     }
+    private static int lastMinecraftTick = 0;
+
+    private static final List<Thread> threads = new ArrayList<>();
     public static void init() {
-        lime.repeatTicks(TimeoutData::update, 1);
+        lastMinecraftTick = MinecraftServer.currentTick;
+
+        threads.add(new Thread(TimeoutData::threadUpdate));
+        threads.forEach(Thread::start);
+    }
+    public static void threadUpdate() {
+        while (true) {
+            try { Thread.sleep(50); }
+            catch (InterruptedException e) { throw new RuntimeException(e); }
+            try {
+                update();
+            } catch (Throwable e) {
+                lime.logStackTrace(e);
+            }
+        }
+    }
+    @SuppressWarnings("deprecation")
+    public static void uninit() {
+        threads.forEach(Thread::stop);
     }
     public static void update() {
-        groupTimeouts.values().forEach(groups -> groups.values().forEach(map -> map.values().removeIf(ITicksRemovable::isRemove)));
+        int currentMinecraftTick = MinecraftServer.currentTick;
+        int deltaTicks = currentMinecraftTick - lastMinecraftTick;
+        lastMinecraftTick = currentMinecraftTick;
+        groupTimeouts.values().forEach(groups -> groups.values().forEach(map -> map.values().removeIf(v -> v.tickRemove(deltaTicks))));
     }
 
-    private static final ConcurrentHashMap<Class<?>, Map<Object, ConcurrentHashMap<UUID, ? extends ITicksRemovable>>> groupTimeouts = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<Object, ConcurrentHashMap<UUID, ? extends ITicksRemovable>>> groupTimeouts = new ConcurrentHashMap<>();
     public static abstract class ITicksRemovable {
         private int ticks;
         public ITicksRemovable(int ticks) { this.ticks = ticks; }
 
-        private boolean isRemove() {
-            ticks--;
+        public final boolean tickRemove(int deltaTick) {
+            ticks -= deltaTick;
             return ticks <= 0;
         }
     }
@@ -54,7 +80,7 @@ public class TimeoutData {
     @SuppressWarnings("unchecked")
     private static <T extends ITicksRemovable>Map<UUID, T> ofClass(TKeyedGroup<?> group, Class<T> tClass) {
         return (ConcurrentHashMap<UUID, T>)groupTimeouts
-            .computeIfAbsent(tClass, v -> new ConcurrentHashMap<>()/*Collections.synchronizedMap(new Long2ObjectOpenHashMap<ConcurrentHashMap<UUID, ? extends IRemoveable>>())*/)
+            .computeIfAbsent(tClass, v -> new ConcurrentHashMap<>())
             .computeIfAbsent(group.groupID(), v -> new ConcurrentHashMap<UUID, T>());
     }
     
