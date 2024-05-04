@@ -31,6 +31,7 @@ import org.lime.gp.database.rows.DiscordRow;
 import org.lime.gp.database.rows.QuentaRow;
 import org.lime.gp.database.tables.Tables;
 import org.lime.gp.lime;
+import org.lime.gp.player.module.FakeUsers;
 import org.lime.gp.player.module.TabManager;
 import org.lime.plugin.CoreElement;
 import org.lime.system.execute.Action0;
@@ -313,7 +314,7 @@ public class Discord implements Listener {
             });
             JDA jda = getJDA();
             if (jda == null) return;
-            String status = "Онлайн: " + Bukkit.getOnlinePlayers().size();
+            String status = "Онлайн: " + (Bukkit.getOnlinePlayers().size() + FakeUsers.getCount());
             if (status.equals(lastStatus)) return;
             lastStatus = status;
             jda.getPresence().setPresence(OnlineStatus.ONLINE, Activity.watching(status));

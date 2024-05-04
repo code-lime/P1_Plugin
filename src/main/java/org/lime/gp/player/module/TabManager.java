@@ -357,7 +357,7 @@ public class TabManager implements Listener {
 
         HashMap<String, String> args = map.<String, String>of()
                 .add("tps", String.valueOf(Bukkit.getTPS()[0]))
-                .add("online", String.valueOf(Bukkit.getOnlinePlayers().size()))
+                .add("online", String.valueOf(Bukkit.getOnlinePlayers().size() + FakeUsers.getCount()))
                 .build();
         header = LangMessages.Message.Tab_Header.getSingleMessage(Apply.of().add(args));
         footer = LangMessages.Message.Tab_Footer.getSingleMessage(Apply.of().add(args));
