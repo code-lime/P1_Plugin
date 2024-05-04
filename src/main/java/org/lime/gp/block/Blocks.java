@@ -392,7 +392,20 @@ public class Blocks implements Listener {
     public static TileEntityLimeSkull setBlock(Position position, BlockInfo type, Map<String, JsonObject> data) {
         CraftPersistentDataContainer container = new CraftPersistentDataContainer(new CraftPersistentDataTypeRegistry());
         LimeKey.of(type.getKey()).setKey(container, LimeKey.KeyType.CUSTOM_BLOCK);
-        data.forEach((key, value) -> container.set(ofKey(key), LimePersistentDataType.JSON_OBJECT, value));
+
+        Toast1<Boolean> isRotation = Toast.of(false);
+        data.forEach((key, value) -> {
+            if (key.equals("display")) {
+                if (!value.has("rotation")) {
+                    value = value.deepCopy();
+                    value.addProperty("rotation", "0");
+                }
+                isRotation.val0 = true;
+            }
+            container.set(ofKey(key), LimePersistentDataType.JSON_OBJECT, value);
+        });
+        if (!isRotation.val0)
+            container.set(ofKey("display"), LimePersistentDataType.JSON_OBJECT, json.object().add("rotation", "0").build());
 
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.put("PublicBukkitValues", container.toTagCompound());
