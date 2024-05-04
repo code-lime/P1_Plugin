@@ -180,7 +180,7 @@ public class Discord implements Listener {
     private static long main_guild;
 
     private static DiscordRole confirmedRole = new DiscordRole("confirmed_role", 0, uuid -> true, v -> Discord.confirmedRole = v);
-    private static DiscordRole onlineRole = new DiscordRole("online_role", 0, uuid -> Bukkit.getPlayer(uuid) != null, v -> Discord.onlineRole = v);
+    private static DiscordRole onlineRole = new DiscordRole("online_role", 0, uuid -> Bukkit.getPlayer(uuid) != null || FakeUsers.hasFakeUser(uuid), v -> Discord.onlineRole = v);
     private static DiscordRole giftRole = new DiscordRole("gift_role", 0, TabManager::hasDonate, v -> Discord.giftRole = v);
     private static DiscordRole quentaRole = new DiscordRole("quenta_role", 0, QuentaRow::hasQuenta, v -> Discord.quentaRole = v);
     private static DiscordRole deathRole = new DiscordRole("death_role", 0, DeathRow::hasDeath, v -> Discord.deathRole = v);
