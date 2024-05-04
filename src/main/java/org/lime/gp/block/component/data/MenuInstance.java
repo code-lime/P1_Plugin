@@ -9,11 +9,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.PlayerInventory;
 import org.lime.gp.block.BlockComponentInstance;
-import org.lime.gp.block.BlockInstance;
+import org.lime.gp.block.Blocks;
 import org.lime.gp.block.CustomTileMetadata;
-import org.lime.gp.block.component.ComponentDynamic;
 import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.block.component.list.MenuComponent;
+import org.lime.gp.block.component.list.SitComponent;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.item.Items;
 import org.lime.gp.player.menu.MenuCreator;
@@ -75,10 +75,19 @@ public final class MenuInstance extends BlockComponentInstance<MenuComponent> im
         MenuComponent.MenuData menuData = component().data.get(event.hit().getDirection());
         if (menuData == null) return EnumInteractionResult.PASS;
         PlayerInventory playerInventory = player.getInventory();
+
+        boolean isBlockSit = metadata.list(OtherGenericInstance.class)
+                .findAny()
+                .map(OtherGenericInstance::getStructureBlocks)
+                .orElseGet(() -> metadata.list(MultiBlockInstance.class).flatMap(MultiBlockInstance::getStructureBlocks))
+                .flatMap(v -> Blocks.customOf(v).stream())
+                .anyMatch(v -> v.list(SitComponent.class).anyMatch(_v -> _v.isSit(player, v)));
+
         Apply data = MenuComponent.argsOf(metadata)
                 .add("mainhand_", Items.getStringData(playerInventory.getItemInMainHand()))
                 .add("offhand_", Items.getStringData(playerInventory.getItemInOffHand()))
                 .add("viewers", String.valueOf(open_list.size()))
+                .add("is_block_sit", String.valueOf(isBlockSit))
                 .add(menuData.args);
         //lime.logOP(system.toFormat(json.object().add(data.list()).build()));
 
