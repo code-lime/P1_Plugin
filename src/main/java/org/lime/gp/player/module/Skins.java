@@ -127,23 +127,25 @@ public class Skins implements Listener {
             return null;
         }
     }
-    public static void setProfile(GameProfile profile, String value, String signature, boolean save) {
+    public static GameProfile setProfile(GameProfile profile, String value, String signature, boolean save) {
         PropertyMap properties = profile.getProperties();
         com.mojang.authlib.properties.Property old_textures = of(properties, "old_textures");
         if (old_textures == null) old_textures = of(properties, "textures");
         properties.clear();
         properties.put("textures", new com.mojang.authlib.properties.Property("textures", value, signature));
-        if (old_textures == null || !save) return;
+        if (old_textures == null || !save) return profile;
         properties.put("old_textures", new com.mojang.authlib.properties.Property("old_textures", old_textures.getValue(), old_textures.getSignature()));
+        return profile;
     }
-    public static void setProfile(GameProfile profile, Property property, boolean save) {
-        setProfile(profile, property.value, property.signature, save);
+    public static GameProfile setProfile(GameProfile profile, Property property, boolean save) {
+        return setProfile(profile, property.value, property.signature, save);
     }
-    private static void resetProfile(GameProfile profile) {
+    private static GameProfile resetProfile(GameProfile profile) {
         PropertyMap properties = profile.getProperties();
         com.mojang.authlib.properties.Property property = of(properties, "old_textures");
-        if (property == null) return;
+        if (property == null) return profile;
         setProfile(profile, property.getValue(), property.getSignature(), false);
+        return profile;
     }
     public static void setSkin(Player player, int skin_id) {
         EntityPlayer ep = ((CraftPlayer)player).getHandle();
