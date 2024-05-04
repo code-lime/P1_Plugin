@@ -10,7 +10,7 @@ public final class DisplayMap extends TimeoutData.ITimeout {
     public final Map<EntityModelDisplay.EntityModelKey, DisplayObject> map = new HashMap<>();
 
     public DisplayMap(Map<EntityModelDisplay.EntityModelKey, DisplayObject> map) {
-        super(3);
+        super(10);
         this.map.putAll(map);
     }
 }
