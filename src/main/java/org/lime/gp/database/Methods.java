@@ -127,7 +127,6 @@ public class Methods {
     public static Position readPosition(MySqlRow set, World world, String prefix) {
         return new Position(world, readPosition(set, prefix));
     }
-
     public enum CallType {
         PHONE((world) -> world == lime.MainWorld || world == lime.EndWorld),
         GLOBAL((world) -> world == lime.MainWorld),
@@ -487,9 +486,9 @@ public class Methods {
         pardonUser(BanListRow.Type.IP, ip.getHostAddress(), callback);
     }
 
-    public static void createFakeUser(Player player, String serverIndex, int lifeTime) {
+    public static void createFakeUser(Player player, String serverIndex, int lifeTime, boolean autoRemove) {
         if (!isTableEnable("fake_users")) return;
-        Map<String, Object> row = new FakeUserRow(0, player, serverIndex, lifeTime).rawColumns();
+        Map<String, Object> row = new FakeUserRow(0, player, serverIndex, lifeTime, autoRemove).rawColumns();
         List<String> columns = new ArrayList<>(row.keySet());
         SQL.Async.rawSql("INSERT INTO fake_users ("+String.join(", ", columns)+") VALUES ("+columns.stream().map(v -> "@" + v).collect(Collectors.joining(", "))+")", row, () -> {});
     }
@@ -502,6 +501,20 @@ public class Methods {
                 () -> SQL.Async.rawSql("DELETE FROM fake_users WHERE server_index != @server_index OR life_time <= 0", Map.of("server_index", serverIndex),
                         () -> SQL.Async.rawSqlQuery("SELECT * FROM fake_users", FakeUserRow::new, callback)));
     }
+    public static void removeFakeUsers(UUID ownerUuid, boolean onlyAutoRemove, Action1<Boolean> callback) {
+        if (!isTableEnable("fake_users")) {
+            callback.invoke(false);
+            return;
+        }
+        SQL.Async.rawSqlUpdate("DELETE FROM fake_users WHERE uuid = @uuid" + (onlyAutoRemove ? " AND auto_remove = 1" : ""), Map.of("uuid", ownerUuid), v -> callback.invoke(v > 0));
+    }
+    public static void setFakeUserStatus(UUID owner, String status) {
+        if (!isTableEnable("fake_users")) {
+            return;
+        }
+        SQL.Async.rawSql("UPDATE fake_users SET status = @status WHERE uuid = @uuid", Map.of("uuid", owner, "status", status), () -> {});
+    }
+
 
     public static void ipListByUUIDs(Collection<UUID> uuids, Action1<Set<InetAddress>> ips) {
         if (uuids.isEmpty()) {

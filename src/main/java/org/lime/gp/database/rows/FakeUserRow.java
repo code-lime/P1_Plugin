@@ -30,10 +30,12 @@ public class FakeUserRow extends BaseRow {
     public final Location location;
     public final UUID world;
     public final Pose pose;
-    @Nullable public final String skin;
+    public final @Nullable String skin;
     public final String equipment;
     public final String serverIndex;
     public final int lifeTime;
+    public final @Nullable String status;
+    public final boolean autoRemove;
 
     public FakeUserRow(MySqlRow set) {
         super(set);
@@ -49,9 +51,11 @@ public class FakeUserRow extends BaseRow {
         this.equipment = MySql.readObject(set, "equipment", String.class);
         this.serverIndex = MySql.readObject(set, "server_index", String.class);
         this.lifeTime = MySql.readObject(set, "life_time", Integer.class);
+        this.status = MySql.readObject(set, "status", String.class);
+        this.autoRemove = MySql.readObject(set, "auto_remove", Boolean.class);
         this.unique = UUIDUtil.uuidFromIntArray(new int[] { this.id, this.userID, this.timedID, this.serverIndex.hashCode() });
     }
-    public FakeUserRow(int id, Player player, String serverIndex, int lifeTime) {
+    public FakeUserRow(int id, Player player, String serverIndex, int lifeTime, boolean autoRemove) {
         super(null);
         this.id = id;
         this.userID = UserRow.getBy(player).map(v -> v.id).orElse(0);
@@ -72,6 +76,8 @@ public class FakeUserRow extends BaseRow {
         this.equipment = DeathGame.saveEquipment(player.getInventory(), List.of());
         this.serverIndex = serverIndex;
         this.lifeTime = lifeTime;
+        this.status = null;
+        this.autoRemove = autoRemove;
         this.unique = UUIDUtil.uuidFromIntArray(new int[] { this.id, this.userID, this.timedID, this.serverIndex.hashCode() });
     }
 
@@ -87,6 +93,8 @@ public class FakeUserRow extends BaseRow {
         map.put("skin", skin);
         map.put("equipment", equipment);
         map.put("server_index", serverIndex);
+        map.put("status", status);
+        map.put("auto_remove", autoRemove);
         map.put("life_time", lifeTime);
         return map;
     }
@@ -104,6 +112,8 @@ public class FakeUserRow extends BaseRow {
         map.put("skin", skin);
         map.put("equipment", equipment);
         map.put("server_index", serverIndex);
+        map.put("status", status);
+        map.put("auto_remove", String.valueOf(autoRemove));
         map.put("life_time", String.valueOf(lifeTime));
         return map;
     }
