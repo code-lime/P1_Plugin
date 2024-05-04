@@ -8,7 +8,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.protocol.game.PacketPlayInResourcePackStatus;
 import net.minecraft.network.protocol.game.PacketPlayOutBoss;
 import net.minecraft.world.BossBattle;
 import org.bukkit.Bukkit;
@@ -20,6 +19,7 @@ import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.extension.ExtMethods;
 import org.lime.gp.extension.PacketManager;
 import org.lime.gp.lime;
+import org.lime.gp.module.ThreadPool;
 import org.lime.gp.player.module.Login;
 import org.lime.gp.player.ui.respurcepack.ResourcePackData;
 import org.lime.gp.player.ui.respurcepack.ShareData;
@@ -33,6 +33,7 @@ import org.lime.system.toast.Toast3;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unused")
 public class CustomUI implements Listener {
@@ -260,6 +261,7 @@ public class CustomUI implements Listener {
         CustomUI.addListener(new TextGlobalUI());
         CustomUI.addListener(new BossBarUI());
         CustomUI.addListener(new TitleUI());
+        ThreadPool.Type.Async.executeRepeat(CustomUI::updateSend, 100);
         lime.repeatTicks(CustomUI::update, 2);
     }
     public static void config(JsonObject json) {
@@ -270,9 +272,25 @@ public class CustomUI implements Listener {
     public static void sendAll() {
         Bukkit.getOnlinePlayers().forEach(v -> RP.send(v, SHARE));
     }
+
+    private record CacheData(Player player, HashMap<IType, List<ImageBuilder>> builders) {
+        public void send() {
+            builders.forEach((type, list) -> type.show(player, Component.empty().append(ImageBuilder.join(list, 1)), list.isEmpty()));
+        }
+    }
+
+    private static final ConcurrentHashMap<UUID, CacheData> cacheSend = new ConcurrentHashMap<>();
     public static void update() {
-        Bukkit.getOnlinePlayers().forEach(CustomUI::updatePlayer);
+        HashSet<UUID> removeUids = new HashSet<>(cacheSend.keySet());
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            removeUids.remove(player.getUniqueId());
+            CustomUI.updatePlayer(player);
+        });
+        removeUids.forEach(cacheSend::remove);
         IType.sync();
+    }
+    public static void updateSend() {
+        cacheSend.forEach((uuid, type) -> type.send());
     }
 
     public static void configShare(JsonElement _json) {
@@ -303,7 +321,7 @@ public class CustomUI implements Listener {
         HashMap<IType, List<ImageBuilder>> builders = new HashMap<>();
         for (IType type : IType.values()) builders.put(type, new LinkedList<>());
         for (IUI iui : iuis) builders.get(iui.getType()).addAll(iui.getUI(player));
-        builders.forEach((type, list) -> type.show(player, Component.empty().append(ImageBuilder.join(list, 1)), list.isEmpty()));
+        cacheSend.put(player.getUniqueId(), new CacheData(player, builders));
     }
     @EventHandler public static void on(PlayerJoinEvent e) {
         RP.send(e.getPlayer(), SHARE);
