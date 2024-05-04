@@ -79,11 +79,17 @@ public final class DisplayInstance extends BlockInstance implements
     private final LockToast1<InfoComponent.Rotation.Value> rotationCache = Toast.lock(null);
 
     public void variableDirty() {
+        CustomTileMetadata metadata = metadata();
+        BlockPosition position = metadata.skull.getBlockPos();
+
         variables.put(".index", String.valueOf(variableIndex.edit0(v -> v + 1)));
+        variables.put("block_uuid", metadata.key.uuid().toString());
+        variables.put("block_pos_x", String.valueOf(position.getX()));
+        variables.put("block_pos_y", String.valueOf(position.getY()));
+        variables.put("block_pos_z", String.valueOf(position.getZ()));
         rotationCache.set0(get("rotation").flatMap(ExtMethods::parseInt).map(InfoComponent.Rotation.Value::ofAngle).orElse(null));
         saveData();
     }
-
     public DisplayInstance(DisplayComponent component, CustomTileMetadata metadata) {
         super(component, metadata);
     }
