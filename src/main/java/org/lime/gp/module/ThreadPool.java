@@ -58,6 +58,24 @@ public class ThreadPool {
                 }
             });
         }
+        public void executeRepeat(Action0 func, int deltaMs) {
+            pool.execute(() -> {
+                while (true) {
+                    if (DISABLE_TOKEN.get0()) return;
+                    try {
+                        if (TestData.ENABLE_TYPE.get0().isOther()) {
+                            Thread.sleep(1000);
+                            continue;
+                        }
+
+                        Thread.sleep(deltaMs);
+                        func.invoke();
+                    } catch (Throwable e) {
+                        lime.logStackTrace(e);
+                    }
+                }
+            });
+        }
         public void executeRepeat(Action0 func, LockToast2<Long, Long> loggerTimes) {
             loggerTimes.set0(System.currentTimeMillis());
             loggerTimes.set1(0L);
