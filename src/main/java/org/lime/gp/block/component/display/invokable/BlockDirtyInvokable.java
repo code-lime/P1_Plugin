@@ -11,9 +11,11 @@ import org.lime.invokable.IInvokable;
 public class BlockDirtyInvokable extends IInvokable {
     public final WorldServer world;
     public final BlockPosition position;
+    private final String key;
 
-    public BlockDirtyInvokable(WorldServer world, BlockPosition position, int waitTicks) {
+    public BlockDirtyInvokable(String key, WorldServer world, BlockPosition position, int waitTicks) {
         super(waitTicks);
+        this.key = key;
         this.world = world;
         this.position = position;
     }
@@ -21,6 +23,7 @@ public class BlockDirtyInvokable extends IInvokable {
     @Override public void invoke() throws Throwable {
         ChunkProviderServer cps = world.getChunkSource();
         PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(world, position);
+        BlockInvokableLogger.log(getClass().getSimpleName(), key, position);
         cps.chunkMap.getPlayers(new ChunkCoordIntPair(position), false).forEach(player -> {
             PlayerConnection connection = player.connection;
             if (connection.isDisconnected()) return;

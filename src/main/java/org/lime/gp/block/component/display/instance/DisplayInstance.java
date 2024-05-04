@@ -131,23 +131,23 @@ public final class DisplayInstance extends BlockInstance implements
         BlockPosition position = skull.getBlockPos();
         if (_new instanceof BlockPartial block) cacheDisplay.put(playerUUID, block.getDynamicDisplay(position, variable));
         else cacheDisplay.remove(playerUUID);
-        lime.invokable(new BlockUpdateInvokable(player, worldUUID, position, 1));
-        lime.invokable(new BlockUpdateInvokable(player, worldUUID, position, 20));
+        lime.invokable(new BlockUpdateInvokable("OS.1", player, worldUUID, position, 1));
+        lime.invokable(new BlockUpdateInvokable("OS.20", player, worldUUID, position, 20));
         return _new;
     }
 
     public static boolean sendBlock(Player player, Position position) {
         BlockPosition pos = new BlockPosition(position.x, position.y, position.z);
         UUID worldUUID = position.world.getUID();
-        lime.invokable(new BlockUpdateInvokable(player, worldUUID, pos, 1));
-        lime.invokable(new BlockUpdateInvokable(player, worldUUID, pos, 20));
+        lime.invokable(new BlockUpdateInvokable("SB.1", player, worldUUID, pos, 1));
+        lime.invokable(new BlockUpdateInvokable("SB.20", player, worldUUID, pos, 20));
         return true;
     }
 
     public static boolean markDirtyBlock(net.minecraft.world.level.World world, BlockPosition position) {
         if (!(world instanceof WorldServer worldServer)) return false;
-        lime.invokable(new BlockDirtyInvokable(worldServer, position, 1));
-        lime.invokable(new BlockDirtyInvokable(worldServer, position, 20));
+        lime.invokable(new BlockDirtyInvokable("MD.1", worldServer, position, 1));
+        lime.invokable(new BlockDirtyInvokable("MD.20", worldServer, position, 20));
         return true;
     }
     public static boolean markDirtyBlock(Position position) {

@@ -12,17 +12,21 @@ import java.util.UUID;
 
 public class BlockUpdateInvokable extends IWorldInvokable {
     public final BlockPosition position;
+    private final String key;
 
-    public BlockUpdateInvokable(Player player, UUID worldUUID, BlockPosition position, int waitTicks) {
+    public BlockUpdateInvokable(String key, Player player, UUID worldUUID, BlockPosition position, int waitTicks) {
         super(player, worldUUID, waitTicks);
+        this.key = key;
         this.position = position;
     }
-    public BlockUpdateInvokable(Collection<? extends Player> players, UUID worldUUID, BlockPosition position, int waitTicks) {
+    public BlockUpdateInvokable(String key, Collection<? extends Player> players, UUID worldUUID, BlockPosition position, int waitTicks) {
         super(players, worldUUID, waitTicks);
+        this.key = key;
         this.position = position;
     }
 
     @Override public void worldInvoke(PlayerConnection connection, WorldServer world) throws Throwable {
+        BlockInvokableLogger.log(getClass().getSimpleName(), key, position);
         connection.send(new PacketPlayOutBlockChange(world, position));
     }
 }
