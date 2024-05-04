@@ -1,14 +1,19 @@
 package org.lime.gp.database.mysql;
 
+import org.lime.gp.lime;
+import org.lime.system.Time;
+import org.lime.system.execute.Action0;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Func1;
+import org.lime.system.toast.LockToast1;
+import org.lime.system.toast.LockToast2;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast1;
+
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.lime.gp.lime;
-import org.lime.system.Time;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
 
 public class MySqlAsync {
     private final MySql instance;
@@ -72,6 +77,38 @@ public class MySqlAsync {
             if (callback == null) return;
             log.invoke("S:1");
             lime.invokeSync(callback);
+            log.invoke("S:2");
+        }, e -> {
+            lime.logOP(_sql.val0);
+            lime.logStackTrace(e);
+            debug.onError(e);
+        }, () -> {
+            MySql.calls.remove(index);
+            debug.onFinally();
+        });
+        return debug;
+    }
+
+    public ExecuteData rawSqlUpdate(String query, Map<String, Object> args, Action1<Integer> callback) {
+        int index = nextCallIndex();
+        MySql.calls.put(index, Toast.of("SQL." + query, nowTime()));
+        ExecuteData debug = new ExecuteData();
+        Toast1<String> _sql = Toast.of(query);
+        this.instance.callMySQL(index, debug, new SelectSQL(_sql, args), (stmt, log) -> {
+            int result;
+            log.invoke("S:f");
+            try {
+                result = stmt.executeUpdate();
+            } catch (Throwable th) {
+                log.invoke("-" + th);
+                throw th;
+            }
+            log.invoke("S:f+");
+
+            log.invoke("S:0");
+            if (callback == null) return;
+            log.invoke("S:1");
+            lime.invokeSync(() -> callback.invoke(result));
             log.invoke("S:2");
         }, e -> {
             lime.logOP(_sql.val0);
