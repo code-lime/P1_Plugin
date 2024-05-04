@@ -5,8 +5,6 @@ import com.google.gson.JsonObject;
 import net.coreprotect.event.AsyncBlockInfoEvent;
 import net.coreprotect.event.IsContainerEvent;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.commands.arguments.blocks.ArgumentTileLocation;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.nbt.NBTTagCompound;
@@ -55,6 +53,7 @@ import org.lime.gp.module.loot.Parameters;
 import org.lime.gp.module.loot.PopulateLootEvent;
 import org.lime.plugin.CoreElement;
 import org.lime.system.Time;
+import org.lime.system.json;
 import org.lime.system.map;
 import org.lime.system.toast.LockToast1;
 import org.lime.system.toast.LockToast2;
@@ -209,21 +208,8 @@ public class Blocks implements Listener {
                                     .flatMap(_v -> _v.list(DisplayInstance.class).findFirst())
                                     .map(DisplayInstance::getAll)
                                     .ifPresentOrElse(variable ->
-                                            sender.sendMessage(Component.text("Variables of block in "+x+" "+y+" "+z+":\n{\n")
-                                                    .append(Component.join(JoinConfiguration.separator(Component.text(",\n")), variable.entrySet()
-                                                            .stream()
-                                                            .sorted(Comparator.comparing(Map.Entry::getKey))
-                                                            .map(kv -> Component.empty()
-                                                                    .append(Component.text("  "))
-                                                                    .append(Component.text("\""))
-                                                                    .append(Component.text(kv.getKey()).color(NamedTextColor.AQUA))
-                                                                    .append(Component.text("\":\""))
-                                                                    .append(Component.text(kv.getValue()).color(NamedTextColor.GREEN))
-                                                                    .append(Component.text("\""))
-                                                            )
-                                                            .toList()
-                                                    ))
-                                                    .append(Component.text("\n}"))),
+                                            sender.sendMessage(Component.text("Variables of block in "+x+" "+y+" "+z+":\n")
+                                                    .append(json.formatComponent(json.by(variable).build()))),
                                             () -> sender.sendMessage("Block in "+x+" "+y+" "+z+" not have display variables")
                                     );
                             return true;
