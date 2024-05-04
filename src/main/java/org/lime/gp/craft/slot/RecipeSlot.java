@@ -19,6 +19,7 @@ import org.lime.system.range.IRange;
 import org.lime.system.utils.IterableUtils;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +58,8 @@ public abstract class RecipeSlot {
     public RecipeAnyAmountSlot withAmountAny(int amount) { return new RecipeAnyAmountSlot(this, amount); }
 
     public static RecipeSlot of(String log_key, JsonElement json) {
+        List<String> logs = new ArrayList<>();
+        logs.add("ORIGINAL: " + json);
         RecipeSlot result = Execute.func(() -> {
             if (json.isJsonObject()) {
                 JsonObject slot = json.getAsJsonObject();
@@ -74,13 +77,18 @@ public abstract class RecipeSlot {
                 return slot.has("count") ? recipeSlot.withAmount(slot.get("count").getAsInt()) : recipeSlot;
             }
             String key = json.getAsString();
+            logs.add("STRING: " + key);
             List<String> arr = Arrays.stream(key.split("\\*")).collect(Collectors.toList());
             Integer count = arr.size() > 1 ? ExtMethods.parseUnsignedInt(arr.get(arr.size() - 1)).orElse(null) : null;
+            logs.add("COUNT: " + count);
             if (count == null) return of(Checker.createCheck(key));
             arr.remove(arr.size() - 1);
-            return of(Checker.createCheck(String.join("*", arr))).withAmount(count);
+            key = String.join("*", arr);
+            logs.add("MODIFY REGEX: " + key);
+            return of(Checker.createCheck(key)).withAmount(count);
         }).invoke();
-        if (result.getWhitelistKeys().findAny().isEmpty()) lime.logOP("RecipeSlot in '"+log_key+"' '" + json + "' is EMPTY! Maybe error...");
+        if (result.getWhitelistKeys().findAny().isEmpty())
+            lime.logOP("RecipeSlot in '"+log_key+"' '" + json + "' is EMPTY! Maybe error...\n" + String.join("\n", logs));
         return result;
     }
     public static Stream<RecipeSlot> ofArray(String log_key, JsonElement json) {
