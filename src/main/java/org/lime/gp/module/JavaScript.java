@@ -13,6 +13,7 @@ import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import org.lime.gp.block.component.display.instance.DisplayInstance;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
 import org.lime.gp.chat.ChatMessages;
@@ -29,6 +30,7 @@ import org.lime.gp.module.npc.EPlayerModule;
 import org.lime.gp.module.worlds.IWorldService;
 import org.lime.gp.module.worlds.RootWorldService;
 import org.lime.gp.player.menu.MenuCreator;
+import org.lime.gp.player.module.FakeUsers;
 import org.lime.gp.player.module.TabManager;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.execute.Action0;
@@ -200,6 +202,10 @@ public class JavaScript {
             Bukkit.dispatchCommand(Bukkit.getPlayer(UUID.fromString(uuid)), command);
         }
 
+        public double animationTickDelta() {
+            return DisplayInstance.ANIMATION_DELTA;
+        }
+
         public @Nullable Integer getTimedId(String uuid) {
             return TabManager.getPayerIDorNull(UUID.fromString(uuid));
         }
@@ -219,6 +225,10 @@ public class JavaScript {
         }
         public void clearBlockMarker(World world) {
             PacketDebug.sendGameTestClearPacket(((CraftWorld)world).getHandle());
+        }
+
+        public boolean hasFakeUser(String ownerUuid) {
+            return FakeUsers.hasFakeUser(UUID.fromString(ownerUuid));
         }
     }
 
