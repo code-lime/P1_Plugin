@@ -3,7 +3,6 @@ package org.lime.gp.block.component.list;
 import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.world.level.ChunkCoordIntPair;
-import net.minecraft.world.level.block.entity.TileEntitySkullTickInfo;
 import org.bukkit.Location;
 import org.lime.Position;
 import org.lime.docs.IIndexGroup;
@@ -16,20 +15,24 @@ import org.lime.gp.database.rows.HouseRow;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.settings.list.BlockLimitSetting;
 import org.lime.gp.module.TimeoutData;
-import org.lime.system.toast.*;
+import org.lime.system.toast.Toast;
+import org.lime.system.toast.Toast3;
+import org.lime.system.toast.Toast4;
 
 import java.util.UUID;
 import java.util.stream.Stream;
 
-@InfoComponent.Component(name = "limit") public class LimitComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.Tickable {
+@InfoComponent.Component(name = "limit") public class LimitComponent extends ComponentStatic<JsonObject> implements CustomTileMetadata.AsyncTickable {
     public final String type;
 
     public LimitComponent(BlockInfo creator, JsonObject json) {
         super(creator, json);
         type = json.get("type").getAsString();
     }
+
     public record ChunkGroup(UUID world, long chunk, String type) implements TimeoutData.TKeyedGroup<Toast3<UUID, Long, String>> {
         public ChunkGroup(UUID world, BlockPosition pos, String type) { this(world, ChunkCoordIntPair.asLong(pos), type); }
+        public ChunkGroup(Position pos, String type) { this(pos.world.getUID(), new BlockPosition(pos.x, pos.y, pos.z), type); }
         @Override public Toast3<UUID, Long, String> groupID() { return Toast.of(world, chunk, type); }
     }
     public record HouseGroup(UUID world, int house, String houseType, String type) implements TimeoutData.TKeyedGroup<Toast4<UUID, Integer, String, String>> {
@@ -44,11 +47,11 @@ import java.util.stream.Stream;
         public LimitElement(Position position) { this.position = position; }
     }
 
-    @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
+    @Override public void onAsyncTick(CustomTileMetadata metadata, long tick) {
         UUID uuid = metadata.key.uuid();
         LimitElement element = new LimitElement(metadata.position());
-        TimeoutData.put(new ChunkGroup(event.getWorld().getWorld().getUID(), event.getPos(), type), uuid, LimitElement.class, element);
-        HouseGroup.groups(metadata.position().getLocation(), type)
+        TimeoutData.put(new ChunkGroup(element.position, type), uuid, LimitElement.class, element);
+        HouseGroup.groups(element.position.getLocation(), type)
                 .forEach(v -> TimeoutData.put(v, uuid, LimitElement.class, element));
     }
 

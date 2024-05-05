@@ -2,6 +2,7 @@ package org.lime.gp.block.component.display.instance;
 
 import com.google.gson.JsonPrimitive;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.level.block.BlockSkullShapeInfo;
 import net.minecraft.world.level.block.Blocks;
@@ -46,6 +47,7 @@ import org.lime.system.execute.Func1;
 import org.lime.system.json;
 import org.lime.system.toast.LockToast1;
 import org.lime.system.toast.Toast;
+import org.lime.system.utils.RandomUtils;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -60,12 +62,18 @@ public final class DisplayInstance extends BlockInstance implements
         CustomTileMetadata.Removeable
 {
     static int TIMEOUT_TICKS = 20;
+    public static int ANIMATION_DELTA = 1;
     public static CoreElement create() {
         return CoreElement.create(DisplayInstance.class)
                 .<JsonPrimitive>addConfig("config", v -> v
                         .withParent("display.timeout")
-                        .withDefault(new JsonPrimitive(20))
-                        .withInvoke(_v -> TIMEOUT_TICKS = _v.getAsInt())
+                        .withDefault(new JsonPrimitive(TIMEOUT_TICKS))
+                        .withInvoke(_v -> ANIMATION_DELTA = _v.getAsInt())
+                )
+                .<JsonPrimitive>addConfig("config", v -> v
+                        .withParent("display.animation.delta")
+                        .withDefault(new JsonPrimitive(ANIMATION_DELTA))
+                        .withInvoke(_v -> ANIMATION_DELTA = _v.getAsInt())
                 );
     }
 
@@ -309,12 +317,15 @@ public final class DisplayInstance extends BlockInstance implements
         tickTimeInfo.apply_ns += tickTimeInfo.nextTime();
     }
     private final ProxyMap<String, String> proxyVariables = ProxyMap.of(this.variables);
+    private final int ANIMATION_TICK_OFFSET = RandomUtils.rand(0, 10000);
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
         update_ticks = (update_ticks + 1) % TOTAL_UPDATE_TICKS;
         if (update_ticks == 0) markDirtyBlock(event.getWorld(), event.getPos());
         last_state.set0(event.getState());
-        component().animationTick(getAll(), this.proxyVariables, animationData);
-        if (proxyVariables.checkDirty(true)) variableDirty();
+        if ((MinecraftServer.currentTick + ANIMATION_TICK_OFFSET) % ANIMATION_DELTA == 0) {
+            component().animationTick(getAll(), this.proxyVariables, animationData);
+            if (proxyVariables.checkDirty(true)) variableDirty();
+        }
     }
     public void reshow() {
         partials.clear();

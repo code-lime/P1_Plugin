@@ -16,7 +16,7 @@ public final class DisplayMap extends TimeoutData.ITimeout {
     public final Map<UUID, ItemDisplayObject> viewMap = new HashMap<>();
     
     public DisplayMap(Map<UUID, ItemFrameDisplayObject> itemFrame, Map<BlockModelDisplay.BlockModelKey, ModelDisplayObject> models, Map<UUID, ItemDisplayObject> viewMap) {
-        super(DisplayInstance.TIMEOUT_TICKS);
+        super(DisplayInstance.ANIMATION_DELTA);
         this.frameMap.putAll(itemFrame);
         this.modelMap.putAll(models);
         this.viewMap.putAll(viewMap);

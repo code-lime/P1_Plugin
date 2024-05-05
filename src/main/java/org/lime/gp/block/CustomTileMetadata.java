@@ -1,6 +1,8 @@
 package org.lime.gp.block;
 
+import com.google.gson.JsonPrimitive;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.EnumHand;
 import net.minecraft.world.EnumInteractionResult;
 import net.minecraft.world.LimeKey;
@@ -33,6 +35,7 @@ import org.lime.system.toast.Toast;
 import org.lime.system.toast.Toast1;
 import org.lime.system.toast.Toast2;
 import org.lime.system.utils.IterableUtils;
+import org.lime.system.utils.RandomUtils;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -41,8 +44,14 @@ import java.util.stream.Stream;
 
 public class CustomTileMetadata extends TileMetadata {
     public static Position DEBUG_BLOCK = null;
+    public static int TILE_DELTA = 1;
     public static CoreElement create() {
         return CoreElement.create(CustomTileMetadata.class)
+                .<JsonPrimitive>addConfig("config", v -> v
+                        .withParent("tile.timeout.delta")
+                        .withDefault(new JsonPrimitive(TILE_DELTA))
+                        .withInvoke(_v -> TILE_DELTA = _v.getAsInt())
+                )
                 .addCommand("tmp.block.debug", v -> v.withCheck(ServerOperator::isOp)
                         .withUsage("/set.block [x:int,~] [y:int,~] [z:int,~]")
                         .withTab((sender, args) -> switch(args.length) {
@@ -198,6 +207,14 @@ public class CustomTileMetadata extends TileMetadata {
         public boolean markDirty() { return DisplayInstance.markDirtyBlock(position); }
     }
 
+    private void asyncTickTimeout() {
+        ChunkBlockTimeout timeout = new ChunkBlockTimeout(this, position());
+        boolean firstSync = TimeoutData.put(new ChunkGroup(timeout.worldUUID, timeout.pos), key.uuid(), ChunkBlockTimeout.class, timeout);
+        if (firstSync) timeout.markDirty();
+    }
+
+    private final int TIMEOUT_TICK_OFFSET = RandomUtils.rand(0, 10000);
+    private boolean isInit = true;
     @Override public void onTick(TileEntitySkullTickInfo event) {
         interactLocker.entrySet().forEach(kv -> kv.setValue(kv.getValue() - 1));
         interactLocker.entrySet().removeIf(kv -> kv.getValue() < 0);
@@ -223,21 +240,23 @@ public class CustomTileMetadata extends TileMetadata {
                             return v;
                         });
                     });
-                    ChunkBlockTimeout timeout = new ChunkBlockTimeout(this, position());
 
-                    boolean firstSync = TimeoutData.put(new ChunkGroup(event.getWorld().getWorld().getUID(), timeout.pos), key.uuid(), ChunkBlockTimeout.class, timeout);
+                    if (isInit || (MinecraftServer.currentTick + TIMEOUT_TICK_OFFSET) % TILE_DELTA == 0) {
+                        asyncTickTimeout();
+                        isInit = false;
+                    }
                     //if (debug) lime.logOP("Tick debug block!");
                     boolean firstTick = isFirst;
                     if (firstTick) isFirst = false;
                     list(Tickable.class).forEach(tickable -> tickable.onTick(this, event));
                     if (firstTick) list(FirstTickable.class).forEach(tickable -> tickable.onFirstTick(this, event));
-                    if (firstSync) timeout.markDirty();
                 }, () -> instances.entrySet().removeIf(kv -> {
                     kv.getValue().saveData();
                     return true;
                 }));
     }
     @Override public void onTickAsync(long tick) {
+        asyncTickTimeout();
         list(AsyncTickable.class).forEach(v -> v.onAsyncTick(this, tick));
     }
     @Override public void onRemove(TileEntitySkullEventRemove event) {
