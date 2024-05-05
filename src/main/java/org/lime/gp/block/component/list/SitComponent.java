@@ -55,6 +55,14 @@ public final class SitComponent extends ComponentStatic<JsonObject> implements C
         syncDisplayVariable(metadata);
         return EnumInteractionResult.CONSUME;
     }
+
+    public boolean isSit(Player player, CustomTileMetadata metadata) {
+        for (GSeat seat : GSitAPI.getSeats(metadata.block()))
+            if (seat.getEntity().equals(player))
+                return true;
+        return false;
+    }
+
     @Override public void onTick(CustomTileMetadata metadata, TileEntitySkullTickInfo event) {
         if (MinecraftServer.currentTick % 5 != 0) return;
         syncDisplayVariable(metadata);
