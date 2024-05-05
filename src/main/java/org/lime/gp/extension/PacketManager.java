@@ -11,26 +11,37 @@ import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.lime.gp.lime;
+import org.lime.system.execute.Action1;
+import org.lime.system.execute.Action2;
 import org.lime.system.list;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+
 import java.util.*;
 import java.util.stream.Stream;
 
 public class PacketManager {
-    public static void sendPacket(Player player, Packet<?> packet) {
-        ((CraftPlayer)player).getHandle().connection.send(packet);
+    public static boolean sendPacket(Player player, Packet<?> packet) {
+        if (!(player instanceof CraftPlayer handle)) return false;
+        PlayerConnection playerConnection = handle.getHandle().connection;
+        if (playerConnection == null) return false;
+        playerConnection.send(packet);
+        return true;
     }
-    public static void sendPackets(Player player, List<Packet<?>> packets) {
-        PlayerConnection playerConnection = ((CraftPlayer)player).getHandle().connection;
+    public static boolean sendPackets(Player player, List<Packet<?>> packets) {
+        if (!(player instanceof CraftPlayer handle)) return false;
+        PlayerConnection playerConnection = handle.getHandle().connection;
+        if (playerConnection == null) return false;
         packets.forEach(playerConnection::send);
+        return true;
     }
-    public static void sendPackets(Player player, Stream<Packet<?>> packets) {
-        PlayerConnection playerConnection = ((CraftPlayer)player).getHandle().connection;
+    public static boolean sendPackets(Player player, Stream<Packet<?>> packets) {
+        if (!(player instanceof CraftPlayer handle)) return false;
+        PlayerConnection playerConnection = handle.getHandle().connection;
+        if (playerConnection == null) return false;
         packets.forEach(playerConnection::send);
+        return true;
     }
-    public static void sendPackets(Player player, Packet<?>... packets) {
-        sendPackets(player, Arrays.asList(packets));
+    public static boolean sendPackets(Player player, Packet<?>... packets) {
+        return sendPackets(player, Arrays.asList(packets));
     }
     public static net.minecraft.world.entity.Entity getEntityHandle(Entity entity) {
         return ((CraftEntity)entity).getHandle();
