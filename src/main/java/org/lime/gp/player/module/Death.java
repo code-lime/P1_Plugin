@@ -567,10 +567,8 @@ public class Death implements Listener {
         }
         if (!dieCooldown.containsKey(uuid)) return;
         switch (e.getCause()) {
-            case FIRE:
             case LAVA:
-            case DROWNING:
-            case FIRE_TICK: kill(player, Reason.CAUSE); break;
+            case DROWNING: kill(player, Reason.CAUSE); break;
             case SUFFOCATION:
                 if (!((CraftPlayer)player).getHandle().isInWall()) kill(player, Reason.CAUSE);
                 break;
