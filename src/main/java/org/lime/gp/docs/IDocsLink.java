@@ -22,6 +22,7 @@ public interface IDocsLink {
     IIndexDocs formattedText();
     IIndexDocs formattedJson();
     IIndexDocs potionEffect();
+    IIndexDocs particleType();
     IIndexDocs itemFlag();
     IIndexDocs enchantment();
     IIndexDocs giveItem();

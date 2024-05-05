@@ -4,10 +4,10 @@ import org.lime.docs.IIndexDocs;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.path.DocsFolder;
 import org.lime.gp.block.component.ComponentStatic;
+import org.lime.gp.item.elemental.Elemental;
 import org.lime.gp.item.loot.ILoot;
 import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.lime;
-import org.lime.gp.player.menu.page.Menu;
 import org.lime.plugin.CoreElement;
 
 import java.util.Comparator;
@@ -47,6 +47,9 @@ public class Docs {
                 .file("components", _v -> _v
                         .add(IIndexGroup.empty("Настройки блоков", "components", null)
                                 .withChilds(ComponentStatic.allDocs(link).sorted(Comparator.comparing(IIndexDocs::index)).toList())))
+                .file("elemental", _v -> _v
+                        .add(IIndexGroup.empty("Элементал", "elemental", null)
+                                .withChilds(Elemental.docs(link))))
         ;
 
         if (root.save(lime.getConfigFile("").toPath())) {

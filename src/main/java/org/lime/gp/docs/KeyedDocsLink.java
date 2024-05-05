@@ -20,6 +20,7 @@ public abstract class KeyedDocsLink implements IDocsLink {
     @Override public IDocsTypes builderTypes() { return mapTypes(base::builderTypes); }
 
     @Override public IIndexDocs vanillaMaterial() { return map("vanillaMaterial", base::vanillaMaterial); }
+    @Override public IIndexDocs particleType() { return map("particleType", base::particleType); }
     @Override public IIndexDocs formatted() { return map("formatted", base::formatted); }
     @Override public IIndexDocs formattedChat() { return map("formattedChat", base::formattedChat); }
     @Override public IIndexDocs formattedText() { return map("formattedText", base::formattedText); }

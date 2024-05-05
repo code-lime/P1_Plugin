@@ -2,6 +2,7 @@ package org.lime.gp.docs;
 
 import com.google.common.collect.ImmutableList;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
@@ -54,6 +55,7 @@ public final class SourceDocsLink implements IDocsLink {
     @Override public IDocsTypes builderTypes() { return SourceDocsTypes.source(cache, base()); }
 
     @Override public IIndexGroup vanillaMaterial() { return remoteGroup("VANILLA_MATERIAL", Material.class); }
+    @Override public IIndexDocs particleType() { return remoteGroup("PARTICLE_TYPE", Particle.class); }
     @Override public IIndexGroup formatted() {
         return IIndexGroup.raw("FORMATTED", null, () -> Stream.of(
                 "Текст, в котором происходит замена `args` элементов.",

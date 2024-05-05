@@ -18,6 +18,7 @@ public final class TempDocsLink implements IDocsLink {
     @Override public IDocsTypes builderTypes() { return this.builderTypes; }
 
     @Override public IIndexDocs vanillaMaterial() { return this.temp; }
+    @Override public IIndexDocs particleType() { return this.temp; }
     @Override public IIndexDocs formatted() { return this.temp; }
     @Override public IIndexDocs formattedChat() { return this.temp; }
     @Override public IIndexDocs formattedText() { return this.temp; }
