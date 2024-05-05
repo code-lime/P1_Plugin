@@ -3,7 +3,6 @@ package org.lime.gp.block.component;
 import com.google.gson.*;
 import org.lime.ToDoException;
 import org.lime.docs.IIndexGroup;
-import org.lime.docs.IParent;
 import org.lime.docs.json.IComment;
 import org.lime.docs.json.IJElement;
 import org.lime.docs.json.JsonGroup;
@@ -12,7 +11,6 @@ import org.lime.gp.block.CustomTileMetadata;
 import org.lime.gp.block.component.display.IDisplayVariable;
 import org.lime.gp.block.component.list.DisplayComponent;
 import org.lime.gp.docs.IDocsLink;
-import org.lime.gp.item.settings.ItemSetting;
 import org.lime.gp.lime;
 import org.lime.system.execute.Execute;
 import org.lime.system.toast.Toast;
@@ -35,6 +33,16 @@ public abstract class ComponentStatic<T extends JsonElement> implements CustomTi
         Class<?> tClass();
 
         String key();
+
+        private JsonGroup variableInfo(IDocsLink docs, IJElement element) {
+            return JsonGroup.of(
+                    "Устанавливаемые параметры оторбражения блока",
+                    key() + ".display_variable",
+                    element,
+                    IComment.text("Используется в ").append(IComment.link(docs.componentsLink(DisplayComponent.class)))
+            );
+        }
+
         default IIndexGroup docs(IDocsLink docs) {
             try {
                 ComponentStatic<?> component = (ComponentStatic<?>) unsafe.createInstance(tClass());
@@ -42,18 +50,23 @@ public abstract class ComponentStatic<T extends JsonElement> implements CustomTi
                 List<IJElement> variables = new ArrayList<>();
                 if (component instanceof ComponentDynamic<?, ?> dynamic) {
                     Class<?> classInstance = dynamic.classInstance();
-                    if (classInstance != null && unsafe.createInstance(dynamic.classInstance()) instanceof IDisplayVariable instance)
-                        variables.add(instance.docsDisplayVariable());
+                    if (classInstance != null && unsafe.createInstance(dynamic.classInstance()) instanceof IDisplayVariable instance) {
+                        try {
+                            variables.add(instance.docsDisplayVariable());
+                        } catch (ToDoException todo) {
+                            group = group.withChild(variableInfo(docs, IJElement.raw("TODO: " + todo.getMessage())));
+                        }
+                    }
                 }
-                if (component instanceof IDisplayVariable instance)
-                    variables.add(instance.docsDisplayVariable());
+                if (component instanceof IDisplayVariable instance) {
+                    try {
+                        variables.add(instance.docsDisplayVariable());
+                    } catch (ToDoException todo) {
+                        group = group.withChild(variableInfo(docs, IJElement.raw("TODO: " + todo.getMessage())));
+                    }
+                }
                 if (!variables.isEmpty()) {
-                    group = group.withChild(JsonGroup.of(
-                            "Устанавливаемые параметры оторбражения блока",
-                            key() + ".display_variable",
-                            IJElement.concat(" & ", variables.toArray(IJElement[]::new)),
-                            IComment.text("Используется в ").append(IComment.link(docs.componentsLink(DisplayComponent.class)))
-                    ));
+                    group = group.withChild(variableInfo(docs, IJElement.concat(" & ", variables.toArray(IJElement[]::new))));
                 }
                 return group;
             } catch (ToDoException todo) {
