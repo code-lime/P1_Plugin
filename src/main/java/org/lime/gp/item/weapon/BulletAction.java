@@ -10,7 +10,6 @@ import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.Elemental;
 import org.lime.gp.item.settings.use.target.EntityTarget;
 import org.lime.gp.item.settings.use.target.ITarget;
-import org.lime.gp.item.settings.use.target.PlayerTarget;
 import org.lime.gp.player.module.Knock;
 import org.lime.json.JsonElementOptional;
 import org.lime.system.execute.Action1;
@@ -52,7 +51,7 @@ public enum BulletAction implements IEnumDocs {
             IComment.text(" (Если не указано: 2)"),
             IComment.text(" секунды вызывает горение")
     )),
-    ELEMENTAL((value, target) -> target.castToPlayer().map(PlayerTarget::getPlayer).ifPresent(player -> value.getAsString().ifPresent(v -> Elemental.execute(player, new DataContext(), v))), IComment.join(
+    ELEMENTAL((value, target) -> target.castToLocation().ifPresent(location -> value.getAsString().ifPresent(v -> Elemental.execute(location, new DataContext(), v))), IComment.join(
             IComment.text("Вызывает элементаль "),
             IComment.field("bullet_data")
     ));

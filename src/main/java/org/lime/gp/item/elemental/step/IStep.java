@@ -3,24 +3,20 @@ package org.lime.gp.item.elemental.step;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
-import org.bukkit.entity.Player;
 import org.lime.docs.IIndexGroup;
-import org.lime.docs.json.JObject;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.Elemental;
 import org.lime.gp.item.elemental.step.action.NoneStep;
 import org.lime.gp.item.elemental.step.action.OtherStep;
 import org.lime.gp.item.elemental.step.group.ListStep;
+import org.lime.gp.item.settings.use.target.ILocationTarget;
 import org.lime.unsafe;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
-
 public interface IStep<T extends IStep<T>> {
-    void execute(Player player, DataContext context, Transformation location);
+    void execute(ILocationTarget target, DataContext context, Transformation location);
     T parse(JsonObject json);
-    //JObject docs(IDocsLink docs);
+    IIndexGroup docs(String index, IDocsLink docs);
 
     static IStep<?> parse(JsonElement raw) {
         if (raw.isJsonNull()) return NoneStep.instance();

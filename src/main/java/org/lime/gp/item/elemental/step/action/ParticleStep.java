@@ -13,25 +13,35 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
+import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.DataContext;
 import org.lime.gp.item.elemental.Step;
 import org.lime.gp.item.elemental.step.IStep;
+import org.lime.gp.item.settings.use.target.ILocationTarget;
+import org.lime.gp.item.settings.use.target.PlayerTarget;
 import org.lime.json.JsonObjectOptional;
 import org.lime.system.utils.MathUtils;
 
+import javax.annotation.Nullable;
+
 @Step(name = "particle")
 public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self) implements IStep<ParticleStep> {
-    @Override public void execute(Player player, DataContext context, Transformation position) {
-        Location location = MathUtils.convert(position.getTranslation()).toLocation(player.getWorld());
+    @Override public void execute(ILocationTarget target, DataContext context, Transformation position) {
+        Location location = MathUtils.convert(position.getTranslation()).toLocation(target.getWorld());
+        @Nullable Player player = target.castToPlayer().map(PlayerTarget::getPlayer).orElse(null);
+
         ParticleBuilder particle = this.particle.source(player).location(location);
         if (radius.isZero()) {
             if (!self) return;
             particle.receivers(player).spawn();
             return;
         }
-        particle.receivers(location.getNearbyPlayers(radius.getX(), radius.getY(), radius.getZ())).spawn();
+        particle.receivers(location.getNearbyPlayers(radius.getX(), radius.getY(), radius.getZ())
+                .stream()
+                .filter(v -> self || v != player)
+                .toList()).spawn();
     }
 
     public static ParticleBuilder parseParticle(JsonObject json) {
@@ -86,20 +96,55 @@ public record ParticleStep(ParticleBuilder particle, Vector radius, boolean self
                 json.get("self").getAsBoolean()
         );
     }
-    /*@Override public JObject docs(IDocsLink docs) {
-        return JObject.of(
-                JProperty.require(IName.raw("material"), IJElement.link(docs.vanillaMaterial()), IComment.text("Тип блока")),
-                JProperty.optional(IName.raw("states"), IJElement.anyObject(
-                        JProperty.require(IName.raw("KEY"), IJElement.raw("VALUE"))
-                ), IComment.text("Параметры блока")),
+    @Override public IIndexGroup docs(String index, IDocsLink docs) {
+        IIndexGroup color = JsonGroup.of("COLOR", JObject.of(
+                JProperty.optional(IName.raw("color"), IJElement.raw("#FFFFFF"), IComment.text("HEX цвет")),
+                JProperty.optional(IName.raw("size"), IJElement.raw(1.0))
+        ), IComment.text("Particle.DustOptions"));
+        IIndexGroup item = JsonGroup.of("ITEM", JObject.of(
+                JProperty.optional(IName.raw("type"), IJElement.link(docs.vanillaMaterial())),
+                JProperty.optional(IName.raw("id"), IJElement.raw(10), IComment.text("CustomModelData"))
+        ), IComment.text("ItemStack"));
+        IIndexGroup block = JsonGroup.of("BLOCK", JObject.of(
+                JProperty.optional(IName.raw("type"), IJElement.link(docs.vanillaMaterial()))
+        ), IComment.text("BlockData"));
+        IIndexGroup deltaColor = JsonGroup.of("DELTA_COLOR", JObject.of(
+                JProperty.optional(IName.raw("from_color"), IJElement.raw("#FFFFFF"), IComment.text("HEX цвет")),
+                JProperty.optional(IName.raw("to_color"), IJElement.raw("#FFFFFF"), IComment.text("HEX цвет")),
+                JProperty.optional(IName.raw("size"), IJElement.raw(1.0))
+        ), IComment.text("Particle.DustTransition"));
+        IIndexGroup floatValue = JsonGroup.of("FLOAT", JObject.of(
+                JProperty.require(IName.raw("value"), IJElement.raw(0.0))
+        ), IComment.text("Float value"));
+        IIndexGroup intValue = JsonGroup.of("INTEGER", JObject.of(
+                JProperty.require(IName.raw("value"), IJElement.raw(0))
+        ), IComment.text("Integer value"));
+
+        IIndexGroup DATA = JsonEnumInfo.of("DATA")
+                .add(IJElement.link(color))
+                .add(IJElement.link(item))
+                .add(IJElement.link(block))
+                .add(IJElement.link(deltaColor))
+                .add(IJElement.link(floatValue))
+                .add(IJElement.link(intValue))
+                .withChilds(color, item, block, deltaColor, floatValue, intValue);
+
+        return JsonGroup.of(index, JObject.of(
                 JProperty.require(IName.raw("radius"), IJElement.link(docs.vector()), IComment.join(
                         IComment.text("Игроки, находящиеся в данном радиус увидят влияние. Если радиус равен "),
                         IComment.raw("0 0 0"),
                         IComment.text(" то влияние увидит только текущий игрок")
                 )),
-                JProperty.require(IName.raw("self"), IJElement.bool(), IComment.text("Видит ли текущий игрок влияние")),
-                JProperty.require(IName.raw("undo_sec"), IJElement.raw(5.5), IComment.text("Время, через которое влияние пропадет")),
-                JProperty.require(IName.raw("force"), IJElement.bool(), IComment.text("Влияет ли влияние на незаменяемые блоки (камень, земля)"))
-        );
-    }*/
+                JProperty.require(IName.raw("self"), IJElement.bool(), IComment.text("Видит ли текущий игрок частицы")),
+                JProperty.require(IName.raw("particle"), JObject.of(
+                        JProperty.require(IName.raw("type"), IJElement.link(docs.particleType()), IComment.text("Название частицы")),
+                        JProperty.optional(IName.raw("count"), IJElement.raw(10), IComment.text("Количество частиц")),
+                        JProperty.optional(IName.raw("offset"), IJElement.link(docs.vector()), IComment.text("Разброс частиц")),
+                        JProperty.optional(IName.raw("extra"), IJElement.raw(2.0), IComment.text("Скорость частиц")),
+                        JProperty.optional(IName.raw("force"), IJElement.bool(), IComment.text("Отобразить частицы дальше 32х блоков")),
+                        JProperty.optional(IName.raw("data"), IJElement.link(DATA), IComment.text("Дополнительные параметры частиц"))
+                ), IComment.text("Настройка частиц"))
+        ), IComment.text("Вызывает новый элементаль с существующим контентом"))
+                .withChilds(DATA);
+    }
 }

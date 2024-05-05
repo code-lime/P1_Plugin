@@ -2,7 +2,6 @@ package org.lime.gp.item.weapon;
 
 import com.google.gson.JsonPrimitive;
 import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.entity.player.EntityHuman;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -15,10 +14,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
-import org.lime.core;
 import org.lime.display.Passenger;
-import org.lime.plugin.CoreElement;
-import org.lime.display.Displays;
 import org.lime.display.transform.LocalLocation;
 import org.lime.display.transform.Transform;
 import org.lime.gp.extension.Cooldown;
@@ -29,12 +25,13 @@ import org.lime.gp.item.settings.list.WeaponSetting;
 import org.lime.gp.lime;
 import org.lime.gp.player.ui.ImageBuilder;
 import org.lime.gp.sound.Sounds;
-import org.lime.system.toast.*;
-import org.lime.system.execute.*;
+import org.lime.plugin.CoreElement;
 import org.lime.system.utils.EnumUtils;
 import org.lime.system.utils.RandomUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class WeaponData {
     private static boolean WEAPON_SIT_LOCK = true;
@@ -139,7 +136,7 @@ public class WeaponData {
     }
     public void update(Player player, WeaponSetting weapon, CraftItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(weapon.weaponDisplay(this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo));
+        meta.setCustomModelData(weapon.weaponDisplay(player.getUniqueId(), this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo));
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(STATE_KEY, PersistentDataType.STRING, state.name());
         item.setItemMeta(meta);
@@ -152,7 +149,7 @@ public class WeaponData {
         WeaponSetting.Pose pose = weapon.poses.getOrDefault(this.pose, null);
         if (pose == null) return;
         ItemMeta meta = item.getItemMeta();
-        int custom_model_data = weapon.weaponDisplay(this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo);
+        int custom_model_data = weapon.weaponDisplay(player.getUniqueId(), this.pose, WeaponSetting.getMagazine(item).map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), ammo);
         if (meta.hasCustomModelData() && custom_model_data == meta.getCustomModelData()) return;
         meta.setCustomModelData(custom_model_data);
         item.setItemMeta(meta);
@@ -247,7 +244,7 @@ public class WeaponData {
         if (WeaponLoader.data.containsKey(player.getUniqueId())) return;
         ItemMeta meta = item.getItemMeta();
         Optional<ItemStack> magazine = WeaponSetting.getMagazine(item);
-        int custom_model_data = weapon.weaponDisplay(Pose.def(weapon), magazine.map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), magazine.flatMap(MagazineSetting::getBullets).map(List::size).orElse(0));
+        int custom_model_data = weapon.weaponDisplay(player.getUniqueId(), Pose.def(weapon), magazine.map(ItemStack::getItemMeta).filter(ItemMeta::hasCustomModelData).map(ItemMeta::getCustomModelData).orElse(null), magazine.flatMap(MagazineSetting::getBullets).map(List::size).orElse(0));
         if (meta.hasCustomModelData() && custom_model_data == meta.getCustomModelData()) return;
         meta.setCustomModelData(custom_model_data);
         item.setItemMeta(meta);

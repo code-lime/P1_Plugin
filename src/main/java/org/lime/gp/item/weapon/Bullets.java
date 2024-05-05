@@ -46,6 +46,7 @@ import org.lime.gp.access.ReflectionAccess;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
 import org.lime.gp.item.settings.list.BulletSetting;
+import org.lime.gp.item.settings.use.target.BlockTarget;
 import org.lime.gp.item.settings.use.target.EntityTarget;
 import org.lime.gp.lime;
 import org.lime.gp.module.ArrowBow;
@@ -224,6 +225,11 @@ public class Bullets implements Listener {
                                 .flatMap(v -> v.getOptional(BulletSetting.class))
                                 .ifPresent(bullet -> bullet.playSound(_block.getNMS(), _arrow.getLocation()));
                         arrow.setSoundEvent(SOUND_EFFECT_NONE);
+                        Optional.ofNullable(_arrow.getPersistentDataContainer().get(ARROW_ITEM_ID_KEY, PersistentDataType.INTEGER))
+                                .map(Items.creators::get)
+                                .map(v -> v instanceof ItemCreator c ? c : null)
+                                .flatMap(v -> v.getOptional(BulletSetting.class))
+                                .ifPresent(v -> v.bullet_action.execute(v.bullet_data, new BlockTarget(_block)));
                         world.getBlockEntity(_block.getPosition(), TileEntityTypes.SKULL)
                                 .map(v -> v instanceof TileEntityLimeSkull skull ? skull : null)
                                 .flatMap(TileEntityLimeSkull::customKey)

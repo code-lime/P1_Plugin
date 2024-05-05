@@ -1,26 +1,25 @@
 package org.lime.gp.item.settings.list;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-
+import com.google.gson.JsonObject;
+import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
 import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.*;
+import org.lime.gp.item.settings.ItemSetting;
+import org.lime.gp.item.settings.Setting;
 import org.lime.gp.item.weapon.BulletAction;
 import org.lime.gp.sound.SoundMaterial;
 import org.lime.gp.sound.Sounds;
-
-import com.google.gson.JsonObject;
-
-import net.minecraft.world.level.block.state.IBlockData;
 import org.lime.json.JsonElementOptional;
 import org.lime.json.JsonNullOptional;
 import org.lime.system.utils.EnumUtils;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Setting(name = "bullet") public class BulletSetting extends ItemSetting<JsonObject> {
     public final String bullet_type;
@@ -70,7 +69,7 @@ import org.lime.system.utils.EnumUtils;
         IIndexGroup bulletAction = JsonEnumInfo.of("BULLET_ACTION", BulletAction.class);
         return JsonGroup.of(index, index, JObject.of(
                 JProperty.require(IName.raw("bullet_type"), IJElement.raw("BULLET_TYPE"), IComment.text("Пользвательский тип патрона")),
-                JProperty.require(IName.raw("bullet_data"), IJElement.link(docs.json()), IComment.text("Данные патрона")),
+                JProperty.optional(IName.raw("bullet_data"), IJElement.link(docs.json()), IComment.text("Данные патрона")),
                 JProperty.optional(IName.raw("count"), IJElement.raw(1), IComment.text("Количество вылетающих пуль")),
                 JProperty.require(IName.raw("damage"), IJElement.raw(1.5), IComment.text("Урон одной вылетающей пули")),
                 JProperty.optional(IName.raw("time"),

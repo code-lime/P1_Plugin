@@ -1,8 +1,9 @@
 package org.lime.gp.item.settings.list;
 
-import java.util.*;
-
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -10,30 +11,25 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
-import org.lime._system;
 import org.lime.display.models.ExecutorJavaScript;
 import org.lime.display.models.IExecutor;
-import org.lime.display.models.JavaScriptChild;
 import org.lime.docs.IIndexGroup;
 import org.lime.docs.json.*;
-import org.lime.gp.docs.IDocsLink;
-import org.lime.gp.lime;
 import org.lime.gp.chat.Apply;
 import org.lime.gp.chat.ChatHelper;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.Items;
 import org.lime.gp.item.data.ItemCreator;
-import org.lime.gp.item.settings.*;
+import org.lime.gp.item.settings.ItemSetting;
+import org.lime.gp.item.settings.Setting;
 import org.lime.gp.item.weapon.WeaponData;
+import org.lime.gp.lime;
 import org.lime.gp.module.JavaScript;
 import org.lime.gp.player.ui.ImageBuilder;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import net.kyori.adventure.text.format.TextColor;
-import org.lime.system.execute.Execute;
 import org.lime.system.utils.ItemUtils;
 import org.lime.system.utils.MathUtils;
+
+import java.util.*;
 
 @Setting(name = "weapon") public class WeaponSetting extends ItemSetting<JsonObject> {
     public static final NamespacedKey MAGAZINE_KEY = new NamespacedKey(lime._plugin, "magazine");
@@ -174,8 +170,9 @@ import org.lime.system.utils.MathUtils;
         );
     }
 
-    public int weaponDisplay(WeaponData.Pose pose, Integer magazine_id, int bullet_count) {
+    public int weaponDisplay(UUID uuid, WeaponData.Pose pose, Integer magazine_id, int bullet_count) {
         Map<String, Object> args = Map.of(
+                "uuid", uuid.toString(),
                 "pose", pose.name(),
                 "magazine_id", magazine_id == null ? "" : String.valueOf(magazine_id),
                 "bullet_count", String.valueOf(bullet_count)

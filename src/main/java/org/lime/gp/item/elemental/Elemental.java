@@ -1,23 +1,30 @@
 package org.lime.gp.item.elemental;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
 import org.bukkit.entity.Player;
+import org.lime.ToDoException;
+import org.lime.docs.IIndexDocs;
+import org.lime.docs.IIndexGroup;
+import org.lime.docs.json.*;
 import org.lime.gp.admin.AnyEvent;
+import org.lime.gp.docs.IDocsLink;
 import org.lime.gp.item.elemental.step.IStep;
 import org.lime.gp.item.settings.use.target.ILocationTarget;
+import org.lime.gp.item.settings.use.target.PlayerTarget;
 import org.lime.gp.lime;
 import org.lime.plugin.CoreElement;
 import org.lime.reflection;
 import org.lime.system.execute.Execute;
 import org.lime.system.toast.Toast;
 import org.lime.system.utils.MathUtils;
+import org.lime.unsafe;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class Elemental {
     public static CoreElement create() {
@@ -69,16 +76,51 @@ public class Elemental {
         Elemental.steps.clear();
         Elemental.steps.putAll(steps);
     }
-    public static void execute(Player target, DataContext context, String elemental) {
+    public static void execute(Player player, DataContext context, String elemental) {
+        execute(player, context, elemental, MathUtils.transformation(player.getLocation()));
+    }
+    public static void execute(ILocationTarget target, DataContext context, String elemental) {
         execute(target, context, elemental, MathUtils.transformation(target.getLocation()));
     }
     public static void execute(Player player, DataContext context, String elemental, Transformation location) {
+        execute(new PlayerTarget(player), context, elemental, location);
+    }
+    public static void execute(ILocationTarget target, DataContext context, String elemental, Transformation location) {
         IStep<?> step = steps.get(elemental);
         if (step == null) {
             lime.logOP("Elemental '"+elemental+"' not funded!");
             return;
         }
-        step.execute(player, context, location);
+        step.execute(target, context, location);
+    }
+
+    public static IIndexGroup docs(IDocsLink docs) {
+        List<IIndexGroup> builders = Elemental.stepsClasses.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(kv -> docs(kv.getKey(), kv.getValue(), docs))
+                .sorted(Comparator.comparing(IIndexDocs::index))
+                .toList();
+        return JsonEnumInfo.of("ELEMENTAL",
+                Stream.<IJElement>concat(
+                        Stream.of(
+                                IJElement.anyList(IJElement.linkCurrent()),
+                                IJElement.link(docs.elementalName())
+                        ),
+                        builders.stream().map(IJElement::link)
+                ).collect(ImmutableList.toImmutableList())
+        ).withChilds(builders);
+    }
+    private static IIndexGroup docs(String key, Class<? extends IStep<?>> tClass, IDocsLink docs) {
+        try {
+            IStep<?> setting = unsafe.createInstance(tClass);
+            IIndexGroup dat = setting.docs(key.replace(".", "_").toUpperCase(), docs);
+            return dat instanceof JsonGroup group && group.element() instanceof JObject json
+                    ? new JsonGroup(group.title(), group.index(), json.addFirst(JProperty.require(IName.raw("type"), IJElement.raw(key))), group.comments())
+                    : dat;
+        } catch (ToDoException todo) {
+            return IIndexGroup.raw(key, null, v -> Stream.of(IComment.warning("TODO: " + todo.getMessage()).line(v)));
+        }
     }
 }
 
